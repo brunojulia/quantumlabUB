@@ -1,5 +1,5 @@
 """
-This script creates a matplotlib animation of the results of the script cn1d.py
+This script creates a matplotlib animation and a gif of the results of the script cn1d.py
 """
 
 import numpy as np
@@ -45,4 +45,5 @@ def animate(i):
 anim = animation.FuncAnimation(fig, animate, init_func=init,
                                frames=frames, interval=1, blit=True)
 
+anim.save('psit.gif', dpi=80, writer='imagemagick')
 plt.show()

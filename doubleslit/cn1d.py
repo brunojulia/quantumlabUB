@@ -1,6 +1,6 @@
 """
 An implementation of the Crank-Nicolson implicit method for solving
-the time dependent Schrödinger's equation in one dimension.
+the time dependent Schrödinger's equation in one dimension for an arbitrary V
 
 The method uses tridiagonal matrices extensively. They are stored in the
 following way:
@@ -178,6 +178,7 @@ def crank_nicolson1D(x, psi0, V, t0 = 0, tmax = 5, dt = 0.01):
     iterations = int((tmax-t0)/dt)
     psit = np.zeros([iterations, len(x)], dtype = np.complex)
     times = []
+    dx = x[1]-x[0]
 
     #1D array containing the wavefunction
     psi = psi0(x)
