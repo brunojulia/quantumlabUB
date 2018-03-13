@@ -1,3 +1,7 @@
+"""
+This script creates a matplotlib animation of the results of the script cn1d.py
+"""
+
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib import animation
@@ -40,6 +44,5 @@ def animate(i):
 
 anim = animation.FuncAnimation(fig, animate, init_func=init,
                                frames=frames, interval=1, blit=True)
-
 
 plt.show()
