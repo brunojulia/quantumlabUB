@@ -14,7 +14,7 @@ y = np.loadtxt("y2d.dat")
 frames = psit.shape[0]
 fig = plt.figure()
 ax = plt.axes()
-im = ax.imshow(np.absolute(psit[0])**2, cmap = "gray")
+im = ax.imshow(np.absolute(psit[0])**2)
 
 def init():
     im.set_array(np.absolute(psit[0])**2)

@@ -21,14 +21,14 @@ from scipy.integrate import simps
 
 def psi0(x, y):
     """
-    La funció d'ona a t = 0
+    Wave function at t = 0
     """
     x0 = 0
     y0 = 0
     s = 0.5
     p0 = 0.0/Lx
     r2 = (x-x0)**2 + (y-y0)**2
-    return np.exp(-1j*p0*x)*np.exp(-r2/(4*s**2))/(2*s**2*np.pi)**(.25)
+    return np.exp(-1j*p0*x)*np.exp(-r2/(4*s**2))/(2*s**2*np.pi)**(.5)
 
 def Ai_diagonals(N, r):
     """
@@ -169,14 +169,14 @@ def crank_nicolson2D(x, y, psi0, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
 
 if __name__ == '__main__':
     Lx = 5.0
-    Ny = 100
-    Nx = 100
+    Ny = 200
+    Nx = 200
     dx = 2*Lx/Nx
     Ly = Ny*dx/2
 
     x, y = np.meshgrid(np.arange(-Lx, Lx, dx), np.arange(-Ly, Ly, dx))
 
-    psit, times = crank_nicolson2D(x, y, psi0, tmax = 3)
+    psit, times = crank_nicolson2D(x, y, psi0, tmax = 1.5)
 
     print("Saving to file")
     np.save("psit2d.npy", psit)
