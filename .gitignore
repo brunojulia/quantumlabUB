@@ -1,0 +1,4 @@
+.ropeproject/
+*.dat
+*.npy
+.DS_Store
