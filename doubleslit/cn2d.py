@@ -18,6 +18,8 @@ a[0] = 0
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import simps
+from time import time
+from numba import jit
 
 def psi0(x, y):
     """
@@ -42,6 +44,7 @@ def Ai_diagonals(N, r):
 
     return a, b, c
 
+@jit
 def compute_bx(row, psi, r):
     """
     Row is the row index.
@@ -57,6 +60,7 @@ def compute_bx(row, psi, r):
 
     return bx + (1-2*r)*psi[row,:]
 
+@jit
 def compute_by(col, psip, r):
     """
     Col is the column index
@@ -71,6 +75,7 @@ def compute_by(col, psip, r):
 
     return by + (1-2*r)*psip[:,col]
 
+@jit
 def tridiag(a, b, c, d):
     """
     Analogous to the function tridiag.f
@@ -97,6 +102,7 @@ def tridiag(a, b, c, d):
 
     return x
 
+@jit
 def crank_nicolson2D(x, y, psi0, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
     """
     Runs the Crank-Nicolson method in an infinie well defined by x.
@@ -176,7 +182,9 @@ if __name__ == '__main__':
 
     x, y = np.meshgrid(np.arange(-Lx, Lx, dx), np.arange(-Ly, Ly, dx))
 
+    starttime = time()
     psit, times = crank_nicolson2D(x, y, psi0, tmax = 1.5)
+    print(time()-starttime)
 
     print("Saving to file")
     np.save("psit2d.npy", psit)

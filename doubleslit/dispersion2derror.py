@@ -30,19 +30,15 @@ plt.xlabel("time")
 plt.xlim(t.min(), t.max())
 
 #<r>:
-plt.plot(t, r_mean, label = "$<r>$")
-plt.plot(t, sigma(t)*np.sqrt(np.pi/2), "--", label = "$\sigma(t)\sqrt{\pi/2}$")
+plt.plot(t, np.abs(sigma(t)*np.sqrt(np.pi/2)-r_mean), label = "$\sigma(t)\sqrt{\pi/2} - <r>$")
 #<r^2>:
-plt.plot(t, r2_mean, label = "$<r^2>$")
-plt.plot(t, 2*sigma(t)**2, "--", label = "$ 2\sigma (t) ^2$")
+plt.plot(t, np.abs(2*sigma(t)**2 - r2_mean), label = "$ 2\sigma (t) ^2-<r^2>$")
 
 #sigma
-plt.plot(t, np.sqrt(r2_mean - r_mean**2), label = "$\sqrt{<r^2>-<r>^2}$")
-plt.plot(t, sigma(t)*np.sqrt(2-np.pi/2), "--", label = "$ \sigma (t) \sqrt{2-\pi/2}$")
-
+plt.plot(t, np.abs(sigma(t)*np.sqrt(2-np.pi/2) - np.sqrt(r2_mean - r_mean**2)), label = "$ \sigma (t) \sqrt{2-\pi/2}-(\sqrt{<r^2>-<r>^2})$")
 
 plt.legend()
 plt.show()
 
 fig.set_size_inches(7,7)
-fig.savefig("dispersio.png")
+fig.savefig("errordispersio.png")
