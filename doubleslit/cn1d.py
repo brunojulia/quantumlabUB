@@ -23,8 +23,8 @@ def psi0(x):
     La funció d'ona a t = 0
     """
     x0 = 0
-    s = 2
-    p0 = 200.0/Lx
+    s = np.sqrt(1/2)
+    p0 = 0.0/Lx
     return np.exp(-1j*p0*x)*np.exp(-(x-x0)**2/(4*s**2))/(2*s**2*np.pi)**(.25)
 
 def Vbarrera(x):
@@ -208,13 +208,17 @@ def crank_nicolson1D(x, psi0, V, t0 = 0, tmax = 5, dt = 0.01):
 def Vfree(x):
     return 0*x
 
+def Vhooke(x, w = 1, m = 1):
+    return 0.5*m*(w*x)**2
+
+
 if __name__ == '__main__':
-    Lx = -17
-    N = 500
+    Lx = -10
+    N = 300
     dx = 2*Lx/N
 
     x = np.arange(-Lx, Lx, dx)
-    psit, times = crank_nicolson1D(x, psi0, Vfree)
+    psit, times = crank_nicolson1D(x, psi0, Vhooke, tmax = 2)
     np.savetxt("psit.dat", psit.view(float))
     np.savetxt("times.dat", times)
     np.savetxt("x.dat", x)
