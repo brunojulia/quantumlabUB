@@ -1,28 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
+#plt.rc('text', usetex=True)
+plt.tight_layout()
 
-def trapz2d(z,x=None,y=None,dx=1.,dy=1.):
-    ''' Integrates a regularly spaced 2D grid using the composite trapezium rule.
-    IN:
-       z : 2D array
-       x : (optional) grid values for x (1D array)
-       y : (optional) grid values for y (1D array)
-       dx: if x is not supplied, set it to the x grid interval
-       dy: if y is not supplied, set it to the x grid interval
-    '''
-    import numpy as N
-
-    sum = N.sum
-    if x != None:
-        dx = (x[-1]-x[0])/(N.shape(x)[0]-1)
-    if y != None:
-        dy = (y[-1]-y[0])/(N.shape(y)[0]-1)
-
-    s1 = z[0,0] + z[-1,0] + z[0,-1] + z[-1,-1]
-    s2 = sum(z[1:-1,0]) + sum(z[1:-1,-1]) + sum(z[0,1:-1]) + sum(z[-1,1:-1])
-    s3 = sum(z[1:-1,1:-1])
-
-    return 0.25*dx*dy*(s1 + 2*s2 + 4*s3)
+ax = plt.gca()
+ax.ticklabel_format(useOffset=False)
+fig = plt.gcf()
 
 def sigma(t, s = 0.5):
     return np.sqrt(s**2 + t**2/(4*s**2))
@@ -32,13 +15,34 @@ t = np.loadtxt("times2d.dat")
 x = np.loadtxt("x2d.dat")
 y = np.loadtxt("y2d.dat")
 
-dx = y[1]-y[0]
-p = np.absolute(psit)**2
+dx = y[1][0]-y[0][0]
 
-r = np.sqrt(x**2+y**2)
-mean_r = np.array([trapz2d(x*p[i], dx = dx, dy=dx) for i in range(p.shape[0])])
-mean_r2 = np.array([trapz2d(x**2*p[i], dx = dx, dy=dx) for i in range(p.shape[0])])
-print(np.min(sigma(t)), np.min(mean_r2-(mean_r)**2))
-plt.plot(t, mean_r2-(mean_r)**2)
-plt.plot(t, sigma(t))
+r2 = x**2 + y**2
+r = np.sqrt(r2)
+
+P = [np.real(np.conjugate(psit[i])*psit[i])*dx**2 for i in range(psit.shape[0])]
+
+r2_mean = np.array([np.sum(r2*P[i]) for i in range(psit.shape[0])])
+r_mean = np.array([np.sum(r*P[i]) for i in range(psit.shape[0])])
+
+print(r_mean.min()**2, r2_mean.min())
+plt.xlabel("time")
+plt.xlim(t.min(), t.max())
+
+#<r>:
+plt.plot(t, r_mean, label = "$<r>$")
+#plt.plot(t, sigma(t)*np.sqrt(np.pi/2), "--", label = "$\sigma(t)\sqrt{\pi/2}$")
+#<r^2>:
+plt.plot(t, r2_mean, label = "$<r^2>$")
+#plt.plot(t, 2*sigma(t)**2, "--", label = "$ 2\sigma (t) ^2$")
+
+#sigma
+plt.plot(t, np.sqrt(r2_mean - r_mean**2), label = "$\sqrt{<r^2>-<r>^2}$")
+#plt.plot(t, sigma(t)*np.sqrt(2-np.pi/2), "--", label = "$ \sigma (t) \sqrt{2-\pi/2}$")
+
+
+plt.legend()
 plt.show()
+
+fig.set_size_inches(7,7)
+fig.savefig("dispersio.png")

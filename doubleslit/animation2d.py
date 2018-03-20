@@ -14,7 +14,7 @@ y = np.loadtxt("y2d.dat")
 frames = psit.shape[0]
 fig = plt.figure()
 ax = plt.axes()
-im = ax.imshow(np.absolute(psit[0])**2)
+im = ax.imshow(np.absolute(psit[0])**2, cmap = "gray")
 
 def init():
     im.set_array(np.absolute(psit[0])**2)
@@ -23,7 +23,7 @@ def init():
 def animate(i):
     p = np.absolute(psit[i])**2
     im.set_array(p)
-    ax.set_title('{:6.4f}'.format(t[i]))
+    ax.set_title(str(t[i]))
     return p
 
 anim = animation.FuncAnimation(fig, animate, init_func=init, interval=20, frames=frames)
