@@ -31,14 +31,14 @@ plt.xlim(t.min(), t.max())
 
 #<r>:
 plt.plot(t, r_mean, label = "$<r>$")
-plt.plot(t, sigma(t)*np.sqrt(np.pi/2), "--", label = "$\sigma(t)\sqrt{\pi/2}$")
+#plt.plot(t, sigma(t)*np.sqrt(np.pi/2), "--", label = "$\sigma(t)\sqrt{\pi/2}$")
 #<r^2>:
 plt.plot(t, r2_mean, label = "$<r^2>$")
-plt.plot(t, 2*sigma(t)**2, "--", label = "$ 2\sigma (t) ^2$")
+#plt.plot(t, 2*sigma(t)**2, "--", label = "$ 2\sigma (t) ^2$")
 
 #sigma
 plt.plot(t, np.sqrt(r2_mean - r_mean**2), label = "$\sqrt{<r^2>-<r>^2}$")
-plt.plot(t, sigma(t)*np.sqrt(2-np.pi/2), "--", label = "$ \sigma (t) \sqrt{2-\pi/2}$")
+#plt.plot(t, sigma(t)*np.sqrt(2-np.pi/2), "--", label = "$ \sigma (t) \sqrt{2-\pi/2}$")
 
 
 plt.legend()

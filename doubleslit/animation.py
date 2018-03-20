@@ -25,7 +25,7 @@ txt = ax.text(0.5,0.5,"")
 
 def psi_teo(x, t):
     s = 0.5
-    return (2/np.pi)**0.25*np.sqrt(s/(2*s**2+1j*t))*np.exp(-x**2/(4*s**2+2j*t))
+    return 0*(2/np.pi)**0.25*np.sqrt(s/(2*s**2+1j*t))*np.exp(-x**2/(4*s**2+2j*t))
 
 def init():
     psiline.set_data([], [])
@@ -43,7 +43,7 @@ def animate(i):
     return psiline,psiline2,potline,txt
 
 anim = animation.FuncAnimation(fig, animate, init_func=init,
-                               frames=frames, interval=1, blit=True)
+                               frames=frames, interval=20, blit=True)
 
 anim.save('psit.gif', dpi=80, writer='imagemagick')
 plt.show()

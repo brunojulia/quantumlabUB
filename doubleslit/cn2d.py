@@ -1,7 +1,7 @@
 """
 An implementation of the Crank-Nicolson implicit method for solving
-the time dependent Schrödinger's equation in two dimensions for a free particle
-(V = 0)
+the time dependent Schrödinger's equation in two dimensions for a particle
+with in potential V(x, y)
 
 The method uses tridiagonal matrices extensively. They are stored in the
 following way:
@@ -25,18 +25,33 @@ def psi0(x, y):
     """
     Wave function at t = 0
     """
-    x0 = 0
+    x0 = 5
     y0 = 0
-    s = 0.5
-    p0 = 0.0/Lx
+    s = 1
+    p0x = 100.0/Lx
+    p0y = 0.0/Lx
     r2 = (x-x0)**2 + (y-y0)**2
-    return np.exp(-1j*p0*x)*np.exp(-r2/(4*s**2))/(2*s**2*np.pi)**(.5)
+    return np.exp(-1j*(p0x*x + p0y*y))*np.exp(-r2/(4*s**2))/(2*s**2*np.pi)**(.5)
 
+def Vhooke(x, y, w = 1, m = 1):
+    """
+    potential energy at given position
+    """
+    return 0.5*m*w**2*(x**2 + y**2)
+
+def Vbarrera(x, y):
+    d = 1
+    Vi = np.exp(-(x**2)/0.1**2)
+    Vi -= np.exp(-(x**2+(y-d/2)**2)/0.1**2)
+    Vi -= np.exp(-(x**2+(y+d/2)**2)/0.1**2)
+    return 42.55*Vi/np.sqrt(.1*np.pi)
+
+@jit
 def Ai_diagonals(N, r):
     """
     N is the size of the matrix (when computing Ax -> Nx and Ay -> Ny)
     """
-    b = np.full(N, 1+2*r)
+    b = np.full(N, 1 + 2*r)
     a = np.full(N, -r)
     a[0] = 0
     c = np.full(N, -r)
@@ -45,7 +60,7 @@ def Ai_diagonals(N, r):
     return a, b, c
 
 @jit
-def compute_bx(row, psi, r):
+def compute_bx(row, psi, Vi, r, g):
     """
     Row is the row index.
     Returns the vector bx, dimension Nx (independent terms when solving rows)
@@ -58,10 +73,10 @@ def compute_bx(row, psi, r):
     if row != Ny-1:
         bx += r*psi[row+1,:]
 
-    return bx + (1-2*r)*psi[row,:]
+    return bx + (1 -2*r -g*Vi[row,:]/2)*psi[row,:]
 
 @jit
-def compute_by(col, psip, r):
+def compute_by(col, psip, Vi, r, g):
     """
     Col is the column index
     Return the vector by, dimension Ny (independent terms when solving columns)
@@ -73,7 +88,7 @@ def compute_by(col, psip, r):
     if col != Nx-1:
         by += r*(psip[:,col+1])
 
-    return by + (1-2*r)*psip[:,col]
+    return by + (1 -2*r -g*Vi[:,col]/2)*psip[:,col]
 
 @jit
 def tridiag(a, b, c, d):
@@ -103,7 +118,7 @@ def tridiag(a, b, c, d):
     return x
 
 @jit
-def crank_nicolson2D(x, y, psi0, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
+def crank_nicolson2D(x, y, psi0, V, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
     """
     Runs the Crank-Nicolson method in an infinie well defined by x.
 
@@ -135,6 +150,8 @@ def crank_nicolson2D(x, y, psi0, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
 
     if not callable(psi0):
         raise RuntimeError("psi0 is not callable.")
+    if not callable(V):
+        raise RuntimeError("V is not callable.")
 
     #Number of steps
     iterations = int((tmax-t0)/dt)
@@ -145,9 +162,13 @@ def crank_nicolson2D(x, y, psi0, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
     times = []
     dx = y[1]-y[0]
 
-    r = 1j*dt*hbar/(4*m*(dx)**2)
+    r = 1j*dt*hbar/(4*m*dx**2)
+    g = 1j*dt/(2*hbar)
+
     #2D array containing the wavefunction
     psi = psi0(x, y)
+    #2D array containing the potential energy
+    Vi = V(x, y)
 
     #Builds the A matrices
     Axa, Axb, Axc = Ai_diagonals(Nx, r)
@@ -160,13 +181,13 @@ def crank_nicolson2D(x, y, psi0, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
         psip = np.zeros(psi.shape, dtype = np.complex)
         #rows
         for j in range(Ny):
-            bx = compute_bx(j, psi, r)
-            psip[j,:] = tridiag(Axa, Axb, Axc, bx)
+            bx = compute_bx(j, psi, Vi, r, g)
+            psip[j,:] = tridiag(Axa, Axb + g*Vi[j,:]/2, Axc, bx)
 
         #columns
         for i in range(Nx):
-            by = compute_by(i, psip, r)
-            psi[:,i] = tridiag(Aya, Ayb, Ayc, by)
+            by = compute_by(i, psip, Vi, r, g)
+            psi[:,i] = tridiag(Aya, Ayb + g*Vi[:,i]/2, Ayc, by)
 
         #Saves time
         times.append(it*dt)
@@ -174,16 +195,16 @@ def crank_nicolson2D(x, y, psi0, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
     return psit, np.array(times)
 
 if __name__ == '__main__':
-    Lx = 5.0
-    Ny = 200
-    Nx = 200
+    Lx = 10.0
+    Ny = 300
+    Nx = 300
     dx = 2*Lx/Nx
     Ly = Ny*dx/2
 
     x, y = np.meshgrid(np.arange(-Lx, Lx, dx), np.arange(-Ly, Ly, dx))
 
     starttime = time()
-    psit, times = crank_nicolson2D(x, y, psi0, tmax = 1.5)
+    psit, times = crank_nicolson2D(x, y, psi0, Vbarrera, tmax = 3)
     print(time()-starttime)
 
     print("Saving to file")
@@ -191,3 +212,4 @@ if __name__ == '__main__':
     np.savetxt("times2d.dat", times)
     np.savetxt("x2d.dat", x)
     np.savetxt("y2d.dat", y)
+    np.savetxt("V2d.dat", Vbarrera(x, y))
