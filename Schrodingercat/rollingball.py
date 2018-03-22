@@ -37,6 +37,7 @@ def fgauss(x):
     """
     f = 1./(np.sqrt(2.*np.pi)*sigma)*np.exp(-(x-mu)**2/(2.*sigma**2))
     #f = (x-1)**2   #This is for the parabola.
+    #f = -0.5*x +1
     return f
 
 def dfgauss(x):
@@ -45,6 +46,7 @@ def dfgauss(x):
     """
     df = -(x-mu)*fgauss(x)/sigma**2
     #df = 2*(x-1)    #This is for the parabola.
+    #df = -0.5
     return df
 
 def d2fgauss(x):
@@ -53,6 +55,7 @@ def d2fgauss(x):
     """
     d2f = -(1. - (x-mu)**2/sigma**2)*fgauss(x)/sigma**2
     #d2f = 2        #This is for the parabola.
+    #d2f = 0.
     return d2f
 
 def d3fgauss(x):
@@ -60,8 +63,16 @@ def d3fgauss(x):
     Third derivative of the Gaussian function.
     """
     d3f = -(-2.*(x-mu)/sigma**2 - (1. - (x-mu)**2/sigma**2)*(x-mu)/sigma**2)*fgauss(x)/sigma**2
-    #d3f = 0.       #This is for the parabola.
+    #d3f = 0.*x       #This is for the parabola.
     return d3f
+
+
+def gaussperim(x):
+    """
+    Function to be integrated to compute the perimeter.
+    """
+    f = np.sqrt(1 + dfgauss(x)**2)
+    return f
 
 
 
@@ -124,6 +135,20 @@ def dycm(x):
     dy = dfgauss(x) + R*np.cos(alpha(x))*dalpha(x)
     return dy
 
+def d2xcm(x):
+    """
+    Second derivative of xcm with respect to x.
+    """
+    d2x = -R*(np.cos(alpha(x))*dalpha(x)**2 + np.sin(alpha(x))*d2alpha(x))
+    return d2x
+
+def d2ycm(x):
+    """
+    Second derivative of ycm with respect to x.
+    """
+    d2y = (d2fgauss(x) + R*(-np.sin(alpha(x))*dalpha(x)**2 + np.cos(alpha(x))*d2alpha(x)))
+    return d2y
+
 
 "Derivatives function"
 def frollingball(t, yvec):
@@ -134,9 +159,9 @@ def frollingball(t, yvec):
     x = yvec[0]
     xdot = yvec[1]
     f1 = xdot
-    f2 = (-0.7*m*xdot**2*(-2.*dxcm(x)*R*(np.cos(alpha(x))*dalpha(x)**2 + np.sin(alpha(x))*d2alpha(x)) +
-         2.*dycm(x)*(d2fgauss(x) + R*(-np.sin(alpha(x))*dalpha(x)**2 + np.cos(alpha(x))*d2alpha(x))))
-         - m*g*(dfgauss(x) + R*np.cos(alpha(x))*dalpha(x))) / (1.4*m*(dxcm(x)**2 + dycm(x)**2))
+    f2 = (-0.5*m*xdot**2*(2.*dxcm(x)*d2xcm(x) + 2.*dycm(x)*d2ycm(x))
+       -0.4*m*R**2*xdot**2*(gaussperim(x)/R - dalpha(x))*(dfgauss(x)*d2fgauss(x)/(R*gaussperim(x)) - d2alpha(x))
+       - m*g*dycm(x))/(m*(dxcm(x)**2 + dycm(x)**2) + 0.4*m*R**2*(gaussperim(x)/R - dalpha(x))**2)
     ftot = np.array([f1,f2])
 
     return ftot
@@ -180,22 +205,23 @@ def trapezoidal(a,b,dx,fcn):
     return summ*deltax
 
 
-def gaussperim(x):
-    """
-    Function to be integrated to compute the perimeter.
-    """
-    f = np.sqrt(1 + dfgauss(x)**2)
-    return f
 
 
 #The solution is stored in a supermatrix with 3 columns: time, x and xdot.
 #The rotated angle with respect to the vertical direction is stored in an array.
+#The total energy is stored in another array. (translational, rotational, potential and total)
 supermatrix = np.zeros(shape=(steps,3))
 supermatrix[0,:] = np.array([0., yin[0], yin[1]])
 
 angle = np.zeros(shape=(steps,1))
 angle[0] = -np.arctan(dfgauss(yin[0]))
 perimeter = 0.
+
+energy = np.zeros(shape=(steps,4))
+energy[0,0] = 0.5*m*((dxcm(yin[0])*yin[1])**2 + (dycm(yin[0])*yin[1])**2)
+energy[0,1] = 0.2*m*R**2*(gaussperim(yin[0])/R - dalpha(yin[0]))**2*yin[1]**2
+energy[0,2] = m*g*ycm(yin[0])
+energy[0,3] = sum(energy[0,:])
 
 for i in range(1,steps,1):
     t = i*deltat
@@ -209,6 +235,20 @@ for i in range(1,steps,1):
     beta = np.arctan(dfgauss(yin[0]))
     angle[i] = theta - beta
 
+
+    energy[i,0] = 0.5*m*((dxcm(yin[0])*yin[1])**2 + (dycm(yin[0])*yin[1])**2)
+    energy[i,1] = 0.2*m*R**2*(gaussperim(yin[0])/R - dalpha(yin[0]))**2*yin[1]**2
+    energy[i,2] = m*g*ycm(yin[0])
+    energy[i,3] = sum(energy[i,:])
+
+
+plt.plot(supermatrix[:,0],energy[:,0], label="trans")
+plt.plot(supermatrix[:,0],energy[:,1], label="rot")
+plt.plot(supermatrix[:,0],energy[:,2], label="pot")
+plt.plot(supermatrix[:,0],energy[:,3], label="tot")
+plt.xlabel("time")
+plt.ylabel("energy")
+plt.legend()
 
 "Creating the animation"
 fig, ax = plt.subplots()
