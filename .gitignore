@@ -1,4 +1,7 @@
 .ropeproject/
 *.dat
 *.npy
+*.png
 .DS_Store
+doubleslit/kivy
+doubleslit/__pycache__
