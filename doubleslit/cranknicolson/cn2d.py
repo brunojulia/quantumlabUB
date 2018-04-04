@@ -82,7 +82,7 @@ def Ai_diagonals(N, r):
     return a, b, c
 
 @jit
-def compute_bx(row, psi, Vi, r, g):
+def compute_bx(row, psi, Vi, Nx, Ny, r, g):
     """
     Row is the row index.
     Returns the vector bx, dimension Nx (independent terms when solving rows)
@@ -98,7 +98,7 @@ def compute_bx(row, psi, Vi, r, g):
     return bx + (1 -2*r -g*Vi[row,:]/2)*psi[row,:]
 
 @jit
-def compute_by(col, psip, Vi, r, g):
+def compute_by(col, psip, Vi, Nx, Ny, r, g):
     """
     Col is the column index
     Return the vector by, dimension Ny (independent terms when solving columns)
@@ -180,19 +180,29 @@ def crank_nicolson2D(x, y, psi0, V, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1
         elif x.shape != V.shape:
             raise ValueError("V and x/y don't have the same shape")
 
+    if callable(callback):
+        callback(0)
 
     #Number of steps
     iterations = int((tmax-t0)/dt)
     Nx = x.shape[1]
     Ny = x.shape[0]
 
+    if callable(callback):
+            callback(0.2)
+
     psit = np.zeros([iterations, Ny, Nx], dtype = np.complex)
     times = []
     dx = (y[1]-y[0])[0]
 
+    if callable(callback):
+            callback(0.4)
+
     r = 1j*dt*hbar/(4*m*dx**2)
     g = 1j*dt/(2*hbar)
 
+    if callable(callback):
+            callback(0.5)
     #2D array containing the wavefunction
     psi = psi0
     #2D array containing the potential energy
@@ -200,7 +210,15 @@ def crank_nicolson2D(x, y, psi0, V, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1
 
     #Builds the A matrices
     Axa, Axb, Axc = Ai_diagonals(Nx, r)
+
+    if callable(callback):
+            callback(0.75)
+
     Aya, Ayb, Ayc = Ai_diagonals(Ny, r)
+
+    if callable(callback):
+            callback(1)
+
 
     for it in range(iterations):
         #Saves the wave function
@@ -209,12 +227,12 @@ def crank_nicolson2D(x, y, psi0, V, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1
         psip = np.zeros(psi.shape, dtype = np.complex)
         #rows
         for j in range(Ny):
-            bx = compute_bx(j, psi, Vi, r, g)
+            bx = compute_bx(j, psi, Vi, Nx, Ny, r, g)
             psip[j,:] = tridiag(Axa, Axb + g*Vi[j,:]/2, Axc, bx)
 
         #columns
         for i in range(Nx):
-            by = compute_by(i, psip, Vi, r, g)
+            by = compute_by(i, psip, Vi, Nx, Ny, r, g)
             psi[:,i] = tridiag(Aya, Ayb + g*Vi[:,i]/2, Ayc, by)
 
         if callable(callback):
@@ -223,6 +241,7 @@ def crank_nicolson2D(x, y, psi0, V, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1
         #Saves time
         times.append(it*dt)
 
+    callback(1)
     return psit, np.array(times)
 
 if __name__ == '__main__':
