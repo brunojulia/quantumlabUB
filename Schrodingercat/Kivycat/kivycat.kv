@@ -1,0 +1,97 @@
+
+<Ball>:
+    size: 50,50
+    canvas.after:
+        Ellipse:
+            pos: self.pos
+            size: self.size
+            source: "football.png"
+
+<Variable>:
+    size: self.size
+
+
+
+<kivycat>:
+    ball1: ball_id1
+    classical: classical_id
+    variable: var_id
+
+    BoxLayout:
+        orientation: "vertical"
+
+        Label:
+            size_hint_y: .2
+            text_size: self.size
+            halign: 'center'
+            valign: 'bottom'
+
+            text: "How are particles described?"
+            font_size: 40
+            bold: True
+
+        Label:
+            size_hint_y: .2
+            text_size: self.size
+            halign: 'center'
+            valign: 'middle'
+
+            text: "In Physics, we need to have a mathematical way to describe particles. \nAlthough many properties can be analysed, we are only going to consider particle's positions. \n Check out how we do it!"
+            font_size: 17
+
+        BoxLayout:
+            orientation: "horizontal"
+            size: self.size
+
+            BoxLayout:
+                orientation: "vertical"
+
+                Label:
+                    size_hint_y: .2
+                    text_size: self.size
+                    halign: 'center'
+                    valign: 'middle'
+
+                    text: "Classical Mechanics"
+                    font_size: 20
+                    bold: True
+
+
+                BoxLayout:
+                    Widget:
+                        size: self.width, self.height
+                        id: classical_id
+
+                        canvas:
+                            Color:
+                                rgb: 0,0,0
+                            Rectangle:
+                                size: self.width,self.height
+                                pos: 0,0
+
+                        Variable:
+                            id: var_id
+
+                        Ball:
+                            id: ball_id1
+                            pos: classical_id.width/2-ball_id1.width/2 + var_id.width,  classical_id.height*2/3-ball_id1.height/2
+                            canvas.before:
+                                Color:
+                                    rgb: 1, 1, 1
+
+
+            BoxLayout:
+                orientation: "vertical"
+
+                Label:
+                    size_hint_y: .2
+                    text_size: self.size
+                    halign: 'center'
+                    valign: 'middle'
+
+                    text: "Quantum Mechanics"
+                    font_size: 20
+                    bold: True
+
+                Button:
+                    text: "button"
