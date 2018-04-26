@@ -222,7 +222,7 @@ class DoubleSlitScreen(BoxLayout):
         self.speed = int(self.speed_slider.value)
 
         self.experiment.mp = int(self.experiment.Pt[0].shape[1]*self.screen_pos_slider.value)
-        self.experiment.mw = self.screen_width_slider.value
+        self.experiment.mw = int(self.screen_width_slider.value)
 
         self.experiment.update_slits(sx = self.slider_sx.value, sy = self.slider_sy.value, d = self.slider_d.value)
 
