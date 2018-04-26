@@ -1,9 +1,12 @@
 #misc imports
 import numpy as np
 import threading
+import random
+
 
 #cranknicolson imports
-from cranknicolson.cn2d import crank_nicolson2D
+from dsexperiment import DSexperiment
+from dsexperiment import create_experiment_from_files
 
 #kivy imports
 from kivy.app import App
@@ -16,36 +19,16 @@ from kivy.graphics.texture import Texture
 from kivy.graphics import Color
 from kivy.clock import Clock
 
-class CNThread(threading.Thread):
-    def __init__(self, threadID, threadName, app):
-        threading.Thread.__init__(self)
-        self.app = app
-
-    def run(self):
-        self.app.cnupdate(0)
-        Lx = self.app.Lx
-        Ly = self.app.Ly
-        dx = self.app.dx
-
-        x, y = np.meshgrid(np.arange(-Lx, Lx, dx), np.arange(-Ly, Ly, dx))
-
-        psi = self.app.psi0(x, y)
-        V = self.app.V(x, y)
-
-        psit, self.app.times = crank_nicolson2D(x, y, psi, V, tmax = 2, callback = self.app.cnupdate)
-
-        self.app.Pt = np.absolute(psit)**2
-        self.app.maxP = np.max(self.app.Pt)
-        self.app.frames = self.app.Pt.shape[0]
-
-        self.app.computing = False
-        self.app.create_texture()
-
-
 class DoubleSlitScreen(BoxLayout):
     #Objects binded from .kv file
     p_rectangle = ObjectProperty()
     playpause_button = ObjectProperty()
+    frame_slider = ObjectProperty()
+    speed_slider = ObjectProperty()
+    normalize_switch = ObjectProperty()
+    screen_pos_slider = ObjectProperty()
+    screen_width_slider = ObjectProperty()
+    compute_button = ObjectProperty()
     progress_bar = ObjectProperty()
 
     slider_d = ObjectProperty()
@@ -53,75 +36,86 @@ class DoubleSlitScreen(BoxLayout):
     slider_sy = ObjectProperty()
 
     #Objects created here
-    frame = NumericProperty(0)
-    frames = 0
-    texture = ObjectProperty()
-    zoom = NumericProperty(2)
+    frame = NumericProperty(0) #current frame
+    frames = NumericProperty(0) #total number of frames
+    texture = ObjectProperty() #texture object (initialized at create_texture)
+    zoom = NumericProperty(1) #this value autoadjusts when calling blit_P
 
     #Drawing parameters
-    #position and size of he heatmap
+    #size and position of he heatmap
     wh = 0
     hh = 0
     xh = 0
     yh = 0
 
-    #Playback status
+    #Playback status and settings
+    speed = NumericProperty(4)
     playing = False
-
-    #Simulation parameters
-    ##grid
-    Lx = 10.0
-    Ny = 300
-    Nx = 300
-    dx = 2*Lx/Nx
-    Ly = Ny*dx/2
-
-    ##psi0
-    x0 = 5
-    y0 = 0
-    s = 2
-    p0x = 100.0/Lx
-    p0y = 0.0/Lx
-    ##V
-    Vo = 200
-    sx = 0.25
-    sy = 2
-    d = 4
+    normalize_each_frame = False
 
     #Simulation results
     computing = False
+    computed = False
     Pt = None
     times = None
     maxP = 0
 
     def __init__(self, *args, **kwargs):
         super(DoubleSlitScreen, self).__init__(*args, **kwargs)
-        x, y = np.meshgrid(np.arange(-self.Lx, self.Lx, self.dx), np.arange(-self.Ly, self.Ly, self.dx))
-        self.Pt = [np.absolute(self.psi0(x, y))**2]
-        self.maxP = np.max(self.Pt)
-        self.create_texture()
 
-        self.slider_d.value = self.d
-        self.slider_sx.value = self.sx
-        self.slider_sy.value = self.sy
+        print("Trying to load last simulation")
+        try:
+            self.experiment = create_experiment_from_files("lastsim")
+            print("Last simulation loaded correctly")
+            self.computation_done(save = False)
+        except FileNotFoundError:
+            print("Could not find last simulation, creating new one...")
+            self.experiment = DSexperiment()
+            self.experiment.set_gaussian_psi0(p0x = 100/self.experiment.Lx)
+
+
+        self.slider_sx.value = self.experiment.sx
+        self.slider_sy.value = self.experiment.sy
+        self.slider_d.value = self.experiment.d
+
+        self.create_texture()
 
     #Drawing functions
     def create_texture(self):
-        self.texture = Texture.create(size = self.Pt[0].shape, colorfmt = "luminance", bufferfmt = "uint")
+        self.texture = Texture.create(size = self.experiment.Pt[0].shape[::-1], colorfmt = "luminance", bufferfmt = "uint")
 
     def blit_P(self, P):
         """
         This function draws the heatmap for P centered at
         P is a 2d numpy array
         """
-        #Draws to the Texture
-        self.maxP = np.max(P)
-        self.texture.blit_buffer( ( (P/self.maxP)*255 ).astype(np.uint8).reshape(P.size), colorfmt = "luminance")
 
-        #Draws rectangle to the canvas
+        #Basically if white should represent the maximum value of P at each frame
+        #or should represent the maximum value of all frames
+        if self.normalize_each_frame:
+            max = np.max(P)
+        else:
+            max = self.maxP
+
+        #Stores the P matrix in the texture object
+        #this texture is created in the method creature_texture and already has the size
+        #It's a gray-scale texture so value must go from 0 to 255 (P/self.maxP)*255
+        #It must be an array of unsigned 8bit integers. And also it has to be flattened
+
+        self.texture.blit_buffer( ( (P/max)*255 ).astype(np.uint8).reshape(P.size), colorfmt = "luminance")
+
+        #Draws the box walls and the
         with self.p_rectangle.canvas:
-            self.wh = P.shape[0]*self.zoom
-            self.hh = P.shape[1]*self.zoom
+            #Determines the size of the box:
+            #Full height
+            self.zoom = self.p_rectangle.height/P.shape[0]
+            #If full height implies cutting by the sides, it uses full width
+            if P.shape[1]*self.zoom > self.p_rectangle.width:
+                #Full width
+                self.zoom = self.p_rectangle.width/P.shape[1]
+
+            self.wh = P.shape[1]*self.zoom
+            self.hh = P.shape[0]*self.zoom
 
             self.xh = self.p_rectangle.pos[0] + self.p_rectangle.width/2 - self.wh/2
             self.yh = self.p_rectangle.pos[1] + self.p_rectangle.height/2 - self.hh/2
@@ -137,69 +131,119 @@ class DoubleSlitScreen(BoxLayout):
 
     def draw_walls(self):
         with self.p_rectangle.canvas:
-            scale = self.zoom/self.dx
+            scale = self.zoom/self.experiment.dx
+
+            sx = self.experiment.sx
+            sy = self.experiment.sy
+            d = self.experiment.d
+
             #Slits
             Color(1., 0, 0)
             #top wall
-            Rectangle(pos = (self.xh + self.wh/2 - (self.sx*scale)/2, self.yh + self.hh/2 + ((self.sy+self.d)*scale)/2), size = (self.sx*scale, self.hh/2 -self.d*scale/2 - self.sy*scale/2))
+            Rectangle(pos = (self.xh + self.wh/2 - (sx*scale)/2, self.yh + self.hh/2 + ((sy+d)*scale)/2), size = (sx*scale, self.hh/2 - d*scale/2 - sy*scale/2))
             #middle wall
-            Rectangle(pos = (self.xh + self.wh/2 - (self.sx*scale)/2, self.yh + self.hh/2  - (self.d/2-self.sy/2)*scale), size = (self.sx*scale, (self.d-self.sy)*scale) )
+            Rectangle(pos = (self.xh + self.wh/2 - (sx*scale)/2, self.yh + self.hh/2  - (d/2-sy/2)*scale), size = (sx*scale, (d-sy)*scale) )
             #bottom wall
-            Rectangle(pos = (self.xh + self.wh/2 - (self.sx*scale)/2, self.yh), size = (self.sx*scale, self.hh/2 -(self.d+self.sy)*scale/2 ))
+            Rectangle(pos = (self.xh + self.wh/2 - (sx*scale)/2, self.yh), size = (sx*scale, self.hh/2 -(d+sy)*scale/2 ))
+
+    def draw_measures(self):
+
+        with self.p_rectangle.canvas:
+            scale = self.zoom/self.experiment.dx
+
+            #Measuring screen
+            Color(0, 1., 0, 0.25)
+            Rectangle(pos = (self.xh + self.experiment.mp*self.zoom, self.yh), size = (self.experiment.mw*self.zoom, self.hh))
+
+            Color(0, 1., 0)
+            for measure in self.experiment.measurements:
+                Rectangle(pos = (self.xh + measure[1]*self.zoom, self.yh + measure[0]*self.zoom), size = (self.zoom, self.zoom))
 
     #Crank-Nicolson functions
-    def cnupdate(self, x):
+    def computation_update(self, msg, x):
         self.progress_bar.value = 100*x
 
+    def computation_done(self, save = True):
+        self.computed = True
+        self.computing = False
+        self.compute_button.disabled = False
+
+        self.frames = self.experiment.Pt.shape[0]
+        self.frame_slider.max = self.frames - 1
+        self.maxP = np.max(self.experiment.Pt)
+
+        self.create_texture()
+
+        if save:
+            self.experiment.save_to_files("lastsim")
+
     def compute(self):
+        """
+        This is called when the compute button is pressed
+        """
         if not self.computing:
-            cnThread = CNThread(1, "CN_Thread", self)
-            cnThread.start()
+            self.experiment.compute_evolution(update_callback = self.computation_update, done_callback = self.computation_done)
+
+            self.playing = False
+            self.computed = False
             self.computing = True
+            self.compute_button.disabled = True
 
-    def psi0(self, x, y):
-        """
-        Wave function at t = 0
-        """
-        r2 = (x-self.x0)**2 + (y-self.y0)**2
-        return np.exp(-1j*(self.p0x*x + self.p0y*y))*np.exp(-r2/(4*self.s**2))/(2*self.s**2*np.pi)**(.5)
-
-    def Vslits(self, x, y):
-        if np.abs(x) < self.sx/2:
-            if np.abs(y) < (self.d/2 - self.sy/2) or np.abs(y) > (self.d/2 + self.sy/2):
-                return self.Vo
-            else:
-                return 0
-        else:
-            return 0
-
-    def V(self, x, y):
-        return np.vectorize(self.Vslits)(x, y)
+            self.frame = 0
 
     #Playback functions
     def playpause(self):
         self.playing = not self.playing
 
+    def change_frame(self):
+        self.playing = False
+        self.frame = int(self.frame_slider.value)
+
+    def measure(self, N = 1):
+        self.experiment.measure(N)
+
+    def remove_measurements(self):
+        self.experiment.clear_measurements()
+
     def update(self, dt):
         self.p_rectangle.canvas.clear()
-        self.playpause_button.disabled = self.Pt is None
 
-        self.d = self.slider_d.value
-        self.sx = self.slider_sx.value
-        self.sy = self.slider_sy.value
+        self.playpause_button.disabled = not self.computed
 
         if self.playing:
-            self.blit_P(self.Pt[self.frame])
-            self.draw_walls()
-            self.frame = (self.frame+1)%self.frames
+            self.playpause_button.text = "Pause"
         else:
-            if not self.Pt is None:
-                self.blit_P(self.Pt[0])
+            self.playpause_button.text = "Play"
+
+        self.frame_slider.disabled = not self.computed
+
+        self.normalize_each_frame = self.normalize_switch.active
+
+        self.speed = int(self.speed_slider.value)
+
+        self.experiment.mp = int(self.experiment.Pt[0].shape[1]*self.screen_pos_slider.value)
+        self.experiment.mw = int(self.screen_width_slider.value)
+
+        self.experiment.update_slits(sx = self.slider_sx.value, sy = self.slider_sy.value, d = self.slider_d.value)
+
+        if self.playing:
+            self.blit_P(self.experiment.Pt[self.frame])
+            self.draw_walls()
+            self.draw_measures()
+            self.frame = (self.frame+self.speed)%self.frames
+            self.frame_slider.value = self.frame
+
+        else:
+            if not self.experiment.Pt is None:
+                self.blit_P(self.experiment.Pt[self.frame])
                 self.draw_walls()
+                self.draw_measures()
+
 
 
 class DoubleSlitApp(App):
     def build(self):
+        random.seed()
         screen = DoubleSlitScreen()
         Clock.schedule_interval(screen.update, 1.0 / 30.0)
         return screen

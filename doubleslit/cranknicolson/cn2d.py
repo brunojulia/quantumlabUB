@@ -17,7 +17,6 @@ a[0] = 0
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import simps
 from time import time
 from numba import jit
 
@@ -181,7 +180,7 @@ def crank_nicolson2D(x, y, psi0, V, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1
             raise ValueError("V and x/y don't have the same shape")
 
     if callable(callback):
-        callback(0)
+        callback("Setting up parameters...", 0)
 
     #Number of steps
     iterations = int((tmax-t0)/dt)
@@ -189,20 +188,20 @@ def crank_nicolson2D(x, y, psi0, V, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1
     Ny = x.shape[0]
 
     if callable(callback):
-            callback(0.2)
+            callback("Setting up parameters...", 0.2)
 
     psit = np.zeros([iterations, Ny, Nx], dtype = np.complex)
     times = []
     dx = (y[1]-y[0])[0]
 
     if callable(callback):
-            callback(0.4)
+            callback("Setting up parameters...", 0.4)
 
     r = 1j*dt*hbar/(4*m*dx**2)
     g = 1j*dt/(2*hbar)
 
     if callable(callback):
-            callback(0.5)
+            callback("Setting up parameters...", 0.5)
     #2D array containing the wavefunction
     psi = psi0
     #2D array containing the potential energy
@@ -212,12 +211,12 @@ def crank_nicolson2D(x, y, psi0, V, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1
     Axa, Axb, Axc = Ai_diagonals(Nx, r)
 
     if callable(callback):
-            callback(0.75)
+            callback("Setting up parameters...", 0.75)
 
     Aya, Ayb, Ayc = Ai_diagonals(Ny, r)
 
     if callable(callback):
-            callback(1)
+            callback("Done setting up parameters, please wait.", 1)
 
 
     for it in range(iterations):
@@ -236,12 +235,12 @@ def crank_nicolson2D(x, y, psi0, V, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1
             psi[:,i] = tridiag(Aya, Ayb + g*Vi[:,i]/2, Ayc, by)
 
         if callable(callback):
-            callback(it/iterations)
+            callback("Running simulation...", it/iterations)
 
         #Saves time
         times.append(it*dt)
 
-    callback(1)
+    callback("Done!", 1)
     return psit, np.array(times)
 
 if __name__ == '__main__':
