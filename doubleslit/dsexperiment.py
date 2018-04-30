@@ -144,6 +144,6 @@ class CNThread(threading.Thread):
     def run(self):
         self.exp.psit, self.exp.times = crank_nicolson2D(self.exp.x, self.exp.y, self.exp.psit[0], self.exp.V, tmax = self.exp.tmax, dt = self.exp.dt, callback = self.exp.update_callback)
         self.exp.Pt = np.absolute(self.exp.psit)**2
-        mp, mw = self.exp.measurepos, self.exp.measurewidth
+        mp, mw = self.exp.mp, self.exp.mw
         self.exp.compute_py(force = True)
         self.exp.done_callback()

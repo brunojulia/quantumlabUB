@@ -72,6 +72,7 @@ class DoubleSlitScreen(BoxLayout):
             print("Could not find last simulation, creating new one...")
             self.experiment = DSexperiment()
             self.experiment.set_gaussian_psi0(p0x = 100/self.experiment.Lx)
+            self.maxP = np.max(self.experiment.Pt)
 
 
         self.slider_sx.value = self.experiment.sx
@@ -102,7 +103,7 @@ class DoubleSlitScreen(BoxLayout):
         #It's a gray-scale texture so value must go from 0 to 255 (P/self.maxP)*255
         #It must be an array of unsigned 8bit integers. And also it has to be flattened
 
-        self.texture.blit_buffer( ( (P/max)*255 ).astype(np.uint8).reshape(P.size), colorfmt = "luminance")
+        self.texture.blit_buffer( ((P/max)*255).astype(np.uint8).reshape(P.size), colorfmt = "luminance")
 
         #Draws the box walls and the
         with self.p_rectangle.canvas:
