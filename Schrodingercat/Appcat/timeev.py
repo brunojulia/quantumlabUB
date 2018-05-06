@@ -1,5 +1,5 @@
 """
-Jan Albert Iglesias 29/04/2018
+Jan Albert Iglesias 06/05/2018
 
 This program computes the time evolution for a given wavefunction
 in a given time independent potential.
@@ -9,7 +9,7 @@ import numpy as np
 
 #Initial wave function.
 def psi(pos, x):
-    f = np.sqrt((1./(np.sqrt(2*np.pi)))*np.exp(-(x-pos)**2/(2.)))
+    f = np.sqrt((1./(np.sqrt(2*np.pi)*sigma0))*np.exp(-(x-pos)**2/(2.*sigma0**2)))*np.exp(complex(0,-1)*p0*x)
     return f
 
 #Potential.

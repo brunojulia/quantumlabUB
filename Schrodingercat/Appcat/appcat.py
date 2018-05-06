@@ -1,6 +1,6 @@
 """
 Jan Albert Iglesias
-3/5/2018
+6/5/2018
 """
 
 import numpy as np
@@ -28,16 +28,7 @@ aen = fig_ene.add_subplot(111)
 
 rob.g = 9.806
 
-"""
-xvec = np.arange(-5,5,0.01)
-plt.plot(xvec, rob.fground(0, 1./(np.sqrt(2*np.pi)*1), 1.3, xvec), label = "0")
-plt.plot(xvec, rob.dfground(0, 1./(np.sqrt(2*np.pi)*1), 1.3, xvec), label = "1")
-plt.plot(xvec, rob.d2fground(0, 1./(np.sqrt(2*np.pi)*1), 1.3, xvec), label = "2")
-plt.plot(xvec, rob.d3fground(0, 1./(np.sqrt(2*np.pi)*1), 1.3, xvec), label = "3")
-plt.legend()
-plt.show()
-"""
-
+#Main Layout:
 class Appcat(BoxLayout):
     time_qua = NumericProperty()
     tmax_qua = NumericProperty()
@@ -54,25 +45,30 @@ class Appcat(BoxLayout):
         self.N = 900
         self.deltax = (self.b - self.a)/float(self.N)
 
+        te.sigma0 = 1
+        self.sigmaslide_qua.value = te.sigma0
         self.sigma_qua = 1./(np.sqrt(2*np.pi)*self.heightslide_qua.value)
         self.mu_qua = 0
         self.xarr_qua = np.arange(self.a, self.b + self.deltax*0.1, self.deltax)
         self.m_qua = 1
-        self.masslide_qua.value = self.m_qua
         self.k_qua = 1
         self.kslide_qua.value = self.k_qua
         self.xo = 0
         self.poslide_qua.value = self.xo
+        te.p0 = 0
+        self.velslide_qua.value = te.p0
 
         self.switch1_qua = "off"
         self.oldtop1_qua = self.heightslide_qua.value + 1
         self.oldtop2_qua = self.heightslide_qua.value
         self.oldk1_qua = self.kslide_qua.value + 1
         self.oldk2_qua = self.kslide_qua.value
-        self.oldmass1_qua = self.masslide_qua.value + 1
-        self.oldmass2_qua = self.masslide_qua.value
+        self.oldsigma1_qua = self.sigmaslide_qua.value + 1
+        self.oldsigma2_qua = self.sigmaslide_qua.value
         self.oldxo1_qua = self.poslide_qua.value + 1
         self.oldxo2_qua = self.poslide_qua.value
+        self.oldvel1_qua = self.velslide_qua.value + 1
+        self.oldvel2_qua = self.velslide_qua.value
 
         self.startstopbut_qua.background_down = "playblue.png"
         self.startstopbut_qua.background_normal = "play.png"
@@ -83,15 +79,15 @@ class Appcat(BoxLayout):
         self.sigma_cla =  1./(np.sqrt(2*np.pi)*self.heightslide_cla.value)
         self.mu_cla = 0
         self.m_cla = 10
-        self.masslide_cla.value = self.m_cla
-        self.rho = 200
-        self.R = (3*self.m_cla/(4*np.pi*self.rho))**(1/3.)
         rob.m = self.m_cla
+        self.R = 0.2
+        self.radiusslide_cla.value = self.R
         self.k_cla = 0.5
         self.kslide_cla.value = self.k_cla
         self.yin0 = np.array([1.5,0.0])
         self.yin = self.yin0
         self.poslide_cla.value = 1.5
+        self.velslide_cla.value = 0.0
         self.xarr_cla = self.xarr_qua
 
         self.switch1_cla = "off"
@@ -99,10 +95,12 @@ class Appcat(BoxLayout):
         self.oldtop2_cla = self.heightslide_cla.value
         self.oldk1_cla = self.kslide_cla.value +1
         self.oldk2_cla = self.kslide_cla.value
-        self.oldmass1_cla = self.masslide_cla.value +1
-        self.oldmass2_cla = self.masslide_cla.value
+        self.oldradius1_cla = self.radiusslide_cla.value +1
+        self.oldradius2_cla = self.radiusslide_cla.value
         self.oldxo1_cla = self.poslide_cla.value + 1
         self.oldxo2_cla = self.poslide_cla.value
+        self.oldvel1_cla = self.velslide_cla.value + 1
+        self.oldvel2_cla = self.velslide_cla.value
 
         self.startstopbut_cla.background_down = "playblue.png"
         self.startstopbut_cla.background_normal = "play.png"
@@ -180,10 +178,11 @@ class Appcat(BoxLayout):
         #Just happens if some value changes:
         a = self.oldtop1_qua != self.heightslide_qua.value
         b = self.oldk1_qua != self.kslide_qua.value
-        c = self.oldmass1_qua != self.masslide_qua.value
+        c = self.oldsigma1_qua != self.sigmaslide_qua.value
         d = self.oldxo1_qua != self.poslide_qua.value
+        e = self.oldvel1_qua != self.velslide_qua.value
 
-        if a or b or c or d:
+        if a or b or c or d or e:
             print("i'm working!")
             #Definitions:
             Nbasis=150
@@ -202,8 +201,9 @@ class Appcat(BoxLayout):
 
             self.oldtop1_qua = self.heightslide_qua.value
             self.oldk1_qua = self.kslide_qua.value
-            self.oldmass1_qua = self.masslide_qua.value
+            self.oldsigma1_qua = self.sigmaslide_qua.value
             self.oldxo1_qua = self.poslide_qua.value
+            self.oldvel1_qua = self.velslide_qua.value
             print("I've worked.")
 
     def plotpsi(self, t):
@@ -234,11 +234,13 @@ class Appcat(BoxLayout):
             self.oldtop2_qua = self.heightslide_qua.value
             self.oldk2_qua = self.kslide_qua.value
 
-    def change_mass(self):
-        if self.oldmass2_qua != self.masslide_qua.value:
-            self.m_qua = self.masslide_qua.value
-            self.oldmass2_qua = self.masslide_qua.value
+    def change_sigma(self):
+        if self.oldsigma2_qua != self.sigmaslide_qua.value:
             self.reset()
+            te.sigma0 = self.sigmaslide_qua.value
+            self.oldsigma2_qua = self.sigmaslide_qua.value
+            self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
+            self.canvas_qua.draw()
 
     def change_xo(self, xoo):
         if self.oldxo2_qua != self.poslide_qua.value:
@@ -247,6 +249,12 @@ class Appcat(BoxLayout):
             self.xo = self.poslide_qua.value
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(xoo, self.xarr_qua))**2)
             self.canvas_qua.draw()
+
+    def change_vel_qua(self):
+        if self.oldvel2_qua != self.velslide_qua.value:
+            self.reset()
+            self.oldvel2_qua = self.velslide_qua.value
+            te.p0 = self.velslide_qua.value
 
     def psiupdate(self, dt):
         if self.switch1_qua == "on":
@@ -312,10 +320,11 @@ class Appcat(BoxLayout):
         #Just happens if some value changes:
         a = self.oldtop1_cla != self.heightslide_cla.value
         b = self.oldk1_cla != self.kslide_cla.value
-        c = self.oldmass1_cla != self.masslide_cla.value
+        c = self.oldradius1_cla != self.radiusslide_cla.value
         d = self.oldxo1_cla != self.poslide_cla.value
+        e = self.oldvel1_cla != self.velslide_cla.value
 
-        if a or b or c or d:
+        if a or b or c or d or e:
             #Erases the previously computed values.
             self.supermatrix_cla = np.array([[self.time_cla, self.yin[0], self.yin[1]]]) #3 columns: time, x and xdot
             self.angle = np.array([[-np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))]])
@@ -334,8 +343,9 @@ class Appcat(BoxLayout):
 
             self.oldtop1_cla = self.heightslide_cla.value
             self.oldk1_cla = self.kslide_cla.value
-            self.oldmass1_cla = self.masslide_cla.value
+            self.oldradius1_cla = self.radiusslide_cla.value
             self.oldxo1_cla = self.poslide_cla.value
+            self.oldvel1_cla = self.velslide_cla.value
             print("classical worked!")
             print(self.energy)
 
@@ -455,14 +465,10 @@ class Appcat(BoxLayout):
         self.reset_cla()
         self.plotball(0)
 
-    def change_mass_cla(self):
-        if self.oldmass2_cla != self.masslide_cla.value:
-            self.m_cla = self.masslide_cla.value
-            rob.m = self.m_cla
-            self.oldmass2_cla = self.masslide_cla.value
-
-            #Changes the radius as well.
-            self.R = (3*self.m_cla/(4*np.pi*self.rho))**(1/3.)
+    def change_radius(self):
+        if self.oldradius2_cla != self.radiusslide_cla.value:
+            self.R = self.radiusslide_cla.value
+            self.oldradius2_cla = self.radiusslide_cla.value
 
             self.reset_cla()
             self.plotball_0()
@@ -476,6 +482,12 @@ class Appcat(BoxLayout):
             self.supermatrix_cla[0, 1] = self.xo_cla
             self.angle[0] = -np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))
             self.plotball_0()
+
+    def change_vel_cla(self):
+        if self.oldvel2_cla != self.velslide_cla.value:
+            self.oldvel2_cla = self.velslide_cla.value
+            self.yin0[1] = self.velslide_cla.value
+            self.reset_cla()
 
     def velocity_cla_btn(self):
         self.vel_cla = self.vel_cla + 1
@@ -516,6 +528,7 @@ class Normpopup(Popup):
 class Energypopup(Popup):
     def __init__(self, appcat):
         super(Energypopup, self).__init__()
+        self.ids.switch.active = False
         self.a = appcat
         self.canvas_ene = FigureCanvasKivyAgg(fig_ene)
         self.ids.Panel4_id.add_widget(self.canvas_ene)
@@ -525,25 +538,55 @@ class Energypopup(Popup):
         aen.set_xlabel("t (s)")
         aen.set_ylabel("E (J)")
         self.event = Clock.schedule_interval(self.update, 0.3)
-        self.totplot, = aen.plot([], [], label = "Total")
-        self.transplot, = aen.plot([], [], label = "Translational")
-        self.rotplot, = aen.plot([], [], label = "Rotational")
-        self.potplot, = aen.plot([], [], label = "Potential")
-        aen.legend(loc=5)
+        aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 3], label = "Total", color = (1,0,0,1))
+        aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 0], label = "Translational", color = (1,1,0,1))
+        aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 1], label = "Rotational", color = (0,1,0,1))
+        aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 2], label = "Potential", color = (0,0,1,1))
+        aen.legend(loc=6)
         self.txt = aen.set_title("")
         self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.supermatrix_cla[-1, 0] + " s"
         + "      E" + r'$_{total}$' + "= " + str(self.a.energy[-1, 3]).ljust(7)[:7])
 
     def update(self, dt):
-        self.totplot.set_data(self.a.supermatrix_cla[:, 0], self.a.energy[:, 3])
-        self.transplot.set_data(self.a.supermatrix_cla[:, 0], self.a.energy[:, 0])
-        self.rotplot.set_data(self.a.supermatrix_cla[:, 0], self.a.energy[:, 1])
-        self.potplot.set_data(self.a.supermatrix_cla[:, 0], self.a.energy[:, 2])
-        aen.set_ylim([0, max(self.a.energy[:, 3]) + 10])
-        aen.set_xlim([0, self.a.tmax_cla])
-        self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.supermatrix_cla[-1, 0] + " s"
-        + "      E" + r'$_{total}$' + "= " + str(self.a.energy[-1, 3]).ljust(7)[:7])
-        self.canvas_ene.draw()
+        if self.ids.switch.active == False:
+            aen.clear()
+            aen.set_ylim([0, max(self.a.energy[:, 3]) + 10])
+            aen.set_xlim([0, self.a.tmax_cla])
+            aen.set_xlabel("t (s)")
+            aen.set_ylabel("E (J)")
+            aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 3], label = "Total", color = (1,0,0,1))
+            aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 1], label = "Rotational", color = (0,1,0,1))
+            aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 0], label = "Translational", color = (1,1,0,1))
+            aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 2], label = "Potential", color = (0,0,1,1))
+            aen.legend(loc=6)
+            self.txt = aen.set_title("")
+            self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.supermatrix_cla[-1, 0] + " s"
+            + "      E" + r'$_{total}$' + "= " + str(self.a.energy[-1, 3]).ljust(7)[:7])
+
+            self.canvas_ene.draw()
+
+        else:
+            aen.clear()
+            aen.set_ylim([0, max(self.a.energy[:, 3]) + 10])
+            aen.set_xlim([0, self.a.tmax_cla])
+            aen.set_xlabel("t (s)")
+            aen.set_ylabel("E (J)")
+            aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 1] + self.a.energy[:, 0] + self.a.energy[:, 2], label = "Rotational", color = (0,1,0,1))
+            aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 0] + self.a.energy[:, 2], label = "Translational", color = (1,1,0,1))
+            aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 2], label = "Potential", color = (0,0,1,1))
+
+            aen.fill_between(self.a.supermatrix_cla[:, 0], 0, self.a.energy[:, 2], color = (0,0,1,0.6))
+            aen.fill_between(self.a.supermatrix_cla[:, 0], self.a.energy[:, 2], self.a.energy[:, 0] + self.a.energy[:, 2], color = (1,1,0,0.6))
+            aen.fill_between(self.a.supermatrix_cla[:, 0],self.a.energy[:, 0] + self.a.energy[:, 2], self.a.energy[:, 1] + self.a.energy[:, 0] + self.a.energy[:, 2],
+            color = (0,1,0,0.6))
+
+            aen.legend(loc=6)
+            self.txt = aen.set_title("")
+            self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.supermatrix_cla[-1, 0] + " s"
+            + "      E" + r'$_{total}$' + "= " + str(self.a.energy[-1, 3]).ljust(7)[:7])
+            self.canvas_ene.draw()
+
+
 
     def close(self):
         Clock.unschedule(self.event)
