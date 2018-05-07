@@ -6,7 +6,7 @@ import json
 
 class DSexperiment(object):
     """docstring for DSexperiment."""
-    def __init__(self, Lx = 10.0, Nx = 300, Ny = 200, Vo = 200, sx = .25, sy = 2, d = 4, measurepos = 100, measurewidth = 5):
+    def __init__(self, Lx = 15.0, Nx = 300, Ny = 200, Vo = 200, sx = .25, sy = 2, d = 4, measurepos = 100, measurewidth = 5):
         #Mesh parameters
         self.Lx = Lx
         self.Nx = Nx
@@ -26,7 +26,7 @@ class DSexperiment(object):
         #psi0
         self.times = [0]
         self.psit = [np.zeros(self.x.shape, dtype = np.complex)]
-        self.Pt = [np.zeros(self.x.shape)]
+        self.Pt = [np.zeros(self.x.shape, dtype = np.float)]
 
         #V
         self.Vo = Vo
@@ -54,18 +54,27 @@ class DSexperiment(object):
         self.V = np.vectorize(self.Vslits)(self.x, self.y)
 
     def update_slits(self, sx = None, sy = None, d = None):
+        something_changed = False
         if sx is not None:
             self.sx = sx
+            something_changed = True
         if sy is not None:
             self.sy = sy
+            something_changed = True
         if d is not None:
             self.d = d
+            something_changed = True
+        return something_changed
 
     def update_measure_screen(self, mp = None, mw = None):
+        something_changed = False
         if mp is not None:
             self.mp = mp
+            something_changed = True
         if mw is not None:
             self.mw = mw
+            something_changed = True
+        return something_changed
 
     def compute_py(self, force = False):
         if self.old_mp != self.mp or self.old_mw != self.mw or force:
@@ -81,7 +90,7 @@ class DSexperiment(object):
         self.psit[0] = np.exp(-1j*(p0x*self.x + p0y*self.y))*np.exp(-r2/(4*s**2))/(2*s**2*np.pi)**(.5)
         self.Pt[0] = np.absolute(self.psit[0])**2
 
-    def compute_evolution(self, tmax = 2, dt = 0.01, update_callback = None, done_callback = None, parallel = True):
+    def compute_evolution(self, tmax = 2.5, dt = 0.01, update_callback = None, done_callback = None, parallel = True):
         """
         Computes the evolution of the experiment
         """

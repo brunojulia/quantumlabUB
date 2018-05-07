@@ -39,17 +39,18 @@
             padding: [10, 10, 10, 10]
 
             Button:
-                size_hint_x: 0.1
                 id: pp_button
-                text: "Play"
+                text: "Start measuring"
                 on_press: root.playpause()
-            Slider:
-                value_track: True
-                size_hint_x: 0.8
-                id: f_slider
-                on_touch_down: if self.collide_point(*args[1].pos): root.change_frame()
-                on_touch_move: if self.collide_point(*args[1].pos): root.change_frame()
 
+            Label:
+                text: "Speed:"
+            Slider:
+                id: s_slider
+                min: 1
+                max: 5
+                value: 3
+                setp: 1
 
         TabbedPanel:
             size_hint: (1, 0.2)
@@ -133,6 +134,14 @@
                                 max: 10
                                 value: 5
 
+            TabbedPanelItem:
+                text: "[b]Playback[/b]"
+                markup: True
+                Slider:
+                    value_track: True
+                    id: f_slider
+                    on_touch_down: if self.collide_point(*args[1].pos): root.change_frame()
+                    on_touch_move: if self.collide_point(*args[1].pos): root.change_frame()
 
 
             TabbedPanelItem:
@@ -141,14 +150,6 @@
 
                 BoxLayout:
                     orientation: "horizontal"
-                    Label:
-                        text: "Speed:"
-                    Slider:
-                        id: s_slider
-                        min: 1
-                        max: 5
-                        value: 1
-                        setp: 1
 
                     Label:
                         text: "Normalize each frame:"
