@@ -52,13 +52,14 @@ class DoubleSlitScreen(BoxLayout):
     speed = NumericProperty(4)
     playing = False
     normalize_each_frame = False
+    loop = False
 
     #Simulation results
     computing = False
     computed = False
     Pt = None
     times = None
-    maxP = 0
+    maxP = 1
 
     def __init__(self, *args, **kwargs):
         super(DoubleSlitScreen, self).__init__(*args, **kwargs)
@@ -71,7 +72,8 @@ class DoubleSlitScreen(BoxLayout):
         except FileNotFoundError:
             print("Could not find last simulation, creating new one...")
             self.experiment = DSexperiment()
-            self.experiment.set_gaussian_psi0(p0x = 100/self.experiment.Lx)
+            self.experiment.set_gaussian_psi0(p0x = 150/self.experiment.Lx)
+            self.maxP = np.max(self.experiment.Pt)
 
 
         self.slider_sx.value = self.experiment.sx
@@ -102,7 +104,7 @@ class DoubleSlitScreen(BoxLayout):
         #It's a gray-scale texture so value must go from 0 to 255 (P/self.maxP)*255
         #It must be an array of unsigned 8bit integers. And also it has to be flattened
 
-        self.texture.blit_buffer( ( (P/max)*255 ).astype(np.uint8).reshape(P.size), colorfmt = "luminance")
+        self.texture.blit_buffer( ((P/max)*255).astype(np.uint8).reshape(P.size), colorfmt = "luminance")
 
         #Draws the box walls and the
         with self.p_rectangle.canvas:
@@ -164,15 +166,15 @@ class DoubleSlitScreen(BoxLayout):
         self.progress_bar.value = 100*x
 
     def computation_done(self, save = True):
-        self.computed = True
-        self.computing = False
-        self.compute_button.disabled = False
-
         self.frames = self.experiment.Pt.shape[0]
         self.frame_slider.max = self.frames - 1
         self.maxP = np.max(self.experiment.Pt)
 
         self.create_texture()
+
+        self.computed = True
+        self.computing = False
+        self.compute_button.disabled = False
 
         if save:
             self.experiment.save_to_files("lastsim")
@@ -182,6 +184,8 @@ class DoubleSlitScreen(BoxLayout):
         This is called when the compute button is pressed
         """
         if not self.computing:
+            self.experiment = DSexperiment()
+            self.experiment.set_gaussian_psi0(p0x = 150/self.experiment.Lx)
             self.experiment.compute_evolution(update_callback = self.computation_update, done_callback = self.computation_done)
 
             self.playing = False
@@ -206,14 +210,13 @@ class DoubleSlitScreen(BoxLayout):
         self.experiment.clear_measurements()
 
     def update(self, dt):
-        self.p_rectangle.canvas.clear()
-
         self.playpause_button.disabled = not self.computed
+        self.compute_button.disabled = self.computing
 
         if self.playing:
-            self.playpause_button.text = "Pause"
+            self.playpause_button.text = "Stop experiment"
         else:
-            self.playpause_button.text = "Play"
+            self.playpause_button.text = "Start experiment"
 
         self.frame_slider.disabled = not self.computed
 
@@ -224,17 +227,27 @@ class DoubleSlitScreen(BoxLayout):
         self.experiment.mp = int(self.experiment.Pt[0].shape[1]*self.screen_pos_slider.value)
         self.experiment.mw = int(self.screen_width_slider.value)
 
-        self.experiment.update_slits(sx = self.slider_sx.value, sy = self.slider_sy.value, d = self.slider_d.value)
+        if self.experiment.update_slits(sx = self.slider_sx.value, sy = self.slider_sy.value, d = self.slider_d.value):
+            self.should_compute = False
 
         if self.playing:
+            self.p_rectangle.canvas.clear()
             self.blit_P(self.experiment.Pt[self.frame])
             self.draw_walls()
             self.draw_measures()
-            self.frame = (self.frame+self.speed)%self.frames
+            self.frame = (self.frame+self.speed)
+            if self.loop:
+                self.frame = self.frame%self.frames
+            elif self.frame >= self.frames:
+                self.frame = 0
+                self.playing = False
+                self.measure()
+
             self.frame_slider.value = self.frame
 
         else:
-            if not self.experiment.Pt is None:
+            if not self.computing:
+                self.p_rectangle.canvas.clear()
                 self.blit_P(self.experiment.Pt[self.frame])
                 self.draw_walls()
                 self.draw_measures()
