@@ -54,27 +54,28 @@ class DSexperiment(object):
         self.V = np.vectorize(self.Vslits)(self.x, self.y)
 
     def update_slits(self, sx = None, sy = None, d = None):
-        something_changed = False
+        changed = False
         if sx is not None:
+            changed = changed or float(self.sx) != float(sx)
             self.sx = sx
-            something_changed = True
         if sy is not None:
+            changed = changed or float(self.sy) != float(sy)
             self.sy = sy
-            something_changed = True
         if d is not None:
+            changed = changed or float(self.d) != float(d)
             self.d = d
-            something_changed = True
-        return something_changed
+        return changed
 
     def update_measure_screen(self, mp = None, mw = None):
-        something_changed = False
+        changed = False
         if mp is not None:
+            changed = changed or float(self.mp) != float(mp)
             self.mp = mp
-            something_changed = True
         if mw is not None:
+            changed = changed or float(self.mw) != float(mw)
             self.mw = mw
-            something_changed = True
-        return something_changed
+
+        return changed
 
     def compute_py(self, force = False):
         if self.old_mp != self.mp or self.old_mw != self.mw or force:
@@ -82,13 +83,14 @@ class DSexperiment(object):
             self.old_mp = self.mp
             self.old_mw = self.mw
 
-    def set_gaussian_psi0(self, x0 = 5, y0 = 0, p0x = 20, p0y = 0, s = 2):
+
+    def set_gaussian_psi0(self, x0 = 8, y0 = 0, p0x = 20, p0y = 0, s = 2):
         """
         sets psit[0] to a gaussian wavepacket
         """
         r2 = (self.x-x0)**2 + (self.y-y0)**2
-        self.psit[0] = np.exp(-1j*(p0x*self.x + p0y*self.y))*np.exp(-r2/(4*s**2))/(2*s**2*np.pi)**(.5)
-        self.Pt[0] = np.absolute(self.psit[0])**2
+        self.psit = [np.exp(-1j*(p0x*self.x + p0y*self.y))*np.exp(-r2/(4*s**2))/(2*s**2*np.pi)**(.5)]
+        self.Pt = [np.absolute(self.psit[0])**2]
 
     def compute_evolution(self, tmax = 2.5, dt = 0.01, update_callback = None, done_callback = None, parallel = True):
         """
@@ -99,6 +101,7 @@ class DSexperiment(object):
         self.update_callback = update_callback
         self.done_callback = done_callback
 
+        print(self.sx, self.sy, self.d)
         self.compute_potential()
 
         if parallel:
@@ -116,7 +119,7 @@ class DSexperiment(object):
             i = np.random.randint(0, len(self.py))
             y = M*np.random.random()
             if y < self.py[i]:
-                new_measures.append( (i, self.mp +np.random.randint(0, self.mw)) )
+                new_measures.append( (i, self.mp + np.random.randint(0, self.mw), np.random.normal(0, 1, None)))
 
         self.measurements += new_measures
 
