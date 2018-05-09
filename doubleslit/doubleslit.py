@@ -30,6 +30,9 @@ class DoubleSlitScreen(BoxLayout):
     screen_width_slider = ObjectProperty()
     compute_button = ObjectProperty()
     progress_bar = ObjectProperty()
+    label_info = ObjectProperty()
+    loop_switch = ObjectProperty()
+    hundred_switch = ObjectProperty()
 
     slider_d = ObjectProperty()
     slider_sx = ObjectProperty()
@@ -57,6 +60,7 @@ class DoubleSlitScreen(BoxLayout):
     #Simulation results
     computing = False
     computed = False
+    should_compute = False
     Pt = None
     times = None
     maxP = 1
@@ -79,6 +83,8 @@ class DoubleSlitScreen(BoxLayout):
         self.slider_sx.value = self.experiment.sx
         self.slider_sy.value = self.experiment.sy
         self.slider_d.value = self.experiment.d
+
+        self.normalize_switch.active = True
 
         self.create_texture()
 
@@ -164,6 +170,8 @@ class DoubleSlitScreen(BoxLayout):
     #Crank-Nicolson functions
     def computation_update(self, msg, x):
         self.progress_bar.value = 100*x
+        self.label_info.text = "[b]Computing: [/b]"
+        self.label_info.text += msg
 
     def computation_done(self, save = True):
         self.frames = self.experiment.Pt.shape[0]
@@ -174,7 +182,7 @@ class DoubleSlitScreen(BoxLayout):
 
         self.computed = True
         self.computing = False
-        self.compute_button.disabled = False
+        self.should_compute = False
 
         if save:
             self.experiment.save_to_files("lastsim")
@@ -184,14 +192,12 @@ class DoubleSlitScreen(BoxLayout):
         This is called when the compute button is pressed
         """
         if not self.computing:
-            self.experiment = DSexperiment()
             self.experiment.set_gaussian_psi0(p0x = 150/self.experiment.Lx)
             self.experiment.compute_evolution(update_callback = self.computation_update, done_callback = self.computation_done)
 
             self.playing = False
             self.computed = False
             self.computing = True
-            self.compute_button.disabled = True
 
             self.frame = 0
 
@@ -210,11 +216,11 @@ class DoubleSlitScreen(BoxLayout):
         self.experiment.clear_measurements()
 
     def update(self, dt):
-        self.playpause_button.disabled = not self.computed
+        self.playpause_button.disabled = not self.computed or self.should_compute
         self.compute_button.disabled = self.computing
 
         if self.playing:
-            self.playpause_button.text = "Stop experiment"
+            self.playpause_button.text = "Pause experiment"
         else:
             self.playpause_button.text = "Start experiment"
 
@@ -224,24 +230,50 @@ class DoubleSlitScreen(BoxLayout):
 
         self.speed = int(self.speed_slider.value)
 
-        self.experiment.mp = int(self.experiment.Pt[0].shape[1]*self.screen_pos_slider.value)
-        self.experiment.mw = int(self.screen_width_slider.value)
+        mp = int(self.experiment.Pt[0].shape[1]*self.screen_pos_slider.value)
+        mw = int(self.screen_width_slider.value)
 
-        if self.experiment.update_slits(sx = self.slider_sx.value, sy = self.slider_sy.value, d = self.slider_d.value):
-            self.should_compute = False
+        if self.experiment.update_measure_screen(mp, mw):
+            self.remove_measurements()
+
+        self.should_compute = self.experiment.update_slits(sx = self.slider_sx.value, sy = self.slider_sy.value, d = self.slider_d.value) or self.should_compute
+
+        if self.should_compute:
+            self.compute_button.background_color = (1.0, 0.0, 0.0, 1.0)
+        else:
+            self.compute_button.background_color = (1.0, 1.0, 1.0, 1.0)
+
+        #Info label:
+
+        if not self.computing:
+            self.label_info.text = "[b]Info: [/b]"
+            if self.should_compute or not self.computed:
+                self.label_info.text += "Click [i]Compute[/i]"
+            elif not self.playing:
+                self.label_info.text += "Click [i]Start experiment[/i]"
+            else:
+                self.label_info.text += "Running experiment"
 
         if self.playing:
             self.p_rectangle.canvas.clear()
+            self.progress_bar.value = 100*self.frame/self.frames
             self.blit_P(self.experiment.Pt[self.frame])
             self.draw_walls()
             self.draw_measures()
             self.frame = (self.frame+self.speed)
-            if self.loop:
-                self.frame = self.frame%self.frames
-            elif self.frame >= self.frames:
-                self.frame = 0
-                self.playing = False
-                self.measure()
+
+            if self.frame >= self.frames:
+                if self.hundred_switch.active:
+                    self.measure(100)
+                else:
+                    self.measure()
+
+                if self.loop_switch.active:
+                    self.frame = self.frame%self.frames
+                else:
+                    self.frame = 0
+                    self.playing = False
+
 
             self.frame_slider.value = self.frame
 
