@@ -119,7 +119,7 @@ class DSexperiment(object):
             i = np.random.randint(0, len(self.py))
             y = M*np.random.random()
             if y < self.py[i]:
-                new_measures.append( (i, self.mp + np.random.randint(0, self.mw), np.random.normal(0, 1, None)))
+                new_measures.append( (self.mp + np.random.randint(0, self.mw), i, np.random.normal(0, 1, None)))
 
         self.measurements += new_measures
 

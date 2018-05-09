@@ -1,6 +1,20 @@
 #:kivy 1.0.9
 #: import main doubleslit
-
+#:import Factory kivy.factory.Factory
+<MeasuresPopup@Popup>:
+    m_rectangle: m_rect.__self__
+    auto_dismiss: False
+    on_open: self.draw_measurements()
+    title: "Measuring screen"
+    BoxLayout:
+        orientation: "vertical"
+        Widget:
+            size_hint: (1, 0.9)
+            id: m_rect
+        Button:
+            size_hint: (0.2, 0.1)
+            text: "Close"
+            on_release: root.dismiss()
 
 <DoubleSlitScreen>:
     p_rectangle: p_rect
@@ -100,6 +114,9 @@
                                 min: 1
                                 max: 10
                                 value: 5
+                        Button:
+                            text: "Show measuring screen"
+                            on_release: root.open_measures_popup()
 
                 BoxLayout:
                     orientation: "horizontal"

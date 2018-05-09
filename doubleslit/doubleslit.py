@@ -13,11 +13,44 @@ from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.popup import Popup
 from kivy.properties import ObjectProperty, NumericProperty
 from kivy.graphics import Rectangle
 from kivy.graphics.texture import Texture
 from kivy.graphics import Color
 from kivy.clock import Clock
+
+class MeasuresPopup(Popup):
+    m_rectangle = ObjectProperty()
+    measurements = []
+    size_y = 1
+
+    def __init__(self, *args, **kwargs):
+        super(MeasuresPopup, self).__init__(*args, **kwargs)
+
+    def draw_measurements(self):
+        self.title = str(len(self.measurements))
+        with self.m_rectangle.canvas:
+
+            Color(0., .25, 0.)
+            x0 = self.m_rectangle.pos[0]
+            y0 = self.m_rectangle.pos[1]
+            w = self.m_rectangle.size[0]
+            h = self.m_rectangle.size[1]
+
+            self.zoom = w/self.size_y
+            self.zoomz = h/6
+            xc = x0 + w/2
+            yc = y0 + h/2
+
+            Rectangle(pos=(x0, y0), size=(w, h))
+
+            Color(0, 1. ,0)
+            for measure in self.measurements:
+                Rectangle(pos = (measure[1]*self.zoom, yc + measure[2]*self.zoomz), size = (4, 4))
+
+
+
 
 class DoubleSlitScreen(BoxLayout):
     #Objects binded from .kv file
@@ -64,6 +97,8 @@ class DoubleSlitScreen(BoxLayout):
     Pt = None
     times = None
     maxP = 1
+
+    measures_popup = ObjectProperty()
 
     def __init__(self, *args, **kwargs):
         super(DoubleSlitScreen, self).__init__(*args, **kwargs)
@@ -165,7 +200,13 @@ class DoubleSlitScreen(BoxLayout):
 
             Color(0, 1., 0)
             for measure in self.experiment.measurements:
-                Rectangle(pos = (self.xh + measure[1]*self.zoom, self.yh + measure[0]*self.zoom), size = (self.zoom, self.zoom))
+                Rectangle(pos = (self.xh + measure[0]*self.zoom, self.yh + measure[1]*self.zoom), size = (self.zoom, self.zoom))
+
+    def open_measures_popup(self):
+        self.measures_popup.measurements = self.experiment.measurements
+        self.measures_popup.size_y = self.experiment.Pt[0].shape[0]
+        self.measures_popup.open()
+
 
     #Crank-Nicolson functions
     def computation_update(self, msg, x):
@@ -239,7 +280,8 @@ class DoubleSlitScreen(BoxLayout):
         self.should_compute = self.experiment.update_slits(sx = self.slider_sx.value, sy = self.slider_sy.value, d = self.slider_d.value) or self.should_compute
 
         if self.should_compute:
-            self.compute_button.background_color = (1.0, 0.0, 0.0, 1.0)
+            self.compute_button.background_color = (0.0, 1.0, 0.0, 1.0)
+            self.playing = False
         else:
             self.compute_button.background_color = (1.0, 1.0, 1.0, 1.0)
 
@@ -290,6 +332,7 @@ class DoubleSlitApp(App):
     def build(self):
         random.seed()
         screen = DoubleSlitScreen()
+        screen.measures_popup = MeasuresPopup()
         Clock.schedule_interval(screen.update, 1.0 / 30.0)
         return screen
 
