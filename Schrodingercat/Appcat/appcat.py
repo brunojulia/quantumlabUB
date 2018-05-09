@@ -130,15 +130,19 @@ class Appcat(BoxLayout):
         #Clock (Classical):
         Clock.schedule_interval(self.ballupdate, 1/30)
         self.tmax_cla = 3
-        self.deltat = 0.01
-        self.dtime0_cla = self.deltat
+        self.dtime0_cla = 0.01 #For storing data.
         self.dtime_cla = self.dtime0_cla
-        self.tsteps_cla = int(self.tmax_cla/self.deltat)
         self.oldtime1_cla = self.time_cla + 1
         self.oldrow = -1
         self.deltax_cla = 0.001
         self.vel_cla = 1
         self.vel_btn_cla.text = "1x"
+
+        #Runge-Kutta-Fehlberg:
+        rob.eps = 0.00000001
+        rob.h = 1
+        self.yarr = np.zeros(shape=(3,2))
+        self.tvec = np.zeros(shape=(3,1))
 
         #Norm
         self.norm = []
@@ -300,21 +304,35 @@ class Appcat(BoxLayout):
         self.vel_btn_qua.text = str(self.vel_qua) + "x"
 
 #Classical functions:
-    def extend(self, t):
-        x0 = self.yin[0]
-        self.yin = rob.RK4(self.R, self.mu_cla, self.sigma_cla, self.k_cla, t, self.deltat, self.yin, rob.frollingball)
-        self.supermatrix_cla = np.concatenate((self.supermatrix_cla, [[t, self.yin[0], self.yin[1]]]))
+    def extend(self):
+        #Makes one step by RKF.
+        self.yarr[0,:] = self.yarr[1,:]
+        self.yarr[1,:] = self.yarr[2,:]
+        self.yarr[2,:] = rob.RKF(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.tvec[2], self.yarr[2,:], rob.frollingball)
 
-        self.perimeter = self.perimeter + rob.trapezoidal(self.mu_cla, self.sigma_cla, self.k_cla, x0, self.yin[0], self.deltax_cla, rob.groundperim)
-        theta = self.perimeter/self.R
-        beta = np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))
-        self.angle = np.concatenate((self.angle, [[theta - beta]]))
+        self.tvec[0] = self.tvec[1]
+        self.tvec[1] = self.tvec[2]
+        self.tvec[2] = self.tvec[2] + rob.h
 
-        trans = 0.5*self.m_cla*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2 + (rob.dycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2)
-        rot = 0.2*self.m_cla*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])/self.R - rob.dalpha(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))**2*self.yin[1]**2
-        pot = self.m_cla*rob.g*rob.ycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])
-        tot = trans + rot + pot
-        self.energy = np.concatenate((self.energy, [[trans, rot, pot, tot]]))
+        #Fills all the possible values between the last step and the new one by interpolation.
+        while self.lastt < self.tvec[2]:
+            x0 = self.yin[0]
+            self.yin = rob.interpol(self.tvec, self.yarr, self.lastt)
+            self.supermatrix_cla = np.concatenate((self.supermatrix_cla, [[self.lastt, self.yin[0], self.yin[1]]]))
+
+            self.perimeter = self.perimeter + rob.trapezoidal(self.mu_cla, self.sigma_cla, self.k_cla, x0, self.yin[0], self.deltax_cla, rob.groundperim)
+            theta = self.perimeter/self.R
+            beta = np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))
+            self.angle = np.concatenate((self.angle, [[theta - beta]]))
+
+            trans = 0.5*self.m_cla*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2 + (rob.dycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2)
+            rot = 0.2*self.m_cla*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])/self.R - rob.dalpha(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))**2*self.yin[1]**2
+            pot = self.m_cla*rob.g*rob.ycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])
+            tot = trans + rot + pot
+            self.energy = np.concatenate((self.energy, [[trans, rot, pot, tot]]))
+
+            self.lastt = self.lastt + self.dtime0_cla
+
 
     def computevolution_cla(self):
         #Just happens if some value changes:
@@ -326,10 +344,17 @@ class Appcat(BoxLayout):
 
         if a or b or c or d or e:
             #Erases the previously computed values.
+            rob.h = 1
+            self.yarr[1,:] = self.yin
+            self.tvec[1] = self.time_cla
+            self.lastt = self.time_cla
+
+            self.yarr[2,:] = rob.RKF(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.tvec[1], self.yarr[1,:], rob.frollingball)
+            self.tvec[2] = self.tvec[1] + rob.h
+
             self.supermatrix_cla = np.array([[self.time_cla, self.yin[0], self.yin[1]]]) #3 columns: time, x and xdot
             self.angle = np.array([[-np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))]])
             self.perimeter = 0.
-            self.tsteps_cla = int(self.tmax_cla/self.deltat)
             self.energy = np.zeros(shape=(1,4))
             self.energy[0,0] = 0.5*self.m_cla*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2 + (rob.dycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2)
             self.energy[0,1] = 0.2*self.m_cla*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])/self.R - rob.dalpha(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))**2*self.yin[1]**2
@@ -337,9 +362,9 @@ class Appcat(BoxLayout):
             self.energy[0,3] = sum(self.energy[0,:])
 
             print("classical working")
-            for i in range(1, self.tsteps_cla, 1):
-                t = self.deltat*i
-                self.extend(t)
+            #Initial computation.
+            while self.lastt <= self.tmax_cla:
+                self.extend()
 
             self.oldtop1_cla = self.heightslide_cla.value
             self.oldk1_cla = self.kslide_cla.value
@@ -398,7 +423,7 @@ class Appcat(BoxLayout):
                 row = - 1
 
             else:
-                row = int(t/self.deltat)
+                row = int(t/self.dtime0_cla)
 
             if self.oldrow != row:
                 x = self.supermatrix_cla[row, 1]
@@ -429,12 +454,10 @@ class Appcat(BoxLayout):
 
             #Supermatrix gets extended if the timer reaches the top.
             if self.time_cla >= self.tmax_cla:
-                t = self.supermatrix_cla[-1, 0]
                 self.tmax_cla = self.time_cla
 
-                while t <= self.time_cla:
-                    t = t + self.deltat
-                    self.extend(t)
+                while self.lastt <= self.time_cla:
+                    self.extend()
 
             self.timeslide_cla.value = self.time_cla
             self.plotball(self.time_cla)
@@ -539,8 +562,8 @@ class Energypopup(Popup):
         aen.set_ylabel("E (J)")
         self.event = Clock.schedule_interval(self.update, 0.3)
         aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 3], label = "Total", color = (1,0,0,1))
-        aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 0], label = "Translational", color = (1,1,0,1))
         aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 1], label = "Rotational", color = (0,1,0,1))
+        aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 0], label = "Translational", color = (1,1,0,1))
         aen.plot(self.a.supermatrix_cla[:, 0], self.a.energy[:, 2], label = "Potential", color = (0,0,1,1))
         aen.legend(loc=6)
         self.txt = aen.set_title("")

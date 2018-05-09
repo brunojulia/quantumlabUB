@@ -187,19 +187,56 @@ def frollingball(R, mu, sigma, k, t, yvec):
     return ftot
 
 
-"Runge Kutta 4"
-def RK4(R, mu, sigma, k, t, deltat, yin, fun):
+"Runge Kutta Fehlberg"
+def RKF(R, mu, sigma, k, t, yin, fun):
     """
-    It makes one step 'deltat' using the RK4 method.
-    This means that given the array 'yin', which contains the values of the variables at time 't', it returns a new array with the values at time = t+deltat.
+    It makes one step 'deltat' using the Runge-Kutta Fehlberg method.
+    This means that given the array 'yin', which contains the values of the variables at time 't', it returns a new array with the values at time = t+h.
     'fun' must be a f(t,y)-like function that returns an array containing the derivatives of each variable in y.
+    An initial step length needs to be defined (with letter h), as well as a desired precision (eps).
+    This function will return a result with the desired precision and change the step length (h) to an improved one.
     """
-    k1 = fun(R, mu, sigma, k, t, yin)
-    k2 = fun(R, mu, sigma, k, t + deltat/2., yin + (deltat/2.)*k1)
-    k3 = fun(R, mu, sigma, k, t + deltat/2., yin + (deltat/2.)*k2)
-    k4 = fun(R, mu, sigma, k, t + deltat, yin + deltat*k3)
-    yout = yin + deltat/6.*(k1 + 2*k2 + 2*k3 + k4)
+    global h
+    hnew = h
+    start = True
+    while hnew < h or start:
+        start = False
+        h = hnew
+        f0 = fun(R, mu, sigma, k, t, yin)
+        f1 = fun(R, mu, sigma, k, t + h/4., yin + (h/4.)*f0)
+        f2 = fun(R, mu, sigma, k, t + 3.*h/8., yin + (3.*h/32.)*f0 + (9.*h/32.)*f1)
+        f3 = fun(R, mu, sigma, k, t + 12.*h/13., yin + (1932.*h/2197.)*f0 - (7200.*h/2197.)*f1 + (7296.*h/2197.)*f2)
+        f4 = fun(R, mu, sigma, k, t + h, yin + (439.*h/216.)*f0 - 8.*h*f1 + (3680.*h/513.)*f2 - (845.*h/4104.)*f3)
+        f5 = fun(R, mu, sigma, k, t + h/2., yin - (8.*h/27.)*f0 + 2.*h*f1 - (3544.*h/2565.)*f2 + (1859.*h/4104.)*f3 - (11.*h/40.)*f4)
+
+        y =  yin + (25.*h/216.)*f0 + (1408.*h/2565.)*f2 + (2197.*h/4104.)*f3 - (h/5.)*f4
+        ycap =  yin + (16.*h/135.)*f0 + (6656.*h/12825.)*f2 + (28561.*h/56430.)*f3 - (9.*h/50.)*f4 + (2.*h/55.)*f5
+        diff = h*((1./360.)*f0 - (128./4275.)*f2 - (2197./75240.)*f3 + (1./50.)*f4 + (2./55.)*f5)
+
+        hnew = 0.9*h*(np.abs(h)*eps/np.sqrt(np.sum(diff**2)))**(1/4.)
+        print("hnew =", hnew)
+
+    print("Accepted!", hnew)
+    h = hnew
+    yout = ycap
     return yout
+
+
+"Polynomial Interpolation"
+def interpol(tvec, yarr, t):
+    """
+    2nd order polynomial interpolation.
+    This function receives the values of a vector at 3 different times as an array
+    [[y1(t1), y2(t1)]
+     [y1(t2), y2(t2)]
+     [y1(t3), y2(t3)]]
+    As well as the three times ti and the desired time t within the bounds [t1,t3].
+    It returns the interpolated values [y1(t), y2(t)].
+    """
+    out1 = (t - tvec[1])*(t - tvec[2])/((tvec[0] - tvec[1])*(tvec[0] - tvec[2]))*yarr[0,:]
+    out2 = (t - tvec[0])*(t - tvec[2])/((tvec[1] - tvec[0])*(tvec[1] - tvec[2]))*yarr[1,:]
+    out3 = (t - tvec[0])*(t - tvec[1])/((tvec[2] - tvec[0])*(tvec[2] - tvec[1]))*yarr[2,:]
+    return out1 + out2 + out3
 
 
 "Solving the differential equation"
