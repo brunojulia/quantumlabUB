@@ -214,9 +214,7 @@ def RKF(R, mu, sigma, k, t, yin, fun):
         diff = h*((1./360.)*f0 - (128./4275.)*f2 - (2197./75240.)*f3 + (1./50.)*f4 + (2./55.)*f5)
 
         hnew = 0.9*h*(np.abs(h)*eps/np.sqrt(np.sum(diff**2)))**(1/4.)
-        print("hnew =", hnew)
 
-    print("Accepted!", hnew)
     h = hnew
     yout = ycap
     return yout
@@ -225,18 +223,16 @@ def RKF(R, mu, sigma, k, t, yin, fun):
 "Polynomial Interpolation"
 def interpol(tvec, yarr, t):
     """
-    2nd order polynomial interpolation.
-    This function receives the values of a vector at 3 different times as an array
+    1st order polynomial interpolation.
+    This function receives the values of a vector at 2 different times as an array
     [[y1(t1), y2(t1)]
-     [y1(t2), y2(t2)]
-     [y1(t3), y2(t3)]]
-    As well as the three times ti and the desired time t within the bounds [t1,t3].
+     [y1(t2), y2(t2)]]
+    As well as the two times ti and the desired time t (within the bounds [t1,t3]).
     It returns the interpolated values [y1(t), y2(t)].
     """
-    out1 = (t - tvec[1])*(t - tvec[2])/((tvec[0] - tvec[1])*(tvec[0] - tvec[2]))*yarr[0,:]
-    out2 = (t - tvec[0])*(t - tvec[2])/((tvec[1] - tvec[0])*(tvec[1] - tvec[2]))*yarr[1,:]
-    out3 = (t - tvec[0])*(t - tvec[1])/((tvec[2] - tvec[0])*(tvec[2] - tvec[1]))*yarr[2,:]
-    return out1 + out2 + out3
+    out1 = (t - tvec[1])/(tvec[0] - tvec[1])*yarr[0,:]
+    out2 = (t - tvec[0])/(tvec[1] - tvec[0])*yarr[1,:]
+    return out1 + out2
 
 
 "Solving the differential equation"

@@ -58,6 +58,11 @@
     vel_btn_qua: vel_qua_but
     vel_btn_cla: vel_cla_but
 
+    progressbar_cla: pbar_cla
+
+    rKswitch: RK_switch
+    rKFswitch: RKF_switch
+
 
     TabbedPanel:
         size_hint: 1, 1
@@ -71,7 +76,7 @@
                 orientation: "vertical"
 
                 BoxLayout:
-                    size_hint_y: 0.80
+                    size_hint_y: 0.75
                     orientation: "horizontal"
 
                     BoxLayout:
@@ -115,7 +120,6 @@
                                     max: 1
                                     on_touch_down: root.plotground()
                                     on_touch_move: root.plotground()
-                                    on_touch_up: root.computevolution_cla()
 
                             BoxLayout:
                                 orientation: "vertical"
@@ -137,18 +141,17 @@
                                     max: 1
                                     on_touch_down: root.plotground()
                                     on_touch_move: root.plotground()
-                                    on_touch_up: root.computevolution_cla()
 
                 BoxLayout:
                     orientation: "horizontal"
-                    size_hint_y: 0.20
+                    size_hint_y: 0.25
 
                     BoxLayout:
                         orientation: "vertical"
                         size_hint_x: 0.85
 
                         BoxLayout:
-                            size_hint_y: 1/3.5
+                            size_hint_y: 0.2
 
                             Label:
                                 text: "[b]  Time:[/b]   t = " + '%1.1f' % time_cla_slide.value + " s"
@@ -187,101 +190,180 @@
                                 valign: 'middle'
 
                         BoxLayout:
-                            size_hint_y: 2/3.
+                            size_hint_y: 0.8
                             orientation: "horizontal"
 
-                            BoxLayout:
-                                orientation: "vertical"
-                                size_hint_x: 0.7
-
-                                BoxLayout:
-                                    orientation: "horizontal"
-                                    size_hint_y: 1/3.
-
-                                    Label:
-                                        text: "[b]       Radius:[/b]   r = " + '%1.1f' % radius_cla_slide.value + " m"
-                                        font_size: wall_cla_label.font_size - 1
-                                        size_hint_x: 0.4
-                                        text_size: self.size
-                                        halign: 'left'
-                                        valign: 'top'
-                                        markup: True
-
-
-                                    Slider:
-                                        id: radius_cla_slide
-                                        size_hint_x: 0.6
-                                        cursor_size: self.y/2, self.y/2
-                                        min: 0.1
-                                        max: 0.4
-                                        on_touch_down: root.change_radius()
-                                        on_touch_move: root.change_radius()
-
-                                BoxLayout:
-                                    orientation: "horizontal"
-                                    size_hint_y: 1/3.
-
-                                    Label:
-                                        text: "[b]       Position:[/b]   x = " + '%1.1f' % pos_cla_slide.value + " m"
-                                        font_size: wall_cla_label.font_size - 1
-                                        size_hint_x: 0.4
-                                        text_size: self.size
-                                        halign: 'left'
-                                        valign: 'top'
-                                        markup: True
-
-                                    Slider:
-                                        id: pos_cla_slide
-                                        size_hint_x: 0.6
-                                        cursor_size: radius_cla_slide.cursor_size
-                                        min: -2.5
-                                        max: 2.5
-                                        on_touch_down: root.change_xo_cla()
-                                        on_touch_move: root.change_xo_cla()
-
-                                BoxLayout:
-                                    orientation: "horizontal"
-                                    size_hint_y: 1/3.
-
-                                    Label:
-                                        text: "[b]       Velocity:[/b]   v = " + '%1.1f' % vel_cla_slide.value + " m/s"
-                                        font_size: wall_cla_label.font_size - 1
-                                        size_hint_x: 0.4
-                                        text_size: self.size
-                                        halign: 'left'
-                                        valign: 'top'
-                                        markup: True
-
-
-                                    Slider:
-                                        id: vel_cla_slide
-                                        size_hint_x: 0.6
-                                        cursor_size: radius_cla_slide.cursor_size
-                                        min: -3
-                                        max: 3
-                                        on_touch_down: root.change_vel_cla()
-                                        on_touch_move: root.change_vel_cla()
-
-
                             Button:
-                                id: vel_cla_but
-                                size_hint_x: 0.1
+                                id: compu_cla_but
+                                size_hint_x: 0.15
+                                text: "Compute"
                                 font_size: wall_cla_label.font_size + 1
-                                background_normal: "grey.png"
-                                background_down: "blue.png"
-                                on_press: root.velocity_cla_btn()
+                                background_normal: "cogwheel.png"
+                                on_press: root.computevolution_cla()
+
+                            BoxLayout:
+                                size_hint_x: 0.85
+                                orientation: "vertical"
+
+                                ProgressBar:
+                                    id: pbar_cla
+                                    size_hint_y: 0.2
+                                    max: 100
+
+                                BoxLayout:
+                                    size_hint_y: 0.8
+                                    orientation: "horizontal"
+
+                                    TabbedPanel:
+                                        tab_height: self.height*0.2
+                                        size_hint: 0.7, 1
+                                        do_default_tab: False
+
+                                        TabbedPanelItem:
+                                            text: "Ball"
+
+                                            BoxLayout:
+                                                orientation: "horizontal"
+                                                size_hint_y: 1/3.
+
+                                                Label:
+                                                    text: "[b]  Radius:[/b]   r = " + '%1.1f' % radius_cla_slide.value + " m"
+                                                    font_size: wall_cla_label.font_size - 1
+                                                    size_hint_x: 0.5
+                                                    text_size: self.size
+                                                    halign: 'left'
+                                                    valign: 'center'
+                                                    markup: True
 
 
-                            Button:
-                                id: start_stop_cla_id
-                                size_hint_x: 0.1
-                                on_press: root.start_stop_cla()
+                                                Slider:
+                                                    id: radius_cla_slide
+                                                    size_hint_x: 0.5
+                                                    cursor_size: self.y/2, self.y/2
+                                                    min: 0.1
+                                                    max: 0.4
+                                                    on_touch_down: root.change_radius()
+                                                    on_touch_move: root.change_radius()
 
-                            Button:
-                                size_hint_x: 0.1
-                                background_normal: "reset.png"
-                                background_down: "resetblue.png"
-                                on_press: root.reset_cla_btn()
+                                        TabbedPanelItem:
+                                            text: "Init. Cond."
+
+                                            BoxLayout:
+                                                orientation: "vertical"
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+                                                    size_hint_y: 1/3.
+
+                                                    Label:
+                                                        text: "[b]  Position:[/b]   x = " + '%1.1f' % pos_cla_slide.value + " m"
+                                                        font_size: wall_cla_label.font_size - 1
+                                                        size_hint_x: 0.5
+                                                        text_size: self.size
+                                                        halign: 'left'
+                                                        valign: 'center'
+                                                        markup: True
+
+                                                    Slider:
+                                                        id: pos_cla_slide
+                                                        size_hint_x: 0.5
+                                                        cursor_size: radius_cla_slide.cursor_size
+                                                        min: -2.5
+                                                        max: 2.5
+                                                        on_touch_down: root.change_xo_cla()
+                                                        on_touch_move: root.change_xo_cla()
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+                                                    size_hint_y: 1/3.
+
+                                                    Label:
+                                                        text: "[b]  Velocity:[/b]   v = " + '%1.1f' % vel_cla_slide.value + " m/s"
+                                                        font_size: wall_cla_label.font_size - 1
+                                                        size_hint_x: 0.5
+                                                        text_size: self.size
+                                                        halign: 'left'
+                                                        valign: 'center'
+                                                        markup: True
+
+
+                                                    Slider:
+                                                        id: vel_cla_slide
+                                                        size_hint_x: 0.5
+                                                        cursor_size: radius_cla_slide.cursor_size
+                                                        min: -3
+                                                        max: 3
+                                                        on_touch_down: root.change_vel_cla()
+                                                        on_touch_move: root.change_vel_cla()
+
+                                                BoxLayout:
+                                                    size_hint_y: 1/3.
+
+                                        TabbedPanelItem:
+                                            text: "Method"
+
+                                            BoxLayout:
+                                                orientation: "vertical"
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+
+                                                    Switch:
+                                                        id: RK_switch
+                                                        size_hint_x: 0.3
+
+                                                    Label:
+                                                        text: "Runge-Kutta 4"
+                                                        font_size: wall_cla_label.font_size - 1
+                                                        size_hint_x: 0.7
+                                                        text_size: self.size
+                                                        halign: 'left'
+                                                        valign: 'center'
+
+
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+
+                                                    Switch:
+                                                        id: RKF_switch
+                                                        size_hint_x: 0.3
+
+                                                    Label:
+                                                        text: "Runge-Kutta-Fehlberg 45"
+                                                        font_size: wall_cla_label.font_size - 1
+                                                        size_hint_x: 0.7
+                                                        text_size: self.size
+                                                        halign: 'left'
+                                                        valign: 'center'
+
+
+
+                                                BoxLayout:
+                                                    size_hint_y: 1/3.
+
+
+
+
+                                    Button:
+                                        id: vel_cla_but
+                                        size_hint_x: 0.1
+                                        font_size: wall_cla_label.font_size + 1
+                                        background_normal: "grey.png"
+                                        background_down: "blue.png"
+                                        on_press: root.velocity_cla_btn()
+
+
+                                    Button:
+                                        id: start_stop_cla_id
+                                        size_hint_x: 0.1
+                                        on_press: root.start_stop_cla()
+
+                                    Button:
+                                        size_hint_x: 0.1
+                                        background_normal: "reset.png"
+                                        background_down: "resetblue.png"
+                                        on_press: root.reset_cla_btn()
 
 
                     Button:
