@@ -1,6 +1,6 @@
 """
 Jan Albert Iglesias
-6/5/2018
+11/5/2018
 """
 
 import numpy as np
@@ -13,10 +13,13 @@ import matplotlib.pyplot as plt
 from kivy.clock import Clock
 from kivy.properties import NumericProperty, ObjectProperty
 from  kivy.uix.popup import Popup
+import warnings
 from matplotlib import rc
 import rollball as rob
 import timeev as te
+warnings.filterwarnings("error")
 
+#Initialization of the plots:
 fig_cla = Figure()
 acl = fig_cla.add_subplot(111)
 fig_qua = Figure()
@@ -40,7 +43,7 @@ class Appcat(BoxLayout):
     def __init__(self, **kwargs):
         super(Appcat, self).__init__(**kwargs)
 
-        #Quantum definitions:
+        "Quantum definitions"
         self.a = -15.
         self.b = 15.
         self.N = 900
@@ -74,40 +77,6 @@ class Appcat(BoxLayout):
         self.startstopbut_qua.background_down = "playblue.png"
         self.startstopbut_qua.background_normal = "play.png"
 
-        #Classical definitions:
-        self.time_cla = 0.
-        self.heightslide_cla.value = 0.3
-        self.sigma_cla =  1./(np.sqrt(2*np.pi)*self.heightslide_cla.value)
-        self.mu_cla = 0
-        self.m_cla = 10
-        rob.m = self.m_cla
-        self.R = 0.2
-        self.radiusslide_cla.value = self.R
-        self.k_cla = 0.5
-        self.kslide_cla.value = self.k_cla
-        self.yin0 = np.array([1.5,0.0])
-        self.poslide_cla.value = 1.5
-        self.velslide_cla.value = 0.0
-        self.xarr_cla = self.xarr_qua
-
-        self.switch1_cla = "off"
-        self.oldtop1_cla = self.heightslide_cla.value + 1
-        self.oldtop2_cla = self.heightslide_cla.value
-        self.oldk1_cla = self.kslide_cla.value +1
-        self.oldk2_cla = self.kslide_cla.value
-        self.oldradius1_cla = self.radiusslide_cla.value +1
-        self.oldradius2_cla = self.radiusslide_cla.value
-        self.oldxo1_cla = self.poslide_cla.value + 1
-        self.oldxo2_cla = self.poslide_cla.value
-        self.oldvel1_cla = self.velslide_cla.value + 1
-        self.oldvel2_cla = self.velslide_cla.value
-        self.rKswitch.active = False
-        self.rKFswitch.active = True
-
-        self.startstopbut_cla.background_down = "playblue.png"
-        self.startstopbut_cla.background_normal = "play.png"
-
-
         #Clock (Quantum):
         Clock.schedule_interval(self.psiupdate, 1/60)
         self.dtime0_qua = 1/30
@@ -119,23 +88,6 @@ class Appcat(BoxLayout):
         self.vel_qua = 1
         self.vel_btn_qua.text = "1x"
 
-        #Clock (Classical):
-        Clock.schedule_interval(self.ballupdate, 1/30)
-        self.tmax_cla = 3.0
-        self.dtime0_cla = 0.01 #For storing data.
-        self.dtime_cla = self.dtime0_cla
-        self.oldtime1_cla = self.time_cla + 1
-        self.oldrow = -1
-        self.deltax_cla = 0.001
-        self.vel_cla = 1
-        self.vel_btn_cla.text = "1x"
-
-        #Runge-Kutta-Fehlberg:
-        rob.eps = 0.000001
-        rob.h = 1
-        self.yarr = np.zeros(shape=(2,2))
-        self.tvec = np.zeros(shape=(2,1))
-
         #Norm
         self.norm = []
         self.timevec_qua = []
@@ -143,21 +95,7 @@ class Appcat(BoxLayout):
         self.norm.append(self.deltax*(np.sum(psit) - psit[0]/2. - psit[self.N]/2.))
         self.timevec_qua.append(self.time_qua)
 
-
-        #Plots:
-        self.canvas_cla = FigureCanvasKivyAgg(fig_cla)
-        self.ground_cla, = acl.plot(self.xarr_cla, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla), 'k--')
-        self.ballcm, = acl.plot([], [], 'ko', ms=1)
-        self.ballperim, = acl.plot([], [], 'k-', lw=1)
-        self.balldots, = acl.plot([], [], 'ko', ms=1)
-        self.filled = acl.fill_between(self.xarr_cla, 0, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla), color = (0.5,0.5,0.5,0.5))
-        self.E_cla, = acl.plot([],[], 'r--', lw=1)
-        acl.axis('scaled')
-        acl.set_xlabel("x (m)")
-        acl.set_ylabel("y (m)")
-        self.panel1.add_widget(self.canvas_cla)
-        acl.axis([-2.5, 2.5, 0 , 3])
-
+        #Plots (Quantum)
         self.canvas_qua = FigureCanvasKivyAgg(fig_qua)
         self.pot_qua, = aqu.plot(self.xarr_qua, te.pot(self.mu_qua, self.sigma_qua, self.k_qua, self.xarr_qua), 'g--', label = "V(x)")
         self.psi_qua, = aqu.plot(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, 'r-', label = r'$|\Psi(x)|^{2}$')
@@ -166,10 +104,88 @@ class Appcat(BoxLayout):
         aqu.legend(loc=1)
         self.panel2.add_widget(self.canvas_qua)
 
+
+
+        "Classical definitions"
+        self.time_cla = 0.
+        self.heightslide_cla.value = 0.3
+        self.sigma_cla =  1./(np.sqrt(2*np.pi)*self.heightslide_cla.value)
+        self.mu_cla = 0
+        rob.m = 5
+
+        self.R = 0.2
+        self.radiusslide_cla.value = self.R
+
+        self.k_cla = 0.5
+        self.kslide_cla.value = self.k_cla
+
+        self.yin0 = np.array([1.5,0.0])
+        self.poslide_cla.value = 1.5
+        self.velslide_cla.value = 0.0
+
+        self.xarr_cla = self.xarr_qua
+
+        self.deltax_cla = 0.005 #dx to integrate the ground perimeter.
+
+        self.method = "RKF45"
+        self.rkf_button.background_color = (0.5,0.5,0.5,1)
+        self.rk_button.background_color = (0.9,0.9,0.9,1)
+
+        #Switches and flux controllers.
+        self.switch1_cla = "off"
+        self.oldtop2_cla = self.heightslide_cla.value
+        self.oldk2_cla = self.kslide_cla.value
+        self.oldradius2_cla = self.radiusslide_cla.value
+        self.oldxo2_cla = self.poslide_cla.value
+        self.oldvel2_cla = self.velslide_cla.value
+
+        self.startstopbut_cla.background_down = "playblue.png"
+        self.startstopbut_cla.background_normal = "play.png"
+
+        #Clock (Classical):
+        self.time_cla = 0.
+        self.dtime0_cla = 0.01 #Default time step (used by RK4 and as default playing velocity).
+
+        self.dtime_cla = self.dtime0_cla #Defines the playing velocity.
+        self.vel_cla = 1
+        self.vel_btn_cla.text = "1x"
+
+        self.oldtime1_cla = self.time_cla + 1
+        self.oldrow = -1
+
+          #Starts and ends the event in order for "self.event_cla" to exist.
+        self.event_cla = Clock.schedule_interval(self.ballupdate, self.dtime0_cla)
+        Clock.unschedule(self.event_cla)
+
+        #Runge-Kutta-Fehlberg:
+        rob.eps = 0.000001 #Tolerance
+        rob.h = 1
+        self.yarr = np.zeros(shape=(2,2))
+        self.tvec = np.zeros(shape=(2,1))
+
+
+        #Plots (Classical):
+        self.canvas_cla = FigureCanvasKivyAgg(fig_cla)
+        self.panel1.add_widget(self.canvas_cla)
+
+        acl.axis('scaled')
+        acl.set_xlabel("x (m)")
+        acl.set_ylabel("y (m)")
+        acl.axis([-2.5, 2.5, 0 , 3])
+
+        self.ground_cla, = acl.plot(self.xarr_cla, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla), 'k--')
+        self.ballcm, = acl.plot([], [], 'ko', ms=1)
+        self.ballperim, = acl.plot([], [], 'k-', lw=1)
+        self.balldots, = acl.plot([], [], 'ko', ms=1)
+        self.filled = acl.fill_between(self.xarr_cla, 0, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla), color = (0.5,0.5,0.5,0.5))
+        self.E_cla, = acl.plot([],[], 'r--', lw=1)
+
+
         #First computations:
         self.computed_cla = False
+        self.computing_cla = False
         self.computevolution()
-        self.computevolution_cla()
+        self.triggercompute_cla()
         self.plotball_0()
         self.plotE_cla()
 
@@ -299,109 +315,206 @@ class Appcat(BoxLayout):
         self.vel_btn_qua.text = str(self.vel_qua) + "x"
 
 #Classical functions:
+    #Computing:
     def extend(self):
-        #Makes one step by RKF.
-        self.yarr[0,:] = self.yarr[1,:]
-        self.yarr[1,:] = rob.RKF(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.tvec[1], self.yarr[1,:], rob.frollingball)
+        """
+        It extends the matrices with the evolution parameters by the specified method.
+        """
+        if self.method == "RKF45":
+            #Makes one step by RKF.
+            self.yarr[0,:] = self.yarr[1,:]
+            self.yarr[1,:] = rob.RKF(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.tvec[1], self.yarr[1,:], rob.frollingball)
 
-        self.tvec[0] = self.tvec[1]
-        self.tvec[1] = self.tvec[1] + rob.h
+            self.tvec[0] = self.tvec[1]
+            self.tvec[1] = self.tvec[1] + rob.h
 
-        gotin = False
+            gotin = False
 
-        #Fills all the possible values between the last step and the new one by interpolation.
-        while self.lastt < self.tvec[1]:
+            #Fills all the possible values between the last step and the new one by interpolation.
+            while self.lastt < self.tvec[1]:
+                x0 = self.yin[0]
+
+                #Position & velocity:
+                self.yin = rob.interpol(self.tvec, self.yarr, self.lastt)
+                self.supermatrix_cla = np.concatenate((self.supermatrix_cla, [[self.lastt, self.yin[0], self.yin[1]]]))
+
+                #Angle:
+                self.perimeter = self.perimeter + rob.trapezoidal(self.mu_cla, self.sigma_cla, self.k_cla, x0, self.yin[0], self.deltax_cla, rob.groundperim)
+                theta = self.perimeter/self.R
+                beta = np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))
+                self.angle = np.concatenate((self.angle, [[theta - beta]]))
+
+                gotin = True
+
+                self.lastt = self.lastt + self.dtime0_cla
+
+            if gotin:
+                #Energy. It does not use interpolation for the energies.
+                trans = 0.5*rob.m*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2
+                + (rob.dycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2)
+                rot = 0.2*rob.m*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])/self.R
+                - rob.dalpha(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))**2*self.yin[1]**2
+                pot = rob.m*rob.g*rob.ycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])
+                tot = trans + rot + pot
+
+                self.timenet = np.append(self.timenet, [self.lastt - self.dtime0_cla], axis=0)
+                self.energynet = np.concatenate((self.energynet, [[trans, rot, pot, tot]]))
+
+        if self.method == "RK4":
             x0 = self.yin[0]
-            self.yin = rob.interpol(self.tvec, self.yarr, self.lastt)
+
+            #Position & velocity:
+            self.yin = rob.RK4(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.lastt, self.dtime0_cla, self.yin, rob.frollingball)
             self.supermatrix_cla = np.concatenate((self.supermatrix_cla, [[self.lastt, self.yin[0], self.yin[1]]]))
 
+            #Angle:
             self.perimeter = self.perimeter + rob.trapezoidal(self.mu_cla, self.sigma_cla, self.k_cla, x0, self.yin[0], self.deltax_cla, rob.groundperim)
             theta = self.perimeter/self.R
             beta = np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))
             self.angle = np.concatenate((self.angle, [[theta - beta]]))
 
-            trans = 0.5*self.m_cla*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2 + (rob.dycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2)
-            rot = 0.2*self.m_cla*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])/self.R - rob.dalpha(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))**2*self.yin[1]**2
-            pot = self.m_cla*rob.g*rob.ycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])
+            #Energy:
+            trans = 0.5*rob.m*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2
+            + (rob.dycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])*self.yin[1])**2)
+            rot = 0.2*rob.m*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])/self.R
+            - rob.dalpha(self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0]))**2*self.yin[1]**2
+            pot = rob.m*rob.g*rob.ycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin[0])
             tot = trans + rot + pot
-            self.energy = np.concatenate((self.energy, [[trans, rot, pot, tot]]))
 
-            gotin = True
-
-            self.lastt = self.lastt + self.dtime0_cla
-
-        if gotin:
             self.timenet = np.append(self.timenet, [self.lastt], axis=0)
             self.energynet = np.concatenate((self.energynet, [[trans, rot, pot, tot]]))
 
+            self.lastt = self.lastt + self.dtime0_cla
 
-    def computevolution_cla(self):
+    def extend5percent(self, callback):
+        """
+        It keeps calling extend() until the progreess percentage is increased by 5.
+        """
+        while 100*self.lastt/self.tmax_cla <= self.progressbar_cla.value + 5:
+            self.extend()
+        callback()
+
+    def triggercompute_cla(self):
+        #Just gets triggered if it has not been computed:
         if not self.computed_cla:
-            #Overwrites the previously computed values.
-            self.yin = self.yin0
-            rob.h = 1
-            self.yarr[1,:] = self.yin0
-            self.tvec[1] = 0
-            self.lastt = self.dtime0_cla
-            self.timenet = np.array([0])
+            Computevolution_cla(self.progressbar_cla, self.extend5percent, self)
 
-            self.supermatrix_cla = np.array([[self.time_cla, self.yin0[0], self.yin0[1]]]) #3 columns: time, x and xdot
-            self.angle = np.array([[-np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0]))]])
-            self.perimeter = 0.
 
-            progress = 0
-
-            #Energy. 4 columns; translational, rotational, potential and total.
-            trans = 0.5*self.m_cla*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])*self.yin0[1])**2
-            + (rob.dycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])*self.yin0[1])**2)
-            rot = 0.2*self.m_cla*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])/self.R
-            - rob.dalpha(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0]))**2*self.yin0[1]**2
-            pot = self.m_cla*rob.g*rob.ycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])
-            tot = trans + rot + pot
-            self.energy = np.array([[trans, rot, pot, tot]])
-            self.energynet = self.energy
-
-            print("classical working")
-            #Computes about 3 oscillations (or until the ball gets quite out of the screen)
-            Period = 2*np.pi/np.sqrt(rob.g*self.k_cla)
-            self.tmax_cla = float(4*Period)
-            while self.lastt <= self.tmax_cla:
-                self.extend()
-                if 100*self.lastt/self.tmax_cla >= progress + 10:
-                    progress = progress + 10
-                    print(progress,"%")
-
-            self.oldtop1_cla = self.heightslide_cla.value
-            self.oldk1_cla = self.kslide_cla.value
-            self.oldradius1_cla = self.radiusslide_cla.value
-            self.oldxo1_cla = self.poslide_cla.value
-            self.oldvel1_cla = self.velslide_cla.value
-            print("classical worked!")
-
-        self.computed_cla = True
-
+    #Changing parameters:
     def plotground(self):
         #It is only activated if some value changes.
         a = self.oldtop2_cla != self.heightslide_cla.value
         b = self.oldk2_cla != self.kslide_cla.value
 
         if a or b:
+            self.oldtop2_cla = self.heightslide_cla.value
+            self.oldk2_cla = self.kslide_cla.value
+
+            #Changes and plots the newground.
             self.sigma_cla = 1./(np.sqrt(2*np.pi)*self.heightslide_cla.value)
             self.k_cla = self.kslide_cla.value
             self.ground_cla.set_data(self.xarr_cla, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla))
             self.filled.remove()
-            self.filled = acl.fill_between(self.xarr_cla, 0, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla), color = (0.5,0.5,0.5,0.5))
-            self.canvas_cla.draw()
+            self.filled = acl.fill_between(self.xarr_cla, 0, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla),
+            color = (0.5,0.5,0.5,0.5))
 
-            self.oldtop2_cla = self.heightslide_cla.value
-            self.oldk2_cla = self.kslide_cla.value
-
-            self.computed_cla = False
+            #Sets time to 0.
             self.reset_cla()
+            self.tmax_cla = 0
+
+            #Plots the ball again.
             self.angle[0] = -np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0]))
             self.plotball_0()
             self.plotE_cla()
+
+            #Disables some buttons.
+            self.compu_button.disabled = False
+            self.startstopbut_cla.disabled = True
+            self.reset_cla_button.disabled = True
+            self.vel_btn_cla.disabled = True
+            self.timeslide_cla.disabled = True
+
+            self.computed_cla = False
+
+    def change_radius(self):
+        #It is only activated if the value changes.
+        if self.oldradius2_cla != self.radiusslide_cla.value:
+            self.oldradius2_cla = self.radiusslide_cla.value
+
+            #Changes the radius.
+            self.R = self.radiusslide_cla.value
+
+            #Sets time to 0.
+            self.reset_cla()
             self.tmax_cla = 0
+
+            #Plots the new ball.
+            self.plotball_0()
+            self.plotE_cla()
+
+            #Disables some buttons.
+            self.compu_button.disabled = False
+            self.startstopbut_cla.disabled = True
+            self.reset_cla_button.disabled = True
+            self.vel_btn_cla.disabled = True
+            self.timeslide_cla.disabled = True
+
+            self.computed_cla = False
+
+    def change_xo_cla(self):
+        #It is only activated if the value changes.
+        if self.oldxo2_cla != self.poslide_cla.value:
+            self.oldxo2_cla = self.poslide_cla.value
+
+            #Changes the initial position.
+            #Note that it is the position of the contact point.
+            self.xo_cla = self.poslide_cla.value
+            self.yin0[0] = self.xo_cla
+
+            #Sets time to 0.
+            self.reset_cla()
+            self.tmax_cla = 0
+
+            #Plots the new ball.
+            self.supermatrix_cla[0, 1] = self.xo_cla
+            self.angle[0] = -np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0]))
+            self.plotball_0()
+            self.plotE_cla()
+
+            #Disables some buttons.
+            self.compu_button.disabled = False
+            self.startstopbut_cla.disabled = True
+            self.reset_cla_button.disabled = True
+            self.vel_btn_cla.disabled = True
+            self.timeslide_cla.disabled = True
+
+            self.computed_cla = False
+
+    def change_vel_cla(self):
+        #It is only activated if the value changes.
+        if self.oldvel2_cla != self.velslide_cla.value:
+            self.oldvel2_cla = self.velslide_cla.value
+
+            #Changes the initial velocity.
+            #Note that it is the velocity of the contact point.
+            self.yin0[1] = self.velslide_cla.value
+
+            #Sets time to 0.
+            self.reset_cla()
+            self.tmax_cla = 0
+
+            #Plots the new ball.
+            self.plotball_0()
+            self.plotE_cla()
+
+            #Disables some buttons.
+            self.compu_button.disabled = False
+            self.startstopbut_cla.disabled = True
+            self.reset_cla_button.disabled = True
+            self.vel_btn_cla.disabled = True
+            self.timeslide_cla.disabled = True
+
+            self.computed_cla = False
 
 
     def plotball_0(self):
@@ -470,16 +583,19 @@ class Appcat(BoxLayout):
     def start_stop_cla(self):
         if self.computed_cla:
             if self.switch1_cla == "off":
+                self.event_cla = Clock.schedule_interval(self.ballupdate, self.dtime0_cla)
                 self.startstopbut_cla.background_normal = "pause.png"
                 self.startstopbut_cla.background_down = "playblue.png"
                 self.switch1_cla = "on"
             elif self.switch1_cla == "on":
+                Clock.unschedule(self.event_cla)
                 self.startstopbut_cla.background_normal = "play.png"
                 self.startstopbut_cla.background_down = "pauseblue.png"
                 self.switch1_cla = "off"
 
     def reset_cla(self):
         #Sets time to 0
+        Clock.unschedule(self.event_cla)
         self.switch1_cla = "off"
         self.timeslide_cla.value = 0
         self.time_cla = 0
@@ -491,38 +607,6 @@ class Appcat(BoxLayout):
         self.reset_cla()
         self.plotball(0)
 
-    def change_radius(self):
-        if self.oldradius2_cla != self.radiusslide_cla.value:
-            self.R = self.radiusslide_cla.value
-            self.oldradius2_cla = self.radiusslide_cla.value
-
-            self.computed_cla = False
-            self.reset_cla()
-            self.plotball_0()
-            self.plotE_cla()
-            self.tmax_cla = 0
-
-    def change_xo_cla(self):
-        if self.oldxo2_cla != self.poslide_cla.value:
-            self.oldxo2_cla = self.poslide_cla.value
-            self.xo_cla = self.poslide_cla.value
-            self.yin0[0] = self.xo_cla
-            self.computed_cla = False
-            self.reset_cla()
-            self.supermatrix_cla[0, 1] = self.xo_cla
-            self.angle[0] = -np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0]))
-            self.plotball_0()
-            self.plotE_cla()
-            self.tmax_cla = 0
-
-    def change_vel_cla(self):
-        if self.oldvel2_cla != self.velslide_cla.value:
-            self.oldvel2_cla = self.velslide_cla.value
-            self.yin0[1] = self.velslide_cla.value
-            self.computed_cla = False
-            self.reset_cla()
-            self.plotE_cla()
-            self.tmax_cla = 0
 
     def velocity_cla_btn(self):
         self.vel_cla = self.vel_cla + 1
@@ -533,20 +617,131 @@ class Appcat(BoxLayout):
 
     def plotE_cla(self):
         #Plots the initial energy.
-        trans = 0.5*self.m_cla*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])*self.yin0[1])**2
+        trans = 0.5*rob.m*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])*self.yin0[1])**2
         + (rob.dycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])*self.yin0[1])**2)
-        rot = 0.2*self.m_cla*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])/self.R
+        rot = 0.2*rob.m*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])/self.R
         - rob.dalpha(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0]))**2*self.yin0[1]**2
-        pot = self.m_cla*rob.g*rob.ycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])
+        pot = rob.m*rob.g*rob.ycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])
         tot = trans + rot + pot
 
         #The energy is transformed to a height (as if all was potential energy).
-        height = tot/(self.m_cla*rob.g) - self.R
+        height = tot/(rob.m*rob.g) - self.R
 
         x = np.arange(-2.6, 2.6, 0.1)
         y = height + 0*x
         self.E_cla.set_data(x,y)
         self.canvas_cla.draw()
+
+    def change_RK(self):
+        if self.method != "RK4":
+            self.method = "RK4"
+            self.rk_button.background_color = (0.5,0.5,0.5,1)
+            self.rkf_button.background_color = (0.9,0.9,0.9,1)
+            self.computed_cla = False
+            self.reset_cla()
+            self.tmax_cla = 0
+            self.plotball_0()
+
+            self.compu_button.disabled = False
+            self.startstopbut_cla.disabled = True
+            self.reset_cla_button.disabled = True
+            self.vel_btn_cla.disabled = True
+            self.timeslide_cla.disabled = True
+
+
+    def change_RKF(self):
+        if self.method != "RKF45":
+            self.method = "RKF45"
+            self.rkf_button.background_color = (0.5,0.5,0.5,1)
+            self.rk_button.background_color = (0.9,0.9,0.9,1)
+            self.computed_cla = False
+            self.reset_cla()
+            self.tmax_cla = 0
+            self.plotball_0()
+
+            self.compu_button.disabled = False
+            self.startstopbut_cla.disabled = True
+            self.reset_cla_button.disabled = True
+            self.vel_btn_cla.disabled = True
+            self.timeslide_cla.disabled = True
+
+
+class Computevolution_cla(object):
+    def __init__(self, progressbar, extendfun, appcat):
+        self.a = appcat
+        self.pb = progressbar
+        self.ext = extendfun
+
+        #Disables everything while computing.
+        self.a.heightslide_cla.disabled = True
+        self.a.kslide_cla.disabled = True
+        self.a.radiusslide_cla.disabled = True
+        self.a.poslide_cla.disabled = True
+        self.a.velslide_cla.disabled = True
+        self.a.rkf_button.disabled = True
+        self.a.rk_button.disabled = True
+        self.a.energy_button.disabled = True
+        self.a.timeslide_cla.disabled = True
+        self.a.compu_button.disabled = True
+        self.a.startstopbut_cla.disabled = True
+        self.a.reset_cla_button.disabled = True
+        self.a.vel_btn_cla.disabled = True
+
+        #Overwrites the previously computed values:
+        self.a.yin = self.a.yin0
+        rob.h = 1
+        self.a.yarr[1,:] = self.a.yin0
+        self.a.tvec[1] = 0
+        self.a.timenet = np.array([0])
+        self.a.lastt = self.a.dtime0_cla
+
+        self.a.supermatrix_cla = np.array([[self.a.time_cla, self.a.yin0[0], self.a.yin0[1]]]) #3 columns: time, x and xdot
+        self.a.angle = np.array([[-np.arctan(rob.dfground(self.a.mu_cla, self.a.sigma_cla, self.a.k_cla, self.a.yin0[0]))]])
+        self.a.perimeter = 0.
+
+        #Energy. 4 columns; translational, rotational, potential and total.
+        trans = 0.5*rob.m*((rob.dxcm(self.a.R, self.a.mu_cla, self.a.sigma_cla, self.a.k_cla, self.a.yin0[0])*self.a.yin0[1])**2
+        + (rob.dycm(self.a.R, self.a.mu_cla, self.a.sigma_cla, self.a.k_cla, self.a.yin0[0])*self.a.yin0[1])**2)
+        rot = 0.2*rob.m*self.a.R**2*(rob.groundperim(self.a.mu_cla, self.a.sigma_cla, self.a.k_cla, self.a.yin0[0])/self.a.R
+        - rob.dalpha(self.a.mu_cla, self.a.sigma_cla, self.a.k_cla, self.a.yin0[0]))**2*self.a.yin0[1]**2
+        pot = rob.m*rob.g*rob.ycm(self.a.R, self.a.mu_cla, self.a.sigma_cla, self.a.k_cla, self.a.yin0[0])
+        tot = trans + rot + pot
+        self.a.energynet = np.array([[trans, rot, pot, tot]])
+
+        #Computes about 3 oscillations, or a maximum time.
+        #(In order to prevent tmax from being inf.)
+        if self.a.k_cla < 0.15:
+            self.a.tmax_cla = 10
+        else:
+            Period = 2*np.pi/np.sqrt(rob.g*self.a.k_cla)
+            self.a.tmax_cla = float(3*Period)
+
+        #Calls the extend function, that will make a new step and call the task_complete function when finishes.
+        Clock.schedule_once(lambda dt: self.ext(self.task_complete), 0.1)
+
+    def task_complete(self):
+        #Checks if there are still steps to be done, calls again the function and updates the progressbar.
+        if self.a.lastt <= self.a.tmax_cla + 2*self.a.dtime0_cla:
+            self.pb.value = 100*self.a.lastt/self.a.tmax_cla
+            Clock.schedule_once(lambda dt: self.ext(self.task_complete), 0.1)
+
+        else:
+            self.a.computed_cla = True
+            self.pb.value = 0
+
+            #Ables the widgets again.
+            self.a.heightslide_cla.disabled = False
+            self.a.kslide_cla.disabled = False
+            self.a.radiusslide_cla.disabled = False
+            self.a.poslide_cla.disabled = False
+            self.a.velslide_cla.disabled = False
+            self.a.rkf_button.disabled = False
+            self.a.rk_button.disabled = False
+            self.a.energy_button.disabled = False
+            self.a.timeslide_cla.disabled = False
+            self.a.startstopbut_cla.disabled = False
+            self.a.reset_cla_button.disabled = False
+            self.a.vel_btn_cla.disabled = False
 
 
 class Normpopup(Popup):
@@ -578,10 +773,16 @@ class Normpopup(Popup):
 
 
 class Energypopup(Popup):
+    """
+    Pop up window with the plot of the different energies vs time.
+    """
     def __init__(self, appcat):
         super(Energypopup, self).__init__()
-        self.ids.switch.active = False
         self.a = appcat
+        self.surface = False
+        self.ids.switch.text = "off"
+
+        #Plot definitions:
         self.canvas_ene = FigureCanvasKivyAgg(fig_ene)
         self.ids.Panel4_id.add_widget(self.canvas_ene)
         aen.clear()
@@ -589,40 +790,55 @@ class Energypopup(Popup):
         aen.set_xlim([0, self.a.tmax_cla])
         aen.set_xlabel("t (s)")
         aen.set_ylabel("E (J)")
-        self.event = Clock.schedule_interval(self.update, 0.3)
+        self.txt = aen.set_title("")
+        self.txt.set_text("E" + r'$_{total}$' + "= " + str(self.a.energynet[-1, 3]).ljust(7)[:7])
+
+        #Plots:
         aen.plot(self.a.timenet, self.a.energynet[:, 3], label = "Total", color = (1,0,0,1))
         aen.plot(self.a.timenet, self.a.energynet[:, 1], label = "Rotational", color = (0,1,0,1))
         aen.plot(self.a.timenet, self.a.energynet[:, 0], label = "Translational", color = (1,1,0,1))
         aen.plot(self.a.timenet, self.a.energynet[:, 2], label = "Potential", color = (0,0,1,1))
         aen.legend(loc=6)
-        self.txt = aen.set_title("")
-        self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.supermatrix_cla[-1, 0] + " s"
-        + "      E" + r'$_{total}$' + "= " + str(self.a.energynet[-1, 3]).ljust(7)[:7])
 
-    def update(self, dt):
-        if self.ids.switch.active == False:
+        self.canvas_ene.draw()
+
+    def changeplot(self):
+        if self.surface:
+            self.ids.switch.text = "off"
+            self.surface = False
             aen.clear()
+
+            #Plot definitions:
             aen.set_ylim([0, max(self.a.energynet[:, 3]) + 10])
             aen.set_xlim([0, self.a.tmax_cla])
             aen.set_xlabel("t (s)")
             aen.set_ylabel("E (J)")
+            self.txt = aen.set_title("")
+            self.txt.set_text("E" + r'$_{total}$' + "= " + str(self.a.energynet[-1, 3]).ljust(7)[:7])
+
+            #Plots:
             aen.plot(self.a.timenet, self.a.energynet[:, 3], label = "Total", color = (1,0,0,1))
             aen.plot(self.a.timenet, self.a.energynet[:, 1], label = "Rotational", color = (0,1,0,1))
             aen.plot(self.a.timenet, self.a.energynet[:, 0], label = "Translational", color = (1,1,0,1))
             aen.plot(self.a.timenet, self.a.energynet[:, 2], label = "Potential", color = (0,0,1,1))
             aen.legend(loc=6)
-            self.txt = aen.set_title("")
-            self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.supermatrix_cla[-1, 0] + " s"
-            + "      E" + r'$_{total}$' + "= " + str(self.a.energynet[-1, 3]).ljust(7)[:7])
 
             self.canvas_ene.draw()
 
         else:
+            self.ids.switch.text = "on"
+            self.surface = True
             aen.clear()
+
+            #Plot definitions:
             aen.set_ylim([0, max(self.a.energynet[:, 3]) + 10])
             aen.set_xlim([0, self.a.tmax_cla])
             aen.set_xlabel("t (s)")
             aen.set_ylabel("E (J)")
+            self.txt = aen.set_title("")
+            self.txt.set_text("E" + r'$_{total}$' + "= " + str(self.a.energynet[-1, 3]).ljust(7)[:7])
+
+            #Plots:
             aen.plot(self.a.timenet, self.a.energynet[:, 1] + self.a.energynet[:, 0] + self.a.energynet[:, 2], label = "Rotational", color = (0,1,0,1))
             aen.plot(self.a.timenet, self.a.energynet[:, 0] + self.a.energynet[:, 2], label = "Translational", color = (1,1,0,1))
             aen.plot(self.a.timenet, self.a.energynet[:, 2], label = "Potential", color = (0,0,1,1))
@@ -633,15 +849,9 @@ class Energypopup(Popup):
             color = (0,1,0,0.6))
 
             aen.legend(loc=6)
-            self.txt = aen.set_title("")
-            self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.supermatrix_cla[-1, 0] + " s"
-            + "      E" + r'$_{total}$' + "= " + str(self.a.energynet[-1, 3]).ljust(7)[:7])
+
             self.canvas_ene.draw()
 
-
-
-    def close(self):
-        Clock.unschedule(self.event)
 
 
 class appcatApp(App):

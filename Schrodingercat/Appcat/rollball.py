@@ -7,7 +7,6 @@ This program computes the movement of a ball rolling without slipping on a given
 import numpy as np
 
 
-
 "The Gaussian funtion and its derivatives."
 def fgauss(mu, sigma, x):
     """
@@ -186,6 +185,19 @@ def frollingball(R, mu, sigma, k, t, yvec):
 
     return ftot
 
+"Runge Kutta 4"
+def RK4(R, mu, sigma, k, t, deltat, yin, fun):
+    """
+    It makes one step 'deltat' using the RK4 method.
+    This means that given the array 'yin', which contains the values of the variables at time 't', it returns a new array with the values at time = t+deltat.
+    'fun' must be a f(t,y)-like function that returns an array containing the derivatives of each variable in y.
+    """
+    k1 = fun(R, mu, sigma, k, t, yin)
+    k2 = fun(R, mu, sigma, k, t + deltat/2., yin + (deltat/2.)*k1)
+    k3 = fun(R, mu, sigma, k, t + deltat/2., yin + (deltat/2.)*k2)
+    k4 = fun(R, mu, sigma, k, t + deltat, yin + deltat*k3)
+    yout = yin + deltat/6.*(k1 + 2*k2 + 2*k3 + k4)
+    return yout
 
 "Runge Kutta Fehlberg"
 def RKF(R, mu, sigma, k, t, yin, fun):
@@ -213,7 +225,15 @@ def RKF(R, mu, sigma, k, t, yin, fun):
         ycap =  yin + (16.*h/135.)*f0 + (6656.*h/12825.)*f2 + (28561.*h/56430.)*f3 - (9.*h/50.)*f4 + (2.*h/55.)*f5
         diff = h*((1./360.)*f0 - (128./4275.)*f2 - (2197./75240.)*f3 + (1./50.)*f4 + (2./55.)*f5)
 
-        hnew = 0.9*h*(np.abs(h)*eps/np.sqrt(np.sum(diff**2)))**(1/4.)
+        #Avoids divisions by 0.
+        try:
+            hnew = 0.9*h*(np.abs(h)*eps/np.sqrt(np.sum(diff**2)))**(1/4.)
+        except RuntimeWarning:
+            hnew = 0.05
+
+        #I do not allow extremely large step-lengths.
+        if hnew > 0.05:
+            hnew = 0.05
 
     h = hnew
     yout = ycap
@@ -256,40 +276,3 @@ def trapezoidal(mu, sigma, k, a, b, dx, fcn):
 
     #Note that if b<a, the result of the integral is negative.
     return summ*deltax
-
-
-"""
-#The solution is stored in a supermatrix with 3 columns: time, x and xdot.
-#The rotated angle with respect to the vertical direction is stored in an array.
-#The total energy is stored in another array. (translational, rotational, potential and total)
-supermatrix = np.zeros(shape=(steps,3))
-supermatrix[0,:] = np.array([0., yin[0], yin[1]])
-
-angle = np.zeros(shape=(steps,1))
-angle[0] = -np.arctan(dfground(mu, sigma, k, yin[0]))
-perimeter = 0.
-
-energy = np.zeros(shape=(steps,4))
-energy[0,0] = 0.5*m*((dxcm(mu, sigma, k, yin[0])*yin[1])**2 + (dycm(mu, sigma, k, yin[0])*yin[1])**2)
-energy[0,1] = 0.2*m*R**2*(groundperim(mu, sigma, k, yin[0])/R - dalpha(mu, sigma, k, yin[0]))**2*yin[1]**2
-energy[0,2] = m*g*ycm(mu, sigma, k, yin[0])
-energy[0,3] = sum(energy[0,:])
-
-for i in range(1,steps,1):
-    t = i*deltat
-    x0 = yin[0]
-    yin = RK4(mu, sigma, k, t, deltat, yin, frollingball)
-    supermatrix[i,:] = np.array([t, yin[0], yin[1]])
-
-    #Note that perimeter will be negative if the ball rolls to the left side of the gaussian.
-    perimeter = perimeter + trapezoidal(mu, sigma, k, x0, yin[0], dx, groundperim)
-    theta = perimeter/R
-    beta = np.arctan(dfground(mu, sigma, k, yin[0]))
-    angle[i] = theta - beta
-
-
-    energy[i,0] = 0.5*m*((dxcm(mu, sigma, k, yin[0])*yin[1])**2 + (dycm(mu, sigma, k, yin[0])*yin[1])**2)
-    energy[i,1] = 0.2*m*R**2*(groundperim(mu, sigma, k, yin[0])/R - dalpha(mu, sigma, k, yin[0]))**2*yin[1]**2
-    energy[i,2] = m*g*ycm(mu, sigma, k, yin[0])
-    energy[i,3] = sum(energy[i,:])
-"""
