@@ -1,16 +1,34 @@
 #:kivy 1.0.9
 #: import main doubleslit
-
+#:import Factory kivy.factory.Factory
+<MeasuresPopup@Popup>:
+    m_rectangle: m_rect.__self__
+    auto_dismiss: False
+    on_open: self.draw_measurements()
+    title: "Measuring screen"
+    BoxLayout:
+        orientation: "vertical"
+        Widget:
+            size_hint: (1, 0.9)
+            id: m_rect
+        Button:
+            size_hint: (0.2, 0.1)
+            text: "Close"
+            on_release: root.dismiss()
 
 <DoubleSlitScreen>:
     p_rectangle: p_rect
     playpause_button: pp_button
 
-    frame_slider: f_slider
-    speed_slider: s_slider
-    normalize_switch: n_switch
+    frame_slider: f_slider.__self__
+    speed_slider: s_slider.__self__
+    normalize_switch: n_switch.__self__
     screen_pos_slider: ms_slider
     screen_width_slider: msw_slider
+    loop_switch: loop_switch.__self__
+    hundred_switch: hundred_switch.__self__
+
+    label_info: label_info
 
     compute_button: c_button
     progress_bar: p_bar
@@ -20,100 +38,63 @@
     slider_d: d_slider
 
     orientation: "vertical"
-    padding: 10
-    spacing: 10
+    padding: 20
+    spacing: 20
 
     Widget:
         size_hint: (1, 0.5)
         id: p_rect
 
-    BoxLayout:
-        size_hint: (1, 0.5)
+    TabbedPanel:
+        size_hint: (1, 0.35)
+        do_default_tab: False
 
-        orientation: "vertical"
+        TabbedPanelItem:
+            text: "[b]Experiment[/b]"
+            markup: True
 
-        BoxLayout:
-            size_hint: (1, 0.1)
-            orientation: "horizontal"
-            spacing: 10
-            padding: [10, 10, 10, 10]
-
-            Button:
-                id: pp_button
-                text: "Start measuring"
-                on_press: root.playpause()
-
-            Label:
-                text: "Speed:"
-            Slider:
-                id: s_slider
-                min: 1
-                max: 5
-                value: 3
-                setp: 1
-
-        TabbedPanel:
-            size_hint: (1, 0.2)
-            do_default_tab: False
-
-            TabbedPanelItem:
-                text: "[b]Experiment[/b]"
-                markup: True
-
-                BoxLayout:
-                    orientation: "vertical"
-
-                    BoxLayout:
-                        orientation: "horizontal"
-                        Label:
-                            text: "Slit thickness:"
-                        Slider:
-                            id: sx_slider
-                            min: 0
-                            max: 1
-
-                    BoxLayout:
-                        orientation: "horizontal"
-                        Label:
-                            text: "Slit width:"
-                        Slider:
-                            id: sy_slider
-                            min: 0
-                            max: 5
-                    BoxLayout:
-                        orientation: "horizontal"
-                        Label:
-                            text: "Distance between slits:"
-                        Slider:
-                            id: d_slider
-                            min: 0
-                            max: 7
-
-            TabbedPanelItem:
-                text: "[b]Measurement[/b]"
-                markup: True
+            BoxLayout:
+                orientation: "vertical"
 
                 BoxLayout:
                     orientation: "horizontal"
-                    spacing: 10
-                    padding: [10, 10, 10, 10]
 
                     BoxLayout:
                         orientation: "vertical"
-                        Button:
-                            text: "Measure"
-                            on_press: root.measure()
+                        Label:
+                            text: "[b]Slits:[/b]"
+                            markup: True
+                        BoxLayout:
+                            orientation: "horizontal"
+                            Label:
+                                text: "Slit thickness:"
+                            Slider:
+                                id: sx_slider
+                                min: 0
+                                max: 1
 
-                        Button:
-                            text: "Measure 100"
-                            on_press: root.measure(100)
+                        BoxLayout:
+                            orientation: "horizontal"
+                            Label:
+                                text: "Slit width:"
+                            Slider:
+                                id: sy_slider
+                                min: 0
+                                max: 5
 
-                        Button:
-                            text: "Remove measurements"
-                            on_press: root.remove_measurements()
-
+                        BoxLayout:
+                            orientation: "horizontal"
+                            Label:
+                                text: "Distance between slits:"
+                            Slider:
+                                id: d_slider
+                                min: 0
+                                max: 7
                     BoxLayout:
                         orientation: "vertical"
+                        Label:
+                            text: "[b]Detector:[/b]"
+                            markup: True
                         BoxLayout:
                             orientation: "horizontal"
                             Label:
@@ -133,20 +114,48 @@
                                 min: 1
                                 max: 10
                                 value: 5
+                        Button:
+                            text: "Show measuring screen"
+                            on_release: root.open_measures_popup()
 
-            TabbedPanelItem:
-                text: "[b]Playback[/b]"
-                markup: True
-                Slider:
-                    value_track: True
-                    id: f_slider
-                    on_touch_down: if self.collide_point(*args[1].pos): root.change_frame()
-                    on_touch_move: if self.collide_point(*args[1].pos): root.change_frame()
+                BoxLayout:
+                    orientation: "horizontal"
 
+                    Label:
+                        text: "Throw 100 particles:"
+                    Switch:
+                        id: hundred_switch
 
-            TabbedPanelItem:
-                text: "[b]Options[/b]"
-                markup: True
+                    Label:
+                        text: "Loop:"
+                    Switch:
+                        id: loop_switch
+
+        TabbedPanelItem:
+            text: "[b]Options[/b]"
+            markup: True
+
+            BoxLayout:
+                orientation: "vertical"
+                BoxLayout:
+                    orientation: "horizontal"
+                    Label:
+                        text: "Current frame:"
+                    Slider:
+                        value_track: True
+                        id: f_slider
+                        on_touch_down: if self.collide_point(*args[1].pos): root.change_frame()
+                        on_touch_move: if self.collide_point(*args[1].pos): root.change_frame()
+
+                BoxLayout:
+                    Label:
+                        text: "Speed:"
+                    Slider:
+                        id: s_slider
+                        min: 1
+                        max: 5
+                        value: 3
+                        setp: 1
 
                 BoxLayout:
                     orientation: "horizontal"
@@ -157,18 +166,28 @@
                         id: n_switch
 
 
+    BoxLayout:
+        size_hint: (1, 0.15)
+        orientation: "vertical"
+        spacing: 10
+        padding: [10, 10, 10, 10]
+
         BoxLayout:
-            size_hint: (1, 0.1)
             orientation: "horizontal"
-            spacing: 10
-            padding: [10, 10, 10, 10]
+            Button:
+                id: pp_button
+                text: "Start measuring"
+                on_press: root.playpause()
 
             Button:
                 id: c_button
                 text: "Compute"
                 on_press: root.compute()
 
-            #size_hint: (1, 0.5/3)
-            ProgressBar:
-                id: p_bar
-                max: 100
+        Label:
+            id: label_info
+            text: "[b]Info:[/b]"
+            markup: True
+        ProgressBar:
+            id: p_bar
+            max: 100
