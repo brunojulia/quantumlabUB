@@ -33,7 +33,8 @@
     compute_button: c_button
     progress_bar: p_bar
 
-    slider_sx: sx_slider
+    n_label: n_label
+    #slider_sx: sx_slider
     slider_sy: sy_slider
     slider_d: d_slider
 
@@ -67,11 +68,20 @@
                         BoxLayout:
                             orientation: "horizontal"
                             Label:
-                                text: "Slit thickness:"
-                            Slider:
-                                id: sx_slider
-                                min: 0
-                                max: 1
+                                text: "Number of slits:"
+                            BoxLayout:
+                                orientation: "horizontal"
+                                Button:
+                                    text: "[b]-[b]"
+                                    markup: True
+                                    on_release: root.add_slits(-1)
+                                Label:
+                                    id: n_label
+                                    text: "2"
+                                Button:
+                                    text: "[b]+[b]"
+                                    markup: True
+                                    on_release: root.add_slits(1)
 
                         BoxLayout:
                             orientation: "horizontal"
