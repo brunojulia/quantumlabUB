@@ -1,6 +1,6 @@
 """
 Jan Albert Iglesias
-11/5/2018
+15/5/2018
 """
 
 import numpy as np
@@ -24,12 +24,14 @@ fig_cla = Figure()
 acl = fig_cla.add_subplot(111)
 fig_qua = Figure()
 aqu = fig_qua.add_subplot(111)
+aqu2 = aqu.twinx() #To have two different scales.
 fig_norm = Figure()
 anorm = fig_norm.add_subplot(111)
 fig_ene = Figure()
 aen = fig_ene.add_subplot(111)
 
 rob.g = 9.806
+te.hbar = 4.136 #eV·fs (femtosecond)
 
 #Main Layout:
 class Appcat(BoxLayout):
@@ -44,9 +46,9 @@ class Appcat(BoxLayout):
         super(Appcat, self).__init__(**kwargs)
 
         "Quantum definitions"
-        self.a = -15.
-        self.b = 15.
-        self.N = 900
+        self.a = -20.
+        self.b = 20.
+        self.N = 1000
         self.deltax = (self.b - self.a)/float(self.N)
 
         te.sigma0 = 1
@@ -54,13 +56,13 @@ class Appcat(BoxLayout):
         self.sigma_qua = 1./(np.sqrt(2*np.pi)*self.heightslide_qua.value)
         self.mu_qua = 0
         self.xarr_qua = np.arange(self.a, self.b + self.deltax*0.1, self.deltax)
-        self.m_qua = 1
+        self.m_qua = 1/(2*3.80995) #The value contains hbar^2.
         self.k_qua = 1
         self.kslide_qua.value = self.k_qua
         self.xo = 0
         self.poslide_qua.value = self.xo
         te.p0 = 0
-        self.velslide_qua.value = te.p0
+        self.momslide_qua.value = te.p0
 
         self.switch1_qua = "off"
         self.oldtop1_qua = self.heightslide_qua.value + 1
@@ -71,8 +73,8 @@ class Appcat(BoxLayout):
         self.oldsigma2_qua = self.sigmaslide_qua.value
         self.oldxo1_qua = self.poslide_qua.value + 1
         self.oldxo2_qua = self.poslide_qua.value
-        self.oldvel1_qua = self.velslide_qua.value + 1
-        self.oldvel2_qua = self.velslide_qua.value
+        self.oldmom1_qua = self.momslide_qua.value + 1
+        self.oldmom2_qua = self.momslide_qua.value
 
         self.startstopbut_qua.background_down = "playblue.png"
         self.startstopbut_qua.background_normal = "play.png"
@@ -98,10 +100,17 @@ class Appcat(BoxLayout):
         #Plots (Quantum)
         self.canvas_qua = FigureCanvasKivyAgg(fig_qua)
         self.pot_qua, = aqu.plot(self.xarr_qua, te.pot(self.mu_qua, self.sigma_qua, self.k_qua, self.xarr_qua), 'g--', label = "V(x)")
-        self.psi_qua, = aqu.plot(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, 'r-', label = r'$|\Psi(x)|^{2}$')
-        aqu.axis([-5, 5, 0, 2])
-        aqu.set_xlabel("x")
+        aqu.plot([],[], 'r-',  label = r'$|\Psi(x)|^{2}$') #Fake one, just for the legend.
+        aqu.axis([-5, 5, 0, 20])
+        aqu.set_xlabel("x (" + u"\u212B" + ")")
+        aqu.set_ylabel("Energy (eV)", color = 'k')
+        aqu.tick_params('y', colors = 'g')
         aqu.legend(loc=1)
+
+        self.psi_qua, = aqu2.plot(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, 'r-')
+        aqu2.axis([-5, 5, 0, 1.5])
+        aqu2.set_ylabel("Probability", color = 'k')
+        aqu2.tick_params('y', colors = 'r')
         self.panel2.add_widget(self.canvas_qua)
 
 
@@ -184,55 +193,41 @@ class Appcat(BoxLayout):
         #First computations:
         self.computed_cla = False
         self.computing_cla = False
-        self.computevolution()
+        self.computed_qua = False
+        self.triggercompute_qua()
         self.triggercompute_cla()
         self.plotball_0()
         self.plotE_cla()
 
-    def computevolution(self):
-        #Just happens if some value changes:
-        a = self.oldtop1_qua != self.heightslide_qua.value
-        b = self.oldk1_qua != self.kslide_qua.value
-        c = self.oldsigma1_qua != self.sigmaslide_qua.value
-        d = self.oldxo1_qua != self.poslide_qua.value
-        e = self.oldvel1_qua != self.velslide_qua.value
+#Quantum functions:
+    #Computing:
+    def projection(self, callback):
+        """
+        Computes the projection of the given wavefunction onto the basis wavefunctions.
+        It keeps doing it until the progreess percentage is increased by 5.
+        """
+        while 100*self.j/self.Nbasis <= self.progressbar_qua.value + 5:
+            if self.j != self.Nbasis:
+                prod = np.conjugate(self.psivec)*self.efuns[:,self.j]
+                self.coefs[self.j] = self.deltax*(np.sum(prod) - prod[0]/2. - prod[-1]/2.)
+                self.coef_x_efuns[:,self.j] = self.coefs[self.j]*self.efuns[:,self.j]
+                self.evalsbasis[self.j] = self.evals[self.j]
+                self.j = self.j + 1
 
-        if a or b or c or d or e:
-            print("i'm working!")
-            #Definitions:
-            Nbasis=150
-            coefs = np.zeros(shape = (Nbasis + 1, 1), dtype=complex)
-            self.coef_x_efuns = np.zeros(shape = (self.N + 1, Nbasis + 1), dtype=complex)
-            self.evalsbasis = np.zeros(shape = (Nbasis + 1, 1))
-            psivec = te.psi(self.xo, self.xarr_qua)
+            else:
+                #It breaks the loop if the maximum is reached.
+                self.j = self.j + 1
+                break
 
-            #Solving:
-            evals, efuns = te.srindwall(self.a, self.b, self.N, self.m_qua, te.pot, self.mu_qua, self.sigma_qua, self.k_qua)
-            for j in range(0, Nbasis+1, 1):
-                prod = np.conjugate(psivec)*efuns[:,j]
-                coefs[j] = self.deltax*(np.sum(prod) - prod[0]/2. - prod[Nbasis]/2.)
-                self.coef_x_efuns[:,j] = coefs[j]*efuns[:,j]
-                self.evalsbasis[j] = evals[j]
+        callback()
 
-            self.oldtop1_qua = self.heightslide_qua.value
-            self.oldk1_qua = self.kslide_qua.value
-            self.oldsigma1_qua = self.sigmaslide_qua.value
-            self.oldxo1_qua = self.poslide_qua.value
-            self.oldvel1_qua = self.velslide_qua.value
-            print("I've worked.")
+    def triggercompute_qua(self):
+        #Just gets triggered if it has not been computed:
+        if not self.computed_qua:
+            Computevolution_qua(self.progressbar_qua, self.projection, self)
 
-    def plotpsi(self, t):
-        if self.oldtime1_qua != t:
-            psit = np.abs(te.psiev(self.evalsbasis, self.coef_x_efuns, t))**2
-            self.psi_qua.set_data(self.xarr_qua, psit)
-            self.canvas_qua.draw()
-            self.oldtime1_qua = t
 
-            if t > self.oldtime2_qua + 1:
-                self.norm.append(self.deltax*(np.sum(psit) - psit[0]/2. - psit[self.N]/2.))
-                self.timevec_qua.append(t)
-                oldtime2_qua = t
-
+    #Changing parameters:
     def plotpot(self):
         #It is only activated if some value changes.
         a = self.oldtop2_qua != self.heightslide_qua.value
@@ -249,6 +244,15 @@ class Appcat(BoxLayout):
             self.oldtop2_qua = self.heightslide_qua.value
             self.oldk2_qua = self.kslide_qua.value
 
+            #Disables some buttons.
+            self.compu_button_qua.disabled = False
+            self.startstopbut_qua.disabled = True
+            self.reset_qua_button.disabled = True
+            self.vel_btn_qua.disabled = True
+            self.timeslide_qua.disabled = True
+
+            self.computed_qua = False
+
     def change_sigma(self):
         if self.oldsigma2_qua != self.sigmaslide_qua.value:
             self.reset()
@@ -256,6 +260,15 @@ class Appcat(BoxLayout):
             self.oldsigma2_qua = self.sigmaslide_qua.value
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
             self.canvas_qua.draw()
+
+            #Disables some buttons.
+            self.compu_button_qua.disabled = False
+            self.startstopbut_qua.disabled = True
+            self.reset_qua_button.disabled = True
+            self.vel_btn_qua.disabled = True
+            self.timeslide_qua.disabled = True
+
+            self.computed_qua = False
 
     def change_xo(self, xoo):
         if self.oldxo2_qua != self.poslide_qua.value:
@@ -265,11 +278,42 @@ class Appcat(BoxLayout):
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(xoo, self.xarr_qua))**2)
             self.canvas_qua.draw()
 
-    def change_vel_qua(self):
-        if self.oldvel2_qua != self.velslide_qua.value:
+            #Disables some buttons.
+            self.compu_button_qua.disabled = False
+            self.startstopbut_qua.disabled = True
+            self.reset_qua_button.disabled = True
+            self.vel_btn_qua.disabled = True
+            self.timeslide_qua.disabled = True
+
+            self.computed_qua = False
+
+    def change_mom_qua(self):
+        if self.oldmom2_qua != self.momslide_qua.value:
             self.reset()
-            self.oldvel2_qua = self.velslide_qua.value
-            te.p0 = self.velslide_qua.value
+            self.oldmom2_qua = self.momslide_qua.value
+            te.p0 = self.momslide_qua.value
+
+            #Disables some buttons.
+            self.compu_button_qua.disabled = False
+            self.startstopbut_qua.disabled = True
+            self.reset_qua_button.disabled = True
+            self.vel_btn_qua.disabled = True
+            self.timeslide_qua.disabled = True
+
+            self.computed_qua = False
+
+
+    def plotpsi(self, t):
+        if self.oldtime1_qua != t:
+            psit = np.abs(te.psiev(self.evalsbasis, self.coef_x_efuns, t))**2
+            self.psi_qua.set_data(self.xarr_qua, psit)
+            self.canvas_qua.draw()
+            self.oldtime1_qua = t
+
+            if t > self.oldtime2_qua + 1:
+                self.norm.append(self.deltax*(np.sum(psit) - psit[0]/2. - psit[self.N]/2.))
+                self.timevec_qua.append(t)
+                oldtime2_qua = t
 
     def psiupdate(self, dt):
         if self.switch1_qua == "on":
@@ -428,7 +472,7 @@ class Appcat(BoxLayout):
             self.plotE_cla()
 
             #Disables some buttons.
-            self.compu_button.disabled = False
+            self.compu_button_cla.disabled = False
             self.startstopbut_cla.disabled = True
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
@@ -453,7 +497,7 @@ class Appcat(BoxLayout):
             self.plotE_cla()
 
             #Disables some buttons.
-            self.compu_button.disabled = False
+            self.compu_button_cla.disabled = False
             self.startstopbut_cla.disabled = True
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
@@ -482,7 +526,7 @@ class Appcat(BoxLayout):
             self.plotE_cla()
 
             #Disables some buttons.
-            self.compu_button.disabled = False
+            self.compu_button_cla.disabled = False
             self.startstopbut_cla.disabled = True
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
@@ -508,7 +552,7 @@ class Appcat(BoxLayout):
             self.plotE_cla()
 
             #Disables some buttons.
-            self.compu_button.disabled = False
+            self.compu_button_cla.disabled = False
             self.startstopbut_cla.disabled = True
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
@@ -642,7 +686,7 @@ class Appcat(BoxLayout):
             self.tmax_cla = 0
             self.plotball_0()
 
-            self.compu_button.disabled = False
+            self.compu_button_cla.disabled = False
             self.startstopbut_cla.disabled = True
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
@@ -659,14 +703,85 @@ class Appcat(BoxLayout):
             self.tmax_cla = 0
             self.plotball_0()
 
-            self.compu_button.disabled = False
+            self.compu_button_cla.disabled = False
             self.startstopbut_cla.disabled = True
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
             self.timeslide_cla.disabled = True
 
 
+class Computevolution_qua(object):
+    """
+    This class computes the evolution of wavefunction.
+    It is not done as a function but as a class in
+    order to update the progress bar.
+    """
+    def __init__(self, progressbar, projection, appcat):
+        self.a = appcat
+        self.pb = progressbar
+        self.pro = projection
+
+        #Disables everything while computing.
+        self.a.heightslide_qua.disabled = True
+        self.a.kslide_qua.disabled = True
+        self.a.poslide_qua.disabled = True
+        self.a.momslide_qua.disabled = True
+        self.a.elec_button.disabled = True
+        self.a.atom_button.disabled = True
+        self.a.norm_button.disabled = True
+        self.a.timeslide_qua.disabled = True
+        self.a.compu_button_qua.disabled = True
+        self.a.startstopbut_qua.disabled = True
+        self.a.reset_qua_button.disabled = True
+        self.a.vel_btn_qua.disabled = True
+
+        #Definitions:
+        self.a.Nbasis = 200
+        self.a.coefs = np.zeros(shape = (self.a.Nbasis + 1, 1), dtype=complex)
+        self.a.coef_x_efuns = np.zeros(shape = (self.a.N + 1, self.a.Nbasis + 1), dtype=complex)
+        self.a.evalsbasis = np.zeros(shape = (self.a.Nbasis + 1, 1))
+        self.a.psivec = te.psi(self.a.xo, self.a.xarr_qua)
+        self.a.j = 0
+
+        #Solving:
+        self.a.evals, self.a.efuns = te.srindwall(self.a.a, self.a.b, self.a.N, self.a.m_qua, te.pot,
+        self.a.mu_qua, self.a.sigma_qua, self.a.k_qua)
+
+        #Calls the projection function, that will make a new step and call the task_complete function when finishes.
+        Clock.schedule_once(lambda dt: self.pro(self.task_complete), 0.1)
+
+    def task_complete(self):
+        #Checks if there are still steps to be done, calls again the function and updates the progressbar.
+        if self.a.j <= self.a.Nbasis:
+            self.pb.value = 100*self.a.j/self.a.Nbasis
+            Clock.schedule_once(lambda dt: self.pro(self.task_complete), 0.1)
+
+        else:
+            self.a.computed_qua = True
+            self.pb.value = 0
+
+            #Enables the widgets again.
+            self.a.heightslide_qua.disabled = False
+            self.a.kslide_qua.disabled = False
+            self.a.poslide_qua.disabled = False
+            self.a.momslide_qua.disabled = False
+            self.a.elec_button.disabled = False
+            self.a.atom_button.disabled = False
+            self.a.norm_button.disabled = False
+            self.a.timeslide_qua.disabled = False
+            self.a.compu_button_qua.disabled = True
+            self.a.startstopbut_qua.disabled = False
+            self.a.reset_qua_button.disabled = False
+            self.a.vel_btn_qua.disabled = False
+
+
+
 class Computevolution_cla(object):
+    """
+    This class computes the evolution of the ball.
+    It is not done as a function but as a class in
+    order to update the progress bar.
+    """
     def __init__(self, progressbar, extendfun, appcat):
         self.a = appcat
         self.pb = progressbar
@@ -682,7 +797,7 @@ class Computevolution_cla(object):
         self.a.rk_button.disabled = True
         self.a.energy_button.disabled = True
         self.a.timeslide_cla.disabled = True
-        self.a.compu_button.disabled = True
+        self.a.compu_button_cla.disabled = True
         self.a.startstopbut_cla.disabled = True
         self.a.reset_cla_button.disabled = True
         self.a.vel_btn_cla.disabled = True
@@ -745,28 +860,37 @@ class Computevolution_cla(object):
 
 
 class Normpopup(Popup):
+    """
+    Pop up window with the plot of the norm vs time.
+    """
     def __init__(self, appcat):
         super(Normpopup, self).__init__()
         self.a = appcat
+
+        #Plot definitions:
         self.canvas_norm = FigureCanvasKivyAgg(fig_norm)
         self.ids.Panel3_id.add_widget(self.canvas_norm)
         anorm.clear()
         anorm.set_ylim([0, 1.2])
         anorm.set_xlim([0, self.a.tmax_qua])
-        anorm.set_xlabel("t (" + u"\u0127" + "/J)")
+        anorm.set_xlabel("t (fs)")
         anorm.set_ylabel(r'$\int_{-\infty}^{ \infty} |\Psi(t,x)|^{2}$' + "dx")
-        self.event = Clock.schedule_interval(self.update, 0.3)
-        self.normplot, = anorm.plot([], [], 'g-')
         self.txt = anorm.set_title("")
-        self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.timevec_qua[-1] + " " + u"\u0127" + "/J"
-        + "      norm = " + str(self.a.norm[-1]).ljust(7)[:7])
+        self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.timevec_qua[-1] + " fs"
+        + "      norm = " + str(self.a.norm[-1]).ljust(8)[:8])
+
+        #Plot:
+        self.normplot, = anorm.plot([], [], 'g-')
+
+        #It keeps updating.
+        self.event = Clock.schedule_interval(self.update, 0.2)
 
     def update(self, dt):
+        anorm.set_xlim([0, self.a.tmax_qua])
+        self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.timevec_qua[-1] + " fs"
+        + "      norm = " + str(self.a.norm[-1]).ljust(10)[:10])
         self.normplot.set_data(self.a.timevec_qua, self.a.norm)
         self.canvas_norm.draw()
-        anorm.set_xlim([0, self.a.tmax_qua])
-        self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.timevec_qua[-1] + " " + u"\u0127" + "/J"
-        + "      norm = " + str(self.a.norm[-1]).ljust(7)[:7])
 
     def close(self):
         Clock.unschedule(self.event)
@@ -847,11 +971,9 @@ class Energypopup(Popup):
             aen.fill_between(self.a.timenet, self.a.energynet[:, 2], self.a.energynet[:, 0] + self.a.energynet[:, 2], color = (1,1,0,0.6))
             aen.fill_between(self.a.timenet, self.a.energynet[:, 0] + self.a.energynet[:, 2], self.a.energynet[:, 1] + self.a.energynet[:, 0] + self.a.energynet[:, 2],
             color = (0,1,0,0.6))
-
             aen.legend(loc=6)
 
             self.canvas_ene.draw()
-
 
 
 class appcatApp(App):

@@ -9,7 +9,8 @@ import numpy as np
 
 #Initial wave function.
 def psi(pos, x):
-    f = np.sqrt((1./(np.sqrt(2*np.pi)*sigma0))*np.exp(-(x-pos)**2/(2.*sigma0**2)))*np.exp(complex(0,-1)*p0*x)
+    f = np.sqrt((1./(np.sqrt(2*np.pi)*sigma0))*np.exp(-(x-pos)**2/(2.*sigma0**2)))*np.exp(
+    complex(0,-1)*p0*x/hbar)
     return f
 
 #Potential.
@@ -22,7 +23,7 @@ def harmonic(k, x):
     return V
 
 def pot(mu, sigma, k, x):
-    P = gaussian(mu, sigma, x) + harmonic(k, x)
+    P = 10*(gaussian(mu, sigma, x) + harmonic(k, x))
     return P
 
 
@@ -69,6 +70,6 @@ def srindwall(a, b, N, m, pot, mu, sigma, k):
 
 
 def psiev(evalsbasis, coef_x_efuns, t):
-    exp = np.exp(np.complex(0,1)*(-evalsbasis*t))
+    exp = np.exp(np.complex(0,1)*(-evalsbasis*t/hbar))
     psiev = np.sum(coef_x_efuns*np.transpose(exp),axis=1)
     return psiev
