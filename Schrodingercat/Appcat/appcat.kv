@@ -56,22 +56,29 @@
     poslide_qua: pos_qua_slide
     poslide_cla: pos_cla_slide
 
-    velslide_qua: vel_qua_slide
+    momslide_qua: mom_qua_slide
     velslide_cla: vel_cla_slide
 
     vel_btn_qua: vel_qua_but
     vel_btn_cla: vel_cla_but
 
     progressbar_cla: pbar_cla
+    progressbar_qua: pbar_qua
 
     rk_button: rkbutt
     rkf_button: rkfbutt
 
-    energy_button: energy_but
+    elec_button: electronbutt
+    atom_button: atombutt
 
-    compu_button: compu_cla_but
+    energy_button: energy_but
+    norm_button: norm_but
+
+    compu_button_cla: compu_cla_but
+    compu_button_qua: compu_qua_but
 
     reset_cla_button: reset_cla_but
+    reset_qua_button: reset_qua_but
 
 
     TabbedPanel:
@@ -254,7 +261,7 @@
                                                     Slider:
                                                         id: pos_cla_slide
                                                         size_hint_x: 0.5
-                                                        cursor_size: self.height, self.height
+                                                        cursor_size: self.height*0.9, self.height*0.9
                                                         min: -2.5
                                                         max: 2.5
                                                         on_touch_up: root.change_xo_cla()
@@ -283,8 +290,6 @@
                                                         on_touch_up: root.change_vel_cla()
                                                         on_touch_move: root.change_vel_cla()
 
-                                                BoxLayout:
-                                                    size_hint_y: 1/3.
 
                                         TabbedPanelItem:
                                             text: "Ball"
@@ -344,11 +349,10 @@
                                     Button:
                                         id: vel_cla_but
                                         size_hint_x: 0.12
-                                        font_size: wall_cla_label.font_size + 1
+                                        font_size: wall_cla_label.font_size + 2
                                         background_normal: "grey.png"
                                         background_down: "blue.png"
                                         background_disabled_normal: "greydisabled.png"
-
                                         on_press: root.velocity_cla_btn()
 
                                     Button:
@@ -386,7 +390,7 @@
                 orientation: "vertical"
 
                 BoxLayout:
-                    size_hint_y: 0.80
+                    size_hint_y: 0.75
                     orientation: "horizontal"
 
                     BoxLayout:
@@ -415,7 +419,7 @@
                                     id: wall_label
                                     text: "[b]Wall[/b] \n h = " + str(height_qua_slide.value).ljust(3)[:3]
                                     size_hint_y: 0.1
-                                    font_size: int(self.x*0.025)
+                                    font_size: self.height*0.45
                                     halign: 'center'
                                     valign: 'middle'
                                     markup: True
@@ -424,13 +428,12 @@
                                     id: height_qua_slide
                                     orientation: "vertical"
                                     size_hint_y: 0.9
-                                    cursor_width: self.x/20
-                                    cursor_height: self.x/20
+                                    cursor_width: self.height*0.1
+                                    cursor_height: self.height*0.1
                                     min: 0.001
                                     max: 2
                                     on_touch_move: root.plotpot()
-                                    on_touch_down: root.plotpot()
-                                    on_touch_up: root.computevolution()
+                                    on_touch_up: root.plotpot()
 
                             BoxLayout:
                                 orientation: "vertical"
@@ -448,26 +451,26 @@
                                     orientation: "vertical"
                                     size_hint_y: 0.9
                                     cursor_size: height_qua_slide.cursor_size
-                                    min: 0.001
+                                    min: 0
                                     max: 2
                                     on_touch_move: root.plotpot()
-                                    on_touch_down: root.plotpot()
-                                    on_touch_up: root.computevolution()
+                                    on_touch_up: root.plotpot()
 
                 BoxLayout:
                     orientation: "horizontal"
-                    size_hint_y: 0.20
+                    size_hint_y: 0.25
 
                     BoxLayout:
                         orientation: "vertical"
                         size_hint_x: 0.85
 
                         BoxLayout:
-                            size_hint_y: 1/3.5
+                            size_hint_y: 0.2
 
                             Label:
-                                text: "[b]  Time:[/b]   t = " + '%1.1f' % time_qua_slide.value + " " + u"\u0127" + "/J"
-                                font_size: wall_label.font_size
+                                id: time_label_qua
+                                text: "[b]  Time:[/b]   t = " + '%1.1f' % time_qua_slide.value + " fs"
+                                font_size: self.height*0.65
                                 size_hint_x: 0.25
                                 text_size: self.size
                                 halign: 'left'
@@ -476,7 +479,7 @@
 
                             Label:
                                 text: '%1.1f' % time_qua_slide.min
-                                font_size: wall_label.font_size
+                                font_size: time_label_qua.font_size
                                 size_hint_x: 0.065
                                 halign: 'center'
                                 valign: 'middle'
@@ -484,128 +487,184 @@
                             Slider:
                                 id: time_qua_slide
                                 size_hint_x: 0.70
-                                cursor_width: self.y/4
-                                cursor_height: self.y/4
+                                cursor_width: self.y/5
+                                cursor_height: self.y/5
                                 cursor_image: "cursor.png"
+                                cursor_disabled_image: "cursor.png"
                                 min: 0
                                 max: root.tmax_qua
                                 value_track: True
                                 value_track_color: [1, 0, 0, 1]
+                                on_touch_up: root.plotpsi(self.value)
                                 on_touch_move: root.plotpsi(self.value)
-                                on_touch_down: root.plotpsi(self.value)
 
                             Label:
                                 text: '%1.1f' % time_qua_slide.max
-                                font_size: wall_label.font_size
+                                font_size: time_label_qua.font_size
                                 size_hint_x: 0.075
                                 halign: 'center'
                                 valign: 'middle'
 
                         BoxLayout:
-                            size_hint_y: 2/3.
+                            size_hint_y: 0.8
                             orientation: "horizontal"
 
-                            BoxLayout:
-                                orientation: "vertical"
-                                size_hint_x: 0.7
-
-                                BoxLayout:
-                                    orientation: "horizontal"
-                                    size_hint_y: 1/3.
-
-                                    Label:
-                                        text: "[b]       Thickness:[/b]   " + u"\u03C3" + " = " + '%1.1f' % sigma_qua_slide.value
-                                        font_size: wall_label.font_size - 1
-                                        size_hint_x: 0.4
-                                        text_size: self.size
-                                        halign: 'left'
-                                        valign: 'top'
-                                        markup: True
-
-
-                                    Slider:
-                                        id: sigma_qua_slide
-                                        size_hint_x: 0.6
-                                        cursor_size: self.y/2, self.y/2
-                                        min: 0.2
-                                        max: 3
-                                        on_touch_move: root.change_sigma()
-                                        on_touch_down: root.change_sigma()
-                                        on_touch_up: root.computevolution()
-
-                                BoxLayout:
-                                    orientation: "horizontal"
-                                    size_hint_y: 1/3.
-
-                                    Label:
-                                        text: "[b]       Position:[/b]   " + u"\u03BC" + " = " + '%1.1f' % pos_qua_slide.value + " m"
-                                        font_size: wall_label.font_size - 1
-                                        size_hint_x: 0.4
-                                        text_size: self.size
-                                        halign: 'left'
-                                        valign: 'top'
-                                        markup: True
-
-                                    Slider:
-                                        id: pos_qua_slide
-                                        size_hint_x: 0.6
-                                        cursor_size: sigma_qua_slide.cursor_size
-                                        min: -3
-                                        max: 3
-                                        on_touch_move: root.change_xo(self.value)
-                                        on_touch_down: root.change_xo(self.value)
-
-                                BoxLayout:
-                                    orientation: "horizontal"
-                                    size_hint_y: 1/3.
-
-                                    Label:
-                                        text: "[b]       Velocity:[/b]   v = " + '%1.1f' % vel_qua_slide.value + " m/s"
-                                        font_size: wall_label.font_size - 1
-                                        size_hint_x: 0.4
-                                        text_size: self.size
-                                        halign: 'left'
-                                        valign: 'top'
-                                        markup: True
-
-                                    Slider:
-                                        id: vel_qua_slide
-                                        size_hint_x: 0.6
-                                        cursor_size: sigma_qua_slide.cursor_size
-                                        min: -3
-                                        max: 3
-                                        on_touch_move: root.change_vel_qua()
-                                        on_touch_down: root.change_vel_qua()
-
-
                             Button:
-                                id: vel_qua_but
-                                size_hint_x: 0.1
+                                id: compu_qua_but
+                                size_hint_x: 0.15
+                                text: "Compute"
                                 font_size: wall_label.font_size + 1
-                                background_normal: "grey.png"
-                                background_down: "blue.png"
-                                on_press: root.velocity_btn()
+                                background_normal: "cogwheelactive.png"
+                                background_disabled_normal: "cogwheel.png"
+                                on_press: root.triggercompute_qua()
 
                             BoxLayout:
-                                size_hint_x: 0.1
+                                size_hint_x: 0.85
+                                orientation: "vertical"
 
-                                Button:
-                                    size: 5,5
-                                    id: start_stop_qua_id
-                                    on_press: root.start_stop()
+                                ProgressBar:
+                                    id: pbar_qua
+                                    size_hint_y: 0.2
+                                    max: 100
 
-                            Button:
-                                size_hint_x: 0.1
-                                background_normal: "reset.png"
-                                background_down: "resetblue.png"
-                                on_press: root.reset_btn()
+                                BoxLayout:
+                                    size_hint_y: 0.8
+                                    orientation: "horizontal"
 
+                                    TabbedPanel:
+                                        tab_height: self.height*0.2
+                                        size_hint: 0.64, 1
+                                        do_default_tab: False
+
+                                        TabbedPanelItem:
+                                            text: "Init. Cond."
+
+                                            BoxLayout:
+                                                orientation: "vertical"
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+                                                    size_hint_y: 1/2.
+
+                                                    Label:
+                                                        text: "[b]  Position:[/b]   "+ u"\u03BC"+ " = "+'%1.1f'%pos_qua_slide.value + " A"
+                                                        font_size: time_label_qua.font_size - 1
+                                                        size_hint_x: 0.5
+                                                        text_size: self.size
+                                                        halign: 'left'
+                                                        valign: 'center'
+                                                        markup: True
+
+                                                    Slider:
+                                                        id: pos_qua_slide
+                                                        size_hint_x: 0.5
+                                                        cursor_size: self.height*0.9, self.height*0.9
+                                                        min: -3
+                                                        max: 3
+                                                        on_touch_move: root.change_xo(self.value)
+                                                        on_touch_up: root.change_xo(self.value)
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+                                                    size_hint_y: 1/2.
+
+                                                    Label:
+                                                        text: "[b]  Mom.:[/b]   p = " + '%1.1f'%mom_qua_slide.value + " eVfs/A"
+                                                        font_size: time_label_qua.font_size - 1
+                                                        size_hint_x: 0.5
+                                                        text_size: self.size
+                                                        halign: 'left'
+                                                        valign: 'center'
+                                                        markup: True
+
+                                                    Slider:
+                                                        id: mom_qua_slide
+                                                        size_hint_x: 0.5
+                                                        cursor_size: pos_qua_slide.cursor_size
+                                                        min: -3
+                                                        max: 3
+                                                        on_touch_move: root.change_mom_qua()
+                                                        on_touch_up: root.change_mom_qua()
+
+                                        TabbedPanelItem:
+                                            text: "Particle"
+
+                                            BoxLayout:
+                                                orientation: "vertical"
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+                                                    size_hint_y: 1/2.
+
+                                                    Label:
+                                                        text: "[b]  Thickness:[/b]   " + u"\u03C3" + " = " + '%1.1f' %sigma_qua_slide.value
+                                                        font_size: time_label_qua.font_size - 1
+                                                        size_hint_x: 0.5
+                                                        text_size: self.size
+                                                        halign: 'left'
+                                                        valign: 'center'
+                                                        markup: True
+
+
+                                                    Slider:
+                                                        id: sigma_qua_slide
+                                                        size_hint_x: 0.5
+                                                        cursor_size: pos_qua_slide.cursor_size
+                                                        min: 0.2
+                                                        max: 2.5
+                                                        on_touch_move: root.change_sigma()
+                                                        on_touch_up: root.change_sigma()
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+                                                    size_hint_y: 1/2.
+
+                                                    Button:
+                                                        id: electronbutt
+                                                        text: "Electron"
+                                                        font_size: time_label_qua.font_size - 1
+                                                        text_size: self.size
+                                                        halign: 'center'
+                                                        valign: 'center'
+
+
+                                                    Button:
+                                                        id: atombutt
+                                                        text: "H atom"
+                                                        font_size: time_label_qua.font_size - 1
+                                                        text_size: self.size
+                                                        halign: 'center'
+                                                        valign: 'center'
+
+                                    Button:
+                                        id: vel_qua_but
+                                        size_hint_x: 0.12
+                                        font_size: wall_label.font_size + 2
+                                        background_normal: "grey.png"
+                                        background_down: "blue.png"
+                                        background_disabled_normal: "greydisabled.png"
+                                        on_press: root.velocity_btn()
+
+                                    Button:
+                                        id: start_stop_qua_id
+                                        size_hint_x: 0.12
+                                        background_disabled_normal: "playdisabled.png"
+                                        on_press: root.start_stop()
+
+                                    Button:
+                                        id: reset_qua_but
+                                        size_hint_x: 0.12
+                                        background_normal: "reset.png"
+                                        background_down: "resetblue.png"
+                                        background_disabled_normal: "resetdisabled.png"
+                                        on_press: root.reset_btn()
 
 
                     Button:
+                        id: norm_but
                         size_hint_x: 0.15
                         text: 'Norm'
                         text_color: [1,1,1,1]
                         font_size: wall_label.font_size + 1
-                        on_release: Factory.Normpopup(root).open()
                         background_normal: "normgaussian.png"
+                        on_release: Factory.Normpopup(root).open()
