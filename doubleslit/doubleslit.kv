@@ -3,6 +3,7 @@
 #:import Factory kivy.factory.Factory
 <MeasuresPopup@Popup>:
     m_rectangle: m_rect.__self__
+    classic_switch: c_switch.__self__
     auto_dismiss: False
     on_open: self.draw_measurements()
     title: "Measuring screen"
@@ -11,10 +12,20 @@
         Widget:
             size_hint: (1, 0.9)
             id: m_rect
-        Button:
-            size_hint: (0.2, 0.1)
-            text: "Close"
-            on_release: root.dismiss()
+
+        BoxLayout:
+            size_hint: (1, 0.1)
+
+            orientation: "horizontal"
+            BoxLayout:
+                orientation: "horizontal"
+                Label:
+                    text: "Show classically allowed zones:"
+                Switch:
+                    id: c_switch
+            Button:
+                text: "Close"
+                on_release: root.dismiss()
 
 <DoubleSlitScreen>:
     p_rectangle: p_rect

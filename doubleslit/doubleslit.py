@@ -23,33 +23,59 @@ import matplotlib.pyplot as plt
 
 class MeasuresPopup(Popup):
     m_rectangle = ObjectProperty()
+    classic_switch = ObjectProperty()
     measurements = []
+    V = []
     size_y = 1
 
     def __init__(self, *args, **kwargs):
         super(MeasuresPopup, self).__init__(*args, **kwargs)
+        self.classic_switch.bind(active=self.draw_measurements)
 
-    def draw_measurements(self):
-        self.title = str(len(self.measurements))
+    def draw_measurements(self, *args, **kwargs):
+        self.m_rectangle.canvas.clear()
+        self.title = "Measuring screen"
+
         with self.m_rectangle.canvas:
 
-            Color(0., .25, 0.)
             x0 = self.m_rectangle.pos[0]
             y0 = self.m_rectangle.pos[1]
             w = self.m_rectangle.size[0]
             h = self.m_rectangle.size[1]
 
+            if self.classic_switch.active:
+                V = np.array([np.sum(self.V, axis = 1)]*self.V.shape[0])
+                Vo = np.max(V)
+                self.texture_V = Texture.create(size = V.shape[::-1], colorfmt = "rgba", bufferfmt = "uint")
+
+                M = np.zeros((V.shape[0], V.shape[1], 4), dtype = np.uint8)
+                M[:,:,0] = (255*V/Vo).astype(np.uint8)
+                M[:,:,1] = (255*(Vo-V)/Vo).astype(np.uint8)
+                M[:,:,3] = np.full(M[:,:,0].shape, 255//8)
+
+                self.texture_V.blit_buffer( M.reshape(M.size), colorfmt = "rgba")
+
+                Color(1., 1., 1.)
+                Rectangle(texture = self.texture_V, pos = (x0, y0), size = (w, h))
+            else:
+                Color(0., .25, 0)
+                Rectangle(pos = (x0, y0), size = (w, h))
+
             np_mes = np.array(self.measurements)
             self.zoom = w/self.size_y
-            self.zoomz = h/(2*np.max(np.absolute(np_mes[:,2])))
+            if len(self.measurements) > 0:
+                self.zoomz = h/(2*np.max(np.absolute(np_mes[:,2])))
             xc = x0 + w/2
             yc = y0 + h/2
 
-            Rectangle(pos=(x0, y0), size=(w, h))
+            Color(1., 1., 1.)
+            Rectangle(pos = (x0, y0+h/2), size = (w, 1))
+            Rectangle(pos = (x0 + w/2, y0), size = (1, h))
 
             Color(0, 1. ,0)
             for measure in self.measurements:
                 Rectangle(pos = (measure[1]*self.zoom, yc + measure[2]*self.zoomz), size = (4, 4))
+
 
 
 class DoubleSlitScreen(BoxLayout):
@@ -219,6 +245,7 @@ class DoubleSlitScreen(BoxLayout):
         Opens a popup with the measuring screen
         """
         self.measures_popup.measurements = self.experiment.measurements
+        self.measures_popup.V = self.experiment.V
         self.measures_popup.size_y = self.experiment.Pt[0].shape[0]
         self.measures_popup.open()
 
