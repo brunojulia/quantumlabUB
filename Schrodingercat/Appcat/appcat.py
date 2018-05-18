@@ -39,8 +39,6 @@ class Appcat(BoxLayout):
     tmax_qua = NumericProperty()
     tmax_cla = NumericProperty()
     xo = NumericProperty()
-    progressbar_cla = ObjectProperty()
-
 
     def __init__(self, **kwargs):
         super(Appcat, self).__init__(**kwargs)
@@ -63,17 +61,15 @@ class Appcat(BoxLayout):
         self.poslide_qua.value = self.xo
         te.p0 = 0
         self.momslide_qua.value = te.p0
+        self.particle = "elec"
+        self.elec_button.background_color = (0.5,0.5,0.5,1)
+        self.atom_button.background_color = (0.9,0.9,0.9,1)
 
         self.switch1_qua = "off"
-        self.oldtop1_qua = self.heightslide_qua.value + 1
         self.oldtop2_qua = self.heightslide_qua.value
-        self.oldk1_qua = self.kslide_qua.value + 1
         self.oldk2_qua = self.kslide_qua.value
-        self.oldsigma1_qua = self.sigmaslide_qua.value + 1
         self.oldsigma2_qua = self.sigmaslide_qua.value
-        self.oldxo1_qua = self.poslide_qua.value + 1
         self.oldxo2_qua = self.poslide_qua.value
-        self.oldmom1_qua = self.momslide_qua.value + 1
         self.oldmom2_qua = self.momslide_qua.value
 
         self.startstopbut_qua.background_down = "playblue.png"
@@ -100,13 +96,17 @@ class Appcat(BoxLayout):
         #Plots (Quantum)
         self.canvas_qua = FigureCanvasKivyAgg(fig_qua)
         self.pot_qua, = aqu.plot(self.xarr_qua, te.pot(self.mu_qua, self.sigma_qua, self.k_qua, self.xarr_qua), 'g--', label = "V(x)")
-        aqu.plot([],[], 'r-',  label = r'$|\Psi(x)|^{2}$') #Fake one, just for the legend.
+        self.energy_qua, = aqu.plot([], [], '--', color = (0.3,1,0,0.8), label = "<E>")
+        aqu.plot([], [], 'r-',  label = r'$|\Psi(x)|^{2}$') #Fake one, just for the legend.
         aqu.axis([-5, 5, 0, 20])
         aqu.set_xlabel("x (" + u"\u212B" + ")")
         aqu.set_ylabel("Energy (eV)", color = 'k')
         aqu.tick_params('y', colors = 'g')
         aqu.legend(loc=1)
+        self.txt_qua = aqu.set_title("")
+        self.txt_qua.set_text("<E> = "  + "0.0 eV")
 
+            #The wavefunction is plotted in a different scale.
         self.psi_qua, = aqu2.plot(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, 'r-')
         aqu2.axis([-5, 5, 0, 1.5])
         aqu2.set_ylabel("Probability", color = 'k')
@@ -192,7 +192,6 @@ class Appcat(BoxLayout):
 
         #First computations:
         self.computed_cla = False
-        self.computing_cla = False
         self.computed_qua = False
         self.triggercompute_qua()
         self.triggercompute_cla()
@@ -237,9 +236,16 @@ class Appcat(BoxLayout):
             self.sigma_qua = 1./(np.sqrt(2*np.pi)*self.heightslide_qua.value)
             self.k_qua = self.kslide_qua.value
             self.pot_qua.set_data(self.xarr_qua, te.pot(self.mu_qua, self.sigma_qua, self.k_qua, self.xarr_qua))
-            self.canvas_qua.draw()
+            self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
 
             self.reset()
+
+            #Changes the <E> plot parameters.
+            self.energy_qua.set_color((0.5,0.5,0.5,0.4))
+            self.energy_qua.set_label("Old <E>")
+            self.txt_qua.set_text("<E> = ? eV")
+            aqu.legend(loc=1)
+            self.canvas_qua.draw()
 
             self.oldtop2_qua = self.heightslide_qua.value
             self.oldk2_qua = self.kslide_qua.value
@@ -259,6 +265,12 @@ class Appcat(BoxLayout):
             te.sigma0 = self.sigmaslide_qua.value
             self.oldsigma2_qua = self.sigmaslide_qua.value
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
+
+            #Changes the <E> plot parameters.
+            self.energy_qua.set_color((0.5,0.5,0.5,0.4))
+            self.energy_qua.set_label("Old <E>")
+            self.txt_qua.set_text("<E> = ? eV")
+            aqu.legend(loc=1)
             self.canvas_qua.draw()
 
             #Disables some buttons.
@@ -276,6 +288,12 @@ class Appcat(BoxLayout):
             self.oldxo2_qua = self.poslide_qua.value
             self.xo = self.poslide_qua.value
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(xoo, self.xarr_qua))**2)
+
+            #Changes the <E> plot parameters.
+            self.energy_qua.set_color((0.5,0.5,0.5,0.4))
+            self.energy_qua.set_label("Old <E>")
+            self.txt_qua.set_text("<E> = ? eV")
+            aqu.legend(loc=1)
             self.canvas_qua.draw()
 
             #Disables some buttons.
@@ -292,6 +310,14 @@ class Appcat(BoxLayout):
             self.reset()
             self.oldmom2_qua = self.momslide_qua.value
             te.p0 = self.momslide_qua.value
+            self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
+
+            #Changes the <E> plot parameters.
+            self.energy_qua.set_color((0.5,0.5,0.5,0.4))
+            self.energy_qua.set_label("Old <E>")
+            self.txt_qua.set_text("<E> = ? eV")
+            aqu.legend(loc=1)
+            self.canvas_qua.draw()
 
             #Disables some buttons.
             self.compu_button_qua.disabled = False
@@ -302,7 +328,59 @@ class Appcat(BoxLayout):
 
             self.computed_qua = False
 
+    def change_elec(self):
+        if self.particle != "elec":
+            self.particle = "elec"
+            self.elec_button.background_color = (0.5,0.5,0.5,1)
+            self.atom_button.background_color = (0.9,0.9,0.9,1)
+            self.computed_qua = False
+            self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
 
+            self.reset()
+
+            #Changes the <E> plot parameters.
+            self.energy_qua.set_color((0.5,0.5,0.5,0.4))
+            self.energy_qua.set_label("Old <E>")
+            self.txt_qua.set_text("<E> = ? eV")
+            aqu.legend(loc=1)
+            self.canvas_qua.draw()
+
+            #Disables some buttons.
+            self.compu_button_qua.disabled = False
+            self.startstopbut_qua.disabled = True
+            self.reset_qua_button.disabled = True
+            self.vel_btn_qua.disabled = True
+            self.timeslide_qua.disabled = True
+
+            self.computed_qua = False
+
+    def change_atom(self):
+        if self.particle != "atom":
+            self.particle = "atom"
+            self.atom_button.background_color = (0.5,0.5,0.5,1)
+            self.elec_button.background_color = (0.9,0.9,0.9,1)
+            self.computed_qua = False
+            self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
+
+            self.reset()
+
+            #Changes the <E> plot parameters.
+            self.energy_qua.set_color((0.5,0.5,0.5,0.4))
+            self.energy_qua.set_label("Old <E>")
+            self.txt_qua.set_text("<E> = ? eV")
+            aqu.legend(loc=1)
+            self.canvas_qua.draw()
+
+            #Disables some buttons.
+            self.compu_button_qua.disabled = False
+            self.startstopbut_qua.disabled = True
+            self.reset_qua_button.disabled = True
+            self.vel_btn_qua.disabled = True
+            self.timeslide_qua.disabled = True
+
+            self.computed_qua = False
+
+    #Plotting:
     def plotpsi(self, t):
         if self.oldtime1_qua != t:
             psit = np.abs(te.psiev(self.evalsbasis, self.coef_x_efuns, t))**2
@@ -315,6 +393,7 @@ class Appcat(BoxLayout):
                 self.timevec_qua.append(t)
                 oldtime2_qua = t
 
+    #Playing:
     def psiupdate(self, dt):
         if self.switch1_qua == "on":
             self.time_qua = self.timeslide_qua.value + self.dtime_qua
@@ -357,6 +436,7 @@ class Appcat(BoxLayout):
             self.vel_qua = 1
         self.dtime_qua = self.vel_qua*self.dtime0_qua
         self.vel_btn_qua.text = str(self.vel_qua) + "x"
+
 
 #Classical functions:
     #Computing:
@@ -560,7 +640,42 @@ class Appcat(BoxLayout):
 
             self.computed_cla = False
 
+    def change_RK(self):
+        if self.method != "RK4":
+            self.method = "RK4"
+            self.rk_button.background_color = (0.5,0.5,0.5,1)
+            self.rkf_button.background_color = (0.9,0.9,0.9,1)
+            self.computed_cla = False
+            self.reset_cla()
+            self.tmax_cla = 0
+            self.plotball_0()
 
+            #Disables some buttons.
+            self.compu_button_cla.disabled = False
+            self.startstopbut_cla.disabled = True
+            self.reset_cla_button.disabled = True
+            self.vel_btn_cla.disabled = True
+            self.timeslide_cla.disabled = True
+
+
+    def change_RKF(self):
+        if self.method != "RKF45":
+            self.method = "RKF45"
+            self.rkf_button.background_color = (0.5,0.5,0.5,1)
+            self.rk_button.background_color = (0.9,0.9,0.9,1)
+            self.computed_cla = False
+            self.reset_cla()
+            self.tmax_cla = 0
+            self.plotball_0()
+
+            #Disables some buttons.
+            self.compu_button_cla.disabled = False
+            self.startstopbut_cla.disabled = True
+            self.reset_cla_button.disabled = True
+            self.vel_btn_cla.disabled = True
+            self.timeslide_cla.disabled = True
+
+    #Plotting.
     def plotball_0(self):
         x = self.supermatrix_cla[0, 1]
         XXcm = rob.xcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, x)
@@ -613,6 +728,24 @@ class Appcat(BoxLayout):
                 self.oldrow = row
             self.oldtime1_cla = t
 
+    def plotE_cla(self):
+        #Plots the initial energy.
+        trans = 0.5*rob.m*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])*self.yin0[1])**2
+        + (rob.dycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])*self.yin0[1])**2)
+        rot = 0.2*rob.m*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])/self.R
+        - rob.dalpha(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0]))**2*self.yin0[1]**2
+        pot = rob.m*rob.g*rob.ycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])
+        tot = trans + rot + pot
+
+        #The energy is transformed to a height (as if all was potential energy).
+        height = tot/(rob.m*rob.g) - self.R
+
+        x = np.arange(-2.6, 2.6, 0.1)
+        y = height + 0*x
+        self.E_cla.set_data(x,y)
+        self.canvas_cla.draw()
+
+    #Playing.
     def ballupdate(self, dt):
         if self.switch1_cla == "on":
             self.time_cla = self.timeslide_cla.value + self.dtime_cla
@@ -646,11 +779,9 @@ class Appcat(BoxLayout):
         self.startstopbut_cla.background_normal = "play.png"
         self.startstopbut_cla.background_down = "playblue.png"
 
-
     def reset_cla_btn(self):
         self.reset_cla()
         self.plotball(0)
-
 
     def velocity_cla_btn(self):
         self.vel_cla = self.vel_cla + 1
@@ -658,56 +789,6 @@ class Appcat(BoxLayout):
             self.vel_cla = 1
         self.dtime_cla = self.vel_cla*self.dtime0_cla
         self.vel_btn_cla.text = str(self.vel_cla) + "x"
-
-    def plotE_cla(self):
-        #Plots the initial energy.
-        trans = 0.5*rob.m*((rob.dxcm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])*self.yin0[1])**2
-        + (rob.dycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])*self.yin0[1])**2)
-        rot = 0.2*rob.m*self.R**2*(rob.groundperim(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])/self.R
-        - rob.dalpha(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0]))**2*self.yin0[1]**2
-        pot = rob.m*rob.g*rob.ycm(self.R, self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0])
-        tot = trans + rot + pot
-
-        #The energy is transformed to a height (as if all was potential energy).
-        height = tot/(rob.m*rob.g) - self.R
-
-        x = np.arange(-2.6, 2.6, 0.1)
-        y = height + 0*x
-        self.E_cla.set_data(x,y)
-        self.canvas_cla.draw()
-
-    def change_RK(self):
-        if self.method != "RK4":
-            self.method = "RK4"
-            self.rk_button.background_color = (0.5,0.5,0.5,1)
-            self.rkf_button.background_color = (0.9,0.9,0.9,1)
-            self.computed_cla = False
-            self.reset_cla()
-            self.tmax_cla = 0
-            self.plotball_0()
-
-            self.compu_button_cla.disabled = False
-            self.startstopbut_cla.disabled = True
-            self.reset_cla_button.disabled = True
-            self.vel_btn_cla.disabled = True
-            self.timeslide_cla.disabled = True
-
-
-    def change_RKF(self):
-        if self.method != "RKF45":
-            self.method = "RKF45"
-            self.rkf_button.background_color = (0.5,0.5,0.5,1)
-            self.rk_button.background_color = (0.9,0.9,0.9,1)
-            self.computed_cla = False
-            self.reset_cla()
-            self.tmax_cla = 0
-            self.plotball_0()
-
-            self.compu_button_cla.disabled = False
-            self.startstopbut_cla.disabled = True
-            self.reset_cla_button.disabled = True
-            self.vel_btn_cla.disabled = True
-            self.timeslide_cla.disabled = True
 
 
 class Computevolution_qua(object):
@@ -743,12 +824,17 @@ class Computevolution_qua(object):
         self.a.psivec = te.psi(self.a.xo, self.a.xarr_qua)
         self.a.j = 0
 
-        #Solving:
-        self.a.evals, self.a.efuns = te.srindwall(self.a.a, self.a.b, self.a.N, self.a.m_qua, te.pot,
-        self.a.mu_qua, self.a.sigma_qua, self.a.k_qua)
+    #Solving:
+        self.pb.value = 5
+        Clock.schedule_once(lambda dt: self.initialcalc(), 0.1)
 
         #Calls the projection function, that will make a new step and call the task_complete function when finishes.
         Clock.schedule_once(lambda dt: self.pro(self.task_complete), 0.1)
+
+    def initialcalc(self):
+        #Computes the eigenvalues and eigenvectors.
+        self.a.evals, self.a.efuns = te.srindwall(self.a.a, self.a.b, self.a.N, self.a.m_qua, te.pot,
+        self.a.mu_qua, self.a.sigma_qua, self.a.k_qua)
 
     def task_complete(self):
         #Checks if there are still steps to be done, calls again the function and updates the progressbar.
@@ -759,6 +845,15 @@ class Computevolution_qua(object):
         else:
             self.a.computed_qua = True
             self.pb.value = 0
+
+            #Computes the energy.
+            self.energy = np.sum(np.abs(self.a.coefs)**2*self.a.evalsbasis)
+            self.a.energy_qua.set_data(self.a.xarr_qua, 0*self.a.xarr_qua + self.energy)
+            self.a.txt_qua.set_text("<E> = " + '%1.2f' %self.energy + " eV")
+            self.a.energy_qua.set_color((0.3,1,0,0.8))
+            self.a.energy_qua.set_label("<E>")
+            aqu.legend(loc=1)
+            self.a.canvas_qua.draw()
 
             #Enables the widgets again.
             self.a.heightslide_qua.disabled = False
