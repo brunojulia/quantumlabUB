@@ -431,7 +431,7 @@
                                     cursor_width: self.height*0.1
                                     cursor_height: self.height*0.1
                                     min: 0.001
-                                    max: 2
+                                    max: 2*root.pot_factor
                                     on_touch_move: root.plotpot()
                                     on_touch_up: root.plotpot()
 
@@ -452,7 +452,7 @@
                                     size_hint_y: 0.9
                                     cursor_size: height_qua_slide.cursor_size
                                     min: 0
-                                    max: 2
+                                    max: 1
                                     on_touch_move: root.plotpot()
                                     on_touch_up: root.plotpot()
 
@@ -469,7 +469,7 @@
 
                             Label:
                                 id: time_label_qua
-                                text: "[b]  Time:[/b]   t = " + '%1.1f' % time_qua_slide.value + " fs"
+                                text: "[b]  Time:[/b]   t = " + '%1.1f'%time_qua_slide.value+" "+str(root.time_unit_qua)
                                 font_size: self.height*0.65
                                 size_hint_x: 0.25
                                 text_size: self.size
@@ -547,7 +547,7 @@
                                                     size_hint_y: 1/2.
 
                                                     Label:
-                                                        text: "[b]  Position:[/b]   "+ u"\u03BC"+ " = "+'%1.1f'%pos_qua_slide.value + " A"
+                                                        text: "[b]  Position:[/b]   "+u"\u03BC"+ " = "+'%1.1f'%pos_qua_slide.value+" "+root.x_unit_bis_qua
                                                         font_size: time_label_qua.font_size - 1
                                                         size_hint_x: 0.5
                                                         text_size: self.size
@@ -569,7 +569,7 @@
                                                     size_hint_y: 1/2.
 
                                                     Label:
-                                                        text: "[b]  Mom.:[/b]   p = " + '%1.1f'%mom_qua_slide.value + " eVfs/A"
+                                                        text: "[b]  Mom.:[/b]   p = " + '%1.1f'%mom_qua_slide.value +" "+u"\u0127"+"/"+root.x_unit_bis_qua
                                                         font_size: time_label_qua.font_size - 1
                                                         size_hint_x: 0.5
                                                         text_size: self.size
@@ -581,8 +581,8 @@
                                                         id: mom_qua_slide
                                                         size_hint_x: 0.5
                                                         cursor_size: pos_qua_slide.cursor_size
-                                                        min: -3
-                                                        max: 3
+                                                        min: -2
+                                                        max: 2
                                                         on_touch_move: root.change_mom_qua()
                                                         on_touch_up: root.change_mom_qua()
 
@@ -631,7 +631,7 @@
 
                                                     Button:
                                                         id: atombutt
-                                                        text: "H atom"
+                                                        text: "Rb 87 atom"
                                                         font_size: time_label_qua.font_size - 1
                                                         text_size: self.size
                                                         halign: 'center'
