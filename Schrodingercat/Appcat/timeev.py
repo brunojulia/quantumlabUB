@@ -10,7 +10,7 @@ import numpy as np
 #Initial wave function.
 def psi(pos, x):
     f = np.sqrt((1./(np.sqrt(2*np.pi)*sigma0))*np.exp(-(x-pos)**2/(2.*sigma0**2)))*np.exp(
-    complex(0,-1)*p0*x/hbar)
+    complex(0,-1)*p0*x)
     return f
 
 #Potential.
@@ -23,7 +23,7 @@ def harmonic(k, x):
     return V
 
 def pot(mu, sigma, k, x):
-    P = 10*(gaussian(mu, sigma, x) + harmonic(k, x))
+    P = 2*factor*(gaussian(mu, sigma, x) + harmonic(k, x))
     return P
 
 

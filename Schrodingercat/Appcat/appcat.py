@@ -11,7 +11,7 @@ from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from kivy.clock import Clock
-from kivy.properties import NumericProperty, ObjectProperty
+from kivy.properties import NumericProperty, ObjectProperty, StringProperty
 from  kivy.uix.popup import Popup
 import warnings
 from matplotlib import rc
@@ -31,7 +31,6 @@ fig_ene = Figure()
 aen = fig_ene.add_subplot(111)
 
 rob.g = 9.806
-te.hbar = 4.136 #eV·fs (femtosecond)
 
 #Main Layout:
 class Appcat(BoxLayout):
@@ -39,6 +38,9 @@ class Appcat(BoxLayout):
     tmax_qua = NumericProperty()
     tmax_cla = NumericProperty()
     xo = NumericProperty()
+    time_unit_qua = StringProperty()
+    x_unit_bis_qua = StringProperty()
+    pot_factor = NumericProperty()
 
     def __init__(self, **kwargs):
         super(Appcat, self).__init__(**kwargs)
@@ -51,10 +53,14 @@ class Appcat(BoxLayout):
 
         te.sigma0 = 1
         self.sigmaslide_qua.value = te.sigma0
-        self.sigma_qua = 1./(np.sqrt(2*np.pi)*self.heightslide_qua.value)
+        te.factor = 10 #Factor for the applied potential.
+        self.heightslide_qua.value = self.heightslide_qua.min
+        self.sigma_qua = 2*te.factor/(np.sqrt(2*np.pi)*self.heightslide_qua.value)
         self.mu_qua = 0
         self.xarr_qua = np.arange(self.a, self.b + self.deltax*0.1, self.deltax)
         self.m_qua = 1/(2*3.80995) #The value contains hbar^2.
+        te.hbar = 4.136 #eV·fs (femtosecond)
+        self.pot_factor = te.factor
         self.k_qua = 1
         self.kslide_qua.value = self.k_qua
         self.xo = 0
@@ -74,6 +80,13 @@ class Appcat(BoxLayout):
 
         self.startstopbut_qua.background_down = "playblue.png"
         self.startstopbut_qua.background_normal = "play.png"
+
+        #Units:
+        self.time_unit_qua = "fs"
+        self.energy_unit_qua = "eV"
+        self.x_unit_qua = u"\u212B"
+            #Kivy labels do not recognise the Angstrom letter.
+        self.x_unit_bis_qua = "A"
 
         #Clock (Quantum):
         Clock.schedule_interval(self.psiupdate, 1/60)
@@ -96,18 +109,19 @@ class Appcat(BoxLayout):
         #Plots (Quantum)
         self.canvas_qua = FigureCanvasKivyAgg(fig_qua)
         self.pot_qua, = aqu.plot(self.xarr_qua, te.pot(self.mu_qua, self.sigma_qua, self.k_qua, self.xarr_qua), 'g--', label = "V(x)")
-        self.energy_qua, = aqu.plot([], [], '--', color = (0.3,1,0,0.8), label = "<E>")
+        self.energy_qua, = aqu.plot([], [], '-.', color = (0.3,1,0,0.8), label = "<E>")
         aqu.plot([], [], 'r-',  label = r'$|\Psi(x)|^{2}$') #Fake one, just for the legend.
-        aqu.axis([-5, 5, 0, 20])
-        aqu.set_xlabel("x (" + u"\u212B" + ")")
-        aqu.set_ylabel("Energy (eV)", color = 'k')
+        aqu.axis([-5, 5, 0, 2*te.factor])
+        aqu.set_xlabel("x (" + self.x_unit_qua + ")")
+        aqu.set_ylabel("Energy (" + self.energy_unit_qua + ")", color = 'k')
         aqu.tick_params('y', colors = 'g')
         aqu.legend(loc=1)
         self.txt_qua = aqu.set_title("")
-        self.txt_qua.set_text("<E> = "  + "0.0 eV")
+        self.txt_qua.set_text("<E> = "  + "0.0 " + self.energy_unit_qua)
 
             #The wavefunction is plotted in a different scale.
         self.psi_qua, = aqu2.plot(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, 'r-')
+        self.filled_qua = aqu2.fill_between(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, color = (1,0,0,0.2))
         aqu2.axis([-5, 5, 0, 1.5])
         aqu2.set_ylabel("Probability", color = 'k')
         aqu2.tick_params('y', colors = 'r')
@@ -186,7 +200,7 @@ class Appcat(BoxLayout):
         self.ballcm, = acl.plot([], [], 'ko', ms=1)
         self.ballperim, = acl.plot([], [], 'k-', lw=1)
         self.balldots, = acl.plot([], [], 'ko', ms=1)
-        self.filled = acl.fill_between(self.xarr_cla, 0, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla), color = (0.5,0.5,0.5,0.5))
+        self.filled_cla = acl.fill_between(self.xarr_cla, 0, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla), color = (0.5,0.5,0.5,0.5))
         self.E_cla, = acl.plot([],[], 'r--', lw=1)
 
 
@@ -233,17 +247,19 @@ class Appcat(BoxLayout):
         b = self.oldk2_qua != self.kslide_qua.value
 
         if a or b:
-            self.sigma_qua = 1./(np.sqrt(2*np.pi)*self.heightslide_qua.value)
+            self.sigma_qua = 2*te.factor/(np.sqrt(2*np.pi)*self.heightslide_qua.value)
             self.k_qua = self.kslide_qua.value
             self.pot_qua.set_data(self.xarr_qua, te.pot(self.mu_qua, self.sigma_qua, self.k_qua, self.xarr_qua))
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
+            self.filled_qua.remove()
+            self.filled_qua = aqu2.fill_between(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, color = (1,0,0,0.2))
 
             self.reset()
 
             #Changes the <E> plot parameters.
             self.energy_qua.set_color((0.5,0.5,0.5,0.4))
             self.energy_qua.set_label("Old <E>")
-            self.txt_qua.set_text("<E> = ? eV")
+            self.txt_qua.set_text("<E> = ? " + self.energy_unit_qua)
             aqu.legend(loc=1)
             self.canvas_qua.draw()
 
@@ -265,11 +281,13 @@ class Appcat(BoxLayout):
             te.sigma0 = self.sigmaslide_qua.value
             self.oldsigma2_qua = self.sigmaslide_qua.value
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
+            self.filled_qua.remove()
+            self.filled_qua = aqu2.fill_between(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, color = (1,0,0,0.2))
 
             #Changes the <E> plot parameters.
             self.energy_qua.set_color((0.5,0.5,0.5,0.4))
             self.energy_qua.set_label("Old <E>")
-            self.txt_qua.set_text("<E> = ? eV")
+            self.txt_qua.set_text("<E> = ? " + self.energy_unit_qua)
             aqu.legend(loc=1)
             self.canvas_qua.draw()
 
@@ -288,11 +306,13 @@ class Appcat(BoxLayout):
             self.oldxo2_qua = self.poslide_qua.value
             self.xo = self.poslide_qua.value
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(xoo, self.xarr_qua))**2)
+            self.filled_qua.remove()
+            self.filled_qua = aqu2.fill_between(self.xarr_qua, np.abs(te.psi(xoo, self.xarr_qua))**2, color = (1,0,0,0.2))
 
             #Changes the <E> plot parameters.
             self.energy_qua.set_color((0.5,0.5,0.5,0.4))
             self.energy_qua.set_label("Old <E>")
-            self.txt_qua.set_text("<E> = ? eV")
+            self.txt_qua.set_text("<E> = ? " + self.energy_unit_qua)
             aqu.legend(loc=1)
             self.canvas_qua.draw()
 
@@ -311,11 +331,13 @@ class Appcat(BoxLayout):
             self.oldmom2_qua = self.momslide_qua.value
             te.p0 = self.momslide_qua.value
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
+            self.filled_qua.remove()
+            self.filled_qua = aqu2.fill_between(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, color = (1,0,0,0.2))
 
             #Changes the <E> plot parameters.
             self.energy_qua.set_color((0.5,0.5,0.5,0.4))
             self.energy_qua.set_label("Old <E>")
-            self.txt_qua.set_text("<E> = ? eV")
+            self.txt_qua.set_text("<E> = ? " + self.energy_unit_qua)
             aqu.legend(loc=1)
             self.canvas_qua.draw()
 
@@ -335,13 +357,36 @@ class Appcat(BoxLayout):
             self.atom_button.background_color = (0.9,0.9,0.9,1)
             self.computed_qua = False
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
+            self.filled_qua.remove()
+            self.filled_qua = aqu2.fill_between(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, color = (1,0,0,0.2))
 
             self.reset()
 
+            #New mass.
+            self.m_qua = 1/(2*3.80995) #The value contains hbar^2.
+            te.hbar = 4.136 #eV·fs (femtosecond)
+
+            oldfact = te.factor
+            te.factor = 10 #Factor for the applied potential.
+            self.pot_factor = te.factor
+            self.heightslide_qua.value = te.factor*self.heightslide_qua.value/oldfact
+            self.pot_qua.set_data(self.xarr_qua, te.pot(self.mu_qua, self.sigma_qua, self.k_qua, self.xarr_qua))
+            aqu.axis([-5, 5, 0, 2*te.factor])
+
+            #Units:
+            self.time_unit_qua = "fs"
+            self.energy_unit_qua = "eV"
+            self.x_unit_qua = u"\u212B"
+                #Kivy labels do not recognise the Angstrom letter.
+            self.x_unit_bis_qua = "A"
+            aqu.set_xlabel("x (" + self.x_unit_qua + ")")
+            aqu.set_ylabel("Energy (" + self.energy_unit_qua + ")", color = 'k')
+
             #Changes the <E> plot parameters.
+            self.energy_qua.set_data([],[])
             self.energy_qua.set_color((0.5,0.5,0.5,0.4))
             self.energy_qua.set_label("Old <E>")
-            self.txt_qua.set_text("<E> = ? eV")
+            self.txt_qua.set_text("<E> = ? " + self.energy_unit_qua)
             aqu.legend(loc=1)
             self.canvas_qua.draw()
 
@@ -361,13 +406,35 @@ class Appcat(BoxLayout):
             self.elec_button.background_color = (0.9,0.9,0.9,1)
             self.computed_qua = False
             self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
+            self.filled_qua.remove()
+            self.filled_qua = aqu2.fill_between(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, color = (1,0,0,0.2))
 
             self.reset()
 
+            #New mass.
+            self.m_qua = 1/(2*0.36498735004) #The value contains hbar.
+            te.hbar = 1 #E is going to be E/hbar, so there is no need for this extra hbar.
+
+            oldfact = te.factor
+            te.factor = 1 #Factor for the applied potential.
+            self.heightslide_qua.value = te.factor*self.heightslide_qua.value/oldfact
+            self.pot_factor = te.factor
+            self.pot_qua.set_data(self.xarr_qua, te.pot(self.mu_qua, self.sigma_qua, self.k_qua, self.xarr_qua))
+            aqu.axis([-5, 5, 0, 2*te.factor])
+
+            #Units:
+            self.time_unit_qua = "s"
+            self.energy_unit_qua = u"\u0127"+"/s"
+            self.x_unit_qua = u"\u03BC"+"m"
+            self.x_unit_bis_qua = u"\u03BC"+"m"
+            aqu.set_xlabel("x (" + self.x_unit_qua + ")")
+            aqu.set_ylabel("Energy (" + self.energy_unit_qua + ")", color = 'k')
+
             #Changes the <E> plot parameters.
+            self.energy_qua.set_data([],[])
             self.energy_qua.set_color((0.5,0.5,0.5,0.4))
             self.energy_qua.set_label("Old <E>")
-            self.txt_qua.set_text("<E> = ? eV")
+            self.txt_qua.set_text("<E> = ? " + self.energy_unit_qua)
             aqu.legend(loc=1)
             self.canvas_qua.draw()
 
@@ -385,6 +452,8 @@ class Appcat(BoxLayout):
         if self.oldtime1_qua != t:
             psit = np.abs(te.psiev(self.evalsbasis, self.coef_x_efuns, t))**2
             self.psi_qua.set_data(self.xarr_qua, psit)
+            self.filled_qua.remove()
+            self.filled_qua = aqu2.fill_between(self.xarr_qua, psit, color = (1,0,0,0.2))
             self.canvas_qua.draw()
             self.oldtime1_qua = t
 
@@ -538,8 +607,8 @@ class Appcat(BoxLayout):
             self.sigma_cla = 1./(np.sqrt(2*np.pi)*self.heightslide_cla.value)
             self.k_cla = self.kslide_cla.value
             self.ground_cla.set_data(self.xarr_cla, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla))
-            self.filled.remove()
-            self.filled = acl.fill_between(self.xarr_cla, 0, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla),
+            self.filled_cla.remove()
+            self.filled_cla = acl.fill_between(self.xarr_cla, 0, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla),
             color = (0.5,0.5,0.5,0.5))
 
             #Sets time to 0.
@@ -849,7 +918,7 @@ class Computevolution_qua(object):
             #Computes the energy.
             self.energy = np.sum(np.abs(self.a.coefs)**2*self.a.evalsbasis)
             self.a.energy_qua.set_data(self.a.xarr_qua, 0*self.a.xarr_qua + self.energy)
-            self.a.txt_qua.set_text("<E> = " + '%1.2f' %self.energy + " eV")
+            self.a.txt_qua.set_text("<E> = " + '%1.2f' %self.energy + " " + self.a.energy_unit_qua)
             self.a.energy_qua.set_color((0.3,1,0,0.8))
             self.a.energy_qua.set_label("<E>")
             aqu.legend(loc=1)
