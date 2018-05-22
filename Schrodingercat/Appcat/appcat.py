@@ -201,7 +201,8 @@ class Appcat(BoxLayout):
         self.ballperim, = acl.plot([], [], 'k-', lw=1)
         self.balldots, = acl.plot([], [], 'ko', ms=1)
         self.filled_cla = acl.fill_between(self.xarr_cla, 0, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla), color = (0.5,0.5,0.5,0.5))
-        self.E_cla, = acl.plot([],[], 'r--', lw=1)
+        self.E_cla, = acl.plot([],[], 'r-.', lw=1, label = "E")
+        acl.legend(loc=1)
 
 
         #First computations:
@@ -626,6 +627,7 @@ class Appcat(BoxLayout):
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
             self.timeslide_cla.disabled = True
+            self.energy_button.disabled = True
 
             self.computed_cla = False
 
@@ -651,6 +653,7 @@ class Appcat(BoxLayout):
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
             self.timeslide_cla.disabled = True
+            self.energy_button.disabled = True
 
             self.computed_cla = False
 
@@ -680,6 +683,7 @@ class Appcat(BoxLayout):
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
             self.timeslide_cla.disabled = True
+            self.energy_button.disabled = True
 
             self.computed_cla = False
 
@@ -706,6 +710,7 @@ class Appcat(BoxLayout):
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
             self.timeslide_cla.disabled = True
+            self.energy_button.disabled = True
 
             self.computed_cla = False
 
@@ -725,6 +730,7 @@ class Appcat(BoxLayout):
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
             self.timeslide_cla.disabled = True
+            self.energy_button.disabled = True
 
 
     def change_RKF(self):
@@ -743,6 +749,7 @@ class Appcat(BoxLayout):
             self.reset_cla_button.disabled = True
             self.vel_btn_cla.disabled = True
             self.timeslide_cla.disabled = True
+            self.energy_button.disabled = True
 
     #Plotting.
     def plotball_0(self):
@@ -1086,7 +1093,7 @@ class Energypopup(Popup):
         aen.plot(self.a.timenet, self.a.energynet[:, 1], label = "Rotational", color = (0,1,0,1))
         aen.plot(self.a.timenet, self.a.energynet[:, 0], label = "Translational", color = (1,1,0,1))
         aen.plot(self.a.timenet, self.a.energynet[:, 2], label = "Potential", color = (0,0,1,1))
-        aen.legend(loc=6)
+        aen.legend(loc=5)
 
         self.canvas_ene.draw()
 
@@ -1109,7 +1116,7 @@ class Energypopup(Popup):
             aen.plot(self.a.timenet, self.a.energynet[:, 1], label = "Rotational", color = (0,1,0,1))
             aen.plot(self.a.timenet, self.a.energynet[:, 0], label = "Translational", color = (1,1,0,1))
             aen.plot(self.a.timenet, self.a.energynet[:, 2], label = "Potential", color = (0,0,1,1))
-            aen.legend(loc=6)
+            aen.legend(loc=5)
 
             self.canvas_ene.draw()
 
@@ -1135,7 +1142,7 @@ class Energypopup(Popup):
             aen.fill_between(self.a.timenet, self.a.energynet[:, 2], self.a.energynet[:, 0] + self.a.energynet[:, 2], color = (1,1,0,0.6))
             aen.fill_between(self.a.timenet, self.a.energynet[:, 0] + self.a.energynet[:, 2], self.a.energynet[:, 1] + self.a.energynet[:, 0] + self.a.energynet[:, 2],
             color = (0,1,0,0.6))
-            aen.legend(loc=6)
+            aen.legend(loc=5)
 
             self.canvas_ene.draw()
 
