@@ -3,7 +3,6 @@ import numpy as np
 import threading
 import random
 
-
 #cranknicolson imports
 from dsexperiment import DSexperiment
 from dsexperiment import create_experiment_from_files
@@ -20,35 +19,62 @@ from kivy.graphics.texture import Texture
 from kivy.graphics import Color
 from kivy.clock import Clock
 
+import matplotlib.pyplot as plt
+
 class MeasuresPopup(Popup):
     m_rectangle = ObjectProperty()
+    classic_switch = ObjectProperty()
     measurements = []
+    V = []
     size_y = 1
 
     def __init__(self, *args, **kwargs):
         super(MeasuresPopup, self).__init__(*args, **kwargs)
+        self.classic_switch.bind(active=self.draw_measurements)
 
-    def draw_measurements(self):
-        self.title = str(len(self.measurements))
+    def draw_measurements(self, *args, **kwargs):
+        self.m_rectangle.canvas.clear()
+        self.title = "Measuring screen"
+
         with self.m_rectangle.canvas:
 
-            Color(0., .25, 0.)
             x0 = self.m_rectangle.pos[0]
             y0 = self.m_rectangle.pos[1]
             w = self.m_rectangle.size[0]
             h = self.m_rectangle.size[1]
 
+            if self.classic_switch.active:
+                V = np.array([np.sum(self.V, axis = 1)]*self.V.shape[0])
+                Vo = np.max(V)
+                self.texture_V = Texture.create(size = V.shape[::-1], colorfmt = "rgba", bufferfmt = "uint")
+
+                M = np.zeros((V.shape[0], V.shape[1], 4), dtype = np.uint8)
+                M[:,:,0] = (255*V/Vo).astype(np.uint8)
+                M[:,:,1] = (255*(Vo-V)/Vo).astype(np.uint8)
+                M[:,:,3] = np.full(M[:,:,0].shape, 255//8)
+
+                self.texture_V.blit_buffer( M.reshape(M.size), colorfmt = "rgba")
+
+                Color(1., 1., 1.)
+                Rectangle(texture = self.texture_V, pos = (x0, y0), size = (w, h))
+            else:
+                Color(0., .25, 0)
+                Rectangle(pos = (x0, y0), size = (w, h))
+
+            np_mes = np.array(self.measurements)
             self.zoom = w/self.size_y
-            self.zoomz = h/6
+            if len(self.measurements) > 0:
+                self.zoomz = h/(2*np.max(np.absolute(np_mes[:,2])))
             xc = x0 + w/2
             yc = y0 + h/2
 
-            Rectangle(pos=(x0, y0), size=(w, h))
+            Color(1., 1., 1.)
+            Rectangle(pos = (x0, y0+h/2), size = (w, 1))
+            Rectangle(pos = (x0 + w/2, y0), size = (1, h))
 
             Color(0, 1. ,0)
             for measure in self.measurements:
                 Rectangle(pos = (measure[1]*self.zoom, yc + measure[2]*self.zoomz), size = (4, 4))
-
 
 
 
@@ -68,7 +94,8 @@ class DoubleSlitScreen(BoxLayout):
     hundred_switch = ObjectProperty()
 
     slider_d = ObjectProperty()
-    slider_sx = ObjectProperty()
+    n_label = ObjectProperty()
+    #slider_sx = ObjectProperty()
     slider_sy = ObjectProperty()
 
     #Objects created here
@@ -103,6 +130,8 @@ class DoubleSlitScreen(BoxLayout):
     def __init__(self, *args, **kwargs):
         super(DoubleSlitScreen, self).__init__(*args, **kwargs)
 
+        #Tries to load old simulation, in case there isn't any, it creates an
+        #empty experiment with only psi(t=0)
         print("Trying to load last simulation")
         try:
             self.experiment = create_experiment_from_files("lastsim")
@@ -114,18 +143,24 @@ class DoubleSlitScreen(BoxLayout):
             self.experiment.set_gaussian_psi0(p0x = 150/self.experiment.Lx)
             self.maxP = np.max(self.experiment.Pt)
 
-
-        self.slider_sx.value = self.experiment.sx
+        #Updates the UI with the values from the experiment
+        self.n_label.text = str(self.experiment.n)
+        #self.slider_sx.value = self.experiment.sx
         self.slider_sy.value = self.experiment.sy
         self.slider_d.value = self.experiment.d
 
+        #default value for the normalize_switch
         self.normalize_switch.active = True
 
-        self.create_texture()
+        self.create_textures()
 
     #Drawing functions
-    def create_texture(self):
-        self.texture = Texture.create(size = self.experiment.Pt[0].shape[::-1], colorfmt = "luminance", bufferfmt = "uint")
+    def create_textures(self):
+        """
+        Creates the textures that will be used (for the wavefunction and for the potential (slits) )
+        """
+        self.texture_psi = Texture.create(size = self.experiment.Pt[0].shape[::-1], colorfmt = "luminance", bufferfmt = "uint")
+        self.texture_V = Texture.create(size = self.experiment.Pt[0].shape[::-1], colorfmt = "rgba", bufferfmt = "uint")
 
     def blit_P(self, P):
         """
@@ -145,7 +180,7 @@ class DoubleSlitScreen(BoxLayout):
         #It's a gray-scale texture so value must go from 0 to 255 (P/self.maxP)*255
         #It must be an array of unsigned 8bit integers. And also it has to be flattened
 
-        self.texture.blit_buffer( ((P/max)*255).astype(np.uint8).reshape(P.size), colorfmt = "luminance")
+        self.texture_psi.blit_buffer( ((P/max)*255).astype(np.uint8).reshape(P.size), colorfmt = "luminance")
 
         #Draws the box walls and the
         with self.p_rectangle.canvas:
@@ -169,27 +204,30 @@ class DoubleSlitScreen(BoxLayout):
 
             #Heatmap
             Color(1., 1., 1.) #White
-            Rectangle(texture = self.texture, pos = (self.xh, self.yh), size = (self.wh, self.hh))
+            Rectangle(texture = self.texture_psi, pos = (self.xh, self.yh), size = (self.wh, self.hh))
 
 
-    def draw_walls(self):
+    def draw_slits(self):
+        """
+        Draws the slits (heatmap of the potential energy)
+        """
         with self.p_rectangle.canvas:
-            scale = self.zoom/self.experiment.dx
+            V = self.experiment.V
+            Vo = self.experiment.Vo
 
-            sx = self.experiment.sx
-            sy = self.experiment.sy
-            d = self.experiment.d
+            M = np.zeros((V.shape[0], V.shape[1], 4), dtype = np.uint8)
+            M[:,:,0] = (255*V/Vo).astype(np.uint8)
+            M[:,:,3] = M[:,:,0]
 
-            #Slits
-            Color(1., 0, 0)
-            #top wall
-            Rectangle(pos = (self.xh + self.wh/2 - (sx*scale)/2, self.yh + self.hh/2 + ((sy+d)*scale)/2), size = (sx*scale, self.hh/2 - d*scale/2 - sy*scale/2))
-            #middle wall
-            Rectangle(pos = (self.xh + self.wh/2 - (sx*scale)/2, self.yh + self.hh/2  - (d/2-sy/2)*scale), size = (sx*scale, (d-sy)*scale) )
-            #bottom wall
-            Rectangle(pos = (self.xh + self.wh/2 - (sx*scale)/2, self.yh), size = (sx*scale, self.hh/2 -(d+sy)*scale/2 ))
+            self.texture_V.blit_buffer( M.reshape(M.size), colorfmt = "rgba")
+
+            Rectangle(texture = self.texture_V, pos = (self.xh, self.yh), size = (self.wh, self.hh))
+
 
     def draw_measures(self):
+        """
+        Draws points representing measures in the main UI
+        """
 
         with self.p_rectangle.canvas:
             scale = self.zoom/self.experiment.dx
@@ -203,23 +241,32 @@ class DoubleSlitScreen(BoxLayout):
                 Rectangle(pos = (self.xh + measure[0]*self.zoom, self.yh + measure[1]*self.zoom), size = (self.zoom, self.zoom))
 
     def open_measures_popup(self):
+        """
+        Opens a popup with the measuring screen
+        """
         self.measures_popup.measurements = self.experiment.measurements
+        self.measures_popup.V = self.experiment.V
         self.measures_popup.size_y = self.experiment.Pt[0].shape[0]
         self.measures_popup.open()
 
 
-    #Crank-Nicolson functions
     def computation_update(self, msg, x):
+        """
+        This is called by the thread computing the simulation
+        """
         self.progress_bar.value = 100*x
         self.label_info.text = "[b]Computing: [/b]"
         self.label_info.text += msg
 
     def computation_done(self, save = True):
+        """
+        This is called when the simulation has been completed
+        """
         self.frames = self.experiment.Pt.shape[0]
         self.frame_slider.max = self.frames - 1
         self.maxP = np.max(self.experiment.Pt)
 
-        self.create_texture()
+        self.create_textures()
 
         self.computed = True
         self.computing = False
@@ -256,6 +303,16 @@ class DoubleSlitScreen(BoxLayout):
     def remove_measurements(self):
         self.experiment.clear_measurements()
 
+    #Loops 1, Loops 2, Javier Blanquez
+    def add_slits(self, a):
+        """
+        Adds or removes slits
+        """
+        self.should_compute = self.experiment.update_slits(n = self.experiment.n + a) or self.should_compute
+        self.n_label.text = str(self.experiment.n)
+
+
+
     def update(self, dt):
         self.playpause_button.disabled = not self.computed or self.should_compute
         self.compute_button.disabled = self.computing
@@ -277,11 +334,12 @@ class DoubleSlitScreen(BoxLayout):
         if self.experiment.update_measure_screen(mp, mw):
             self.remove_measurements()
 
-        self.should_compute = self.experiment.update_slits(sx = self.slider_sx.value, sy = self.slider_sy.value, d = self.slider_d.value) or self.should_compute
+        self.should_compute = self.experiment.update_slits(sy = self.slider_sy.value, d = self.slider_d.value) or self.should_compute
 
         if self.should_compute:
             self.compute_button.background_color = (0.0, 1.0, 0.0, 1.0)
             self.playing = False
+            self.remove_measurements()
         else:
             self.compute_button.background_color = (1.0, 1.0, 1.0, 1.0)
 
@@ -300,7 +358,7 @@ class DoubleSlitScreen(BoxLayout):
             self.p_rectangle.canvas.clear()
             self.progress_bar.value = 100*self.frame/self.frames
             self.blit_P(self.experiment.Pt[self.frame])
-            self.draw_walls()
+            self.draw_slits()
             self.draw_measures()
             self.frame = (self.frame+self.speed)
 
@@ -323,7 +381,7 @@ class DoubleSlitScreen(BoxLayout):
             if not self.computing:
                 self.p_rectangle.canvas.clear()
                 self.blit_P(self.experiment.Pt[self.frame])
-                self.draw_walls()
+                self.draw_slits()
                 self.draw_measures()
 
 

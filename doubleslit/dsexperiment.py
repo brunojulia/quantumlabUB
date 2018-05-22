@@ -3,10 +3,13 @@ from cranknicolson.cn2d import crank_nicolson2D
 import numpy as np
 import threading
 import json
+from scipy.signal import square
+
+import matplotlib.pyplot as plt
 
 class DSexperiment(object):
     """docstring for DSexperiment."""
-    def __init__(self, Lx = 15.0, Nx = 300, Ny = 200, Vo = 200, sx = .25, sy = 2, d = 4, measurepos = 100, measurewidth = 5):
+    def __init__(self, Lx = 15.0, Nx = 300, Ny = 200, Vo = 200, n = 2, sx = .25, sy = 2, d = 4, measurepos = 50, measurewidth = 5):
         #Mesh parameters
         self.Lx = Lx
         self.Nx = Nx
@@ -16,6 +19,7 @@ class DSexperiment(object):
         self.Ly = Ny*self.dx/2
 
         #Slits parameters
+        self.n = n
         self.sx = sx
         self.sy = sy
         self.d = d
@@ -41,20 +45,20 @@ class DSexperiment(object):
 
         self.measurements = []
 
-    def Vslits(self, x, y):
-        if np.abs(x) < self.sx/2:
-            if np.abs(y) < (self.d/2 - self.sy/2) or np.abs(y) > (self.d/2 + self.sy/2):
-                return self.Vo
-            else:
-                return 0
-        else:
-            return 0
-
     def compute_potential(self):
-        self.V = np.vectorize(self.Vslits)(self.x, self.y)
+        xb = 2.5
+        duty = self.d/(self.d+self.sy)
+        delta = self.n*(self.d+self.sy)
 
-    def update_slits(self, sx = None, sy = None, d = None):
+        V = (1+square(2*np.pi*self.y/(self.d+self.sy) + np.pi*(self.n%2 + duty), duty))/2
+        self.V = self.Vo*np.maximum(np.heaviside(self.y-delta/2, 1) + np.heaviside(-(self.y+delta/2), 1), V)*np.uint8(np.abs(self.x-xb) < self.sx/2)
+
+
+    def update_slits(self, n = None, sx = None, sy = None, d = None):
         changed = False
+        if n is not None:
+            changed = changed or int(self.n) != int(n)
+            self.n = n
         if sx is not None:
             changed = changed or float(self.sx) != float(sx)
             self.sx = sx
@@ -64,6 +68,10 @@ class DSexperiment(object):
         if d is not None:
             changed = changed or float(self.d) != float(d)
             self.d = d
+
+        if changed:
+            self.compute_potential()
+
         return changed
 
     def update_measure_screen(self, mp = None, mw = None):
@@ -75,6 +83,7 @@ class DSexperiment(object):
             changed = changed or float(self.mw) != float(mw)
             self.mw = mw
 
+
         return changed
 
     def compute_py(self, force = False):
@@ -84,7 +93,7 @@ class DSexperiment(object):
             self.old_mw = self.mw
 
 
-    def set_gaussian_psi0(self, x0 = 8, y0 = 0, p0x = 20, p0y = 0, s = 2):
+    def set_gaussian_psi0(self, x0 = 10, y0 = 0, p0x = 20, p0y = 0, s = 2):
         """
         sets psit[0] to a gaussian wavepacket
         """
@@ -101,7 +110,6 @@ class DSexperiment(object):
         self.update_callback = update_callback
         self.done_callback = done_callback
 
-        print(self.sx, self.sy, self.d)
         self.compute_potential()
 
         if parallel:
@@ -128,7 +136,7 @@ class DSexperiment(object):
 
     def save_to_files(self, filename = "experiment"):
         with open(filename + "_parameters.json", "w") as outFile:
-            dic = [self.Lx, self.Nx, self.Ny, self.Vo, self.sx, self.sy, self.d]
+            dic = [self.Lx, self.Nx, self.Ny, self.Vo, self.n, self.sx, self.sy, self.d]
             json.dump(dic, outFile)
 
         np.save(filename + "_Pt.npy", self.Pt,)
