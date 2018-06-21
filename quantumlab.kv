@@ -1,0 +1,55 @@
+<QuantumLabScreen>:
+    orientation: "vertical"
+    Label:
+        text: "QuantumLab UB"
+        font_size: 64
+    BoxLayout:
+        orientation: "horizontal"
+        padding: [0.1,0.1,0.1,0.1]
+        canvas.before:
+            Color:
+                rgba: 0.8, 0.8, 1, 0.2
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        Image:
+            source: "images/gaussian.png"
+
+        Label:
+            text: "Classical vs Quantum"
+            markup: True
+
+        Button:
+            size_hint_x: (0.25)
+            text: "Run"
+            on_press: root.run_python("Schrodingercat/Appcat/appcat.py")
+
+    BoxLayout:
+        orientation: "horizontal"
+        padding: [0.1,0.1,0.1,0.1]
+        canvas.before:
+            Color:
+                rgba: 1, 0.8, 0.8, 0.2
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        Image:
+            source: "images/doubleslit.png"
+
+        Label:
+            text: "Double-slit experiment"
+            markup: True
+
+        Button:
+            size_hint_x: (0.25)
+            text: "Run"
+            on_press: root.run_python("doubleslit/doubleslit.py")
+
+    BoxLayout:
+        orientation: "horizontal"
+        Label:
+            text: "[b]Made by:[/b]\nJan Albert Iglesias\nDaniel Allepuz Requena\n[b]With the help and supervision of:[/b]\nMuntsa Guilleumas\nBruno Julia"
+            markup: True
+            font_size: 20
+        Image:
+            source: "images/ub_logo.png"

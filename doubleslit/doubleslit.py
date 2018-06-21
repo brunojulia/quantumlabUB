@@ -19,8 +19,6 @@ from kivy.graphics.texture import Texture
 from kivy.graphics import Color
 from kivy.clock import Clock
 
-import matplotlib.pyplot as plt
-
 class MeasuresPopup(Popup):
     m_rectangle = ObjectProperty()
     classic_switch = ObjectProperty()
