@@ -1,1 +1,0 @@
-Schrödinger's Cat module
