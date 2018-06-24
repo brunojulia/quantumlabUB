@@ -80,6 +80,15 @@
     reset_cla_button: reset_cla_but
     reset_qua_button: reset_qua_but
 
+    demo1: demo1
+    demo2: demo2
+    demo3: demo3
+    demo4: demo4
+    demo5: demo5
+    demo6: demo6
+    demo7: demo7
+    demo8: demo8
+
 
     TabbedPanel:
         size_hint: 1, 1
@@ -236,6 +245,7 @@
 
                                     TabbedPanel:
                                         tab_height: self.height*0.2
+                                        tab_width: self.width/4.2
                                         size_hint: 0.64, 1
                                         do_default_tab: False
 
@@ -344,6 +354,55 @@
                                                     halign: 'center'
                                                     valign: 'center'
                                                     on_press: root.change_RKF()
+
+                                        TabbedPanelItem:
+                                            text: "Demos"
+
+                                            BoxLayout:
+                                                orientation: "vertical"
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+
+                                                    Button:
+                                                        id: demo5
+                                                        text: "No tunnel effect"
+                                                        font_size: time_label_cla.font_size - 1
+                                                        text_size: self.size
+                                                        halign: 'center'
+                                                        valign: 'center'
+                                                        on_press: root.demoNotunnel()
+
+                                                    Button:
+                                                        id: demo6
+                                                        text: "Double well"
+                                                        font_size: time_label_cla.font_size - 1
+                                                        text_size: self.size
+                                                        halign: 'center'
+                                                        valign: 'center'
+                                                        on_press: root.demodoublewell_cla()
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+
+                                                    Button:
+                                                        id: demo7
+                                                        text: "Equilibrium"
+                                                        font_size: time_label_cla.font_size - 1
+                                                        text_size: self.size
+                                                        halign: 'center'
+                                                        valign: 'center'
+                                                        on_press: root.demoequilibrium()
+
+                                                    Button:
+                                                        id: demo8
+                                                        text: "RK4 Problem"
+                                                        font_size: time_label_cla.font_size - 1
+                                                        text_size: self.size
+                                                        halign: 'center'
+                                                        valign: 'center'
+                                                        on_press: root.demoRKproblem()
+
 
 
                                     Button:
@@ -637,6 +696,54 @@
                                                         halign: 'center'
                                                         valign: 'center'
                                                         on_press: root.change_atom()
+
+                                        TabbedPanelItem:
+                                            text: "Demos"
+
+                                            BoxLayout:
+                                                orientation: "vertical"
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+
+                                                    Button:
+                                                        id: demo1
+                                                        text: "Tunnel effect"
+                                                        font_size: time_label_qua.font_size - 1
+                                                        text_size: self.size
+                                                        halign: 'center'
+                                                        valign: 'center'
+                                                        on_press: root.demotunnel()
+
+                                                    Button:
+                                                        id: demo2
+                                                        text: "Double well"
+                                                        font_size: time_label_qua.font_size - 1
+                                                        text_size: self.size
+                                                        halign: 'center'
+                                                        valign: 'center'
+                                                        on_press: root.demodoublewell()
+
+                                                BoxLayout:
+                                                    orientation: "horizontal"
+
+                                                    Button:
+                                                        id: demo3
+                                                        text: "Eigenstate"
+                                                        font_size: time_label_qua.font_size - 1
+                                                        text_size: self.size
+                                                        halign: 'center'
+                                                        valign: 'center'
+                                                        on_press: root.demoeigenstate()
+
+                                                    Button:
+                                                        id: demo4
+                                                        text:"Dispersion"
+                                                        font_size: time_label_qua.font_size - 1
+                                                        text_size: self.size
+                                                        halign: 'center'
+                                                        valign: 'center'
+                                                        on_press: root.demodispersion()
 
                                     Button:
                                         id: vel_qua_but

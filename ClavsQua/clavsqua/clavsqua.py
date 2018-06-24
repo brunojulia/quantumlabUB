@@ -448,6 +448,108 @@ class Clavsqua(BoxLayout):
 
             self.computed_qua = False
 
+    #Quantum demos:
+    def generaldemo_qua(self):
+        #Changes everything.
+        a = self.oldtop2_qua != self.heightslide_qua.value
+        b = self.oldk2_qua != self.kslide_qua.value
+        c = self.oldxo2_qua != self.poslide_qua.value
+        d = self.oldmom2_qua != self.momslide_qua.value
+        e = self.oldsigma2_qua != self.sigmaslide_qua.value
+        if a or b or c or d or e:
+            self.xo = self.poslide_qua.value
+            te.p0 = self.momslide_qua.value
+            te.sigma0 = self.sigmaslide_qua.value
+            self.sigma_qua = 2*te.factor/(np.sqrt(2*np.pi)*self.heightslide_qua.value)
+            self.k_qua = self.kslide_qua.value
+
+            self.oldxo2_qua = self.poslide_qua.value
+            self.oldmom2_qua = self.momslide_qua.value
+            self.oldsigma2_qua = self.sigmaslide_qua.value
+            self.oldtop2_qua = self.heightslide_qua.value
+            self.oldk2_qua = self.kslide_qua.value
+
+            self.pot_qua.set_data(self.xarr_qua, te.pot(self.mu_qua, self.sigma_qua, self.k_qua, self.xarr_qua))
+            self.psi_qua.set_data(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2)
+            self.filled_qua.remove()
+            self.filled_qua = aqu2.fill_between(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, color = (1,0,0,0.2))
+
+        #Changes the <E> plot parameters.
+        self.energy_qua.set_color((0.5,0.5,0.5,0.4))
+        self.energy_qua.set_label("Old <E>")
+        self.txt_qua.set_text("<E> = ? " + self.energy_unit_qua)
+        aqu.legend(loc=1)
+        self.canvas_qua.draw()
+
+        #Disables some buttons.
+        self.compu_button_qua.disabled = False
+        self.startstopbut_qua.disabled = True
+        self.reset_qua_button.disabled = True
+        self.vel_btn_qua.disabled = True
+        self.timeslide_qua.disabled = True
+
+        self.computed_qua = False
+
+        #"Presses" compute.
+        Clock.schedule_once(lambda x: self.triggercompute_qua(), 0.1)
+
+    def demotunnel(self):
+        """
+        Prepares a situation that shows the tunnel effect.
+        """
+        self.change_elec()
+        self.heightslide_qua.value = 16
+        self.kslide_qua.value = 0.2
+        self.poslide_qua.value = -1.3
+        self.momslide_qua.value = 0.0
+        self.sigmaslide_qua.value = 0.6
+        self.reset_btn()
+
+        self.generaldemo_qua()
+
+
+    def demodispersion(self):
+        """
+        Prepares a situation that shows the dispersion of a wave packet.
+        """
+        self.change_elec()
+        self.heightslide_qua.value = 0.001
+        self.kslide_qua.value = 0
+        self.poslide_qua.value = 0.0
+        self.momslide_qua.value = 0.0
+        self.sigmaslide_qua.value = 1.0
+        self.reset_btn()
+
+        self.generaldemo_qua()
+
+    def demoeigenstate(self):
+        """
+        Prepares a situation that shows a stationary eigen state.
+        """
+        self.change_elec()
+        self.heightslide_qua.value = 0.001
+        self.kslide_qua.value = 0.3
+        self.poslide_qua.value = 0.0
+        self.momslide_qua.value = 0.0
+        self.sigmaslide_qua.value = 0.75
+        self.reset_btn()
+
+        self.generaldemo_qua()
+
+    def demodoublewell(self):
+        """
+        Prepares a quantum double well situation.
+        """
+        self.change_elec()
+        self.heightslide_qua.value = 13
+        self.kslide_qua.value = 0.1
+        self.poslide_qua.value = 0.0
+        self.momslide_qua.value = 0.0
+        self.sigmaslide_qua.value = 0.8
+        self.reset_btn()
+
+        self.generaldemo_qua()
+
     #Plotting:
     def plotpsi(self, t):
         if self.oldtime1_qua != t:
@@ -604,7 +706,7 @@ class Clavsqua(BoxLayout):
             self.oldtop2_cla = self.heightslide_cla.value
             self.oldk2_cla = self.kslide_cla.value
 
-            #Changes and plots the newground.
+            #Changes and plots the new ground.
             self.sigma_cla = 1./(np.sqrt(2*np.pi)*self.heightslide_cla.value)
             self.k_cla = self.kslide_cla.value
             self.ground_cla.set_data(self.xarr_cla, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla))
@@ -751,6 +853,114 @@ class Clavsqua(BoxLayout):
             self.timeslide_cla.disabled = True
             self.energy_button.disabled = True
 
+    #Classical demos:
+    def generaldemo_cla(self):
+        #Changes everything.
+        a = self.oldtop2_cla != self.heightslide_cla.value
+        b = self.oldk2_cla != self.kslide_cla.value
+        c = self.oldradius2_cla != self.radiusslide_cla.value
+        d = self.oldxo2_cla != self.poslide_cla.value
+        e = self.oldvel2_cla != self.velslide_cla.value
+
+        if a or b or c or d or e:
+            self.oldtop2_cla = self.heightslide_cla.value
+            self.oldk2_cla = self.kslide_cla.value
+            self.oldradius2_cla = self.radiusslide_cla.value
+            self.oldxo2_cla = self.poslide_cla.value
+            self.oldvel2_cla = self.velslide_cla.value
+
+            #Changes and plots the new ground.
+            self.sigma_cla = 1./(np.sqrt(2*np.pi)*self.heightslide_cla.value)
+            self.k_cla = self.kslide_cla.value
+            self.ground_cla.set_data(self.xarr_cla, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla))
+            self.filled_cla.remove()
+            self.filled_cla = acl.fill_between(self.xarr_cla, 0, rob.fground(self.mu_cla, self.sigma_cla, self.k_cla, self.xarr_cla),
+            color = (0.5,0.5,0.5,0.5))
+
+            self.R = self.radiusslide_cla.value
+
+            self.xo_cla = self.poslide_cla.value
+            self.yin0[0] = self.xo_cla
+
+            self.yin0[1] = self.velslide_cla.value
+
+            #Sets time to 0.
+            self.reset_cla()
+            self.tmax_cla = 0
+
+            #Plots the ball again.
+            self.supermatrix_cla[0, 1] = self.xo_cla
+            self.angle[0] = -np.arctan(rob.dfground(self.mu_cla, self.sigma_cla, self.k_cla, self.yin0[0]))
+            self.plotball_0()
+            self.plotE_cla()
+
+
+        #Disables some buttons.
+        self.compu_button_cla.disabled = False
+        self.startstopbut_cla.disabled = True
+        self.reset_cla_button.disabled = True
+        self.vel_btn_cla.disabled = True
+        self.timeslide_cla.disabled = True
+        self.energy_button.disabled = True
+
+        self.computed_cla = False
+
+        #"Presses" compute.
+        Clock.schedule_once(lambda x: self.triggercompute_cla(), 0.1)
+
+    def demoNotunnel(self):
+        """
+        Prepares a situation that shows there's no tunnel effect.
+        """
+        self.change_RKF()
+        self.heightslide_cla.value = 0.8
+        self.kslide_cla.value = 0.4
+        self.radiusslide_cla.value = 0.17
+        self.poslide_cla.value = -1.9
+        self.velslide_cla.value = 0.0
+
+        self.generaldemo_cla()
+
+
+    def demodoublewell_cla(self):
+        """
+        Prepares a classical double well situation.
+        """
+        self.change_RKF()
+        self.heightslide_cla.value = 1
+        self.kslide_cla.value = 0.3
+        self.radiusslide_cla.value = 0.2
+        self.poslide_cla.value = 0.0
+        self.velslide_cla.value = 0.0
+
+        self.generaldemo_cla()
+
+    def demoequilibrium(self):
+        """
+        Prepares a situation that shows the ball near the equilibrium point.
+        """
+        self.change_RKF()
+        self.heightslide_cla.value = 0.001
+        self.kslide_cla.value = 0.9
+        self.radiusslide_cla.value = 0.17
+        self.poslide_cla.value = 0.0
+        self.velslide_cla.value = 0.0
+
+        self.generaldemo_cla()
+
+    def demoRKproblem(self):
+        """
+        Prepares a situation that shows the RK4 method problems.
+        """
+        self.change_RK()
+        self.heightslide_cla.value = 1
+        self.kslide_cla.value = 0.8
+        self.radiusslide_cla.value = 0.23
+        self.poslide_cla.value = 2.2
+        self.velslide_cla.value = 0
+
+        self.generaldemo_cla()
+
     #Plotting.
     def plotball_0(self):
         x = self.supermatrix_cla[0, 1]
@@ -882,6 +1092,7 @@ class Computevolution_qua(object):
         self.a.heightslide_qua.disabled = True
         self.a.kslide_qua.disabled = True
         self.a.poslide_qua.disabled = True
+        self.a.sigmaslide_qua.disabled = True
         self.a.momslide_qua.disabled = True
         self.a.elec_button.disabled = True
         self.a.atom_button.disabled = True
@@ -891,6 +1102,10 @@ class Computevolution_qua(object):
         self.a.startstopbut_qua.disabled = True
         self.a.reset_qua_button.disabled = True
         self.a.vel_btn_qua.disabled = True
+        self.a.demo1.disabled = True
+        self.a.demo2.disabled = True
+        self.a.demo3.disabled = True
+        self.a.demo4.disabled = True
 
         #Definitions:
         self.a.Nbasis = 200
@@ -936,6 +1151,7 @@ class Computevolution_qua(object):
             self.a.kslide_qua.disabled = False
             self.a.poslide_qua.disabled = False
             self.a.momslide_qua.disabled = False
+            self.a.sigmaslide_qua.disabled = False
             self.a.elec_button.disabled = False
             self.a.atom_button.disabled = False
             self.a.norm_button.disabled = False
@@ -944,6 +1160,10 @@ class Computevolution_qua(object):
             self.a.startstopbut_qua.disabled = False
             self.a.reset_qua_button.disabled = False
             self.a.vel_btn_qua.disabled = False
+            self.a.demo1.disabled = False
+            self.a.demo2.disabled = False
+            self.a.demo3.disabled = False
+            self.a.demo4.disabled = False
 
 
 
@@ -972,6 +1192,10 @@ class Computevolution_cla(object):
         self.a.startstopbut_cla.disabled = True
         self.a.reset_cla_button.disabled = True
         self.a.vel_btn_cla.disabled = True
+        self.a.demo5.disabled = True
+        self.a.demo6.disabled = True
+        self.a.demo7.disabled = True
+        self.a.demo8.disabled = True
 
         #Overwrites the previously computed values:
         self.a.yin = self.a.yin0
@@ -1028,6 +1252,10 @@ class Computevolution_cla(object):
             self.a.startstopbut_cla.disabled = False
             self.a.reset_cla_button.disabled = False
             self.a.vel_btn_cla.disabled = False
+            self.a.demo5.disabled = False
+            self.a.demo6.disabled = False
+            self.a.demo7.disabled = False
+            self.a.demo8.disabled = False
 
 
 class Normpopup(Popup):
@@ -1044,10 +1272,10 @@ class Normpopup(Popup):
         anorm.clear()
         anorm.set_ylim([0, 1.2])
         anorm.set_xlim([0, self.a.tmax_qua])
-        anorm.set_xlabel("t (fs)")
+        anorm.set_xlabel("t (" + self.a.time_unit_qua + ")")
         anorm.set_ylabel(r'$\int_{-\infty}^{ \infty} |\Psi(t,x)|^{2}$' + "dx")
         self.txt = anorm.set_title("")
-        self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.timevec_qua[-1] + " fs"
+        self.txt.set_text("t" + " = " + '%1.1f'%self.a.timevec_qua[-1] + " " + self.a.time_unit_qua
         + "      norm = " + str(self.a.norm[-1]).ljust(10)[:10])
 
         #Plot:
@@ -1058,7 +1286,7 @@ class Normpopup(Popup):
 
     def update(self, dt):
         anorm.set_xlim([0, self.a.tmax_qua])
-        self.txt.set_text("t" + r'$_{max}$' + " = " + '%1.1f' %self.a.timevec_qua[-1] + " fs"
+        self.txt.set_text("t" + " = " + '%1.1f' %self.a.timevec_qua[-1] + " " + self.a.time_unit_qua
         + "      norm = " + str(self.a.norm[-1]).ljust(10)[:10])
         self.normplot.set_data(self.a.timevec_qua, self.a.norm)
         self.canvas_norm.draw()
