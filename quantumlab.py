@@ -5,19 +5,17 @@ from kivy.uix.boxlayout import BoxLayout
 import os
 
 class QuantumLabScreen(BoxLayout):
-    PYTHON_NAME = "python"
+    PYTHON_NAME = "python3"
     def run_python(self, filename):
         global cmd
         cmd = self.PYTHON_NAME + " " + filename
-        app.stop()
+        os.system(cmd)
 
 class QuantumLabApp(App):
     def build(self):
         screen = QuantumLabScreen()
         return screen
 
-cmd = ""
 if __name__ == "__main__":
     app = QuantumLabApp()
     app.run()
-    os.system(cmd)
