@@ -26,7 +26,7 @@ VERSION 1.0, Jun 2018
 
 In its current version we have two separate modules:
 
-- Appcat.py, which solves the evolution of a gaussian wave packet on a configurable external trap in one dimension. 
+- clavsqua.py, which solves the evolution of a gaussian wave packet on a configurable external trap in one dimension. 
 
 - doubleslit.py, which solves the 2D time dependent Schrodinger equation with 
 a configurable grid of slits. 
