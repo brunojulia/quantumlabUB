@@ -1,0 +1,200 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Plantilla pel Treball Fi de Grau
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[singlecolumn]{revtex4}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{graphicx,epsfig}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+
+\usepackage{fancyhdr}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\def\beq{\begin{equation}}{\it}
+\def\eeq{\end{equation}}
+\def\beqa{\begin{eqnarray}}{\it}
+\def\eeqa{\end{eqnarray}}
+
+\begin{document}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Això és un comentari que no surt al text.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Es pot ometre
+%\pagestyle{fancy}
+%\lhead{\bf TITLE}
+%\rhead{Student's name}
+%\lfoot{Treball de Fi de Grau}
+%\rfoot{Barcelona, June 2013}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\title{Notes on the solution to 1D Schrödinger equation for piecewise 
+potentials}
+\author{bjd}
+\affiliation{Facultat de F\'{\i}sica, Universitat de Barcelona, Diagonal
+645, 08028 Barcelona, Spain.}
+%\date{\today}
+
+\begin{abstract}
+Brief rendition of the way to solve the Schrödinger equation for piecewise potentials
+\end{abstract}
+
+\maketitle
+
+%\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We consider the time independent 1D Schrödinger equation, (in natural units)
+\beq
+-{1\over 2} \partial^2_x \psi(x) + V(x) \psi(x) =  E\psi(x)\,.
+\eeq
+Where the potential is taken to be piecewise constant, that is, 
+\beq
+V(x)= V_k \; x_k < x < x_{k+1}\,.
+\eeq
+where $\{x_k\}$ is a partition of the interval $[0,L]$, and $k=0,\dots,N$.  
+For simplicity we take the utmost left and right potentials to be infinite, 
+that is, the wave function is zero at $x=0$ and $x=L$. For each interval, $[x_k,x_{k+1}]$ the 
+general solution of the Schrödinger equation reads, 
+\beq
+\psi_k(x) = A_k e^{i\kappa_k x} + B_k e^{-i \kappa_k x}
+\eeq
+where $\kappa_k=\sqrt{2 (E-V_k)}$. 
+
+First we consider the first and last intervals,
+\beqa
+\psi_0(x) &=& A_0 e^{i\kappa_0 x} + B_0 e^{-i \kappa_0 x}\nonumber\\ 
+\psi_N(x) &=& A_N e^{i\kappa_N x} + B_N e^{-i \kappa_N x} 
+\eeqa
+the boundary conditions imply,
+\beqa
+\psi_0(x) &=& A_0\left( e^{i\kappa_0 x} - e^{-i \kappa_0 x}\right) = A_0 \,2\, i \, \sin(\kappa_0 x) \nonumber\\ 
+\psi_N(x) &=& A_N e^{i \kappa_N L} \left( e^{i\kappa_N (x-L)} - e^{-i \kappa_N (x-L)} \right)= 
+A_N \,2\, i\, \sin(\kappa_N (x-L))
+\label{firstlast}
+\eeqa
+  
+If we consider two inner intervals we have to impose continuity of the wave function 
+and of its first derivative, that reads, 
+\beqa
+\psi_k(x_{k+1})&=&\psi_{k+1}(x_{k+1}) \nonumber\\
+\psi'_k(x_{k+1})&=&\psi'_{k+1}(x_{k+1}) 
+\eeqa
+which read,
+\beqa
+A_k e^{i\kappa_k x_{k+1}} + B_k e^{-i\kappa_k x_{k+1}} &=&  A_{k+1} e^{i\kappa_{k+1} x_{k+1}} + B_k e^{-i\kappa_{k+1}x_{k+1}} 
+\nonumber\\
+  A_k i\kappa_k e^{i\kappa_k x_{k+1}} - B_k i \kappa_k e^{-i\kappa_k x_{k+1}} &=&  
+A_{k+1} i \kappa_{k+1} e^{i\kappa_{k+1} x_{k+1}} - B_k i \kappa_{k+1} e^{-i\kappa_{k+1}x_{k+1}} \,.
+\eeqa
+These can be written in matrix form as,
+\beq
+\left(
+\begin{matrix}
+e^{i\kappa_k x_{k+1}} & e^{-i\kappa_k x_{k+1}} \cr
+i\kappa_k e^{i\kappa_k x_{k+1}}  & -i \kappa_k e^{-i\kappa_k x_{k+1}} d\cr
+\end{matrix}
+\right)
+\left(
+\begin{matrix}
+A_k\cr
+B_k
+\end{matrix}
+\right)
+=
+\left(
+\begin{matrix}
+e^{i\kappa_{k+1} x_{k+1}} & e^{-i\kappa_{k+1} x_{k+1}} \cr
+i\kappa_{k+1} e^{i\kappa_{k+1} x_{k+1}}  & -i \kappa_{k+1} e^{-i\kappa_{k+1} x_{k+1}} d\cr
+\end{matrix}
+\right)
+\left(
+\begin{matrix}
+A_{k+1}\cr
+B_{k+1}
+\end{matrix}
+\right)
+\eeq
+which can be written as,
+\beq
+{\cal M}(\kappa_k,x_{k+1}) \phi_k = {\cal M}(\kappa_{k+1},x_{k+1}) \phi_{k+1}
+\eeq
+where,
+\beq
+{\cal M}(\kappa,x) = \left(
+\begin{matrix}
+e^{i\kappa x} & e^{-i\kappa x} \cr
+i\kappa e^{i\kappa x}  & -i \kappa e^{-i\kappa x} \cr
+\end{matrix}
+\right)
+\qquad 
+\phi_k=\left(
+\begin{matrix}
+A_{k}\cr
+B_{k}
+\end{matrix}
+\right)
+\eeq
+
+This allows us to solve the wave function in the $k+1$ interval from the values in the 
+$k$ interval,
+\beq
+\phi_{k+1} = 
+{\cal M}^{-1}(\kappa_{k+1},x_{k+1}) 
+{\cal M}(\kappa_{k},x_{k+1})
+\phi_k
+\eeq 
+where the inverse matrix reads, 
+\beq
+{\cal M}^{-1}(\kappa,x) = \left(
+\begin{matrix}
+{1\over 2} e^{-i\kappa x} &{-i\over 2\kappa}  e^{-i\kappa x} \cr
+{1\over 2} e^{i\kappa x}  & {i\over 2 \kappa} e^{i\kappa x} \cr
+\end{matrix}
+\right)
+\eeq
+
+\subsection{how to find the eigenenergies?}
+To find the energy quantization we basicaly write the wave function in the last interval as a function of the wave function in the first interval, 
+\beq
+\hat{\phi}_N = 
+{\cal M}^{-1}(\kappa_{N},x_{N}) 
+{\cal M}(\kappa_{N-1},x_{N})
+\dots
+{\cal M}^{-1}(\kappa_{j+1},x_{j+1}) 
+{\cal M}(\kappa_{j},x_{j+1})
+\dots
+{\cal M}^{-1}(\kappa_{1},x_{1}) 
+{\cal M}(\kappa_{0},x_{1})
+\phi_0
+\eeq
+with $\phi_0=\{A_0,-A_0\}$. This should indeed be equal to $\phi_N$, that we wrote 
+in Eq.~(\ref{firstlast}).
+
+ Now for instance we do, 
+\beq
+\hat{\phi}_N(1)/\hat{\phi}_N(2) - \phi_N(1)/\phi_N(2)=0
+\eeq
+and look for values of $E$ that solve the above equation. Notice in the above 
+equation the values of $A_0$ and $A_N$.
+
+\begin{thebibliography}{99}
+
+%\bibitem{latex}Helmut Kopka and Patrick W. Daly, \textsl{A Guide to
+%\LaTeX: Document Preparation for Beginners and Advanced Users}, 3rd. ed. (Addison-Wesley, Reading, MA, 1999).
+\end{thebibliography}
+
+
+
+
+
+\end{document}
