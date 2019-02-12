@@ -1,4 +1,6 @@
-#misc imports
+#to download precomputed simulations go to
+# https://drive.google.com/file/d/15Nx16HwFmgWJgWwSQA-WWef3ev0co4ZR/view?usp=sharing
+
 import numpy as np
 import threading
 import random
