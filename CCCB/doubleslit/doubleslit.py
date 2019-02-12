@@ -21,72 +21,31 @@ from kivy.graphics.texture import Texture
 from kivy.graphics import Color
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
+from kivy.uix.image import Image
+from kivy.uix.behaviors import ButtonBehavior
 
-class MeasuresPopup(Popup):
-    m_rectangle = ObjectProperty()
-    classic_switch = ObjectProperty()
+from kivy.config import Config
+# Config.set('graphics', 'fullscreen', 'auto')
 
-
-    measurements = []
-    V = []
-    size_y = 1
-
-    def __init__(self, *args, **kwargs):
-        super(MeasuresPopup, self).__init__(*args, **kwargs)
-        self.classic_switch.bind(active=self.draw_measurements)
-
-    def draw_measurements(self, *args, **kwargs):
-        self.m_rectangle.canvas.clear()
-        self.title = "Measuring screen"
-
-        with self.m_rectangle.canvas:
-
-            x0 = self.m_rectangle.pos[0]
-            y0 = self.m_rectangle.pos[1]
-            w = self.m_rectangle.size[0]
-            h = self.m_rectangle.size[1]
-
-            if self.classic_switch.active:
-                V = np.array([np.sum(self.V, axis = 1)]*self.V.shape[0])
-                Vo = np.max(V)
-                self.texture_V = Texture.create(size = V.shape[::-1], colorfmt = "rgba", bufferfmt = "uint")
-
-                M = np.zeros((V.shape[0], V.shape[1], 4), dtype = np.uint8)
-                M[:,:,0] = (255*V/Vo).astype(np.uint8)
-                M[:,:,1] = (255*(Vo-V)/Vo).astype(np.uint8)
-                M[:,:,3] = np.full(M[:,:,0].shape, 255//8)
-
-                self.texture_V.blit_buffer( M.reshape(M.size), colorfmt = "rgba")
-
-                Color(1., 1., 1.)
-                Rectangle(texture = self.texture_V, pos = (x0, y0), size = (w, h))
-            else:
-                Color(0., .25, 0)
-                Rectangle(pos = (x0, y0), size = (w, h))
-
-            np_mes = np.array(self.measurements)
-            self.zoom = w/self.size_y
-            if len(self.measurements) > 0:
-                self.zoomz = h/(2*np.max(np.absolute(np_mes[:,2])))
-            xc = x0 + w/2
-            yc = y0 + h/2
-
-            Color(1., 1., 1.)
-            Rectangle(pos = (x0, y0+h/2), size = (w, 1))
-            Rectangle(pos = (x0 + w/2, y0), size = (1, h))
-
-            Color(0, 1. ,0)
-            for measure in self.measurements:
-                Rectangle(pos = (measure[1]*self.zoom, yc + measure[2]*self.zoomz), size = (4, 4))
-
-
+class FlagButton(ButtonBehavior, Image):
+    def __init__(self, **kwargs):
+        super(FlagButton, self).__init__(**kwargs)
 
 class DoubleSlitScreen(BoxLayout):
     beep= SoundLoader.load('ping.ogg')
 
     #Objects binded from .kv file
     p_rectangle = ObjectProperty()
-    playpause_button = ObjectProperty()
+
+    button_1slit = ObjectProperty()
+    button_2slits = ObjectProperty()
+
+    button_large = ObjectProperty()
+    button_medium = ObjectProperty()
+    button_small = ObjectProperty()
+
+    label_speed = ObjectProperty()
+
     speed_slider = ObjectProperty()
 
     #Objects created here
@@ -120,6 +79,15 @@ class DoubleSlitScreen(BoxLayout):
 
     current_filename = "lastsim"
 
+    language = 0
+    strings = {
+    'slit': ['Una ranura', 'Una ranura', 'One slit'],
+    'slits': ['Dues ranures', 'Dos ranuras', 'Two slits'],
+    'large': ['Grans', 'Grandes', 'Large'],
+    'medium': ['Mitjanes', 'Medianas', 'Medium'],
+    'small': ['Petites', 'Pequeñas', 'Small'],
+    'speed': ['Velocitat', 'Velocidad', 'Speed']}
+
     measures_popup = ObjectProperty()
 
     def __init__(self, *args, **kwargs):
@@ -138,6 +106,15 @@ class DoubleSlitScreen(BoxLayout):
 
         self.create_textures()
         self.clock = Clock.schedule_interval(self.update, 1.0 / 30.0)
+
+    def set_language(self, lang):
+        self.language = lang
+        self.button_1slit.text = self.strings['slit'][self.language]
+        self.button_2slits.text = self.strings['slits'][self.language]
+        self.button_large.text = self.strings['large'][self.language]
+        self.button_medium.text = self.strings['medium'][self.language]
+        self.button_small.text = self.strings['small'][self.language]
+        self.label_speed.text = self.strings['speed'][self.language]
 
     def load_experiment(self):
         self.experiment = create_experiment_from_files("{}_{}".format(self.slits, self.slit_size))
@@ -275,6 +252,7 @@ class DoubleSlitScreen(BoxLayout):
         self.playing = False
 
     def measure(self, N = 1):
+        #self.beep.play()
         self.experiment.measure(N)
 
     def remove_measurements(self):
@@ -323,7 +301,6 @@ class DoubleSlitApp(App):
     def build(self):
         random.seed()
         screen = DoubleSlitScreen()
-        screen.measures_popup = MeasuresPopup()
         return screen
 
 if __name__ == "__main__":
