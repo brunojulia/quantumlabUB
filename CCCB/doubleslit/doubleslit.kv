@@ -1,0 +1,103 @@
+#:kivy 1.0.9
+#: import main doubleslit
+#:import Factory kivy.factory.Factory
+<MeasuresPopup@Popup>:
+    m_rectangle: m_rect.__self__
+    classic_switch: c_switch.__self__
+    auto_dismiss: False
+    on_open: self.draw_measurements()
+    title: "Measuring screen"
+    BoxLayout:
+        orientation: "vertical"
+        Widget:
+            size_hint: (1, 0.9)
+            id: m_rect
+
+        BoxLayout:
+            size_hint: (1, 0.1)
+
+            orientation: "horizontal"
+            BoxLayout:
+                orientation: "horizontal"
+                Label:
+                    text: "Show classically allowed zones:"
+                Switch:
+                    id: c_switch
+            Button:
+                text: "Close"
+                on_release: root.dismiss()
+
+<DoubleSlitScreen>:
+    p_rectangle: p_rect
+    speed_slider: s_slider.__self__
+
+
+    orientation: "horizontal"
+    padding: 20
+    spacing: 20
+
+    BoxLayout:
+        size_hint: (0.25, 1)
+        orientation: "vertical"
+        spacing: 10
+        padding: [10, 10, 10, 10]
+
+        BoxLayout:
+
+            #size_hint: (1, 0.4)
+            Label:
+                align: "left"
+                text: "[b]The double-slit experiment[/b]\nIn this experiment, a particle is thrown at a wall with holes, see what happens if you change the number and size of the holes."
+                markup: True
+                text_size: self.size
+                valig: "center"
+
+        BoxLayout:
+            #size_hint: (1, 0.2)
+            orientation: "horizontal"
+            ToggleButton:
+                name: "1"
+                group: "number"
+                text: "1 slit"
+                on_state: root.button_toggled(*args)
+            ToggleButton:
+                name: "2"
+                group: "number"
+                text: "2 slits"
+                on_state: root.button_toggled(*args)
+
+        BoxLayout:
+            #size_hint: (1, 0.2)
+            orientation: "vertical"
+            ToggleButton:
+                name: "large"
+                group: "size"
+                text: "Large slits"
+                on_state: root.button_toggled(*args)
+            ToggleButton:
+                name: "medium"
+                group: "size"
+                text: "Medium slits"
+                on_state: root.button_toggled(*args)
+            ToggleButton:
+                name: "small"
+                group: "size"
+                text: "Small slits"
+                on_state: root.button_toggled(*args)
+
+
+        BoxLayout:
+            #size_hint: (1, 0.2)
+            orientation: "horizontal"
+            Label:
+                text: "Speed:"
+            Slider:
+                id: s_slider
+                min: 1
+                max: 20
+                value: 5
+                setp: 1
+
+    Widget:
+        size_hint: (0.75, 1)
+        id: p_rect
