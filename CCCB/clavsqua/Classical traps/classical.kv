@@ -1,0 +1,102 @@
+#:import Factory kivy.factory.Factory
+<classical>:
+    panel1: Panel1_id
+
+    timeslide_cla: time_cla_slide
+
+    demo1_button_cla: demo1_cla_but
+    demo2_button_cla: demo2_cla_but
+    demo3_button_cla: demo3_cla_but
+
+
+    BoxLayout:
+        orientation: "vertical"
+
+        BoxLayout:
+            size_hint_y: 0.85
+            orientation: "horizontal"
+
+            BoxLayout:
+                id: Panel1_id
+                size_hint_x: 1
+
+
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: 0.15
+
+            BoxLayout:
+                orientation: "vertical"
+                size_hint_x: 0.85
+
+                BoxLayout:
+                    size_hint_y: 0.3
+
+                    Label:
+                        id: time_label_cla
+                        text: "[b]  " + root.time_label + ":[/b]   t = " + '%1.1f' % time_cla_slide.value + " s"
+                        font_size: self.height*0.65
+                        size_hint_x: 0.25
+                        text_size: self.size
+                        halign: 'left'
+                        valign: 'middle'
+                        markup: True
+
+                    Label:
+                        text: '%1.1f' % time_cla_slide.min
+                        font_size: time_label_cla.font_size
+                        size_hint_x: 0.065
+                        halign: 'center'
+                        valign: 'middle'
+
+                    Slider:
+                        id: time_cla_slide
+                        size_hint_x: 0.70
+                        cursor_width: self.y/4
+                        cursor_height: self.y/4
+                        cursor_image: "pics/cursor.png"
+                        cursor_disabled_image: "pics/cursor.png"
+                        min: 0
+                        max: 10
+                        value_track: True
+                        value_track_color: [1, 0, 0, 1]
+                        on_touch_up: root.plotball(self.value)
+                        on_touch_move: root.plotball(self.value)
+
+                    Label:
+                        text: '%1.1f' % time_cla_slide.max
+                        font_size: time_label_cla.font_size
+                        size_hint_x: 0.075
+                        halign: 'center'
+                        valign: 'middle'
+
+                BoxLayout:
+                    size_hint_y: 0.7
+                    orientation: "horizontal"
+
+                    Button:
+                        id: demo1_cla_but
+                        size_hint_x: 0.3
+                        font_size: time_label_cla.font_size
+                        text: root.but1
+                        on_press: root.demo1_cla_btn()
+
+                    Button:
+                        id: demo2_cla_but
+                        size_hint_x: 0.3
+                        font_size: time_label_cla.font_size
+                        text: root.but2
+                        on_press: root.demo2_cla_btn()
+
+                    Button:
+                        id: demo3_cla_but
+                        size_hint_x: 0.3
+                        font_size: time_label_cla.font_size
+                        text: root.but3
+                        on_press: root.demo3_cla_btn()
+
+                    Button:
+                        size_hint_x: 0.07
+                        font_size: time_label_cla.font_size
+                        text: root.language
+                        on_press: root.changelanguage()
