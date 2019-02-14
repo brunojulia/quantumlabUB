@@ -3,6 +3,7 @@
 #:import Factory kivy.factory.Factory
 <DoubleSlitScreen>:
     p_rectangle: p_rect
+    widget_plot: widget_plot
     speed_slider: s_slider.__self__
     button_1slit: button_1slit
     button_2slits: button_2slits
@@ -18,14 +19,16 @@
     spacing: 20
 
     BoxLayout:
+        id: side_toolbar
         size_hint: (0.25, 1)
         orientation: "vertical"
         spacing: 10
         padding: [10, 10, 10, 10]
 
 
-        Widget:
-            size_hint: (1, 0.1)
+        BoxLayout:
+            id: widget_plot
+            size_hint: (1, 0.5)
         # Label:
         #     align: "left"
         #     text: "[b]The double-slit experiment[/b]\nIn this experiment, a particle is thrown at a wall with holes, see what happens if you change the number and size of the holes."
@@ -37,12 +40,14 @@
             size_hint: (1, 0.2)
             orientation: "horizontal"
             ToggleButton:
+                font_size: '32sp'
                 id: button_1slit
                 name: "1"
                 group: "number"
                 text: root.strings['slit'][root.language]
                 on_state: root.button_toggled(*args)
             ToggleButton:
+                font_size: '32sp'
                 id: button_2slits
                 name: "2"
                 group: "number"
@@ -53,6 +58,7 @@
             size_hint: (1, 0.2)
             orientation: "vertical"
             ToggleButton:
+                font_size: '32sp'
                 size_hint_y: 0.5
                 id: button_large
                 name: "large"
@@ -60,6 +66,7 @@
                 text: root.strings['large'][root.language]
                 on_state: root.button_toggled(*args)
             ToggleButton:
+                font_size: '32sp'
                 size_hint_y: 0.5
                 id: button_medium
                 name: "medium"
@@ -67,6 +74,7 @@
                 text: root.strings['medium'][root.language]
                 on_state: root.button_toggled(*args)
             ToggleButton:
+                font_size: '32sp'
                 size_hint_y: 0.5
                 id: button_small
                 name: "small"
@@ -79,26 +87,35 @@
             size_hint: (1, 0.1)
             orientation: "horizontal"
             Label:
+                font_size: '32sp'
                 id: label_speed
                 text: root.strings['speed'][root.language]
             Slider:
+                font_size: '32sp'
                 id: s_slider
                 min: 1
                 max: 20
                 value: 5
                 step: 1
+                on_touch_down: root.slider_moved(*args)
 
         BoxLayout:
             size_hint: (1, 0.2)
             orientation: "horizontal"
-            FlagButton:
-                source: "catalan.png"
+            Button:
+                font_size: '32sp'
+                size_hint_y: 0.5
+                text: "CA"
                 on_press: root.set_language(0)
-            FlagButton:
-                source: "spanish.png"
+            Button:
+                font_size: '32sp'
+                size_hint_y: 0.5
+                text: "ES"
                 on_press: root.set_language(1)
-            FlagButton:
-                source: "english.png"
+            Button:
+                font_size: '32sp'
+                size_hint_y: 0.5
+                text: "EN"
                 on_press: root.set_language(2)
 
     Widget:
