@@ -89,9 +89,9 @@ class DSexperiment(object):
     def compute_py(self, force = False):
         if self.old_mp != self.mp or self.old_mw != self.mw or force:
             self.py = np.sum(np.sum(self.Pt, axis = 0)[:,self.mp:(self.mp+self.mw)], axis = 1)
+            self.py = self.py/np.trapz(self.py, np.arange(-self.Ly, self.Ly, self.dx))
             self.old_mp = self.mp
             self.old_mw = self.mw
-
 
     def set_gaussian_psi0(self, x0 = 10, y0 = 0, p0x = 20, p0y = 0, s = 2):
         """
