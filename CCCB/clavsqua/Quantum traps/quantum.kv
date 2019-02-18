@@ -8,6 +8,10 @@
     demo2_button_qua: demo2_qua_but
     demo3_button_qua: demo3_qua_but
 
+    cabut: CA_but
+    esbut: ES_but
+    enbut: EN_but
+
 
     BoxLayout:
         orientation: "vertical"
@@ -95,8 +99,23 @@
                         text: root.but3
                         on_press: root.demo3_qua_btn()
 
-                    Button:
+                    BoxLayout:
                         size_hint_x: 0.07
-                        font_size: time_label_qua.font_size
-                        text: root.language
-                        on_press: root.changelanguage()
+                        orientation: "vertical"
+
+                        Button:
+                            id: CA_but
+                            font_size: time_label_qua.font_size
+                            text: "CA"
+                            on_press: root.changecat()
+
+                        Button:
+                            id: ES_but
+                            font_size: time_label_qua.font_size
+                            text: "ES"
+                            on_press: root.changeesp()
+                        Button:
+                            id: EN_but
+                            font_size: time_label_qua.font_size
+                            text: "EN"
+                            on_press: root.changeeng()
