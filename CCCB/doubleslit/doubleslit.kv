@@ -1,102 +1,122 @@
 #:kivy 1.0.9
 #: import main doubleslit
 #:import Factory kivy.factory.Factory
-<MeasuresPopup@Popup>:
-    m_rectangle: m_rect.__self__
-    classic_switch: c_switch.__self__
-    auto_dismiss: False
-    on_open: self.draw_measurements()
-    title: "Measuring screen"
-    BoxLayout:
-        orientation: "vertical"
-        Widget:
-            size_hint: (1, 0.9)
-            id: m_rect
-
-        BoxLayout:
-            size_hint: (1, 0.1)
-
-            orientation: "horizontal"
-            BoxLayout:
-                orientation: "horizontal"
-                Label:
-                    text: "Show classically allowed zones:"
-                Switch:
-                    id: c_switch
-            Button:
-                text: "Close"
-                on_release: root.dismiss()
-
 <DoubleSlitScreen>:
     p_rectangle: p_rect
+    widget_plot: widget_plot
     speed_slider: s_slider.__self__
+    button_1slit: button_1slit
+    button_2slits: button_2slits
 
+    button_large: button_large
+    button_medium: button_medium
+    button_small: button_small
+
+    label_speed: label_speed
 
     orientation: "horizontal"
     padding: 20
     spacing: 20
 
     BoxLayout:
+        id: side_toolbar
         size_hint: (0.25, 1)
         orientation: "vertical"
         spacing: 10
         padding: [10, 10, 10, 10]
 
-        BoxLayout:
-
-            #size_hint: (1, 0.4)
-            Label:
-                align: "left"
-                text: "[b]The double-slit experiment[/b]\nIn this experiment, a particle is thrown at a wall with holes, see what happens if you change the number and size of the holes."
-                markup: True
-                text_size: self.size
-                valig: "center"
 
         BoxLayout:
-            #size_hint: (1, 0.2)
+            id: widget_plot
+            size_hint: (1, 0.5)
+        # Label:
+        #     align: "left"
+        #     text: "[b]The double-slit experiment[/b]\nIn this experiment, a particle is thrown at a wall with holes, see what happens if you change the number and size of the holes."
+        #     markup: True
+        #     text_size: self.size
+        #     valig: "center"
+
+        BoxLayout:
+            size_hint: (1, 0.2)
             orientation: "horizontal"
             ToggleButton:
+                font_size: '32sp'
+                id: button_1slit
                 name: "1"
                 group: "number"
-                text: "1 slit"
+                text: root.strings['slit'][root.language]
                 on_state: root.button_toggled(*args)
             ToggleButton:
+                font_size: '32sp'
+                id: button_2slits
                 name: "2"
                 group: "number"
-                text: "2 slits"
+                text: root.strings['slits'][root.language]
                 on_state: root.button_toggled(*args)
 
         BoxLayout:
-            #size_hint: (1, 0.2)
+            size_hint: (1, 0.2)
             orientation: "vertical"
             ToggleButton:
+                font_size: '32sp'
+                size_hint_y: 0.5
+                id: button_large
                 name: "large"
                 group: "size"
-                text: "Large slits"
+                text: root.strings['large'][root.language]
                 on_state: root.button_toggled(*args)
             ToggleButton:
+                font_size: '32sp'
+                size_hint_y: 0.5
+                id: button_medium
                 name: "medium"
                 group: "size"
-                text: "Medium slits"
+                text: root.strings['medium'][root.language]
                 on_state: root.button_toggled(*args)
             ToggleButton:
+                font_size: '32sp'
+                size_hint_y: 0.5
+                id: button_small
                 name: "small"
                 group: "size"
-                text: "Small slits"
+                text: root.strings['small'][root.language]
                 on_state: root.button_toggled(*args)
 
 
         BoxLayout:
-            #size_hint: (1, 0.2)
+            size_hint: (1, 0.1)
             orientation: "horizontal"
             Label:
-                text: "Speed:"
+                font_size: '32sp'
+                id: label_speed
+                text: root.strings['speed'][root.language]
             Slider:
+                font_size: '32sp'
                 id: s_slider
                 min: 1
                 max: 20
                 value: 5
-                setp: 1
+                step: 1
+                on_touch_down: root.slider_moved(*args)
+
+        BoxLayout:
+            size_hint: (1, 0.2)
+            orientation: "horizontal"
+            Button:
+                font_size: '32sp'
+                size_hint_y: 0.5
+                text: "CA"
+                on_press: root.set_language(0)
+            Button:
+                font_size: '32sp'
+                size_hint_y: 0.5
+                text: "ES"
+                on_press: root.set_language(1)
+            Button:
+                font_size: '32sp'
+                size_hint_y: 0.5
+                text: "EN"
+                on_press: root.set_language(2)
 
     Widget:
         size_hint: (0.75, 1)

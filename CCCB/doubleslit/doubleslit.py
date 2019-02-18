@@ -1,4 +1,6 @@
-#misc imports
+#to download precomputed simulations go to
+# https://drive.google.com/file/d/15Nx16HwFmgWJgWwSQA-WWef3ev0co4ZR/view?usp=sharing
+
 import numpy as np
 import threading
 import random
@@ -21,73 +23,46 @@ from kivy.graphics.texture import Texture
 from kivy.graphics import Color
 from kivy.clock import Clock
 from kivy.core.audio import SoundLoader
+from kivy.uix.image import Image
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 
-class MeasuresPopup(Popup):
-    m_rectangle = ObjectProperty()
-    classic_switch = ObjectProperty()
+import matplotlib
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
+plt.style.use('dark_background')
+font = {'family' : 'normal',
+        'weight' : 'bold',
+        'size'   : 22}
 
+matplotlib.rc('font', **font)
 
-    measurements = []
-    V = []
-    size_y = 1
+#Initialization of the plots:
+fig_qua = Figure()
+aqu = fig_qua.add_subplot(111)
 
-    def __init__(self, *args, **kwargs):
-        super(MeasuresPopup, self).__init__(*args, **kwargs)
-        self.classic_switch.bind(active=self.draw_measurements)
-
-    def draw_measurements(self, *args, **kwargs):
-        self.m_rectangle.canvas.clear()
-        self.title = "Measuring screen"
-
-        with self.m_rectangle.canvas:
-
-            x0 = self.m_rectangle.pos[0]
-            y0 = self.m_rectangle.pos[1]
-            w = self.m_rectangle.size[0]
-            h = self.m_rectangle.size[1]
-
-            if self.classic_switch.active:
-                V = np.array([np.sum(self.V, axis = 1)]*self.V.shape[0])
-                Vo = np.max(V)
-                self.texture_V = Texture.create(size = V.shape[::-1], colorfmt = "rgba", bufferfmt = "uint")
-
-                M = np.zeros((V.shape[0], V.shape[1], 4), dtype = np.uint8)
-                M[:,:,0] = (255*V/Vo).astype(np.uint8)
-                M[:,:,1] = (255*(Vo-V)/Vo).astype(np.uint8)
-                M[:,:,3] = np.full(M[:,:,0].shape, 255//8)
-
-                self.texture_V.blit_buffer( M.reshape(M.size), colorfmt = "rgba")
-
-                Color(1., 1., 1.)
-                Rectangle(texture = self.texture_V, pos = (x0, y0), size = (w, h))
-            else:
-                Color(0., .25, 0)
-                Rectangle(pos = (x0, y0), size = (w, h))
-
-            np_mes = np.array(self.measurements)
-            self.zoom = w/self.size_y
-            if len(self.measurements) > 0:
-                self.zoomz = h/(2*np.max(np.absolute(np_mes[:,2])))
-            xc = x0 + w/2
-            yc = y0 + h/2
-
-            Color(1., 1., 1.)
-            Rectangle(pos = (x0, y0+h/2), size = (w, 1))
-            Rectangle(pos = (x0 + w/2, y0), size = (1, h))
-
-            Color(0, 1. ,0)
-            for measure in self.measurements:
-                Rectangle(pos = (measure[1]*self.zoom, yc + measure[2]*self.zoomz), size = (4, 4))
-
-
+from kivy.config import Config
+Config.set('graphics', 'fullscreen', 'auto')
 
 class DoubleSlitScreen(BoxLayout):
-    beep= SoundLoader.load('ping.ogg')
+    beep= SoundLoader.load('ping.wav')
 
     #Objects binded from .kv file
     p_rectangle = ObjectProperty()
-    playpause_button = ObjectProperty()
+
+    button_1slit = ObjectProperty()
+    button_2slits = ObjectProperty()
+
+    button_large = ObjectProperty()
+    button_medium = ObjectProperty()
+    button_small = ObjectProperty()
+
+    label_speed = ObjectProperty()
+
     speed_slider = ObjectProperty()
+
+    widget_plot = ObjectProperty()
+
 
     #Objects created here
     frame = NumericProperty(0) #current frame
@@ -120,10 +95,23 @@ class DoubleSlitScreen(BoxLayout):
 
     current_filename = "lastsim"
 
+    language = 0
+    strings = {
+    'slit': ['1 ranura', '1 ranura', '1 slit'],
+    'slits': ['2 ranures', '2 ranuras', '2 slits'],
+    'large': ['Grans', 'Grandes', 'Large'],
+    'medium': ['Mitjanes', 'Medianas', 'Medium'],
+    'small': ['Petites', 'Pequeñas', 'Small'],
+    'speed': ['Velocitat', 'Velocidad', 'Speed']}
+
     measures_popup = ObjectProperty()
 
     def __init__(self, *args, **kwargs):
         super(DoubleSlitScreen, self).__init__(*args, **kwargs)
+
+        self.canvas_qua = FigureCanvasKivyAgg(fig_qua)
+
+        self.widget_plot.add_widget(self.canvas_qua)
 
         #Tries to load old simulation, in case there isn't any, it creates an
         #empty experiment with only psi(t=0)
@@ -139,11 +127,29 @@ class DoubleSlitScreen(BoxLayout):
         self.create_textures()
         self.clock = Clock.schedule_interval(self.update, 1.0 / 30.0)
 
+
+
+    def set_language(self, lang):
+        self.language = lang
+        self.button_1slit.text = self.strings['slit'][self.language]
+        self.button_2slits.text = self.strings['slits'][self.language]
+        self.button_large.text = self.strings['large'][self.language]
+        self.button_medium.text = self.strings['medium'][self.language]
+        self.button_small.text = self.strings['small'][self.language]
+        self.label_speed.text = self.strings['speed'][self.language]
+
     def load_experiment(self):
         self.experiment = create_experiment_from_files("{}_{}".format(self.slits, self.slit_size))
         print("Simulation loaded correctly")
         self.computation_done(save = False)
         self.remove_measurements()
+        self.experiment.compute_py(force = True)
+        aqu.plot(np.arange(-self.experiment.Ly, self.experiment.Ly, self.experiment.dx), self.experiment.py, c = "g", lw = 4)
+        aqu.set_xlim(-self.experiment.Ly, self.experiment.Ly)
+        aqu.set_ylim(0,np.max(self.experiment.py))
+        self.canvas_qua.draw()
+
+
 
     #Drawing functions
     def create_textures(self):
@@ -152,6 +158,8 @@ class DoubleSlitScreen(BoxLayout):
         """
         self.texture_psi = Texture.create(size = self.experiment.Pt[0].shape[::-1], colorfmt = "luminance", bufferfmt = "uint")
         self.texture_V = Texture.create(size = self.experiment.Pt[0].shape[::-1], colorfmt = "rgba", bufferfmt = "uint")
+
+    wall_color = (200, 0, 255)
 
     def blit_P(self, P):
         """
@@ -189,14 +197,13 @@ class DoubleSlitScreen(BoxLayout):
             self.xh = self.p_rectangle.pos[0] + self.p_rectangle.width/2 - self.wh/2
             self.yh = self.p_rectangle.pos[1] + self.p_rectangle.height/2 - self.hh/2
 
-            Color(1., 0, 0) #Red
+            Color(self.wall_color[0]/255, self.wall_color[1]/255, self.wall_color[2]/255) #Red
             #box wall
             Rectangle(pos = (self.xh-5, self.yh-5), size = (self.wh+10, self.hh+10))
 
             #Heatmap
             Color(1., 1., 1.) #White
             Rectangle(texture = self.texture_psi, pos = (self.xh, self.yh), size = (self.wh, self.hh))
-
 
     def draw_slits(self):
         """
@@ -207,7 +214,8 @@ class DoubleSlitScreen(BoxLayout):
             Vo = self.experiment.Vo
 
             M = np.zeros((V.shape[0], V.shape[1], 4), dtype = np.uint8)
-            M[:,:,0] = (255*V/Vo).astype(np.uint8)
+            for i in range(3):
+                M[:,:,i] = (self.wall_color[i]*V/Vo).astype(np.uint8)
             M[:,:,3] = M[:,:,0]
 
             self.texture_V.blit_buffer( M.reshape(M.size), colorfmt = "rgba")
@@ -231,16 +239,6 @@ class DoubleSlitScreen(BoxLayout):
             for measure in self.experiment.measurements:
                 Ellipse(pos = (self.xh + self.wh - 2*self.experiment.mp*self.zoom + measure[0]*self.zoom , self.yh + measure[1]*self.zoom), size = (self.zoom, self.zoom))
 
-    def open_measures_popup(self):
-        """
-        Opens a popup with the measuring screen
-        """
-        self.measures_popup.measurements = self.experiment.measurements
-        self.measures_popup.V = self.experiment.V
-        self.measures_popup.size_y = self.experiment.Pt[0].shape[0]
-        self.measures_popup.open()
-
-
     def computation_update(self, msg, x):
         """
         This is called by the thread computing the simulation
@@ -253,13 +251,17 @@ class DoubleSlitScreen(BoxLayout):
         """
         self.frames = self.experiment.Pt.shape[0]
         self.maxP = np.max(self.experiment.Pt)
-
         self.create_textures()
 
 
         if save:
             self.experiment.save_to_files("lastsim")
 
+    def slider_moved(self, a, b):
+        Clock.schedule_once(self.reset_speed, 5*60)
+
+    def reset_speed(self, a):
+        self.speed_slider.value = 5
 
     #Playback functions
     def playpause(self):
@@ -275,7 +277,14 @@ class DoubleSlitScreen(BoxLayout):
         self.playing = False
 
     def measure(self, N = 1):
+        #self.beep.play()
         self.experiment.measure(N)
+        aqu.cla()
+        aqu.hist([-self.experiment.Ly + measure[1]*self.experiment.dx for measure in self.experiment.measurements], bins = 20, normed = True)
+        aqu.set_xlim(-self.experiment.Ly, self.experiment.Ly)
+        aqu.plot(np.arange(-self.experiment.Ly, self.experiment.Ly, self.experiment.dx), self.experiment.py, c="g", lw = 4)
+        self.canvas_qua.draw()
+
 
     def remove_measurements(self):
         self.experiment.clear_measurements()
@@ -293,6 +302,7 @@ class DoubleSlitScreen(BoxLayout):
         print(self.slits, self.slit_size)
 
     def update(self, dt):
+
         self.speed = int(self.speed_slider.value)
 
         if self.playing:
@@ -323,7 +333,6 @@ class DoubleSlitApp(App):
     def build(self):
         random.seed()
         screen = DoubleSlitScreen()
-        screen.measures_popup = MeasuresPopup()
         return screen
 
 if __name__ == "__main__":
