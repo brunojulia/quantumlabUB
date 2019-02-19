@@ -35,13 +35,16 @@ class Quantum(BoxLayout):
         super(Quantum, self).__init__(**kwargs)
 
         #Language:
-        self.language = "CAT"
+        self.language = "CA"
         self.time_label = "Temps"
         self.but1 = "Sobre el pic"
         self.but2 = "En el pic"
         self.but3 = "Sota el pic"
         self.energy_label = "Energia"
-        self.prob_label = "Probabilitat"
+        self.prob_label = "Densitat de probabilitat"
+        self.cabut.color = (0,0.75,1,1)
+        self.esbut.color = (1,1,1,1)
+        self.enbut.color = (1,1,1,1)
 
         "Quantum definitions"
         self.a = -20.
@@ -89,7 +92,7 @@ class Quantum(BoxLayout):
             #The wavefunction is plotted in a different scale.
         self.psi_qua, = aqu2.plot(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, 'r-')
         self.filled_qua = aqu2.fill_between(self.xarr_qua, np.abs(te.psi(self.xo, self.xarr_qua))**2, color = (1,0,0,0.2))
-        aqu2.axis([-5, 5, 0, 1.5])
+        aqu2.axis([-5, 5, 0, 1])
         aqu2.set_ylabel(self.prob_label, color = 'k')
         aqu2.tick_params('y', colors = 'r')
         self.panel2.add_widget(self.canvas_qua)
@@ -157,7 +160,7 @@ class Quantum(BoxLayout):
         self.evalsbasis = np.load("Demo1_qua/vals.npy")
 
         #Potential:
-        self.height_qua = 20
+        self.height_qua = 40
         self.sigma_qua = 2*te.factor/(np.sqrt(2*np.pi)*self.height_qua)
         self.k_cla = 0.2
         self.plotpot1()
@@ -169,6 +172,10 @@ class Quantum(BoxLayout):
         self.energy_qua.set_label("<E>")
         aqu.legend(loc=1)
         self.canvas_qua.draw()
+
+        self.demo1_button_qua.color = (0,0.75,1,1)
+        self.demo2_button_qua.color = (1,1,1,1)
+        self.demo3_button_qua.color = (1,1,1,1)
 
     def demo2_qua_btn(self):
         self.reset()
@@ -189,6 +196,10 @@ class Quantum(BoxLayout):
         self.energy_qua.set_label("<E>")
         aqu.legend(loc=1)
         self.canvas_qua.draw()
+
+        self.demo2_button_qua.color = (0,0.75,1,1)
+        self.demo1_button_qua.color = (1,1,1,1)
+        self.demo3_button_qua.color = (1,1,1,1)
 
     def demo3_qua_btn(self):
         self.reset()
@@ -216,39 +227,55 @@ class Quantum(BoxLayout):
         aqu.legend(loc=1)
         self.canvas_qua.draw()
 
-    def changelanguage(self):
-        if self.language == "CAT":
-            self.language = "ESP"
-            self.time_label = "Tiempo"
-            self.but1 = "Sobre el pico"
-            self.but2 = "En el pico"
-            self.but3 = "Bajo el pico"
-            self.energy_label = "Energía"
-            self.prob_label = "Probabilidad"
-            aqu.set_ylabel(self.energy_label + " (eV)", color = 'k')
-            aqu2.set_ylabel(self.prob_label, color = 'k')
+        self.demo3_button_qua.color = (0,0.75,1,1)
+        self.demo2_button_qua.color = (1,1,1,1)
+        self.demo1_button_qua.color = (1,1,1,1)
 
-        elif self.language == "ESP":
-            self.language = "ENG"
-            self.time_label = "Time"
-            self.but1 = "Above the peak"
-            self.but2 = "On the peak"
-            self.but3 = "Beneath the peak"
-            self.energy_label = "Energy"
-            self.prob_label = "Probability"
-            aqu.set_ylabel(self.energy_label + " (eV)", color = 'k')
-            aqu2.set_ylabel(self.prob_label, color = 'k')
 
-        elif self.language == "ENG":
-            self.language = "CAT"
+    def changecat(self):
+        if self.language != "CA":
+            self.language = "CA"
             self.time_label = "Temps"
             self.but1 = "Sobre el pic"
             self.but2 = "En el pic"
             self.but3 = "Sota el pic"
             self.energy_label = "Energia"
-            self.prob_label = "Probabilitat"
+            self.prob_label = "Densitat de probabilitat"
             aqu.set_ylabel(self.energy_label + " (eV)", color = 'k')
             aqu2.set_ylabel(self.prob_label, color = 'k')
+            self.cabut.color = (0,0.75,1,1)
+            self.esbut.color = (1,1,1,1)
+            self.enbut.color = (1,1,1,1)
+
+    def changeesp(self):
+        if self.language != "ES":
+            self.language = "ES"
+            self.time_label = "Tiempo"
+            self.but1 = "Sobre el pico"
+            self.but2 = "En el pico"
+            self.but3 = "Bajo el pico"
+            self.energy_label = "Energía"
+            self.prob_label = "Densidad de probabilidad"
+            aqu.set_ylabel(self.energy_label + " (eV)", color = 'k')
+            aqu2.set_ylabel(self.prob_label, color = 'k')
+            self.esbut.color = (0,0.75,1,1)
+            self.cabut.color = (1,1,1,1)
+            self.enbut.color = (1,1,1,1)
+
+    def changeeng(self):
+        if self.language != "EN":
+            self.language = "EN"
+            self.time_label = "Time"
+            self.but1 = "Above the peak"
+            self.but2 = "On the peak"
+            self.but3 = "Under the peak"
+            self.energy_label = "Energy"
+            self.prob_label = "Probability density"
+            aqu.set_ylabel(self.energy_label + " (eV)", color = 'k')
+            aqu2.set_ylabel(self.prob_label, color = 'k')
+            self.enbut.color = (0,0.75,1,1)
+            self.esbut.color = (1,1,1,1)
+            self.cabut.color = (1,1,1,1)
 
 
 

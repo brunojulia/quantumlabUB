@@ -36,13 +36,14 @@ class Classical(BoxLayout):
         super(Classical, self).__init__(**kwargs)
 
         #Language:
-        self.language = "CAT"
+        self.language = "CA"
         self.time_label = "Temps"
         self.but1 = "Sobre el pic"
         self.but2 = "En el pic"
         self.but3 = "Sota el pic"
-        self.energy_label = "Energia"
-        self.prob_label = "Probabilitat"
+        self.cabut.color = (0,0.75,1,1)
+        self.esbut.color = (1,1,1,1)
+        self.enbut.color = (1,1,1,1)
 
         "Classical definitions"
         self.time_cla = 0.
@@ -217,6 +218,10 @@ class Classical(BoxLayout):
         self.Eheight = np.load("Demo1_cla/ene.npy")
         self.plotE_cla()
 
+        self.demo1_button_cla.color = (0,0.75,1,1)
+        self.demo2_button_cla.color = (1,1,1,1)
+        self.demo3_button_cla.color = (1,1,1,1)
+
     def demo2_cla_btn(self):
         self.reset_cla()
 
@@ -232,6 +237,10 @@ class Classical(BoxLayout):
         #Plots the maximum height:
         self.Eheight = np.load("Demo2_cla/ene.npy")
         self.plotE_cla()
+
+        self.demo2_button_cla.color = (0,0.75,1,1)
+        self.demo1_button_cla.color = (1,1,1,1)
+        self.demo3_button_cla.color = (1,1,1,1)
 
     def demo3_cla_btn(self):
         self.reset_cla()
@@ -249,27 +258,44 @@ class Classical(BoxLayout):
         self.Eheight = np.load("Demo3_cla/ene.npy")
         self.plotE_cla()
 
-    def changelanguage(self):
-        if self.language == "CAT":
-            self.language = "ESP"
-            self.time_label = "Tiempo"
-            self.but1 = "Sobre el pico"
-            self.but2 = "En el pico"
-            self.but3 = "Bajo el pico"
+        self.demo3_button_cla.color = (0,0.75,1,1)
+        self.demo2_button_cla.color = (1,1,1,1)
+        self.demo1_button_cla.color = (1,1,1,1)
 
-        elif self.language == "ESP":
-            self.language = "ENG"
-            self.time_label = "Time"
-            self.but1 = "Above the peak"
-            self.but2 = "On the peak"
-            self.but3 = "Beneath the peak"
-
-        elif self.language == "ENG":
-            self.language = "CAT"
+    def changecat(self):
+        if self.language != "CA":
+            self.language = "CA"
             self.time_label = "Temps"
             self.but1 = "Sobre el pic"
             self.but2 = "En el pic"
             self.but3 = "Sota el pic"
+            self.cabut.color = (0,0.75,1,1)
+            self.esbut.color = (1,1,1,1)
+            self.enbut.color = (1,1,1,1)
+
+    def changeesp(self):
+        if self.language != "ES":
+            self.language = "ES"
+            self.time_label = "Tiempo"
+            self.but1 = "Sobre el pico"
+            self.but2 = "En el pico"
+            self.but3 = "Bajo el pico"
+            self.esbut.color = (0,0.75,1,1)
+            self.cabut.color = (1,1,1,1)
+            self.enbut.color = (1,1,1,1)
+
+    def changeeng(self):
+        if self.language != "EN":
+            self.language = "EN"
+            self.time_label = "Time"
+            self.but1 = "Above the peak"
+            self.but2 = "On the peak"
+            self.but3 = "Under the peak"
+            self.enbut.color = (0,0.75,1,1)
+            self.esbut.color = (1,1,1,1)
+            self.cabut.color = (1,1,1,1)
+
+
 
 
 class classicalApp(App):

@@ -30,13 +30,13 @@ m_qua = 1/(2*3.80995) #The value contains hbar^2.
 
 #Potential:
 te.factor = 10 #Factor for the applied potential.
-height = 20
+height = 40
 sigma_qua = 2*te.factor/(np.sqrt(2*np.pi)*height)
 mu_qua = 0
 k_qua = 0.2
 
 #Initial wavefunction:
-te.sigma0 = 0.7
+te.sigma0 = 0.8
 te.p0 = 0
 xo = -1.8
 

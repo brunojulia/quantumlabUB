@@ -29,7 +29,7 @@ def pot(mu, sigma, k, x):
     return P
 
 def pot1(mu, sigma, k, x):
-    P = 2*factor*(np.sqrt(2*np.pi*sigma**2)/4*gaussian(mu, sigma, x) + harmonic(k, x))
+    P = 2*factor*(np.sqrt(2*np.pi*sigma**2)/10*gaussian(mu, sigma, x) + harmonic(k, x))
     return P
 
 
