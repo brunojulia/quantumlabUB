@@ -37,9 +37,11 @@ font = {'family' : 'normal',
 
 matplotlib.rc('font', **font)
 
+
 #Initialization of the plots:
 fig_qua = Figure()
 aqu = fig_qua.add_subplot(111)
+aqu.axis('off')
 
 from kivy.config import Config
 Config.set('graphics', 'fullscreen', 'auto')
@@ -97,8 +99,8 @@ class DoubleSlitScreen(BoxLayout):
 
     language = 0
     strings = {
-    'slit': ['1 ranura', '1 ranura', '1 slit'],
-    'slits': ['2 ranures', '2 ranuras', '2 slits'],
+    'slit': ['1 escletxa', '1 ranura', '1 slit'],
+    'slits': ['2 escletxes', '2 ranuras', '2 slits'],
     'large': ['Grans', 'Grandes', 'Large'],
     'medium': ['Mitjanes', 'Medianas', 'Medium'],
     'small': ['Petites', 'Pequeñas', 'Small'],
@@ -144,6 +146,9 @@ class DoubleSlitScreen(BoxLayout):
         self.computation_done(save = False)
         self.remove_measurements()
         self.experiment.compute_py(force = True)
+        aqu.cla()
+        aqu.get_xaxis().set_ticks([])
+        aqu.get_yaxis().set_ticks([])
         aqu.plot(np.arange(-self.experiment.Ly, self.experiment.Ly, self.experiment.dx), self.experiment.py, c = "g", lw = 4)
         aqu.set_xlim(-self.experiment.Ly, self.experiment.Ly)
         aqu.set_ylim(0,np.max(self.experiment.py))
@@ -280,8 +285,11 @@ class DoubleSlitScreen(BoxLayout):
         #self.beep.play()
         self.experiment.measure(N)
         aqu.cla()
-        aqu.hist([-self.experiment.Ly + measure[1]*self.experiment.dx for measure in self.experiment.measurements], bins = 20, normed = True)
+        aqu.get_xaxis().set_ticks([])
+        aqu.get_yaxis().set_ticks([])
+        aqu.hist([-self.experiment.Ly + measure[1]*self.experiment.dx for measure in self.experiment.measurements], bins = 20, normed = True, edgecolor='g')
         aqu.set_xlim(-self.experiment.Ly, self.experiment.Ly)
+        aqu.set_ylim(0,np.max(self.experiment.py))
         aqu.plot(np.arange(-self.experiment.Ly, self.experiment.Ly, self.experiment.dx), self.experiment.py, c="g", lw = 4)
         self.canvas_qua.draw()
 
