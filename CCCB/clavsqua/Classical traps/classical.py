@@ -3,6 +3,14 @@ Jan Albert Iglesias
 10/02/2019
 """
 
+
+# comment the following three lines to remove the fullscreen set
+# in my ubuntu the fullscreen does not work
+# bjd 1/3/2019
+from kivy import Config
+Config.set('graphics', 'multisamples', '0')
+Config.set('graphics', 'fullscreen', 'auto')
+
 import numpy as np
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
@@ -305,5 +313,5 @@ class classicalApp(App):
         return a
 
 if __name__ == "__main__":
-    Window.fullscreen = 'auto'
+#    Window.fullscreen = 'auto'
     classicalApp().run()
