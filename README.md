@@ -32,6 +32,11 @@ In its current version we have two separate modules:
 a configurable grid of slits. 
 
 
+## CCCB version, Feb 2019
+----------------------------
+
+We have developed two simpler versions for the Quantica exhibit at CCCB (2019). 
+They are in the directory CCCB.
 
 ## INSTALLATION:
 ---------------------
@@ -63,6 +68,12 @@ pip install kivy.deps.sdl2==0.1.17
 
 garden install matplotlib
 
+pip install numba
+
+pip install scipy
+
 ## CONTACT:
 ---------------------
 Any comment or suggestions are more than welcome, brunojulia@ub.edu
+
+Check the website https://github.com/brunojulia/quantumlabUB
