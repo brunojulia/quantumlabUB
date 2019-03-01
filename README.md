@@ -62,3 +62,7 @@ pip install kivy.deps.gstreamer==0.1.12
 pip install kivy.deps.sdl2==0.1.17
 
 garden install matplotlib
+
+## CONTACT:
+---------------------
+Any comment or suggestions are more than welcome, brunojulia@ub.edu
