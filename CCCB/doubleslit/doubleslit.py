@@ -161,8 +161,8 @@ class DoubleSlitScreen(BoxLayout):
         """
         Creates the textures that will be used (for the wavefunction and for the potential (slits) )
         """
-        self.texture_psi = Texture.create(size = self.experiment.Pt[0].shape[::-1], colorfmt = "luminance", bufferfmt = "uint")
-        self.texture_V = Texture.create(size = self.experiment.Pt[0].shape[::-1], colorfmt = "rgba", bufferfmt = "uint")
+        self.texture_psi = Texture.create(size = self.experiment.Pt[0].shape[::-1], colorfmt = "luminance", bufferfmt = "float")
+        self.texture_V = Texture.create(size = self.experiment.Pt[0].shape[::-1], colorfmt = "rgba", bufferfmt = "float")
 
     wall_color = (200, 0, 255)
 
@@ -184,7 +184,7 @@ class DoubleSlitScreen(BoxLayout):
         #It's a gray-scale texture so value must go from 0 to 255 (P/self.maxP)*255
         #It must be an array of unsigned 8bit integers. And also it has to be flattened
 
-        self.texture_psi.blit_buffer( ((P[:,::-1]/max)*255).astype(np.uint8).reshape(P.size), colorfmt = "luminance")
+        self.texture_psi.blit_buffer( ((P[:,::-1]/max)).astype(np.float32).reshape(P.size), colorfmt = "luminance", bufferfmt = "float")
 
         #Draws walls
         with self.p_rectangle.canvas:
@@ -218,12 +218,12 @@ class DoubleSlitScreen(BoxLayout):
             V = self.experiment.V[:,::-1]
             Vo = self.experiment.Vo
 
-            M = np.zeros((V.shape[0], V.shape[1], 4), dtype = np.uint8)
+            M = np.zeros((V.shape[0], V.shape[1], 4), dtype = np.float32)
             for i in range(3):
-                M[:,:,i] = (self.wall_color[i]*V/Vo).astype(np.uint8)
+                M[:,:,i] = (self.wall_color[i]*V/Vo).astype(np.float32)
             M[:,:,3] = M[:,:,0]
 
-            self.texture_V.blit_buffer( M.reshape(M.size), colorfmt = "rgba")
+            self.texture_V.blit_buffer( M.reshape(M.size), colorfmt = "rgba", bufferfmt = "float")
 
             Rectangle(texture = self.texture_V, pos = (self.xh, self.yh), size = (self.wh, self.hh))
 
@@ -281,32 +281,52 @@ class DoubleSlitScreen(BoxLayout):
     def change_frame(self):
         self.playing = False
 
+    bins = 40
+    Nexp = 200
     def measure(self, N = 1):
-        #self.beep.play()
         self.experiment.measure(N)
+        dx = 2*self.experiment.Ly/self.bins
+        A = max(self.Nexp,len(self.experiment.measurements))*dx
+        #self.beep.play()
         aqu.cla()
         aqu.get_xaxis().set_ticks([])
         aqu.get_yaxis().set_ticks([])
-        aqu.hist([-self.experiment.Ly + measure[1]*self.experiment.dx for measure in self.experiment.measurements], bins = 20, normed = True, edgecolor='g')
+        aqu.hist([-self.experiment.Ly + measure[1]*self.experiment.dx for measure in self.experiment.measurements], range = (-self.experiment.Ly,self.experiment.Ly), bins = self.bins, edgecolor='g')
         aqu.set_xlim(-self.experiment.Ly, self.experiment.Ly)
-        aqu.set_ylim(0,np.max(self.experiment.py))
-        aqu.plot(np.arange(-self.experiment.Ly, self.experiment.Ly, self.experiment.dx), self.experiment.py, c="g", lw = 4)
+        aqu.set_ylim(0,np.max(self.experiment.py*A))
+        aqu.plot(np.arange(-self.experiment.Ly, self.experiment.Ly, self.experiment.dx), self.experiment.py*A, c="g", lw = 4)
         self.canvas_qua.draw()
 
 
     def remove_measurements(self):
         self.experiment.clear_measurements()
 
-    def button_toggled(self, button, value):
-        if button.group == "number":
-            if value:
-                self.slits = int(button.name)
-        elif button.group == "size":
-            if value:
-                self.slit_size = button.name
+    last_number = None
+    last_size = None
+    last_lang = None
+    lang_dict = {'CA': 0, 'ES': 1, 'EN': 2}
 
-        if value:
-            self.load_experiment()
+    def button_toggled(self, button):
+        if button.name in ["1", "2"]:
+            if self.last_number:
+                self.last_number.color = (1.0, 1.0, 1.0, 1.0)
+            self.last_number = button
+            button.color = (0,0.75,1,1)
+            self.slits = int(button.name)
+        elif button.name in ["small", "medium", "large"]:
+            if self.last_size:
+                self.last_size.color = (1.0, 1.0, 1.0, 1.0)
+            self.last_size = button
+            button.color = (0,0.75,1,1)
+            self.slit_size = button.name
+        elif button.name in ["CA", "ES", "EN"]:
+            if self.last_lang:
+                self.last_lang.color = (1.0, 1.0, 1.0, 1.0)
+            self.last_lang = button
+            button.color = (0,0.75,1,1)
+            self.set_language(self.lang_dict[button.name])
+
+        self.load_experiment()
         print(self.slits, self.slit_size)
 
     def update(self, dt):

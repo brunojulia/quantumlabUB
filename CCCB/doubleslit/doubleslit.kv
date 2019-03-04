@@ -39,48 +39,48 @@
         BoxLayout:
             size_hint: (1, 0.2)
             orientation: "horizontal"
-            ToggleButton:
+            Button:
                 font_size: '32sp'
                 id: button_1slit
                 name: "1"
                 group: "number"
                 text: root.strings['slit'][root.language]
-                on_state: root.button_toggled(*args)
-            ToggleButton:
+                on_press: root.button_toggled(*args)
+            Button:
                 font_size: '32sp'
                 id: button_2slits
                 name: "2"
                 group: "number"
                 text: root.strings['slits'][root.language]
-                on_state: root.button_toggled(*args)
+                on_press: root.button_toggled(*args)
 
         BoxLayout:
             size_hint: (1, 0.2)
             orientation: "vertical"
-            ToggleButton:
+            Button:
                 font_size: '32sp'
                 size_hint_y: 0.5
                 id: button_large
                 name: "large"
                 group: "size"
                 text: root.strings['large'][root.language]
-                on_state: root.button_toggled(*args)
-            ToggleButton:
+                on_press: root.button_toggled(*args)
+            Button:
                 font_size: '32sp'
                 size_hint_y: 0.5
                 id: button_medium
                 name: "medium"
                 group: "size"
                 text: root.strings['medium'][root.language]
-                on_state: root.button_toggled(*args)
-            ToggleButton:
+                on_press: root.button_toggled(*args)
+            Button:
                 font_size: '32sp'
                 size_hint_y: 0.5
                 id: button_small
                 name: "small"
                 group: "size"
                 text: root.strings['small'][root.language]
-                on_state: root.button_toggled(*args)
+                on_press: root.button_toggled(*args)
 
 
         BoxLayout:
@@ -106,17 +106,20 @@
                 font_size: '32sp'
                 size_hint_y: 0.5
                 text: "CA"
-                on_press: root.set_language(0)
+                name: "CA"
+                on_press: root.button_toggled(*args)
             Button:
                 font_size: '32sp'
                 size_hint_y: 0.5
                 text: "ES"
-                on_press: root.set_language(1)
+                name: "ES"
+                on_press: root.button_toggled(*args)
             Button:
                 font_size: '32sp'
                 size_hint_y: 0.5
                 text: "EN"
-                on_press: root.set_language(2)
+                name: "EN"
+                on_press: root.button_toggled(*args)
 
     Widget:
         size_hint: (0.75, 1)
