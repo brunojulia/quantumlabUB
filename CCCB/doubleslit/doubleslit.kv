@@ -13,6 +13,8 @@
     button_small: button_small
 
     button_CA: button_CA
+    button_ES: button_ES
+    button_EN: button_EN
 
     label_speed: label_speed
 
@@ -115,12 +117,14 @@
                 color: (0,0.75,1,1)
                 on_press: root.button_toggled(*args)
             Button:
+                id: button_ES
                 font_size: '32sp'
                 size_hint_y: 0.5
                 text: "ES"
                 name: "ES"
                 on_press: root.button_toggled(*args)
             Button:
+                id: button_EN
                 font_size: '32sp'
                 size_hint_y: 0.5
                 text: "EN"
