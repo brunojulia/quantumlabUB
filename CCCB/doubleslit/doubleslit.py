@@ -11,6 +11,10 @@ from time import time
 from dsexperiment import DSexperiment
 from dsexperiment import create_experiment_from_files
 
+from kivy import Config
+Config.set('graphics', 'multisamples', '0')
+Config.set('graphics', 'fullscreen', 'auto')
+
 #kivy imports
 from kivy.app import App
 from kivy.uix.widget import Widget
@@ -43,8 +47,6 @@ fig_qua = Figure()
 aqu = fig_qua.add_subplot(111)
 aqu.axis('off')
 
-from kivy.config import Config
-Config.set('graphics', 'fullscreen', 'auto')
 
 class DoubleSlitScreen(BoxLayout):
     beep= SoundLoader.load('ping.wav')
@@ -58,6 +60,8 @@ class DoubleSlitScreen(BoxLayout):
     button_large = ObjectProperty()
     button_medium = ObjectProperty()
     button_small = ObjectProperty()
+
+    button_CA = ObjectProperty()
 
     label_speed = ObjectProperty()
 
@@ -301,9 +305,9 @@ class DoubleSlitScreen(BoxLayout):
     def remove_measurements(self):
         self.experiment.clear_measurements()
 
-    last_number = None
-    last_size = None
-    last_lang = None
+    last_number = button_2slits
+    last_size = button_medium
+    last_lang = button_CA
     lang_dict = {'CA': 0, 'ES': 1, 'EN': 2}
 
     def button_toggled(self, button):
