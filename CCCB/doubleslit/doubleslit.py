@@ -319,15 +319,21 @@ class DoubleSlitScreen(BoxLayout):
             self.last_size = button
             button.color = (0,0.75,1,1)
             self.slit_size = button.name
-        elif button.name in ["CA", "ES", "EN"]:
+
+        self.load_experiment()
+        print(self.slits, self.slit_size)
+
+
+    def button_toggled_lan(self, button):
+        if button.name in ["CA", "ES", "EN"]:
             if self.last_lang:
                 self.last_lang.color = (1.0, 1.0, 1.0, 1.0)
             self.last_lang = button
             button.color = (0,0.75,1,1)
             self.set_language(self.lang_dict[button.name])
 
-        self.load_experiment()
         print(self.slits, self.slit_size)
+
 
     def update(self, dt):
 
