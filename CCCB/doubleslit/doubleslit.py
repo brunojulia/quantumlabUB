@@ -62,6 +62,8 @@ class DoubleSlitScreen(BoxLayout):
     button_small = ObjectProperty()
 
     button_CA = ObjectProperty()
+    button_ES = ObjectProperty()
+    button_EN = ObjectProperty()
 
     label_speed = ObjectProperty()
 
@@ -305,29 +307,29 @@ class DoubleSlitScreen(BoxLayout):
     def remove_measurements(self):
         self.experiment.clear_measurements()
 
-    last_number = button_2slits
-    last_size = button_medium
-    last_lang = button_CA
+
     lang_dict = {'CA': 0, 'ES': 1, 'EN': 2}
 
     def button_toggled(self, button):
         if button.name in ["1", "2"]:
-            if self.last_number:
-                self.last_number.color = (1.0, 1.0, 1.0, 1.0)
+            self.button_1slit.color = (1.0, 1.0, 1.0, 1.0)
+            self.button_2slits.color = (1.0, 1.0, 1.0, 1.0)
             self.last_number = button
             button.color = (0,0.75,1,1)
             self.slits = int(button.name)
             self.load_experiment()
         elif button.name in ["small", "medium", "large"]:
-            if self.last_size:
-                self.last_size.color = (1.0, 1.0, 1.0, 1.0)
+            self.button_small.color = (1.0, 1.0, 1.0, 1.0)
+            self.button_medium.color = (1.0, 1.0, 1.0, 1.0)
+            self.button_large.color = (1.0, 1.0, 1.0, 1.0)
             self.last_size = button
             button.color = (0,0.75,1,1)
             self.slit_size = button.name
             self.load_experiment()
         elif button.name in ["CA", "ES", "EN"]:
-            if self.last_lang:
-                self.last_lang.color = (1.0, 1.0, 1.0, 1.0)
+            self.button_CA.color = (1.0, 1.0, 1.0, 1.0)
+            self.button_ES.color = (1.0, 1.0, 1.0, 1.0)
+            self.button_EN.color = (1.0, 1.0, 1.0, 1.0)
             self.last_lang = button
             button.color = (0,0.75,1,1)
             self.set_language(self.lang_dict[button.name])
