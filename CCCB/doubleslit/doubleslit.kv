@@ -12,6 +12,8 @@
     button_medium: button_medium
     button_small: button_small
 
+    button_CA: button_CA
+
     label_speed: label_speed
 
     orientation: "horizontal"
@@ -51,6 +53,7 @@
                 id: button_2slits
                 name: "2"
                 group: "number"
+                color: (0,0.75,1,1)
                 text: root.strings['slits'][root.language]
                 on_press: root.button_toggled(*args)
 
@@ -71,6 +74,7 @@
                 id: button_medium
                 name: "medium"
                 group: "size"
+                color: (0,0.75,1,1)
                 text: root.strings['medium'][root.language]
                 on_press: root.button_toggled(*args)
             Button:
@@ -103,10 +107,12 @@
             size_hint: (1, 0.2)
             orientation: "horizontal"
             Button:
+                id: button_CA
                 font_size: '32sp'
                 size_hint_y: 0.5
                 text: "CA"
                 name: "CA"
+                color: (0,0.75,1,1)
                 on_press: root.button_toggled(*args)
             Button:
                 font_size: '32sp'
