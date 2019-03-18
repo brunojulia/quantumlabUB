@@ -1,0 +1,22 @@
+Sent l’objectiu transmetre conceptes de física quàntica, aquest joc permet una interacció amb l’objecte de la funció d’ona 
+com a distribució de probabilitat jugant amb la mesura repetida d’aquesta. El jugador haurà de decidir el millor moment 
+per fer la mesura a fi de aconseguir un objectiu dictat pel joc.
+
+El joc (pendent d’anomenar) presentarà una funció d’ona en 1D, evolucionant amb el temps, corresponent a una partícula en un 
+cert potencial determinat. Es mostraran unes zones verdes i vermelles, i el jugador farà una mesura (s’imposarà un límit en 
+el temps per fer-la) de la posició de la partícula (al prémer una certa tecla) intentant, tot comprenent el concepte de la 
+probabilitat que representa la funció d’ona, que la posició mesurada de la partícula sigui la que es vol: les zones vermelles 
+fan que es perdi i les verdes que continuï el joc, pujant de nivell. 
+Un cop feta la mesura la funció d’ona serà una delta. En el nou nivell, noves zones verdes i vermelles apareixeran i es 
+canviarà o no el potencial (a fi de fer més viable el joc). El límit de temps també pot ser reduït per incrementar la 
+dificultat del joc. En aquestes noves condicions, la mateixa funció d’ona (ara una delta) seguirà evolucionant i ja 
+s’estarà al nou nivell. 
+
+Per a la justificació de les zones de colors, el temps límit i per a visualitzar les mesures i la partícula, es pot 
+considerar fer una segona pantalla. Es mostraria la partícula (representant la funció d’ona d’alguna altra manera) 
+avançant per un tub que es ramifica i s’ha d’anar per les bifurcacions que toca (per això els colors i el temps límit). 
+Es podria introduir alguna animació simbolitzant la mesura. Això NO seria l’anàleg clàssic, només una manera de fer 
+més fàcil de veure el joc. 
+
+Es pot ampliar el joc triant noves maneres de determinar el potencial, potser amb la interacció del jugador o fent-lo 
+variar en el temps, o fent un anàleg clàssic. Tot això en funció del temps per a desenvolupar el projecte.
