@@ -48,6 +48,8 @@ We have installed it recently with the following sequence.
 1) First install the latest version of Anaconda and add it to path.
 
 2) 
+open the Anaconda Prompt
+
 conda create -n clavsqua_env python=3.6.3
 
 activate clavsqua_env
