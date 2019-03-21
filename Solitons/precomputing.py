@@ -76,6 +76,7 @@ def Simpson(array,h):
                 suma+= 4.0*array[i]
     suma=(h/3.)*suma
     return suma
+
     
 #interaction term of the GP equation    
 def interact(g,n,funct):
@@ -93,7 +94,7 @@ def potential(x,x0):
     External potential, typically it will depend on the positon.
     """
     pot=10*(np.exp(-(x)**2/(2*0.5**2)))/(np.sqrt(2*np.pi*0.5**2))
-    return 0.5*x**2*0 + pot*0
+    return 0.5*x**2*0
     
     
     
@@ -128,22 +129,31 @@ def Energies(x,dx,g,n,V,gint):
 
 #define the spacing and time interval
 limits=10
-dt=0.005 #time interval
+dt=0.002 #time interval
 dz=np.sqrt(dt/2) #spacing interval so that fullfills r=0.5
 Nz=(limits-(-limits))/dz #number of points
 z=np.linspace(-limits,limits,Nz) #position vector, from -10 to 10 Nz points
+
+"""
+PLOTING VARIABLES
+"""
+ev_time= 20
+interval_frames=0.1 #time interval to show the frames
+steps=int(ev_time/dt)
+frame=int(ev_time/interval_frames) #number of frames
+save=int(steps/frame) #interval between cn steps before saving a frame
 
 
 
 """
 PARAMETERS 
 """
-v1=0.5 #velocity (goes from 0 to 1)
-v2=0.3
+v1=0.9 #velocity (goes from 0 to 1)
+v2=0.9
 n=10 #density, n_inf for grey solitons, n_0 for bright solitons
-z01=-3.5 #initial position 
+z01=-4 #initial position 
 z02=3.5
-k=2 #proportionality
+k=3 #proportionality
 
 """
 """
@@ -179,7 +189,9 @@ plt.title('Initial configuration')
 plt.xlabel('$\~z$', fontsize=16)
 plt.ylabel('$|\psi(\~z)|^2/n$', fontsize=16)
 plt.fill_between(z,np.absolute(func_0)**2/n,  alpha=0.5)
-plt.plot(z,np.absolute(func_0)**2/n)
+plt.plot(z,np.absolute(func_0)**2/n, label='v1=%.2f,v2=%.2f,k=%.0f' %(v1,v2,k))
+plt.plot(z,np.absolute(potential(z,0))/n, label='External potential')
+plt.legend(loc=0, ncol=2)
 plt.show() #WHEN RUNING THE PROGRAM CLOSE THE PLOT WINDOW TO START COMPUTING!
 #IF NOT CLOSED THE PROGRAM WON'T CONTINUE.
 
@@ -199,12 +211,8 @@ time_template = 'time = %.1f'
 time_text = ax.text(0.05, 0.9, '', transform=ax.transAxes)
 
 
-t=0
-dif_norm=0
-ev_time= 20
-steps=int(ev_time/dt)
-frame=int(ev_time/0.01) #we want to show a frame each 0.01 seconds 
-save=int(steps/frame) #interval between cn steps before saving a frame
+
+
 
 r= (1j*dt)/(4*dz**2) #parameter of the method 
 print('r', r)
@@ -212,15 +220,22 @@ print('evolution time:',ev_time, 'time units')
 print('time steps:',steps)
 print('number of frames',frame)
 
+infinit_wall=1000000 #limits of the box
 
 V=[]
 for position in z:
-    V.append(2*r*dz**2*potential(position,0))
+    V.append(2*r*dz**2*potential(position,0)/(n))
 V=np.array(V)
+V[0]=infinit_wall
+V[-1]=infinit_wall
 
+
+#saves the external potential as a vector
 Vext=[]
 for position in z:
     Vext.append(potential(position,0))
+Vext[0]=infinit_wall
+Vext[-1]=infinit_wall
 
 #energies
 E_kin=[]
@@ -240,8 +255,8 @@ def cn(state):
     #on the position z
     mainA=[1+2*r +2*r*dz**2*interact(g,n,state)] #main diagonal of A matrix (time t+ 1)
     mainB=[1-2*r -2*r*dz**2*interact(g,n,state)] #main diagonal of B matrix (time t)
-    mainA= np.array(mainA) + V
-    mainB= np.array(mainB) - V
+    mainA= np.array(mainA) + V #add the external potential
+    mainB= np.array(mainB) - V #add the external potential
     A=diags([-r,mainA,-r],[-1,0,1], shape=(len(state),len(state)))
     A=scipy.sparse.csr_matrix(A) #turs to sparse csr matrix (needed for the tridiag solver)
     B=diags([r,mainB,r],[-1,0,1], shape=(len(state),len(state)))
@@ -252,7 +267,7 @@ def cn(state):
     return func_1
 
 start_time = time.time()
-
+t=0 #time 
 ev_mx=[] #stores all the states of the system at diferent times as a matrix
 ev_mx.append(func_0)#save the state of the system at time t=0
 count=1
@@ -261,7 +276,7 @@ for i in range(steps):
     if count%save==0:
         ev_mx.append(system)
         #energy
-        ene_system=Energies(system,dz,g,n,Vext,0.5) #avalues the energy
+        ene_system=Energies(system,dz,g,n,Vext,1) #avalues the energy
         E_kin.append(ene_system[0])
         E_int.append(ene_system[1])
         E_pot.append(ene_system[2])
@@ -278,13 +293,13 @@ counter=0
 def previous_computing(i):
     global fill, counter
     line1.set_data(z,np.absolute(ev_mx[counter])**2/n)
-    line2.set_data(z,np.real(potential(z,0)*np.conjugate(potential(z,0)))/n)
+    line2.set_data(z,np.absolute(potential(z,0))/n)
     fill.remove()
     fill = ax.fill_between(z,np.absolute(ev_mx[counter])**2/n,y2=0, alpha=0.5)
     time_text.set_text(time_template % (i*dt*save))
     counter+=1
     if counter == frame: #end of the matrix
-        counter=0
+        counter=0 #enables a bucle
     return line1, line2, time_text
 
 def init():
@@ -296,7 +311,7 @@ def init():
     return line1, line2, time_text
 
 print(abs(E_tot[0]-max(E_tot)))
-a=FuncAnimation(fig, previous_computing, init_func=init, frames=frame ,interval=1, repeat=True)
+a=FuncAnimation(fig, previous_computing, init_func=init, frames=frame ,interval=30, repeat=True)
 plt.show()
 print(time.time()-start_time)
 
@@ -339,3 +354,5 @@ plt.plot(times, E_tot, label='E_tot')
 plt.legend(loc=9,bbox_to_anchor=(0.5, 1.12), ncol=4)
 plt.grid(which='both')
 plt.show(block=True)
+
+
