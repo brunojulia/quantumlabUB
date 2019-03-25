@@ -56,6 +56,8 @@ lives=3
 x_ball=0
 y_ball=9
 
+X_hovered=30
+Y_hovered=30
 
 #-------------------------------------------------------------------------
 # WAVE FUNCTION
@@ -975,6 +977,10 @@ def play_ball(touched):
         if x_ball==0 and y_ball==9:
             new_ball(touched)
             ball_value+=1
+        if touched[len(touched)-1-x_ball]>=y_ball:
+#            print('%d + %d = %d'%(score,ball_value+1,score+ball_value+1))
+            score+=ball_value
+            new_ball(touched)
         try:
             ball_value
         
@@ -1003,10 +1009,7 @@ def play_ball(touched):
 #                    print('bum')
                     new_ball(touched)
         
-        if touched[len(touched)-1-x_ball]>=y_ball:
-#            print('%d + %d = %d'%(score,ball_value+1,score+ball_value+1))
-            score+=ball_value+1
-            new_ball(touched)
+
       
     elif bmode.label.get_text()=='ZEN':
         x_ball=0
@@ -1054,6 +1057,28 @@ fig.text(0.775, 0.01, 'rahensilva@gmail.com', fontsize='smaller')
 draw_wave()
 
 plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
