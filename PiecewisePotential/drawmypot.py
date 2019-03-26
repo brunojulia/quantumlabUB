@@ -430,6 +430,7 @@ axb=0.1
 # First draw, when initialized
 fig = plt.figure()
 fig.patch.set_facecolor('0.65')
+fig.canvas.set_window_title('Draw My Pot')
 
 # Upper white rectangle
 upper_ax = plt.Axes(fig, [axl, axt, axr-axl, 1-axt], )
