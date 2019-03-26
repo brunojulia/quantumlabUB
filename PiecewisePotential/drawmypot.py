@@ -982,33 +982,34 @@ def play_ball(touched):
 #            print('%d + %d = %d'%(score,ball_value+1,score+ball_value+1))
             score+=ball_value
             new_ball(touched)
-        try:
-            ball_value
-        
-        except NameError: #The game just started
-            new_ball(touched)
-            
         else:
-            ball_value-=1
-            if ball_value==0:
-                lives-=1
-                if lives==0:
-                    axup.set_visible(False)
-                    bup.set_active(False)
-                    axdown.set_visible(False)
-                    bdown.set_active(False)
-                    axgauss.set_visible(False)
-                    bgauss.set_active(False)
-                    axstep.set_visible(False)
-                    bstep.set_active(False)
-                    axwall.set_visible(False)
-                    bwall.set_active(False)
-                    demos_txt.remove()
-                    demos_txt = fig.text(0.838, 0.425, '')#, transform=ax.transAxes)
-#                    print('game over')
-                else:
-#                    print('bum')
-                    new_ball(touched)
+            try:
+                ball_value
+            
+            except NameError: #The game just started
+                new_ball(touched)
+                
+            else:
+                ball_value-=1
+                if ball_value==0:
+                    lives-=1
+                    if lives==0:
+                        axup.set_visible(False)
+                        bup.set_active(False)
+                        axdown.set_visible(False)
+                        bdown.set_active(False)
+                        axgauss.set_visible(False)
+                        bgauss.set_active(False)
+                        axstep.set_visible(False)
+                        bstep.set_active(False)
+                        axwall.set_visible(False)
+                        bwall.set_active(False)
+                        demos_txt.remove()
+                        demos_txt = fig.text(0.838, 0.425, '')#, transform=ax.transAxes)
+    #                    print('game over')
+                    else:
+    #                    print('bum')
+                        new_ball(touched)
         
 
       
@@ -1058,28 +1059,6 @@ fig.text(0.775, 0.01, 'rahensilva@gmail.com', fontsize='smaller')
 draw_wave()
 
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
