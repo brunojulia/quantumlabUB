@@ -9,17 +9,20 @@ The program follows the nomenclature from:
     for piecewise potentials - bjd
 And draws its eigenenergies.
 
-It has 3 sections:
+It has 4 sections:
     -WAVE-FUNCTION: computes eigen energies for a given piecewise potential
     -CANVAS: draws both the input potential and the output wave-function
     (gives WAVE-FUNCTION the potential and gets its energy to plot)
     -TOOLS: additional featurings to interact easier with CANVAS,
     or change its properties (such like asking it to ask WAVE-FUNCTION
     to give different energies apart from the ground state)
+    -SCORE: for the survival mode
 
 The grid idea is taken from:
 https://stackoverflow.com/questions/52566969/python-mapping-a-2d-array-to-a-grid-with-pyplot
 
+
+ball added
 """
 
 from matplotlib import pyplot as plt
@@ -27,6 +30,7 @@ from matplotlib import colors
 from matplotlib.widgets import Button
 from matplotlib.ticker import FormatStrFormatter
 import numpy as np
+import random
 
 # Default number of potential pieces
 pieces = 7
@@ -43,6 +47,17 @@ level = 1
 
 # Maximum number of energy levels to compute
 N_root = 5
+
+# Survival initial stuff
+max_value = 9
+score=0
+ball_value=9
+lives=3
+x_ball=0
+y_ball=9
+
+X_hovered=30
+Y_hovered=30
 
 #-------------------------------------------------------------------------
 # WAVE FUNCTION
@@ -333,12 +348,18 @@ def psivect():
 # Function that draws it all before plotting
 def draw_wave(draw_level=1):
     
-    global data, cmap, X_hovered, Y_hovered, ax, txt, bricks, left_extrem, right_extrem, top_extrem, bottom_extrem, data_new, ax, x_vect, V_vect, Vk, ixk, psi_vect, E, N_root, eigen_energies_list, level
+    global data, cmap, ax, txt, bricks, \
+    left_extrem, right_extrem, top_extrem, bottom_extrem, \
+    data_new, ax, x_vect, V_vect, Vk, ixk, psi_vect, E, \
+    N_root, eigen_energies_list, level, \
+    x_ball, y_ball, \
+    score, lives, ball_value, value_txt, score_txt, lives_txt
+
 
     ax.cla()
-    txt.remove()
-    txt = fig.text(0.885, 0.625, 'x %d'%(int(bricks(data))), transform=ax.transAxes)
     
+
+
     Vk=data_to_Vk(data)
     
     if draw_level==1:
@@ -354,6 +375,8 @@ def draw_wave(draw_level=1):
 #    color=['b-', 'g-', 'r-', 'c-', 'm-']
     color=['r']
 
+    touched=np.zeros(pieces,dtype=int)
+
     for k in range(pieces):
         x = np.dot(pieces,x_vect[ixk[2*k]:ixk[2*k+1]])
         y = np.dot(10/4,psi_vect[ixk[2*k]:ixk[2*k+1]])
@@ -361,17 +384,59 @@ def draw_wave(draw_level=1):
                 np.append(y, [0,0]),
                 color[k%len(color)], alpha=0.5)
         ax.plot(x, y, color[k%len(color)])
+        
+        touched[k]=int(max(y)-0.5)
+#        print(touched[-1][0]+1,touched[-1][1]+1)
+#    print('')
+
+    play_ball(touched)
+    ball_the_data()
     
-    fig.suptitle(t = '$E_%.i$ = %.3f Eguay'%(draw_level,(E/Eguay)), x = 0.42, y = 0.95)
+    fig.suptitle(t = '$E_%.i$ = %.3f Eguay'%(draw_level,(E/Eguay)), x = 0.42, y = 0.97, color='r')
     ax.set_xticks([piece+0.5 for piece in range(pieces)])
     ax.set_xticklabels([piece+1 for piece in range(pieces)])
-    ax.yaxis.set_label_text('V (Eguay)', color='0.5')
-    ax.pcolormesh(np.transpose(data[::-1]), cmap=cmap, edgecolors=gridc, linewidths=gridw)
+    ax.yaxis.set_label_text('V (Eguay)')
+    ax.spines['top'].set_color(gridc)
+    ax.spines['top'].set_linewidth(2*gridw)
+    ax.pcolormesh(np.transpose(data[::-1]), cmap=cmap(data), edgecolors=gridc, linewidths=gridw)
+    ax.axis([0,pieces,0,10])
+    
+    unball_the_data()
+    
+    if lives==0:
+        fig.canvas.mpl_disconnect(cid_click)
+        lives_txt.remove()    
+        lives_txt = fig.text(0.815, 0.865, 'game over')#, transform=ax.transAxes)
+        score_txt.remove()    
+        score_txt = fig.text(0.82, 0.815, 'score = %d'%(score))#, transform=ax.transAxes)
+    else:
+        lives_txt.remove()    
+        lives_txt = fig.text(0.837, 0.865, '❤ '*lives)#, transform=ax.transAxes)
+        score_txt.remove()    
+        score_txt = fig.text(0.82, 0.815, 'score = %d'%(score)*(int(lives/abs(lives))))#, transform=ax.transAxes)
+        value_txt.remove()
+        value_txt = fig.text(axl+(axr-axl)*(1-(x_ball+0.675)/pieces),\
+                             axb+(axt-axb)*((y_ball+0.35)/10), \
+                             '+%d'%(ball_value)*(int(lives/abs(lives))))#, transform=ax.transAxes)
     
     return True
 
+# in case of resizing the window, take all this into account    
+axl=0.12
+axr=0.72
+axt=0.85
+axb=0.1
+
 # First draw, when initialized
 fig = plt.figure()
+fig.patch.set_facecolor('0.65')
+fig.canvas.set_window_title('Draw My Pot')
+
+# Upper white rectangle
+upper_ax = plt.Axes(fig, [axl, axt, axr-axl, 1-axt], )
+fig.add_axes(upper_ax)
+upper_ax.tick_params(color='0.65', labelcolor='0.65')
+upper_ax.spines['top'].set_color('w')
 
 # Fake plot below the real one, to put the wave-funtion axis
 fake_ax = fig.add_subplot(111)
@@ -383,16 +448,37 @@ fake_ax.set_yticklabels([(4*i)/10 for i in range(10+1)])
 fake_ax.set_ylabel("$\Psi^2 /A$")
 
 # Real plot where both the potential and the wave are represented
-# but only with the potential axis
+# but only with the potential axis. (The rest is drawn on draw())
 ax = fake_ax.twiny().twinx()
 ax.xaxis.tick_top()
 ax.xaxis.set_label_position('top')
 ax.yaxis.tick_right()
-ax.yaxis.set_label_position('right')  
+ax.yaxis.set_label_position('right') 
 
 # colors to plot the matrix 'data' as a relief map: 
 #                           background, hover, potential 
-cmap = colors.ListedColormap(['white','0.5','0.65'])
+def cmap(data):
+    global ball_value
+    try:
+        ball_value
+    
+    except NameError: #The game just started
+        ball_value = max_value
+
+    if bmode.label.get_text()=='SURVIVAL':
+        green=(0.7*(1-ball_value/(max_value)),1,0.7*(1-ball_value/(max_value)))
+        cmap = colors.ListedColormap(['white','0.5','0.65',green])
+        if data.min()==1:
+            cmap = colors.ListedColormap(['0.5','0.65', green])
+        if data.min()==2:
+            cmap = colors.ListedColormap(['0.65',green])
+    else:
+        cmap = colors.ListedColormap(['white','0.5','0.65'])
+        if data.min()==1:
+            cmap = colors.ListedColormap(['0.5','0.65'])
+        if data.min()==2:
+            cmap = colors.ListedColormap(['0.65'])
+    return cmap
 # color of the grid
 gridc='0.5'
 # width of the grid
@@ -414,7 +500,11 @@ def data_to_Vk(data):
 
 # Changes the color of the grid and calls draw_wave
 def ClickColor(event):
-    global data, cmap, X_hovered, Y_hovered, ax, txt, bricks, left_extrem, right_extrem, top_extrem, bottom_extrem, data_new, ax, x_vect, V_vect, Vk, ixk, psi_vect, E
+    global data, cmap, X_hovered, Y_hovered, ax, txt, bricks, \
+    left_extrem, right_extrem, top_extrem, bottom_extrem, \
+    data_new, ax, x_vect, V_vect, Vk, ixk, psi_vect, E, \
+    lives, score, score_txt, lives_txt
+    
     
     # If the mouse is inside the grid
     if event.x < right_extrem and event.x > left_extrem and event.y < top_extrem and event.y > bottom_extrem: 
@@ -465,8 +555,10 @@ def HoverColor(event):
         data[data==1]=0
 
         # draw dishovered grid
-        ax.pcolormesh(np.transpose(data[::-1]), cmap=cmap, edgecolors=gridc, linewidths=gridw)
+        ball_the_data()
+        ax.pcolormesh(np.transpose(data[::-1]), cmap=cmap(data), edgecolors=gridc, linewidths=gridw)
         event.canvas.draw()
+        unball_the_data()  
         return True
 
     # If the mouse is inside the grid
@@ -494,8 +586,11 @@ def HoverColor(event):
             
             data[X][:Y+1]=1
             
-            ax.pcolormesh(np.transpose(data[::-1]), cmap=cmap, edgecolors=gridc, linewidths=gridw)
+
+            ball_the_data()
+            ax.pcolormesh(np.transpose(data[::-1]), cmap=cmap(data), edgecolors=gridc, linewidths=gridw)
             event.canvas.draw()
+            unball_the_data()
             
             data=data0
             
@@ -504,11 +599,6 @@ def HoverColor(event):
     else:
         return True
 
-# in case of resizing the window, take all this into account    
-axl=0.12
-axr=0.72
-axt=0.85
-axb=0.1
 
 plt.subplots_adjust(left=axl,right=axr,top=axt, bottom=axb)
 left_extrem=(fig.get_size_inches()*fig.dpi)[0]*axl+gridw
@@ -558,7 +648,6 @@ def more(event):
         phi[0][1]=-1
 
         draw_wave()
-        
         event.canvas.draw()
         
         return True
@@ -568,6 +657,8 @@ def more(event):
 axmore = plt.axes([0.825, 0.8, 0.05, 0.075])
 bmore = Button(axmore, '+')
 bmore.on_clicked(more)
+axmore.set_visible(False)
+
 
 #---------------------------------------------------------------------------
 
@@ -605,6 +696,14 @@ def less(event):
 axless = plt.axes([0.875, 0.8, 0.05, 0.075])
 bless = Button(axless, '-')
 bless.on_clicked(less)
+axless.set_visible(False)
+    
+#---------------------------------------------------------------------------
+
+# total lives and score
+
+lives_txt = fig.text(0.935, 0.875, '❤ '*lives)#, transform=ax.transAxes)
+score_txt = fig.text(0.885, 0.875, 'x %d'%(-max_value))#, transform=ax.transAxes)
 
 #---------------------------------------------------------------------------
 
@@ -613,9 +712,30 @@ bless.on_clicked(less)
 
 def new(event):
 
-    global data, data_new
+    global data, data_new, score, cid_click, fig, score, lives, \
+    ball_value, bmode, x_ball, y_ball, demos_txt
     
     data = np.copy(data_new)
+    
+    cid_click = fig.canvas.mpl_connect('button_press_event', ClickColor)
+
+    axup.set_visible(True)
+    bup.set_active(True)
+    axdown.set_visible(True)
+    bdown.set_active(True)
+    axgauss.set_visible(True)
+    bgauss.set_active(True)
+    axstep.set_visible(True)
+    bstep.set_active(True)
+    axwall.set_visible(True)
+    bwall.set_active(True)
+    demos_txt.remove()
+    demos_txt = fig.text(0.838, 0.425, 'demos')#, transform=ax.transAxes)
+    if bmode.label.get_text()=='SURVIVAL':
+        score=0
+        lives=3
+        x_ball=0
+        y_ball=9
     
     draw_wave()
     event.canvas.draw()
@@ -626,6 +746,77 @@ bnew.on_clicked(new)
 
 #---------------------------------------------------------------------------
 
+# mode botton
+# changes from zen mode to survival mode and vs
+
+def mode(event):
+
+    global data, data_new, score, \
+    cid_click, fig, score, lives, ball_value, \
+    bmode, axmode, axmore, axless, pieces, demos_txt
+
+    data = np.copy(data_new)
+
+    if bmode.label.get_text()=='SURVIVAL':
+        bmode.label.set_text('ZEN')
+        axmode.spines['top'].set_color((0,1,0))
+        axmode.spines['bottom'].set_color((0,1,0))
+        axmode.spines['right'].set_color((0,1,0))
+        axmode.spines['left'].set_color((0,1,0))
+#        print(bmode.label.get_text())
+        cid_click = fig.canvas.mpl_connect('button_press_event', ClickColor)
+        lives=-1
+        
+        axmore.set_visible(True)
+        bmore.set_active(True)
+        axless.set_visible(True)
+        bless.set_active(True)
+        axup.set_visible(True)
+        bup.set_active(True)
+        axdown.set_visible(True)
+        bdown.set_active(True)
+        axgauss.set_visible(True)
+        bgauss.set_active(True)
+        axstep.set_visible(True)
+        bstep.set_active(True)
+        axwall.set_visible(True)
+        bwall.set_active(True)
+        
+        
+        demos_txt.remove()
+        demos_txt = fig.text(0.838, 0.425, 'demos')#, transform=ax.transAxes)
+      
+    elif bmode.label.get_text()=='ZEN':
+        if pieces!=7:
+            pieces=6
+            more(event)
+        bmode.label.set_text('SURVIVAL')
+        axmode.spines['top'].set_color((1,0,0))
+        axmode.spines['bottom'].set_color((1,0,0))
+        axmode.spines['right'].set_color((1,0,0))
+        axmode.spines['left'].set_color((1,0,0))
+#        print(bmode.label.get_text())
+        cid_click = fig.canvas.mpl_connect('button_press_event', ClickColor)
+        lives=3
+        score=0
+        axmore.set_visible(False)
+        bmore.set_active(False)
+        axless.set_visible(False)
+        bless.set_active(False)
+    
+    draw_wave()
+    event.canvas.draw()
+
+axmode = plt.axes([0.815, 0.6, 0.12, 0.075])
+bmode = Button(axmode, 'SURVIVAL')
+bmode.on_clicked(mode)
+axmode.spines['top'].set_color((1,0,0))
+axmode.spines['bottom'].set_color((1,0,0))
+axmode.spines['right'].set_color((1,0,0))
+axmode.spines['left'].set_color((1,0,0))
+
+#---------------------------------------------------------------------------
+
 # remaining bricks
 # Counts how many bricks you have.
 # 6*pieces for people to get creative.
@@ -633,15 +824,15 @@ bnew.on_clicked(new)
 def bricks(data):
     global pieces
     
-    bricks0 = 6*pieces
+    bricks0 = 10*pieces
     
     return bricks0-np.sum(data_to_Vk(data))
 
-axbrick = plt.axes([0.820, 0.62, 0.05, 0.0375])
-bbrick = Button(axbrick, '', color='0.65', hovercolor='0.5')
+#axbrick = plt.axes([0.820, 0.62, 0.05, 0.0375])
+#bbrick = Button(axbrick, '', color='0.65', hovercolor='0.5')
+#
+#txt = fig.text(0.885, 0.625, 'x %d'%(int(bricks(data))), transform=ax.transAxes)
 
-txt = fig.text(0.885, 0.625, 'x %d'%(int(bricks(data))), transform=ax.transAxes)
-    
 #---------------------------------------------------------------------------
 
 # [ ↑ ] button
@@ -696,7 +887,7 @@ bdown.on_clicked(down)
 # demo buttons
 # demos are drawn by hand for pieces=1..7 only
 
-fig.text(0.838, 0.425, 'demos', transform=ax.transAxes)
+demos_txt = fig.text(0.838, 0.425, 'demos')#, transform=ax.transAxes)
 
 def Vk_to_data(Vk):
     
@@ -773,10 +964,97 @@ axwall = plt.axes([0.825, 0.125, 0.1, 0.075])
 bwall = Button(axwall, 'Wall')
 bwall.on_clicked(wall)
 
+#---------------------------------------------------------------------------
+# SCORE 
+# How survival mode works
+# The green square is calles ball
+#---------------------------------------------------------------------------
+
+def play_ball(touched):
+    global x_ball, y_ball, ball_value, max_value, score, score, lives,\
+        bmode, axup,axdown,axgauss,axstep,axwall,demos_txt
+
+    if bmode.label.get_text()=='SURVIVAL':
+        if x_ball==0 and y_ball==9:
+            new_ball(touched)
+            ball_value+=1
+        if touched[len(touched)-1-x_ball]>=y_ball:
+#            print('%d + %d = %d'%(score,ball_value+1,score+ball_value+1))
+            score+=ball_value
+            new_ball(touched)
+        else:
+            try:
+                ball_value
+            
+            except NameError: #The game just started
+                new_ball(touched)
+                
+            else:
+                ball_value-=1
+                if ball_value==0:
+                    lives-=1
+                    if lives==0:
+                        axup.set_visible(False)
+                        bup.set_active(False)
+                        axdown.set_visible(False)
+                        bdown.set_active(False)
+                        axgauss.set_visible(False)
+                        bgauss.set_active(False)
+                        axstep.set_visible(False)
+                        bstep.set_active(False)
+                        axwall.set_visible(False)
+                        bwall.set_active(False)
+                        demos_txt.remove()
+                        demos_txt = fig.text(0.838, 0.425, '')#, transform=ax.transAxes)
+    #                    print('game over')
+                    else:
+    #                    print('bum')
+                        new_ball(touched)
+        
+
+      
+    elif bmode.label.get_text()=='ZEN':
+        x_ball=0
+        y_ball=9
+        ball_value=0
+
+    
+
+def new_ball(touched):
+    global x_ball, y_ball, ball_value
+    x_ball  = random.randint(0,len(touched)-1)
+    while touched[len(touched)-1-x_ball]>7:
+        x_ball  = random.randint(0,len(touched)-1)
+    y_ball  = random.randint(touched[len(touched)-1-x_ball]+1,9)
+    ball_value = y_ball
+    
+    if x_ball==0 or x_ball==len(touched)-1:
+        if y_ball==9:
+            new_ball(touched)
+            
+    if y_ball==1 or y_ball==0:
+        new_ball(touched)
+        
+            
+value_txt = fig.text(0.885, 0.925, '%d'%(max_value))#, transform=ax.transAxes)
+
+def ball_the_data():
+    global x_ball,y_ball,data,pre_ball
+    pre_ball=data[x_ball,y_ball]
+    if bmode.label.get_text()=='SURVIVAL':
+        data[x_ball,y_ball]=3
+    return data
+
+def unball_the_data():
+    global x_ball,y_ball,data,pre_ball
+    data[x_ball,y_ball]=pre_ball
+    return data
 
 #---------------------------------------------------------------------------
 
 # end
+fig.text(0.865, 0.04, 'draw my pot', fontsize='smaller')
+fig.text(0.775, 0.01, 'rahensilva@gmail.com', fontsize='smaller')
 
 draw_wave()
 
