@@ -15,12 +15,6 @@ T = 10
 dt = 0.01
 nt = int(T/dt) 
 
-#Funcion para calcular los tiempos para unos pasos de tiempo arbitrarios
-def times(h):
-    t = np.zeros([h.shape[0]])
-    for i in range(0,h.shape[0]):
-        t[i] = i*h[i]
-    return t
 
 class Phi():
     
@@ -68,6 +62,8 @@ class Particle():
         self.charge = charge
         self.trajectory = tra
         self.dt = dt
+        self.steps = np.array([0])
+        self.h = 1
     
     def RightHand(self,r):
 
@@ -87,8 +83,46 @@ class Particle():
         rlater = r + self.dt/6 * (k1 + 2*k2 + 2*k3 + k4)
         return rlater
     
+    def RKF(self,r):
+        eps = 0.000001
+        hnew = 0.05
+        while(hnew<self.h):
+            self.h = hnew
+            k0 = self.RightHand(r)
+            k1 = self.RightHand(r + self.h/4.*k0)
+            k2 = self.RightHand(r + (3.*self.h/32.)*k0 + (9.*self.h/32.)*k1)
+            k3 = self.RightHand(r + (1932.*self.h/2197.)*k0 - (7200.*self.h/2197.)*k1 + (7296.*self.h/2197.)*k2)
+            k4 = self.RightHand(r + (439.*self.h/216.)*k0 - 8.*self.h*k1 + (3680.*self.h/513.)*k2 - (845.*self.h/4104.)*k3)
+            k5 = self.RightHand(r - (8.*self.h/27.)*k0 + 2.*self.h*k1 - (3544.*self.h/2565.)*k2 + (1859.*self.h/4104.)*k3 - (11.*self.h/40.)*k4)
+#            rnext = r + h*(25*k0/256 + 1408*k2/2565 + 2197*k3*4104 - k4/5)
+            rnexthat = r + (16.*self.h/135.)*k0 + (6656.*self.h/12825.)*k2 + (28561.*self.h/56430.)*k3 - (9.*self.h/50.)*k4 + (2.*self.h/55.)*k5
+            delta = self.h*((1./360.)*k0 - (128./4275.)*k2 - (2197./75240.)*k3 + (1./50.)*k4 + (2./55.)*k5)
+#            '''
+            try:
+                hnew = 0.9*self.h*(np.abs(self.h)*eps/np.sqrt(np.sum(delta**2)))**(1./4.)
+            except RuntimeWarning:
+                hnew = 0.05
+            '''
+            if(np.sum(delta**2)>0.0000001):
+                hnew = 0.9*self.h*(np.abs(self.h)*eps/np.sqrt(np.sum(delta**2)))**(1./4.)
+                
+            else:
+                hnew = 0.05
+            '''
+            
+            if(hnew>0.05):
+                hnew = 0.05
+        self.h = hnew
+        hfinal = hnew
+        rlater = rnexthat
+        return rlater,hfinal
+    
+    
+    
+    
     def ComputeTrajectory(self,r0):
         self.trajectory[0,:] = r0
+        self.steps = np.array([0])
         for i in range(0,nt):
             try:
                 tranext = self.RK4(i*self.dt,self.dt,self.trajectory[i,:])
@@ -98,7 +132,22 @@ class Particle():
                     self.trajectory = np.append(self.trajectory,tranext.reshape(1,4),axis=0)
             except IndexError:
                 break
-                
+            
+    def ComputeTrajectoryF(self,r0):
+        self.trajectory[0,:] = r0
+        i = 0
+        while(self.steps.sum() < T):
+            self.h = 1
+            try:
+                tranext , newstep = self.RKF(self.trajectory[i,:])
+                if(tranext[0] >= L/2 or tranext[1] >= L/2):
+                    break
+                else:
+                    self.trajectory = np.append(self.trajectory,tranext.reshape(1,4),axis=0)
+                    self.steps = np.append(self.steps,newstep)
+                    i += 1
+            except IndexError:
+                break
                 
     def KEnergy(self):
         KEnergy = np.zeros([self.trajectory.shape[0]])
@@ -163,12 +212,13 @@ im = im.transpose()
 
 
 p = Particle(1,1,np.ones([1,4]),dt)
-p.ComputeTrajectory(np.array([25,0,0,0]))    
+p.ComputeTrajectoryF(np.array([25,0,0,0]))    
 a = p.trajectory
-t = times(dt*np.ones([a.shape[0]]))
+b = p.steps
+t = p.steps.cumsum()
 
 
-
+#'''
 plt.figure()
 plt.subplot(2,2,1)
 plt.imshow(im,cmap="plasma")
@@ -188,7 +238,7 @@ plt.ylabel('y')
 plt.tight_layout()
 plt.show()
 
-
+#'''
 #Lineal
 pot.clear()
 pot.add_function(linear,dlinearx,dlineary,[1,0])
@@ -205,9 +255,9 @@ im = im.transpose()
         
         
 p = Particle(1,1,np.ones([1,4]),dt)
-p.ComputeTrajectory(np.array([0,0,0,0]))    
+p.ComputeTrajectoryF(np.array([0,0,0,0]))    
 a = p.trajectory
-t = times(dt*np.ones([a.shape[0]]))
+t = p.steps.cumsum()
 
 
 
