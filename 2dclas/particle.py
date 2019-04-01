@@ -186,6 +186,7 @@ plt.xlabel('x')
 plt.ylabel('y')
 
 plt.tight_layout()
+plt.show()
 
 
 #Lineal
@@ -227,6 +228,7 @@ plt.xlabel('x')
 plt.ylabel('y')
 
 plt.tight_layout()
+plt.show()
 #'''
 
 
