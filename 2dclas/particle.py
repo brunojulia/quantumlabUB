@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 
 
-L = 100
+L = 200
 
 
 T = 10
@@ -85,8 +85,13 @@ class Particle():
     
     def RKF(self,r):
         eps = 0.000001
-        hnew = 0.05
+        hnew = 0.1
+        safety = 0
         while(hnew<self.h):
+            safety += 1
+            if(safety>10):
+                break
+            
             self.h = hnew
             k0 = self.RightHand(r)
             k1 = self.RightHand(r + self.h/4.*k0)
@@ -101,17 +106,10 @@ class Particle():
             try:
                 hnew = 0.9*self.h*(np.abs(self.h)*eps/np.sqrt(np.sum(delta**2)))**(1./4.)
             except RuntimeWarning:
-                hnew = 0.05
-            '''
-            if(np.sum(delta**2)>0.0000001):
-                hnew = 0.9*self.h*(np.abs(self.h)*eps/np.sqrt(np.sum(delta**2)))**(1./4.)
-                
-            else:
-                hnew = 0.05
-            '''
+                hnew = 0.1
             
-            if(hnew>0.05):
-                hnew = 0.05
+            if(hnew>0.1):
+                hnew = 0.1
         self.h = hnew
         hfinal = hnew
         rlater = rnexthat
@@ -184,101 +182,104 @@ def dlineary(r,param):
 #############################
     
 def osc(r,param):
-    f = param[0]*(r[0]**2+r[1]**2)
+    x0 = param[0]
+    y0 = param[1]
+    k = param[2]
+    rlim = param[3]
+    rval = np.sqrt((r[0]-x0)**2+(r[1]-y0)**2)
+    
+    if(rval < rlim):
+        f = k*rval**2
+    else:
+        vlim = k*rlim**2
+#        f = 0.
+        f = -2*k*((rlim-x0)*np.exp(-np.abs(r[0]-x0)) + (rlim-y0)*np.exp(-np.abs(r[1]-y0)))
     return f
 
 def doscx(r,param):
-    f = param[0]*(2*r[0])
+    x0 = param[0]
+    y0 = param[1]
+    k = param[2]
+    rlim = param[3]
+    
+#    if(np.sqrt((r[0]-x0)**2+(r[1]-y0)**2) < rlim):
+    if(np.abs(r[0]-x0) < rlim):
+        f = k*(2*(r[0]-x0))
+    else:
+#        f = 0.
+        f = k*2*(rlim-x0)*np.exp(-(np.abs(r[0]-x0)))
     return f
 
 def doscy(r,param):
-    f = param[0]*(2*r[1])
+    x0 = param[0]
+    y0 = param[1]
+    k = param[2]
+    rlim = param[3]
+    
+#    if(np.sqrt((r[0]-x0)**2+(r[1]-y0)**2) < rlim):
+    if(np.abs(r[1]-y0) < rlim):
+        f = k*(2*(r[1]-y0))
+    else:
+#        f = 0.
+        f = k*2*(rlim-y0)*np.exp(-(np.abs(r[1]-y0)))
     return f
 
          
 
 #Oscilador Harmonico
-pot.add_function(osc,doscx,doscy,[1])
+pot.add_function(osc,doscx,doscy,[0,0,1,10])
+#pot.add_function(osc,doscx,doscy,[25,0,1,10])
 
 dx = 1
 nx = int(L/dx)
+xx,yy, = np.meshgrid(np.linspace(-L/2,L/2,nx,endpoint=True),np.linspace(-L/2,L/2,nx,endpoint=True))
 im = np.zeros((nx,nx))
 for i in range(0,nx):
     for j in range(0,nx):
-        x = i*dx - L/2
-        y = j*dx - L/2
-        im[i,j] = pot.val(x,y)
-im = im.transpose()
-
+        im[i,j] = pot.val(xx[i,j],yy[i,j])
 
 p = Particle(1,1,np.ones([1,4]),dt)
-p.ComputeTrajectoryF(np.array([25,0,0,0]))    
+p.ComputeTrajectoryF(np.array([0,0,10,0]))    
 a = p.trajectory
 b = p.steps
 t = p.steps.cumsum()
+#t = dt*np.ones(a.shape[0]).cumsum()
 
-
-#'''
-plt.figure()
-plt.subplot(2,2,1)
-plt.imshow(im,cmap="plasma")
-plt.axis("off")
-plt.subplot(2,2,2)
-plt.plot(t,p.KEnergy(),"r-",t,p.PEnergy(),"b-",t,p.Energy(),"g-")
-plt.legend(('EC','EP','EM'),loc='best')
-plt.subplot(2,2,3)
-plt.plot(t,a[:,0])
-plt.xlabel('t')
-plt.ylabel('x')
-plt.subplot(2,2,4)
-plt.plot(a[:,0],a[:,1])
-plt.xlabel('x')
-plt.ylabel('y')
-
-plt.tight_layout()
-plt.show()
-
-#'''
-#Lineal
-pot.clear()
-pot.add_function(linear,dlinearx,dlineary,[1,0])
-
-dx = 1
-nx = int(L/dx)
-im = np.zeros((nx,nx))
+fun = np.zeros(nx)
+xs = np.zeros(nx)
 for i in range(0,nx):
-    for j in range(0,nx):
-        x = i*dx - L/2
-        y = j*dx - L/2
-        im[i,j] = pot.val(x,y)
-im = im.transpose()
-        
-        
-p = Particle(1,1,np.ones([1,4]),dt)
-p.ComputeTrajectoryF(np.array([0,0,0,0]))    
-a = p.trajectory
-t = p.steps.cumsum()
+    x = i*dx - L/2
+    y=0
+    xs[i] = x 
+    fun[i] = pot.dvalx(x,y)
+plt.figure()
+plt.plot(xs,fun)
 
-
-
+#'''
 plt.figure()
 plt.subplot(2,2,1)
-plt.imshow(im,cmap="plasma")
-plt.axis("off")
+plt.contourf(xx,yy,im,cmap="plasma")
+plt.colorbar()
+plt.axis("square")
+plt.xlabel('x([L])')
+plt.ylabel('y([L])')
 plt.subplot(2,2,2)
 plt.plot(t,p.KEnergy(),"r-",t,p.PEnergy(),"b-",t,p.Energy(),"g-")
 plt.legend(('EC','EP','EM'),loc='best')
+plt.xlabel('t([T])')
+plt.ylabel('Energy([M]*[L]^2*[T]^-2)')
 plt.subplot(2,2,3)
 plt.plot(t,a[:,0])
-plt.xlabel('t')
-plt.ylabel('x')
+plt.xlabel('t([T])')
+plt.ylabel('x([L])')
 plt.subplot(2,2,4)
 plt.plot(a[:,0],a[:,1])
-plt.xlabel('x')
-plt.ylabel('y')
+plt.xlabel('x([L])')
+plt.ylabel('y([L])')
 
 plt.tight_layout()
 plt.show()
 #'''
+
 
 
