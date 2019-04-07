@@ -1,18 +1,8 @@
 
 import numpy as np
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 
-hbar=1.
-m=1.
-dx=0.1
-dt=0.15
-ndim=100
-
-Lx=dx*ndim
-Ly=dx*ndim
-
-r=1j*dt/(2.*m*dx**2)
 
 #Tridiag function
 def tridiag(a, b, c, d):
@@ -42,28 +32,23 @@ def tridiag(a, b, c, d):
     return x
 
 
-def V(x,y):
-  #  return np.exp(-(x-0.5)**2-(y-0.5)**2)
-    if x==Lx/2:
-        return 9999999999.
-    elif (x or y)==Lx:
-        return 9999999999.
-    elif (x or y)==0:
-        return 9999999999.
-    else:
-        return 0.
+def Vosc(x,y):
+    r2=(x-0.5)**2+(y-0.5)**2
+    return 0.5*r2
+   
         
-def psi0(x, y):
+def psi_ini(x, y):
     """
     Wave function at t = 0
     """
-    return np.exp(-(x-2*Lx/5)**2/100-(y-Lx/2)**2/100) #/(np.pi*100)**2
+    r2=(x-0.5)**2+(y-0.5)**2
+    return (np.pi**(-1/4.))**2*np.exp(-r2)
 
 
 def Crank_step(psi,Bmatrix,V_pot,ndim,dx,dt,hbar,m):
     "One step of Crank-Nicolson resolution. First evolve in x and then in y"
     r=1j*hbar*dt/(4.*m*dx**2)
-    
+              
     "Evolve for x"
     for j in range (0,ndim):
         
@@ -76,6 +61,9 @@ def Crank_step(psi,Bmatrix,V_pot,ndim,dx,dt,hbar,m):
                 
         Asup=np.full(ndim,r,dtype=complex)
         Ainf=np.full(ndim,r,dtype=complex)
+        
+        Asup[0]=0.
+        Ainf[0]=0.
         
         #psix
         psix=np.array([])
@@ -111,6 +99,9 @@ def Crank_step(psi,Bmatrix,V_pot,ndim,dx,dt,hbar,m):
         Asup=np.full(ndim,r,dtype=complex)
         Ainf=np.full(ndim,r,dtype=complex)
         
+        Asup[0]=0.
+        Ainf[0]=0.
+        
         #psiy
         psiy=np.array([])
         for j in range(0,ndim):
@@ -124,8 +115,8 @@ def Crank_step(psi,Bmatrix,V_pot,ndim,dx,dt,hbar,m):
                 prod=prod+Bmatrix[j,k]*psiy[j]
             Bproduct=np.append(Bproduct,prod)
                 
-        #Calculate psix for the next stp of time:
-        psix=tridiag(Ainf,Adiag,Asup,Bproduct)
+        #Calculate psiy for the next stp of time:
+        psiy=tridiag(Ainf,Adiag,Asup,Bproduct)
         
         #Change the old for the new values of psi
         for j in range(0,ndim):
@@ -133,55 +124,109 @@ def Crank_step(psi,Bmatrix,V_pot,ndim,dx,dt,hbar,m):
         return psi
     
 
-
+#det=np.linalg.det(psizero)
+#norm=np.append(norm,(abs(det))**2)
+def Crank_Nicolson(V_pot,psi0,ntime,ndim,dx,dt,hbar,m):
+    "The whole Crank Nicolson evolution through all of the steps of time"
     
-#"Generate the initial psi tensor using psi0 function"
-psizero=np.zeros((ndim,ndim),dtype=complex)
-densoprob=np.zeros((ndim,ndim),dtype=float)
+    r=1j*dt/(2.*m*dx**2)
+    
+    #Generate the Bmatrix
+    Bmatrix=np.zeros((ndim,ndim),dtype=complex)
+    for i in range(0,ndim):
+        for j in range(0,ndim):
+            if i==j:
+                x=i*dx
+                y=j*dx
+                Bmatrix[i,j]=1.+4.*r-1j*dt*V_pot(x,y)/(2.*hbar)
+            if i==j+1 or i+1==j:
+                Bmatrix[i,j]=-r 
+    
+    #"Generate the initial psi tensor"
+    psizero=np.zeros((ndim,ndim),dtype=complex)
+    for i in range (1,ndim-1):
+        for j in range (1,ndim-1):
+            x=dx*i
+            y=dx*j
+            psizero[i,j]=psi0(x,y)
+    
+    #Crank-Nicolson time evolution
+    for k in range (0,ntime):
+        steppsi=Crank_step(psizero,Bmatrix,V_pot,ndim,dx,dt,hbar,m)
+        
+        #Change the old data for the new
+        for i in range (1,ndim-1):
+            for j in range (1,ndim-1):
+                psizero[i,j]=steppsi[i,j]
 
+    return steppsi
+
+def Probability(f,n):
+    p=np.zeros((n,n),dtype=float)
+    for i in range (0,n):
+        for j in range (0,n):
+            p[i,j]=abs(f[i,j])**2   
+    return p
+
+hbar=1.
+m=1.
+
+dt=0.1
+ndim=50
+ntime=100
+Lx=1.
+dx=Lx/ndim
+
+
+
+psizero=np.zeros((ndim,ndim),dtype=complex)
 for i in range (0,ndim):
     for j in range (0,ndim):
         x=dx*i
         y=dx*j
-        psizero[i,j]=psi0(x,y)
-        densoprob[i,j]=abs(psizero[i,j])**2   
-
-#Bmatrix
-Bmatrix=np.zeros((ndim,ndim),dtype=complex)
-for i in range(0,ndim):
-    for j in range(0,ndim):
-        if i==j:
-            x=i*dx
-            y=j*dx
-            Bmatrix[i,j]=1.+4.*r-1j*dt*V(x,y)/(2.*hbar)
-        if i==j+1 or i+1==j:
-            Bmatrix[i,j]=-r    
+        psizero[i,j]=psi_ini(x,y) 
 
 
-'Evolve through time and calculate the probability and '
-ntime=100
+prob0=Probability(psizero,ndim)
 
-norm=np.array([])
-#det=np.linalg.det(psizero)
-#norm=np.append(norm,(abs(det))**2)
+psi=Crank_Nicolson(Vosc,psi_ini,ntime,ndim,dx,dt,hbar=1.,m=1.)
+prob=Probability(psi,ndim)
 
-for k in range (0,ntime):
-    steppsi=Crank_step(psizero,Bmatrix,V,ndim,dx=0.1,dt=0.15,hbar=1.,m=1.)
-    
-    #Change the old for the new data while writing in doc
-    for i in range (0,ndim):
-        for j in range (0,ndim):
-            psizero[i,j]=steppsi[i,j]
-            densoprob[i,j]=abs(psizero[i,j])**2
-            
-#            doc.write(str(densoprob[i,j])+'\t')
- #       doc.write('\n')
-    #det=np.linalg.det(steppsi)
-   # norm=np.append(norm,(abs(det))**2)
- 
- #   doc.write('\n')
- #   doc.write('\n')
-    
-    
+   
 #plt.title('t=0')
+
+pot=np.zeros((ndim,ndim),dtype=float)
+for i in range (0,ndim):
+    for j in range (0,ndim):
+        x=dx*i
+        y=dx*j
+        pot[i,j]=Vosc(x,y) 
+
+
+plt.figure()
+
+plt.subplot(1,3,1)
+plt.title('Pot')
+plt.imshow(pot,cmap="plasma")
+
+plt.subplot(1,3,2)
+plt.title('t=0')
+plt.axis('off')
+plt.imshow(prob0,cmap="plasma")
+
+plt.subplot(1,3,3)
+plt.title('t=10')
+plt.axis('off')
+plt.imshow(prob,cmap="plasma")
+
+#plt.legend(('EC','EP','EM'),loc='best')
+#plt.subplot(2,2,1)
+#plt.plot(t,a[:,0])
+#plt.xlabel('t')
+#plt.ylabel('x')
+#plt.subplot(2,2,4)
+#plt.xlabel('x')
+#plt.ylabel('y')
+
+
 #plt.pcolor(densoprob)
