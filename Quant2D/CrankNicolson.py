@@ -53,12 +53,13 @@ def CrankNicolson (dx,dt,ndim,ntime,r,V,psi):
                 B[i,j]=r
     
     norma=[]
-    for t in range(0,ntime+1):
+    print(Norm(Probability(psi,ndim),ndim,dx), 0)
+    for t in range(0,ntime):
         
         psi=CrankStep(dx,dt,ndim,r,V,psi,A1,A3,B)
         
         prob=Probability(psi,ndim)
-        print(Norm(prob,ndim,dx), t)
+        print(Norm(prob,ndim,dx), t+1)
         norma=np.append(norma,Norm(prob,ndim,dx))
     
     return psi,norma
@@ -116,37 +117,55 @@ def CrankStep (dx,dt,ndim,r,V,psi,Asup,Ainf,Bmatrix):
 #POTENTIAL
 def Pot(x,y):
     k=1.
-    x0=ndim*dx/2.
-    return 0.5*k*((x-x0)**2+(y-x0)**2)
+    #x0=ndim*dx/2.
+    return 0.5*k*((x-2.5)**2+(y-2.5)**2)
 
 #INITIAL FUNCTION
         #x->a
         #y->b
-def EigenOsci(x,y,a,b):
+def EigenOsci(x,y):
     k=1.
     m=1.
+    
+    a=1
+    b=1
+    
     w=np.sqrt(k/m)
     zetx=np.sqrt(m*w/hbar)*(x-2.5)
     zety=np.sqrt(m*w/hbar)*(y-2.5)
     Hx=ss.eval_hermite(a,zetx)
     Hy=ss.eval_hermite(b,zety)
-    c_ab=(2**(a+b)*np.math.factorial(a)*np.math.factorial(b)*np.pi)**(-0.5)
-    return c_ab*np.exp(-0.5*(zetx**2+zety**2))*Hx*Hy
+    c_ab=(2**(a+b)*np.math.factorial(a)*np.math.factorial(b))**(-0.5)
+    cte=(m*w/(np.pi*hbar))**0.5
+    return c_ab*cte*np.exp(-(zetx**2+zety**2)/2)*Hx*Hy
 
-def Coherent(x,y,x0,y0):
+def Coherent(x,y):
+            #x0,y0 descentering 
     k=1.
     m=1.
     w=np.sqrt(k/m)
     
-#    a=b=0.
-    xx=x-x0
-    yy=y-y0
+    x0=0.
+    y0=0.
+    
+    xx=np.sqrt(m*w/hbar)*(x-2.5+x0)
+    yy=np.sqrt(m*w/hbar)*(y-2.5+y0)
     
     c=(m*w/(np.pi*hbar))**0.5
-    e1=1.
+    e1=1.  #np.exp(-(a**2+b**2)/2)
     e2=1.  #np.exp(np.sqrt(2*m*w/hbar)*(a*xx+b*yy))
-    e3=np.exp(-0.5*(m*w/hbar)*(xx**2+yy**2))
-    return c**2*e1*e2*e3
+    e3=np.exp(-(xx**2+yy**2)/2)
+    return c*e1*e2*e3
+
+#INITIAL PSI
+def Psizero(F,ndim):
+    psi0=np.zeros((ndim,ndim),dtype=complex)
+    for i in range (0,ndim):
+        for j in range (0,ndim):
+            x=dx*i
+            y=dx*j
+            psi0[i,j]=F(x,y)
+    return psi0
 
 #PROBABILITY
 def Probability(f,n):
@@ -178,17 +197,13 @@ def Norm(probab,dim,pas):
 
 
 #FIGURE SHOWING POTENTIAL, NORM EVOLUTION AND INTIAL+FINAL PROBABILITY
-def fig(Fu0,V,ndim,ntime,a,b):
+def fig(Fu0,V,ndim,ntime):
+    "Take and show first and last step of time, potential and norm evolution"
         #Potential matrix
     po=Potential_matrix(V,ndim)
         
         #Initial psi
-    psi0=np.zeros((ndim,ndim),dtype=complex)
-    for i in range (0,ndim):
-        for j in range (0,ndim):
-            x=dx*i
-            y=dx*j
-            psi0[i,j]=Fu0(x,y,a,b)
+    psi0=Psizero(Fu0,ndim)
     Ppsi0=Probability(psi0,ndim)
     
         #Final psi
@@ -206,16 +221,16 @@ def fig(Fu0,V,ndim,ntime,a,b):
             #Potential (colormap)
     plt.subplot(2,2,1)
     plt.title('Potential')
-    plt.imshow(po,cmap="plasma")
+    plt.imshow(po,cmap="viridis")
             #Initial psi
     plt.subplot(2,2,2)
     plt.title('Initial')
-    plt.imshow(Ppsi0,cmap="plasma")
+    plt.imshow(Ppsi0,cmap="viridis")
     plt.axis('off')
             #Final psi
     plt.subplot(2,2,4)
     plt.title('Final')
-    plt.imshow(Ppsi,cmap="plasma")
+    plt.imshow(Ppsi,cmap="viridis")
     plt.axis('off')
             #Norm evolution
     plt.subplot(2,2,3)
@@ -227,18 +242,15 @@ def fig(Fu0,V,ndim,ntime,a,b):
 
 
 #GIF OF TIME EVOLUTION
-def anim(Fu0,V,ndim,ntime,a,b):
+def anim(Fu0,V,ndim,ntime):
+    "Crank Nicolson and generating an animation"
     
     fig = plt.figure()
     
     #Initial Psi
-    psi=np.zeros((ndim,ndim),dtype=complex)
-    for i in range (0,ndim):
-        for j in range (0,ndim):
-            x=dx*i
-            y=dx*j
-            psi[i,j]=Fu0(x,y,a,b)
+    psi=Psizero(Fu0,ndim)
     print(Norm(Probability(psi,ndim),ndim,dx))
+    
     #A sup and inf diagonals
     A1=np.full(ndim,-r,dtype=complex)
     A3=np.full(ndim,-r,dtype=complex)
@@ -265,7 +277,7 @@ def anim(Fu0,V,ndim,ntime,a,b):
     
     ani=animation.ArtistAnimation(fig,ims,interval=50,blit=True,repeat_delay=500)
     print(Norm(Probability(psi,ndim),ndim,dx))
-#    ani.save('TEvol.gif')
+    ani.save('TEvol.gif')
     ani.show()
     return
     
@@ -282,8 +294,8 @@ hbar=1.
 r=1j*dt/(4.*m*dx**2)
 
 
-f=fig(EigenOsci,Pot,ndim=100,ntime=100,a=0,b=0)
-#an=anim(EigenOsci,Pot,ndim,ntime=100,a=0,b=0)
+f=fig(EigenOsci,Pot,ndim=100,ntime=100)
+#an=anim(EigenOsci,Pot,ndim,ntime=100)
 
-#f=fig(Coherent,Pot,ndim=100,ntime=100,a=1.,b=2.5)
-#an=anim(Coherent,Pot,ndim,ntime=200,a=2.,b=2.5)
+#f=fig(Coherent,Pot,ndim=100,ntime=100)
+#an=anim(Coherent,Pot,ndim,ntime=200)
