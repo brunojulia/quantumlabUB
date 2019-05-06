@@ -1,0 +1,210 @@
+
+
+<main>:
+	orientation: 'horizontal'
+
+	param0: param0_slider.value
+	param1: param1_slider.value
+	param2: param2_slider.value
+	param3: param3_slider.value
+	
+	mass: mass_slider.value
+	x0: x0_slider.value
+	y0: y0_slider.value
+	vx0: vx0_slider.value
+	vy0: vy0_slider.value
+
+	plotbox: plot_box
+
+
+	BoxLayout:
+		id: plot_box
+		size_hint: (1, 1)
+	BoxLayout:
+		orientation: 'vertical'
+		size_hint: (0.25, 1)
+		BoxLayout:
+			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Button:
+				text: 'Play'
+			Button:
+				text: 'Pause'
+			Button:
+				text: '1x'
+		BoxLayout:
+			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Button:
+				text: 'Compute'
+				on_press: root.compute()
+			Button:
+				text: 'Reset'
+		TabbedPanel:
+			size_hint: (1, 1)
+			do_default_tab: False
+			TabbedPanelItem:
+				text: 'Potentials'
+				BoxLayout:
+					size_hint: (1, 1)
+					orientation: 'vertical'
+					ListView:
+						id: pot_list
+						item_strings: root.potentials
+						size_hint: (1, 1)
+					BoxLayout:
+						orientation: 'horizontal'
+						size_hint: (1, 0.1)
+						Button:
+							text: 'Add'
+							on_press: root.add_pot_list()
+						Button:
+							text: 'Reset'
+							on_press: root.reset_pot_list()
+					BoxLayout:
+						orientation: 'vertical'
+						size_hint: (1, 1)
+
+						BoxLayout:
+							orientation: 'horizontal'
+							Label:
+								text: 'x0'
+								size_hint: (0.2, 1)
+							Label:
+								text: str(param0_slider.value)
+								size_hint: (0.2, 1)
+							Slider:
+								id: param0_slider
+								size_hint: (1, 1)
+								min: -100
+								max: 100
+								step: 1
+						BoxLayout:
+							orientation: 'horizontal'
+							Label:
+								text: 'y0'
+								size_hint: (0.2, 1)
+							Label:
+								text: str(param1_slider.value)
+								size_hint: (0.2, 1)
+							Slider:
+								id: param1_slider
+								size_hint: (1, 1)
+								min: -100
+								max: 100
+								step: 1
+						BoxLayout:
+							orientation: 'horizontal'
+							Label:
+								text: 'V0'
+								size_hint: (0.2, 1)
+							Label:
+								text: str(param2_slider.value)
+								size_hint: (0.2, 1)
+							Slider:
+								id: param2_slider
+								size_hint: (1, 1)
+								min: -100
+								max: 100
+								step: 1
+						BoxLayout:
+							orientation: 'horizontal'
+							Label:
+								text: 'Sigma'
+								size_hint: (0.2, 1)
+							Label:
+								text: str(param3_slider.value)
+								size_hint: (0.2, 1)
+							Slider:
+								id: param3_slider
+								size_hint: (1, 1)
+								min: 0
+								max: 20
+								step: 0.1
+			TabbedPanelItem:
+				text: 'Particles'
+				BoxLayout:
+					size_hint: (1, 1)
+					orientation: 'vertical'
+					ListView:
+						id: part_list
+						item_strings: root.particlestrings
+						size_hint: (1, 1)
+					BoxLayout:
+						orientation: 'horizontal'
+						size_hint: (1, 0.1)
+						Button:
+							text: 'Add'
+							on_press: root.add_particle_list()
+						Button:
+							text: 'Reset'
+							on_press: root.reset_particle_list()
+					BoxLayout:
+						orientation: 'vertical'
+						size_hint: (1, 1)
+
+						BoxLayout:
+							orientation: 'horizontal'
+							Label:
+								text: 'm'
+							Label:
+								text: str(mass_slider.value)
+								size_hint: (0.2, 1)
+							Slider:
+								id: mass_slider
+								size_hint: (1, 1)
+								min: 1
+								max: 10
+								step: 0.5
+						BoxLayout:
+							orientation: 'horizontal'
+							Label:
+								text: 'x0'
+							Label:
+								text: str(x0_slider.value)
+								size_hint: (0.2, 1)
+							Slider:
+								id: x0_slider
+								size_hint: (1, 1)
+								min: -100
+								max: 100
+								step: 1
+						BoxLayout:
+							orientation: 'horizontal'
+							Label:
+								text: 'y0'
+							Label:
+								text: str(y0_slider.value)
+								size_hint: (0.2, 1)
+							Slider:
+								id: y0_slider
+								size_hint: (1, 1)
+								min: -100
+								max: 100
+								step: 1
+						BoxLayout:
+							orientation: 'horizontal'
+							Label:
+								text: 'vx0'
+							Label:
+								text: str(vx0_slider.value)
+								size_hint: (0.2, 1)
+							Slider:
+								id: vx0_slider
+								size_hint: (1, 1)
+								min: -10
+								max: 10
+								step: 0.1
+						BoxLayout:
+							orientation: 'horizontal'
+							Label:
+								text: 'vy0'
+							Label:
+								text: str(vy0_slider.value)
+								size_hint: (0.2, 1)
+							Slider:
+								id: vy0_slider
+								size_hint: (1, 1)
+								min: -10
+								max: 10
+								step: 0.1
