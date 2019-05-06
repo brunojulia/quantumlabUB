@@ -1,0 +1,273 @@
+\documentclass{article}
+
+\usepackage{amsmath}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{geometry} % Required for adjusting page dimensions and margins
+\usepackage{float}
+
+\title{Quantic Measures Diary}
+\author{Manu Canals}
+\date{2019}
+
+\geometry{
+	paper=a4paper, % Paper size, change to letterpaper for US letter size
+	top=2.5cm, % Top margin
+	bottom=3cm, % Bottom margin
+	left=2.5cm, % Left margin
+	right=2.5cm, % Right margin
+	headheight=14pt, % Header height
+	footskip=1.5cm, % Space from the bottom margin to the baseline of the footer
+	headsep=1.2cm, % Space from the top margin to the baseline of the header
+	%showframe, % Uncomment to show how the type block is set on the page
+}
+
+\begin{document}
+%Inclou trossos de codi d'algunes comprovacions a la que es fa referencia.
+
+\maketitle
+
+\section*{\underline{Week 1Apr - 8Apr}}
+\begin{itemize}
+
+\item \textbf{UNITS.} In order for the used values to be of an acceptable order, $10^{-1} \sim 10^2$, the factor $m \equiv mass / \hbar^2$ in Schrödinger's equation has to be of this very same order. To do so, the units of the different magnitudes are the following:
+\begin{table}[H]
+	\centering
+	\begin{tabular}{c c} 
+		Energy & eV\\
+		Time & fs\\
+		(factor) m & \( eV^{-1}\)\AA\(^{-2} \)  \\
+		Length & \AA \\
+		Wave Function & \AA$^{-\frac{1}{2}}$
+	\end{tabular}
+	\captionsetup{justification = centering, width = .8\textwidth}
+	\caption{Units of the different magnitudes. Wave function's units have been introduced later, so it appears wrongly in some of the following points.}
+\end{table}
+
+\item \textbf{Eigenparam.} Checking (passed) if the sum of every component squared of the evects given by the eigh function is 1 (used in trapezoids formula when integrating).
+
+\item \textbf{Eigenparam} Checking if the eigenvalues and vectors are actually solution of the time independent Schrödinger's equation (used as an example an electron in a harmonic potential added up to a gaussian one). See figure \ref{fig:checkTISE}.
+
+%#Checking if pvect and pvals are solutions for the Schröringer eq.
+%#*Need to redifine eigenparam so it returns H*
+%x = np.linspace(a, b, N+1)
+%plt.xlabel('x [\AA]')
+%plt.ylabel('HP - EP [eV·$(\AA*fs)^{-1/2}$]')
+%plt.title('Comprovació de l\'eq. d\'Schrö. ind. del temps: HP = EP \n (total evect = 100)', pad = 20)
+%for v in range(0, N+1, 30):
+%HP = H.dot(pvect[:,v])
+%EP = pvals[v]*pvect[:,v]
+%print(v)
+%plt.plot(x, HP-EP, label='evect{}'.format(v))
+%plt.legend()
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\textwidth]{Images/comprovarSCHRO.png}
+	\captionsetup{justification = centering, 
+		width = 0.9\textwidth}
+	\caption{When looking at the difference we see that the results from eigh are solution of the TISE, since the difference shown here is of the order $10^{-13}$, negligible (machine precision).}
+	\label{fig:checkTISE}
+\end{figure}
+
+\item \textbf{Comp.} With this subroutine we get the components of the given vector in a given basis. To check if it actually does, we sum up the linear combination of the components with the basis vector and check if get the original vector back.
+
+%#Check if we sum all the components gives back the original vector
+%psicheck = [sum(c*v for c,v in zip(psicomp, pvect[i,:])) for i in range(0,N+1)]
+%plt.title('Comparació $\Psi$ original i sumada (gaussiana)')
+%plt.xlabel('x (\AA)')
+%plt.ylabel('$\Psi \ \ (\AA^{-1/2}·fs^{-1/2})$')
+%plt.plot(mesh, psi + 0.1)
+%plt.plot(mesh, psicheck)
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}{.4\textwidth}
+		\centering
+		\includegraphics[width =1 \textwidth ]{Images/compararcompGAUSS.png}
+	\end{subfigure}
+	\begin{subfigure}{.4\textwidth}
+		\centering
+		\includegraphics[width =1\textwidth ]{Images/compararcompGAUSS_L.png}
+	\end{subfigure}
+	\begin{subfigure}{.4\textwidth}
+		\centering
+		\includegraphics[width =1\textwidth ]{Images/compararcompGAUSS_R.png}
+	\end{subfigure}
+	\begin{subfigure}{.4\textwidth}
+		\centering
+		\includegraphics[width =1\textwidth ]{Images/compararcompTRING.png}
+\end{subfigure}
+	\captionsetup{justification = centering, width = \textwidth}
+	\caption{Original wave function (blue) and the summed up (orange). The original has been moved +0.1 units (those of psi's).}
+	\label{fig:comp}
+\end{figure}
+
+\item \textbf{Evect evolution.} Defining  the vector to evolve as one of the eigenvectors (evect), we can check how there's \textbf{no} evolution.
+
+\item \textbf{Wave function's units.} Since they have to be normalized, the integration in one spatial dimension has to be dimensionless.
+
+
+
+\item  \textbf{Dimensions.} On of the first obstacle appears when evolving the wave function. Sometimes it gets to feel the influence of the walls (illustrated in figure \ref{fig:influparet}). If it happens or not depends on the energy of the wave function (the expected value rather) and the potential of the problem. We want to avoid this influence since the walls \textit{shouldn't be there}, they exist only for making the discretization possible.\\
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[font=tiny]{.2\textwidth}
+		\centering
+		\includegraphics[width =1 \textwidth ]{Images/paret1.png}
+		\caption{Frame \#4}
+	\end{subfigure}
+	\begin{subfigure}[font=tiny]{.2\textwidth}
+		\centering
+		\includegraphics[width =1\textwidth ]{Images/paret2.png}
+		\caption{Frame \#6}
+	\end{subfigure}
+	\begin{subfigure}[font=tiny]{.2\textwidth}
+		\centering
+		\includegraphics[width =1\textwidth ]{Images/paret3.png}
+		\caption{Frame \#8}
+	\end{subfigure}
+	\begin{subfigure}[font=tiny]{.2\textwidth}
+		\centering
+		\includegraphics[width =1\textwidth ]{Images/paret4.png}
+		\caption{Frame \#10}
+	\end{subfigure}
+	\captionsetup{justification = centering, width = .8\textwidth}
+	\caption{Wall's influence when the main structure of the wave approaches the borders (labels omitted for illustration, they are the same as in figure \ref{fig:comp})}
+	\label{fig:influparet}
+\end{figure}
+
+To avoid this, we need to keep the structure from getting to the borders. Once the potential (\textbf{arbitrary} choice) and the initial wave function are fixed we could study the classical returning points. By doing this we could then choose where to put the walls to avoid the influence. This could be also seen as fixing the walls (order of magnitude of the $x$) and restraining the $\left\langle E \right\rangle$ and potential values, keeping the returning points centered.\\
+
+Since we will be interested in changing the initial wave function and potentials, we shall \textbf{fix the positions of the walls: a and b}:
+
+\begin{center}
+	\fbox{\begin{minipage}{15em}
+			\begin{center}
+				$a = -10$\AA\ ; \  $b = +10$\AA  
+			\end{center}
+	\end{minipage}}
+\end{center}
+
+Now we need to find the N we are going to use. The criteria here will be the quality image (and maybe the computing time in the eigenparam function) \footnote{Something really weird happens when plotting some evect each time with more and more N, with points '.' or pixels ',' and no lines.}. See figure \ref{fig:curiosLISSAJ}.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.7\textwidth]{Images/curiosLISSAJOUS.png}
+	\captionsetup{justification = centering, 
+		width = 0.9\textwidth}
+	\caption{One of the eigenvectors (number 750) when using a discretization of N = 3000 intervals. Plotted with pixels. If you use lines, instead of connecting the two closer points and drawing this image we see here, as we should expect since using a lot of points with pixels should draw the same line used when plotting with lines, it draws a super dens sinusoidal wave. I think it's caused due to plotting complex function on to real values. But we shall not exploit more this fact since it is more a curiosity than a problem.}
+	\label{fig:curiosLISSAJ}
+\end{figure}
+
+This study with pixels is actually pointless right now (although we will leave it here) since we need first to define the image we are going to plot (this is the wave function as well as the potential). To do so we have to find a way to keep the returning points centered (not too centered because the wave will then not be able to move). This we can do by restraining the parameters related to $\left\langle E \right\rangle$ like momentum and sigma. The different potentials we will use (if we use any different potential shapes) must have similar values, in order to maintain the conditions on the $\left\langle E \right\rangle$'s parameters constants.
+\end{itemize}
+
+\section*{\underline{Week 8Apr - 15Apr}}
+\begin{itemize}
+	\item \textbf{Beginning with KIVY.} Although we ended last week talking about conditions on the problem's walls, potentials and wave functions, we are going now to move everything we did to a 'kivywise' kind of code. This is done now because we don't want to lose sight on the main goal here, making an app. Furthermore,  kivy's syntax is most likely to force us to define our functions and general code structure (as we shall see next) in a certain way. Its better to at least have the wide view, even though we might jump some steps, in order to build everything properly and not having to change it later when moving it to kivy. Let's study then how kivy works. \\
+	So far, this is what we can tell about kivy's structure. \textbf{Two files are needed}: one with python code (name.py) and the other with kivy code (name.kv). Its very important that these two, \textbf{they have the same name and must be in the same folder}, this makes it easier to connect the two of them when executing. The first one will contain all the function's and classes (we will specify it later how to put them together later). Here we write everything that \textit{does} stuff: computing evolution, eigenparam, components, plotting, animating\dots In the second one (kivy file) you build the structure of the app in the sense of making the interface: placing everything in the screen, making buttons, sliders \dots tools for the user. The python file will then use the information obtained by the app (contained in the kivy file) to run the functions and the \textit{computing engines} in general. This button and sliders' variables in the kivy file \textbf{also exist in the python file}! \\
+	Let's dive more into the python file structure. The use of classes is essential here. Two main classes will be defined: a first one with all the computing tools, and a second one with only one function definition inside: the function, named 'build', will only need to return the first class (\textit{1st\_class\_name()}). The first class has to inherit from some specific Kivy class, imported like a module. Which class depends on how you want to use the tools inside. In this case its going to by a BoxLayout since we want to put our tools, like plots or buttons, in different \textit{boxes} in the screen (specific places with certain  size, position, color\dots). The name of the second class has to be \textit{1st\_class\_name\_App}, the App part is the key here\footnote{I'm not completly sure about what names have to match each other in order to make the app work. What I'm explaining here is what works for me and what I learned when beginning with Kivy. It's the first picture of kivy's syntax I got clear.}. At the end of the file the second class will be executed by \textit{nameApp().run()}. \\
+	Moving now to the kivy file, the name of the first class has to appear like this: \textit{$<$1st\_class\_name$>$}. Below it, using indentation\footnote{Identation used always when defining something inside an object, like a button, a box, a grid, etc.}, we introduce all the elements of the app. Each element can have an id and the properties of the element can be used and changed in the python file using its \textit{name of functions used like name.func (can't remember the name right now)}. So if we want to now the value of some slider we'll do: \textit{slider\_id.value()}.\\
+	This is the general structure of any Kivy app. Now we want to animate a plot\footnote{See next point for the plotting object.}. This we will do by first assigning the canvas to some box with \textit{box\_id.add\_widget(canvas\_name)}. Then using the module Clock from Kivy, the function \textit{Clock.schedule\_interval(function, interval)} calls the function after the 'interval' time has passed (in seconds). This two lines, along with several definitions and starting computations, will be written inside the function \textit{\_\_init\_\_}, which is executed when calling the class (since its returned by the second main class, which again is executed when the file is, the class will be called when the file is executed).
+	In our case, the called function in the loop is the plot of $\psi (t)$. So the function will compute the value of $\psi (t)$ and drawing it. To do the first, the already written functions like eigenparam and comp will have to be executed before starting the loop, or every time the potential changes (for both functions) or the initial wave function changes (this only affect the comp function). Drawing is explained in the next point.
+	
+	\item \textbf{Drawing in Kivy.} We will do it the following way\footnote{Following these steps while looking at the code make it easier to see how everything is written.}:
+	\begin{enumerate}
+		\item Importing \textit{Figure} from \textit{matplotlib.figure}. This is the object of the whole plot (we can call it canvas too I think).
+		\item Creating a figure with \textit{fig\_name = Figure()} 
+		\item Since we will plot the potential and the wave function we generate twins (subplots) inside the figure.
+		\item To pass the canvas to Kivy app we have to create an especial object importing it from Kivy (\textit{FigureCanvasKivyAgg})
+		\item Setting everything ready (axes, labels, range, \dots). The plot's data is going to be updated to plot\_data, obejct.
+		\item When the canvas is ready (or whenever, may work too), we assaign it to the box with \textit{add\_widget} as we said before.
+		\item The only thing left to do is updating the data inside the plotting function in the loop and drawing.
+	\end{enumerate}
+
+	\item \textbf{Actual writting.} All this structure is set in the files with a lot of comments. The next step will be only to introduce the functions and start putting widgets/elements into our app.
+
+\end{itemize}
+\section*{\underline{Week(s) 15Apr - 22Apr \& 22Apr - 29Apr}}
+\begin{itemize}
+	\item \textbf{Easter holidays.} No meetings these weeks.
+\end{itemize}
+\section*{\underline{Week 29Apr - 6May}}
+
+\begin{itemize}
+	
+	\item  \textbf{Adapt functions.} Since we are using classes, to enter the functions from eigenparam in the main class we will make them with no arguments and passing only self (most of the time).
+	\item \textbf{Sequential function argument.} The loop function has to have a parameter dt but \textbf{it is not the real time}, it's only the real interval time. To get the real time we are now using \textit{Clock.get\_time()}.
+	\item \textbf{Computing time evolution.} We have to use the following expression. We will you use two steps to compute it.
+	\[
+	\begin{gathered}
+	Basis: \{\varphi_n (n); n = 1, \dots, N + 1 \}\\
+	Initial\ wave\ function: \psi(x,0)=\sum_{n=1}^{N+1}c_n\varphi_n(x)\\
+	\psi(x,t) = \sum_{n=1}^{N+1} c_n \varphi_n (x)e^{-\frac{iE_nt}{\hbar}}\\
+	\end{gathered}
+	\]
+	We can get this combination with the matrix product:
+	\[
+	\begin{pmatrix}
+	\varphi_1^1& \dots & \varphi_i^1 & \dots &  \varphi_{N+1}^1 \\
+	\vdots &  & \vdots & & \vdots \\
+	\varphi_1^j & \dots &\varphi_i^j& \dots & \varphi_{N+1}^j \\
+	\vdots &  & \vdots & & \vdots \\
+	\varphi_1^{N+1} &\dots &\varphi_i^{N+1}& \dots & \varphi_{N+1}^{N+1} \\
+	\end{pmatrix}
+	\begin{pmatrix}
+	c_1 e^{-\frac{iE_1t}{\hbar}}\\
+	\vdots\\
+	c_i e^{-\frac{iE_it}{\hbar}}\\
+	\vdots\\
+	c_{N + 1} e^{-\frac{iE_{N + 1}t}{\hbar}}\\
+	\end{pmatrix}
+	=
+	\begin{pmatrix}
+	\psi^1(x,t)\\
+	\vdots\\
+	\psi^i(x,t)\\
+	\vdots\\
+	\psi^{N + 1}(x,t)\\
+	\end{pmatrix}
+	= \psi(x,t)
+	\]
+	The first matrix is the one we get from eigenparam, \textit{evect}, so we only need to build the second one and then doing the product.
+	\begin{itemize}
+		\item \textbf{Time evolution matrix:} when measuring, from the three factors in the time evolution expression, only the components change. So building a matrix with the exponential factor and the eigenvectors, and then a component vector, the time evolution would become much easier: just multipling the matrix with the components, regardless if measures are made, we will not have to build any matrix (components come from \textit{comp}). To do so we have to find a way of building this first matrix considering the parameter time has to go inside, \textbf{without having to build the matrix itself again} (transposing and all, just giving the time value). Defining a function with parameter time to build this matrix would be pointless since we are going to call this function inside the loop and the point is to have the matrix ready before the loop starts, in order to make the computation easier \footnote{This is just a thought, maybe it's not that important (timewise) to build this matrix (transpose and all perhaps doesn't take that much time to do).}.
+	\end{itemize}
+
+	\item \textbf{Evolution test.} Given an eigenvector it doesn't evolve, as expected. The norm has been checked too: it remains constant \textbf{but} the value isn't exactly 1, it depends on the N number. Using $N = 100$ precision reaches $10^{-4}$ and using $N = 1000$ then goes to $10^{-6}$. This value \textbf{remains constant} all the way down to $10^{-12}$, the weird thing here is only the value. Actually, it also depends on the initial wave function shape, and this at the same time depends on the potential shape. If the wave gets closer to the edges the precision will be worse.
+
+	\item \textbf{Random pick.} When measuring and picking the new (mean) position  value we can use \textit{np . random . choice ( mesh , p = [ prob ] )}. Selects a random point from the mesh with probabilty distribution given by p. There's no need to multiply it by deltax, given that the probabilty will remain proportional anyway. One thing we do have to take care of is that the actual sum has to equal 1 (it's needed for the numpy subroutine). If we had multiplied the probabilty by deltax it would have sum up to one, but not all of the times. The subroutine needs a high precision in this result and as we have seen before, the norm of the wave function not always has the best precision. Lucky, we have decided not to multiply it by deltax, and balancing this and fixing the precision problem has the same  solution: multiplying the probability array by a constant. This constant is the actual sum value.
+	
+	\item \textbf{Resetting after measure.} \textit{Clock . get \_ time ( )} gets the total time of plotting and we need the time from the beggining of the time evolution, that is, after measuring. To do that we substract certain value called \textit{rst\_time}, the time when we reset the time count. When measuring or in general whenever we have to start from zero the time evolution we set this variable to the current time, \textit{Clock . get \_ time ( )}.
+	
+	\item \textbf{Wave function object.} The psiev and psi0 arrays are going to be, from now on (we are establishing it here), \textbf{row vectors} and \textbf{not} column vectors.
+	\[
+	\begin{gathered}
+	\textbf{This...}\\
+	self.psi0 = np.zeros(self.N + 1)\\
+	self.psiev = np.zeros(self.N + 1)\\
+	\begin{pmatrix}
+	1 & 2 & 3 & \dots
+	\end{pmatrix}\\
+	\textbf{not\  this...}\\
+	self.psi0 = np.zeros(self.N + 1, 1)\\
+	self.psiev = np.zeros(self.N + 1, 1)\\
+	\begin{pmatrix}
+	1\\
+	2\\
+	3\\
+	\vdots\\
+	\end{pmatrix}
+	\end{gathered}
+	\]
+	
+	\item \textbf{ $\left\langle E \right\rangle$ remains constant between measures.} We have computed  $\left\langle E \right\rangle$ for each frame and we could check it remains constant. We have done this by changing \textit{comp()} so if  \textit{True} is passed (this is actually a kwarg that defaults to \textit{do\_psi = False}) computes the components of the actual \textit{psiev} and stores the results in the variable \textit{compev}.
+
+\end{itemize}
+
+
+
+\end{document}

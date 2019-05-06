@@ -28,7 +28,7 @@ def poten(x):
 def eigenparam(a, b, N, m, poten):
     """
     Returns a vector with the eigenvalues(eV) and another with the eigenvectors
-    ((Aº·fs)**-1/2) of the quantum hamiltonian with potential [poten(eV)] (each
+    ((Aº)**-1/2) of the quantum hamiltonian with potential [poten(eV)] (each
     columns is an eigenvector with [N] components). 
     It solves the 1D time-independent Schrödinger equation for the given 
     
@@ -84,19 +84,23 @@ def norm(vector, dx):
 #First run of eigenparam (results used later)
 a = -10.  #Aº
 b= 10.    #Aº
-m = 0.13 #For an electron (eV·Aº**2)**-1/2
-N = 100
+m = 0.1316 #For an electron (eV·Aº**2)**-1/2
+N = 200
 dx = (b-a)/float(N)
 #Mesh for all the plots (includes the boundaries)
 mesh = np.linspace(a, b, N+1)
 
 pvals, pvect = eigenparam(a, b, N, m, poten)
+#plt.axes(xlabel = '$x (\AA)$', ylabel = '$Re(\Psi)\   (\AA^{-1/2} fs^{-1/2})$')
+#plt.title('Vector propi #{} amb N = {} \n (representat amb pixels)'.
+#          format(int(N/4), N))
+#plt.plot(mesh, pvect[:,int(N/4)], ',')
 #%%
 
 #Projection of the given intial wave function onto the basis {evect}
 #Initial wave function
 
-def gpacket(points, sigma0):
+def gpacket(points, p0):
     """
     Generates a vector with the values of the initial wave function in the 
     given points(Aº) (psi0 dimension same as points), hera a gaussian packet.
@@ -105,8 +109,7 @@ def gpacket(points, sigma0):
     """
     #In this case psi0 is a gaussian packet 
     mu = points[int(len(points)*0.4)] 
-    #sigma0 = 0.8
-    p0 = 0 #momentum
+    sigma0 = 0.2
     
     wavef = np.sqrt((1./(np.sqrt(2*np.pi)*sigma0))*np.exp(-(points-mu)**2/
                      (2.*sigma0**2)))*np.exp(complex(0,-1)*p0*points)
@@ -115,7 +118,7 @@ def gpacket(points, sigma0):
 def psi0(points):
     """
     Generates a vector with the values of the initial wave function in the 
-    given points(Aº) (psi0 dimension same as points).
+    given points(Aº).
     Wave function introduced here explicitly.
     
     """
@@ -139,23 +142,42 @@ def comp(evect, psi, deltax):
         
     return np.array(compo)
 #%%
-sigma = []
+    
+#print(comp(pvect, pvect[:,5], dx))
+momentum = []
 angleE = []
-for s in np.arange(0.1, 1.5, 0.2):
-    psi = gpacket(mesh,s)
+for pp in np.arange(0., 5., 0.2):
+    psi = gpacket(mesh,pp)
     psicomp = comp(pvect, psi, (b-a)/float(N))
     expect_E = sum([p*np.abs(c)**2 for p,c in zip(pvals, psicomp)])
-    sigma.append(s)
+    momentum.append(pp)
     angleE.append(expect_E) 
+    print(pp, expect_E)
+#%%
     
-plt.title(r'$\left\langle E \right\rangle \ vs. \sigma $')
-plt.yscale('log')
-plt.ylabel(r'$\left\langle E \right\rangle \  (eV)$' )
-plt.xlabel(r'$\sigma \  (\AA)$')
-plt.plot(sigma, angleE) 
+   #print(comp(pvect, pvect[:,5], dx))
+momentum2 = []
+angleE2 = []
+for pp in np.arange(0., 5., 0.2):
+    psi = gpacket(mesh,pp)
+    psicomp = comp(pvect, psi, (b-a)/float(N))
+    expect_E = sum([p*np.abs(c)**2 for p,c in zip(pvals, psicomp)])
+    momentum2.append(pp)
+    angleE2.append(expect_E)
+    
+
+#%%
+plt.title(r'$\left\langle E \right\rangle \ vs. p $')
+#plt.yscale('log')
+plt.ylabel(r'$\left\langle E \right\rangle \  [eV]$' )
+plt.xlabel(r'$p \  [\frac{eV·fs}{\AA}]$')
+plt.plot(momentum, angleE)
+plt.plot(momentum2, angleE2)
+
+
 
   
-
+#May be a good criteria for truncated psi
 #print(expect_E)
 #plt.plot(mesh, [poten(point) for point in mesh])
 #plt.plot(mesh, [expect_E for i in mesh])
