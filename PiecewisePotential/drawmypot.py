@@ -1049,12 +1049,12 @@ lmode.set_visible(False)
 # Counts how many bricks you have.
 # 6*pieces for people to get creative.
 
-#def bricks(data):
-#    global pieces
-#    
-#    bricks0 = 10*pieces
-#    
-#    return bricks0-np.sum(data_to_Vk(data))
+def bricks(data):
+    global pieces
+    
+    bricks0 = 10*pieces
+    
+    return bricks0-np.sum(data_to_Vk(data))
 
 #axbrick = plt.axes([0.820, 0.62, 0.05, 0.0375])
 #bbrick = Button(axbrick, '', color='0.65', hovercolor='0.5')
