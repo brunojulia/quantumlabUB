@@ -21,14 +21,16 @@ It has 4 sections:
 The grid idea is taken from:
 https://stackoverflow.com/questions/52566969/python-mapping-a-2d-array-to-a-grid-with-pyplot
 
+The annotations are taken from:
+https://stackoverflow.com/questions/7908636/possible-to-make-labels-appear-when-hovering-over-a-point-in-matplotlib
 
-ball added
 """
 
 from matplotlib import pyplot as plt
 from matplotlib import colors
 from matplotlib.widgets import Button
 from matplotlib.ticker import FormatStrFormatter
+from matplotlib.patches import Ellipse
 import numpy as np
 import random
 
@@ -346,7 +348,7 @@ def psivect():
 #-------------------------------------------------------------------------
 
 # Function that draws it all before plotting
-def draw_wave(draw_level=1):
+def draw_wave():
     
     global data, cmap, ax, txt, bricks, \
     left_extrem, right_extrem, top_extrem, bottom_extrem, \
@@ -362,14 +364,16 @@ def draw_wave(draw_level=1):
 
     Vk=data_to_Vk(data)
     
-    if draw_level==1:
-        E=eigen_energies(1)[0]
-        level=1
-#        print(level)
-    elif draw_level>1 and draw_level<=N_root:
-        E=eigen_energies_list[draw_level-1]
-    else:
-        E=0
+    E=eigen_energies(level)[level-1]
+    
+#    if draw_level==1:
+#        E=eigen_energies(1)[0]
+#        level=1
+##        print(level)
+#    elif draw_level>1 and draw_level<=N_root:
+#        E=eigen_energies_list[draw_level-1]
+#    else:
+#        E=0
     psi_vect=psivect()
     
 #    color=['b-', 'g-', 'r-', 'c-', 'm-']
@@ -382,7 +386,7 @@ def draw_wave(draw_level=1):
         y = np.dot(10/4,psi_vect[ixk[2*k]:ixk[2*k+1]])
         ax.fill(np.append(x, [x[-1], x[0]]),
                 np.append(y, [0,0]),
-                color[k%len(color)], alpha=0.5)
+                color[k%len(color)], alpha=(0.5+0.12*(level-1)))
         ax.plot(x, y, color[k%len(color)])
         
         touched[k]=int(max(y)-0.5)
@@ -392,10 +396,10 @@ def draw_wave(draw_level=1):
     play_ball(touched)
     ball_the_data()
     
-    fig.suptitle(t = '$E_%.i$ = %.3f Eguay'%(draw_level,(E/Eguay)), x = 0.42, y = 0.97, color='r')
+    fig.suptitle(t = '$E %.i$ = %.3f $E_{ini}$'%(level,(E/Eguay)), x = 0.42, y = 0.97, color='r')
     ax.set_xticks([piece+0.5 for piece in range(pieces)])
     ax.set_xticklabels([piece+1 for piece in range(pieces)])
-    ax.yaxis.set_label_text('V (Eguay)')
+    ax.yaxis.set_label_text('V ($E_{ini}$)')
     ax.spines['top'].set_color(gridc)
     ax.spines['top'].set_linewidth(2*gridw)
     ax.pcolormesh(np.transpose(data[::-1]), cmap=cmap(data), edgecolors=gridc, linewidths=gridw)
@@ -411,7 +415,7 @@ def draw_wave(draw_level=1):
         score_txt = fig.text(0.82, 0.815, 'score = %d'%(score))#, transform=ax.transAxes)
     else:
         lives_txt.remove()    
-        lives_txt = fig.text(0.837, 0.865, '❤ '*lives)#, transform=ax.transAxes)
+        lives_txt = fig.text(0.82, 0.865, '<3 '*lives)#, transform=ax.transAxes)
         score_txt.remove()    
         score_txt = fig.text(0.82, 0.815, 'score = %d'%(score)*(int(lives/abs(lives))))#, transform=ax.transAxes)
         value_txt.remove()
@@ -503,8 +507,8 @@ def ClickColor(event):
     global data, cmap, X_hovered, Y_hovered, ax, txt, bricks, \
     left_extrem, right_extrem, top_extrem, bottom_extrem, \
     data_new, ax, x_vect, V_vect, Vk, ixk, psi_vect, E, \
-    lives, score, score_txt, lives_txt
-    
+    lives, score, score_txt, lives_txt,\
+    level
     
     # If the mouse is inside the grid
     if event.x < right_extrem and event.x > left_extrem and event.y < top_extrem and event.y > bottom_extrem: 
@@ -525,8 +529,15 @@ def ClickColor(event):
         if (Y+1)>(bricks(data)+data_to_Vk(data)[pieces-1-X]):
             Y=bricks(data)+data_to_Vk(data)[pieces-1-X]-1
         
-        # if V=1 you can delete the brick
-        if Y==0 and data_to_Vk(data)[pieces-1-X]==1:
+#        # if V=1 you can delete the brick
+#        if Y==0 and data_to_Vk(data)[pieces-1-X]==1:
+#            data[X][:Y+1]=0
+#        else:
+#            data[X][:Y+1]=2
+#        data[X][Y+1:]=0
+            
+        # if V=click you can delete the entire column
+        if Y+1==data_to_Vk(data)[pieces-1-X]:
             data[X][:Y+1]=0
         else:
             data[X][:Y+1]=2
@@ -542,7 +553,12 @@ def ClickColor(event):
 
 # only changes the color of the grid
 def HoverColor(event):
-    global data, cmap, X_hovered, Y_hovered, X_hovered, Y_hovered, ax, left_extrem, right_extrem, top_extrem, bottom_extrem, gridc, gridw
+    global data, cmap, X_hovered, Y_hovered, X_hovered, Y_hovered, \
+    ax, left_extrem, right_extrem, top_extrem, bottom_extrem,  \
+    gridc, gridw, \
+    binfo, axinfo, linfo, axmore, lmore, axless, lless, \
+    axnew, lnew, axmode, lmode, axup, lup, axdown, ldown, \
+    axgauss, lgauss, axstep, lstep, axwall, lwall
     
     # If the mouse is outside the grid
     if event.x > right_extrem or event.x < left_extrem or event.y > top_extrem or event.y < bottom_extrem: 
@@ -559,11 +575,97 @@ def HoverColor(event):
         ax.pcolormesh(np.transpose(data[::-1]), cmap=cmap(data), edgecolors=gridc, linewidths=gridw)
         event.canvas.draw()
         unball_the_data()  
+        
+        #Also label all buttons the mouse passes by
+        
+        if event.inaxes == axinfo:
+            if not linfo.get_visible():
+                linfo.set_visible(True)
+        else:
+            linfo.set_visible(False)
+        
+        if binfo.label.get_text()=='Instructions: on':
+    
+            if axmore.get_visible():
+                if event.inaxes == axmore:
+                    if not lmore.get_visible():
+                        lmore.set_visible(True)
+                else:
+                    lmore.set_visible(False)
+                    
+            if axless.get_visible():
+                if event.inaxes == axless:
+                    if not lless.get_visible():
+                        lless.set_visible(True)
+                else:
+                    lless.set_visible(False)
+                    
+            if axnew.get_visible():
+                if event.inaxes == axnew:
+                    if not lnew.get_visible():
+                        lnew.set_visible(True)
+                else:
+                    lnew.set_visible(False)
+                    
+            if axmode.get_visible():
+                if event.inaxes == axmode:
+                    if not lmode.get_visible():
+                        lmode.set_visible(True)
+                else:
+                    lmode.set_visible(False)
+                    
+            if axup.get_visible():
+                if event.inaxes == axup:
+                    if not lup.get_visible():
+                        lup.set_visible(True)
+                else:
+                    lup.set_visible(False)
+                    
+            if axdown.get_visible():
+                if event.inaxes == axdown:
+                    if not ldown.get_visible():
+                        ldown.set_visible(True)
+                else:
+                    ldown.set_visible(False)
+                    
+            if axgauss.get_visible():
+                if event.inaxes == axgauss:
+                    if not lgauss.get_visible():
+                        lgauss.set_visible(True)
+                else:
+                    lgauss.set_visible(False)
+                    
+            if axstep.get_visible():
+                if event.inaxes == axstep:
+                    if not lstep.get_visible():
+                        lstep.set_visible(True)
+                else:
+                    lstep.set_visible(False)
+                    
+            if axwall.get_visible():
+                if event.inaxes == axwall:
+                    if not lwall.get_visible():
+                        lwall.set_visible(True)
+                else:
+                    lwall.set_visible(False)
+        
+        
         return True
 
     # If the mouse is inside the grid
     elif isinstance(event.xdata, float) and isinstance(event.ydata, float):
 
+        linfo.set_visible(False)
+        lmore.set_visible(False)
+        lless.set_visible(False)
+        lnew.set_visible(False)
+        lmode.set_visible(False)
+        lup.set_visible(False)
+        ldown.set_visible(False)
+        lgauss.set_visible(False)
+        lstep.set_visible(False)
+        lwall.set_visible(False)
+        
         X=int(event.xdata-event.xdata%1)
         Y=int(event.ydata-event.ydata%1)
         X=(len(data)-1)-X
@@ -596,8 +698,7 @@ def HoverColor(event):
             
             
             return True
-    else:
-        return True
+    
 
 
 plt.subplots_adjust(left=axl,right=axr,top=axt, bottom=axb)
@@ -624,11 +725,77 @@ cid_resize = fig.canvas.mpl_connect('resize_event', ResizeExtrems)
 # From top to bottom
 #---------------------------------------------------------------------------
 
+# info botton
+# labels everything with an explanation
+
+def info(event):
+
+    global binfo, axinfo, linfo,\
+    ball_value
+    
+    linfo.set_visible(False)  
+    
+    ball_value+=1
+
+    if binfo.label.get_text()=='Instructions: on':
+
+        binfo.label.set_text('Instructions: off')
+        axinfo.spines['top'].set_color((0,0,0.5))
+        axinfo.spines['bottom'].set_color((0,0,0.5))
+        axinfo.spines['right'].set_color((0,0,0.5))
+        axinfo.spines['left'].set_color((0,0,0.5))
+        
+        linfo.set_text("Click to see\ninstructions\non labels")
+        linfo.set_visible(False) 
+        
+
+    elif binfo.label.get_text()=='Instructions: off':
+
+        binfo.label.set_text('Instructions: on')
+        axinfo.spines['top'].set_color((0,0,1))
+        axinfo.spines['bottom'].set_color((0,0,1))
+        axinfo.spines['right'].set_color((0,0,1))
+        axinfo.spines['left'].set_color((0,0,1))
+        
+        linfo.set_text("Click to stop\nseeing labels")
+        linfo.set_visible(False)    
+    
+    draw_wave()
+    event.canvas.draw()
+
+axinfo = plt.axes([0.78, 0.92, 0.19, 0.05])
+binfo = Button(axinfo, 'Instructions: on')
+binfo.on_clicked(info)
+axinfo.spines['top'].set_color((0,0,1))
+axinfo.spines['bottom'].set_color((0,0,1))
+axinfo.spines['right'].set_color((0,0,1))
+axinfo.spines['left'].set_color((0,0,1))
+
+el = Ellipse((2, -1), 0.5, 0.5)
+axinfo.add_patch(el)
+
+linfo = axinfo.annotate("Click to stop\nseeing labels", 
+                        xy=(0,0.5), xytext=(-80,-10),
+                        textcoords="offset points",
+                        size=10, va="center",
+                        bbox=dict(boxstyle="round", fc=(0.7, 0.7, 1), ec="none"),
+                        arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+                                        fc=(0.7, 0.7, 1), ec="none",
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+
+linfo.set_visible(False)
+
+#---------------------------------------------------------------------------
+
+
 # [ + ] button 
 # adds an piece up to max_pieces
 
 def more(event):
-    global data, data_new, ax, Vk, pieces, txt, bricks, xk, kk, phi, max_pieces
+    global level, data, data_new, ax, Vk, pieces, txt, bricks, xk, kk, phi, max_pieces
+    
     
     if pieces<max_pieces:
         
@@ -647,6 +814,7 @@ def more(event):
         phi[0][0]=1
         phi[0][1]=-1
 
+        level=1
         draw_wave()
         event.canvas.draw()
         
@@ -655,9 +823,21 @@ def more(event):
     else: return True
 
 axmore = plt.axes([0.825, 0.8, 0.05, 0.075])
-bmore = Button(axmore, '+')
+bmore = Button(axmore, '$c+$')
 bmore.on_clicked(more)
 axmore.set_visible(False)
+
+lmore = axmore.annotate("Add a column", 
+                        xy=(0,0.5), xytext=(-90,0),
+                        textcoords="offset points",
+                        size=10, va="center",
+                        bbox=dict(boxstyle="round", fc=(0.7, 0.7, 1), ec="none"),
+                        arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+                                        fc=(0.7, 0.7, 1), ec="none",
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+lmore.set_visible(False)
 
 
 #---------------------------------------------------------------------------
@@ -667,6 +847,7 @@ axmore.set_visible(False)
 
 def less(event):
     global data, data_new, ax, Vk, pieces, txt, bricks, xk, kk, phi
+    
     
     if pieces>1:
         
@@ -694,15 +875,27 @@ def less(event):
     else: return True
 
 axless = plt.axes([0.875, 0.8, 0.05, 0.075])
-bless = Button(axless, '-')
+bless = Button(axless, '$c-$')
 bless.on_clicked(less)
 axless.set_visible(False)
+
+lless = axless.annotate("Remove a column", 
+                        xy=(0,0.5), xytext=(-100,0),
+                        textcoords="offset points",
+                        size=10, va="center",
+                        bbox=dict(boxstyle="round", fc=(0.7, 0.7, 1), ec="none"),
+                        arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+                                        fc=(0.7, 0.7, 1), ec="none",
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+lless.set_visible(False)
     
 #---------------------------------------------------------------------------
 
 # total lives and score
 
-lives_txt = fig.text(0.935, 0.875, '❤ '*lives)#, transform=ax.transAxes)
+lives_txt = fig.text(0.935, 0.875, '<3 '*lives)#, transform=ax.transAxes)
 score_txt = fig.text(0.885, 0.875, 'x %d'%(-max_value))#, transform=ax.transAxes)
 
 #---------------------------------------------------------------------------
@@ -712,7 +905,7 @@ score_txt = fig.text(0.885, 0.875, 'x %d'%(-max_value))#, transform=ax.transAxes
 
 def new(event):
 
-    global data, data_new, score, cid_click, fig, score, lives, \
+    global level, data, data_new, score, cid_click, fig, score, lives, \
     ball_value, bmode, x_ball, y_ball, demos_txt
     
     data = np.copy(data_new)
@@ -737,12 +930,25 @@ def new(event):
         x_ball=0
         y_ball=9
     
+    level=1
     draw_wave()
     event.canvas.draw()
 
 axnew = plt.axes([0.825, 0.7, 0.1, 0.075])
 bnew = Button(axnew, 'New')
 bnew.on_clicked(new)
+
+lnew = axnew.annotate("Go back to the\ninitial potential", 
+                        xy=(0,0.5), xytext=(-95,0),
+                        textcoords="offset points",
+                        size=10, va="center",
+                        bbox=dict(boxstyle="round", fc=(0.7, 0.7, 1), ec="none"),
+                        arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+                                        fc=(0.7, 0.7, 1), ec="none",
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+lnew.set_visible(False)
 
 #---------------------------------------------------------------------------
 
@@ -751,11 +957,13 @@ bnew.on_clicked(new)
 
 def mode(event):
 
-    global data, data_new, score, \
+    global level, data, data_new, score, \
     cid_click, fig, score, lives, ball_value, \
-    bmode, axmode, axmore, axless, pieces, demos_txt
+    bmode, axmode, lmode, axmore, axless, pieces, demos_txt
 
-    data = np.copy(data_new)
+    lmode.set_visible(False)
+
+    data = np.copy(data_new)   
 
     if bmode.label.get_text()=='SURVIVAL':
         bmode.label.set_text('ZEN')
@@ -786,6 +994,10 @@ def mode(event):
         demos_txt.remove()
         demos_txt = fig.text(0.838, 0.425, 'demos')#, transform=ax.transAxes)
       
+    
+        lmode.set_text("     Change to\nSURVIVAL mode")
+        lmode.set_visible(False)
+        
     elif bmode.label.get_text()=='ZEN':
         if pieces!=7:
             pieces=6
@@ -803,7 +1015,11 @@ def mode(event):
         bmore.set_active(False)
         axless.set_visible(False)
         bless.set_active(False)
+        
+        lmode.set_text("Change to\nZEN mode")
+        lmode.set_visible(False)
     
+    level=1
     draw_wave()
     event.canvas.draw()
 
@@ -815,18 +1031,30 @@ axmode.spines['bottom'].set_color((1,0,0))
 axmode.spines['right'].set_color((1,0,0))
 axmode.spines['left'].set_color((1,0,0))
 
+lmode = axmode.annotate("Change to\nZEN mode", 
+                        xy=(0,0.5), xytext=(-95,0),
+                        textcoords="offset points",
+                        size=10, va="center",
+                        bbox=dict(boxstyle="round", fc=(0.7, 0.7, 1), ec="none"),
+                        arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+                                        fc=(0.7, 0.7, 1), ec="none",
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+lmode.set_visible(False)
+
 #---------------------------------------------------------------------------
 
 # remaining bricks
 # Counts how many bricks you have.
 # 6*pieces for people to get creative.
 
-def bricks(data):
-    global pieces
-    
-    bricks0 = 10*pieces
-    
-    return bricks0-np.sum(data_to_Vk(data))
+#def bricks(data):
+#    global pieces
+#    
+#    bricks0 = 10*pieces
+#    
+#    return bricks0-np.sum(data_to_Vk(data))
 
 #axbrick = plt.axes([0.820, 0.62, 0.05, 0.0375])
 #bbrick = Button(axbrick, '', color='0.65', hovercolor='0.5')
@@ -841,6 +1069,7 @@ def bricks(data):
 def up(event):
     global level, N_root, eigen_energies_list
     
+    
     if level==1:
         eigen_energies_list=eigen_energies(N_root)
 #        print(eigen_energies_list)
@@ -849,7 +1078,7 @@ def up(event):
         
         level+=1
 #        print(level)
-        draw_wave(level)
+        draw_wave()
         event.canvas.draw()
         
         return True
@@ -857,8 +1086,20 @@ def up(event):
     else: return True
 
 axup = plt.axes([0.825, 0.5, 0.05, 0.075])
-bup = Button(axup, ' ↑ ')
+bup = Button(axup, '$E+$')
 bup.on_clicked(up)
+
+lup = axup.annotate("   Go up 1\nenergy level", 
+                        xy=(0,0.5), xytext=(-80,0),
+                        textcoords="offset points",
+                        size=10, va="center",
+                        bbox=dict(boxstyle="round", fc=(0.7, 0.7, 1), ec="none"),
+                        arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+                                        fc=(0.7, 0.7, 1), ec="none",
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+lup.set_visible(False)
 
 #---------------------------------------------------------------------------
 
@@ -871,7 +1112,7 @@ def down(event):
     if level>1 and level<=N_root:  
         level-=1
 #        print(level)
-        draw_wave(level)
+        draw_wave()
         event.canvas.draw()
         
         return True
@@ -879,8 +1120,20 @@ def down(event):
     else: return True
 
 axdown = plt.axes([0.875, 0.5, 0.05, 0.075])
-bdown = Button(axdown, ' ↓ ')
+bdown = Button(axdown, '$E-$')
 bdown.on_clicked(down)
+
+ldown = axdown.annotate(" Go down 1\nenergy level", 
+                        xy=(0,0.5), xytext=(-80,0),
+                        textcoords="offset points",
+                        size=10, va="center",
+                        bbox=dict(boxstyle="round", fc=(0.7, 0.7, 1), ec="none"),
+                        arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+                                        fc=(0.7, 0.7, 1), ec="none",
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+ldown.set_visible(False)
 
 #---------------------------------------------------------------------------
 
@@ -904,7 +1157,8 @@ def Vk_to_data(Vk):
 
 
 def gauss(event):
-    global data, pieces
+    global level, data, pieces
+    
 
     Vk=[[0],
         [0,0],[5,1,5],
@@ -913,6 +1167,7 @@ def gauss(event):
 
     if pieces<=7:
         data = Vk_to_data(Vk[pieces-1])
+        level=1
         draw_wave()
         event.canvas.draw()
     else:
@@ -922,9 +1177,21 @@ axgauss = plt.axes([0.825, 0.325, 0.1, 0.075])
 bgauss = Button(axgauss, 'Gauss')
 bgauss.on_clicked(gauss)
 
+lgauss = axgauss.annotate("  Draw our old friend\nthe Harmonic Oscillator", 
+                        xy=(0,0.5), xytext=(-130,0),
+                        textcoords="offset points",
+                        size=10, va="center",
+                        bbox=dict(boxstyle="round", fc=(0.7, 0.7, 1), ec="none"),
+                        arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+                                        fc=(0.7, 0.7, 1), ec="none",
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+lgauss.set_visible(False)
+
 
 def step(event):
-    global data, pieces
+    global level, data, pieces
 
     Vk=[[0],
         [0,9],[0,9,9],
@@ -933,6 +1200,7 @@ def step(event):
 
     if pieces<=7:
         data = Vk_to_data(Vk[pieces-1])
+        level=1
         draw_wave()
         event.canvas.draw()
     else:
@@ -942,9 +1210,21 @@ axstep = plt.axes([0.825, 0.225, 0.1, 0.075])
 bstep = Button(axstep, 'Step')
 bstep.on_clicked(step)
 
+lstep = axstep.annotate("Draw a high step", 
+                        xy=(0,0.5), xytext=(-100,0),
+                        textcoords="offset points",
+                        size=10, va="center",
+                        bbox=dict(boxstyle="round", fc=(0.7, 0.7, 1), ec="none"),
+                        arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+                                        fc=(0.7, 0.7, 1), ec="none",
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+lstep.set_visible(False)
+
 
 def wall(event):
-    global data, pieces
+    global data, pieces, level
 
     Vk=[[0],[0,0],
         [0,10,0],
@@ -955,6 +1235,7 @@ def wall(event):
 
     if pieces<=7:
         data = Vk_to_data(Vk[pieces-1])
+        level=1
         draw_wave()
         event.canvas.draw()
     else:
@@ -963,6 +1244,18 @@ def wall(event):
 axwall = plt.axes([0.825, 0.125, 0.1, 0.075])
 bwall = Button(axwall, 'Wall')
 bwall.on_clicked(wall)
+
+lwall = axwall.annotate(" Draw a wall\non the middle", 
+                        xy=(0,0.5), xytext=(-80,0),
+                        textcoords="offset points",
+                        size=10, va="center",
+                        bbox=dict(boxstyle="round", fc=(0.7, 0.7, 1), ec="none"),
+                        arrowprops=dict(arrowstyle="wedge,tail_width=1.",
+                                        fc=(0.7, 0.7, 1), ec="none",
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+lwall.set_visible(False)
 
 #---------------------------------------------------------------------------
 # SCORE 
