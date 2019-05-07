@@ -21,21 +21,34 @@ Bruno Julia Diaz from the department of Quantum Physics and Astrophysics
 of the University of Barcelona. It is work done under the subject Practicas 
 de Empresa. 
 
-## VERSION 1.0, Jun 2018
 ---------------------
 
-In its current version we have two separate modules:
+Currently (May 2019) we have several separate modules in two different directories:
+
+### ClavsQua
 
 - clavsqua.py, which solves the evolution of a gaussian wave packet on a configurable external trap in one dimension. 
 
+### doubleslit
+
 - doubleslit.py, which solves the 2D time dependent Schrodinger equation with 
 a configurable grid of slits. 
+
+### PiecewisePotential
+
+- piecewise.py, is a game where you have to design the trapping potential for a particle in 1D in such a way that the probability density reaches target values chosen at random. 
+
+### Solitons
+
+- collision_bright_solitons.py, allows you to play with two bright solitons with different velocities and properties in 1D Gross-Pitaevskii equation
 
 
 ## CCCB version, Feb 2019
 ----------------------------
 
-We have developed two simpler versions for the Quantica exhibit at CCCB (2019). 
+We have developed two simpler versions of ClavsQua and doubleslit for the Quantica exhibit at CCCB (2019), 
+http://www.cccb.org/ca/exposicions/fitxa/quantica/230323
+
 They are in the directory CCCB.
 
 ## INSTALLATION:
