@@ -127,8 +127,8 @@ def EigenOsci(x,y):
     k=1.
     m=1.
     
-    a=1
-    b=1
+    a=0
+    b=0
     
     w=np.sqrt(k/m)
     zetx=np.sqrt(m*w/hbar)*(x-2.5)
@@ -222,6 +222,7 @@ def fig(Fu0,V,ndim,ntime):
     plt.subplot(2,2,1)
     plt.title('Potential')
     plt.imshow(po,cmap="viridis")
+    plt.colorbar()
             #Initial psi
     plt.subplot(2,2,2)
     plt.title('Initial')
@@ -277,7 +278,7 @@ def anim(Fu0,V,ndim,ntime):
     
     ani=animation.ArtistAnimation(fig,ims,interval=50,blit=True,repeat_delay=500)
     print(Norm(Probability(psi,ndim),ndim,dx))
-    ani.save('TEvol.gif')
+#    ani.save('TEvol.gif')
     ani.show()
     return
     
