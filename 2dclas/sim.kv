@@ -16,7 +16,6 @@
 
 	plotbox: plot_box
 
-
 	BoxLayout:
 		id: plot_box
 		size_hint: (1, 1)
@@ -28,8 +27,10 @@
 			orientation: 'horizontal'
 			Button:
 				text: 'Play'
+				on_press: root.play()
 			Button:
 				text: 'Pause'
+				on_press: root.pause()
 			Button:
 				text: '1x'
 		BoxLayout:
@@ -118,7 +119,7 @@
 							Slider:
 								id: param3_slider
 								size_hint: (1, 1)
-								min: 0
+								min: 0.1
 								max: 20
 								step: 0.1
 			TabbedPanelItem:
@@ -147,6 +148,7 @@
 							orientation: 'horizontal'
 							Label:
 								text: 'm'
+								size_hint: (0.2, 1)
 							Label:
 								text: str(mass_slider.value)
 								size_hint: (0.2, 1)
@@ -160,6 +162,7 @@
 							orientation: 'horizontal'
 							Label:
 								text: 'x0'
+								size_hint: (0.2, 1)
 							Label:
 								text: str(x0_slider.value)
 								size_hint: (0.2, 1)
@@ -173,6 +176,7 @@
 							orientation: 'horizontal'
 							Label:
 								text: 'y0'
+								size_hint: (0.2, 1)
 							Label:
 								text: str(y0_slider.value)
 								size_hint: (0.2, 1)
@@ -186,6 +190,7 @@
 							orientation: 'horizontal'
 							Label:
 								text: 'vx0'
+								size_hint: (0.2, 1)
 							Label:
 								text: str(vx0_slider.value)
 								size_hint: (0.2, 1)
@@ -199,6 +204,7 @@
 							orientation: 'horizontal'
 							Label:
 								text: 'vy0'
+								size_hint: (0.2, 1)
 							Label:
 								text: str(vy0_slider.value)
 								size_hint: (0.2, 1)
