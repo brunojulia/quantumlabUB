@@ -14,8 +14,14 @@
             Button:
                 id: measure_btn_id
                 text: 'Measure'
-                size_hint_x: 0.5
+                size_hint_x: 0.25
                 on_press: root.measure()
+                
+            Button:
+                id: trk_measure_btn_id
+                text: 'Trk measure'
+                size_hint_x: 0.25
+                on_press: root.all_measure()
                 
             Label:
                 id: label2_id

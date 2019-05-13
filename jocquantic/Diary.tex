@@ -25,11 +25,11 @@
 }
 
 \begin{document}
-%Inclou trossos de codi d'algunes comprovacions a la que es fa referencia.
+%Includes some code pieces from some test referred to in the document.
 
 \maketitle
 
-\section*{\underline{Week 1Apr - 8Apr}}
+\section*{\underline{Week Apr 1st - Apr 8th}}
 \begin{itemize}
 
 \item \textbf{UNITS.} In order for the used values to be of an acceptable order, $10^{-1} \sim 10^2$, the factor $m \equiv mass / \hbar^2$ in Schrödinger's equation has to be of this very same order. To do so, the units of the different magnitudes are the following:
@@ -165,7 +165,7 @@ Now we need to find the N we are going to use. The criteria here will be the qua
 This study with pixels is actually pointless right now (although we will leave it here) since we need first to define the image we are going to plot (this is the wave function as well as the potential). To do so we have to find a way to keep the returning points centered (not too centered because the wave will then not be able to move). This we can do by restraining the parameters related to $\left\langle E \right\rangle$ like momentum and sigma. The different potentials we will use (if we use any different potential shapes) must have similar values, in order to maintain the conditions on the $\left\langle E \right\rangle$'s parameters constants.
 \end{itemize}
 
-\section*{\underline{Week 8Apr - 15Apr}}
+\section*{\underline{Week Apr 8th - Apr 15th}}
 \begin{itemize}
 	\item \textbf{Beginning with KIVY.} Although we ended last week talking about conditions on the problem's walls, potentials and wave functions, we are going now to move everything we did to a 'kivywise' kind of code. This is done now because we don't want to lose sight on the main goal here, making an app. Furthermore,  kivy's syntax is most likely to force us to define our functions and general code structure (as we shall see next) in a certain way. Its better to at least have the wide view, even though we might jump some steps, in order to build everything properly and not having to change it later when moving it to kivy. Let's study then how kivy works. \\
 	So far, this is what we can tell about kivy's structure. \textbf{Two files are needed}: one with python code (name.py) and the other with kivy code (name.kv). Its very important that these two, \textbf{they have the same name and must be in the same folder}, this makes it easier to connect the two of them when executing. The first one will contain all the function's and classes (we will specify it later how to put them together later). Here we write everything that \textit{does} stuff: computing evolution, eigenparam, components, plotting, animating\dots In the second one (kivy file) you build the structure of the app in the sense of making the interface: placing everything in the screen, making buttons, sliders \dots tools for the user. The python file will then use the information obtained by the app (contained in the kivy file) to run the functions and the \textit{computing engines} in general. This button and sliders' variables in the kivy file \textbf{also exist in the python file}! \\
@@ -188,11 +188,11 @@ This study with pixels is actually pointless right now (although we will leave i
 	\item \textbf{Actual writting.} All this structure is set in the files with a lot of comments. The next step will be only to introduce the functions and start putting widgets/elements into our app.
 
 \end{itemize}
-\section*{\underline{Week(s) 15Apr - 22Apr \& 22Apr - 29Apr}}
+\section*{\underline{Week(s) Apr 15th - Apr 22nd \& Apr 22nd - Apr 29th}}
 \begin{itemize}
 	\item \textbf{Easter holidays.} No meetings these weeks.
 \end{itemize}
-\section*{\underline{Week 29Apr - 6May}}
+\section*{\underline{Week Apr 29th - May 6th}}
 
 \begin{itemize}
 	
@@ -224,11 +224,11 @@ This study with pixels is actually pointless right now (although we will leave i
 	\end{pmatrix}
 	=
 	\begin{pmatrix}
-	\psi^1(x,t)\\
+	\psi^1(t)\\
 	\vdots\\
-	\psi^i(x,t)\\
+	\psi^i(t)\\
 	\vdots\\
-	\psi^{N + 1}(x,t)\\
+	\psi^{N + 1}(t)\\
 	\end{pmatrix}
 	= \psi(x,t)
 	\]
@@ -268,6 +268,130 @@ This study with pixels is actually pointless right now (although we will leave i
 
 \end{itemize}
 
+\section*{\underline{Week May 6th - May 13th}}
+\begin{itemize}
+	\item \textbf{Compacting operations.} 
+	\begin{itemize}
+		\item \textbf{Eigenparam: normalizating \textit{evect}.} To multiply each column of a 2D numpy array by each number of a 1D numpy array we can do a loop, but to avoid looping (with large run times) \textbf{it's equivalent} to do a normal mulitplication $*$. This is not the case with numpy matrix or using $np.dot$. This will by used, for example, when multiplying $evect$ by the normalization factor in $eigenparam$. \\ We can really see the improvements: when using $N = 1000$  with the old method, the computer had problems opening the app's window (stayed in a black window for 5 to 10 seconds). After the change, you can not even see any black window before opening the normal app's window.
+		
+		\item \textbf{Components.} Here we use the following compact computation instead of the previous one:
+		\[
+		\begin{gathered}
+		\Psi = np.zeros(self.N + 1) = [\Psi^0, \dots, \Psi^{N}]\\
+		Basis\ (stored\ in\ evect): {\varphi_0, \dots, \varphi_N}\    where\   \varphi_i = [\varphi_i^0, \dots, \varphi_i^N]\\
+		C = 
+		\begin{pmatrix}
+		(\varphi_0^0)^*\Psi^0& \dots & (\varphi_j^0)^*\Psi^0 & \dots &  (\varphi_N^0)^*\Psi^0 \\
+		\vdots &  & \vdots & & \vdots \\
+        (\varphi_0^i)^*\Psi^i & \dots &(\varphi_j^i)^*\Psi^i& \dots & (\varphi_N^i)^*\Psi^i \\
+		\vdots &  & \vdots & & \vdots \\
+		(\varphi_0^N)^*\Psi^N&\dots &(\varphi_j^N)^*\Psi^N& \dots & (\varphi_N^N)^*\Psi^N \\
+		\end{pmatrix}
+		\end{gathered}
+		\]
+		We get C using the following compact formula (already checked this is true):
+		\[
+		C = \big((evect^*)^T * \Psi \big)^T
+		\]
+		Where T means transpose and $^*$ conjugate. Also, \textit{evect} is the usual matrix with eigenvectors. Finally, the component's array follows from:
+		\[
+		comp = deltax * \big[ sum(C, axis=0) - C[0,:]/2 - C[-1,:]/2 \big]
+		\]
+		In \textit{sum}, axis = 0 means adding up only columns (each column is added up).\\
+		We did all of this in order to avoid looping explictly. Summing up, we can compute the components in just two lines of code.\\
+%		Previously we were doing:\\
+%		\\
+%		\textit{compo = []\\
+%			for ev in np.transpose(evect): \\
+%			integrand = np.conjugate(ev)*psi\\
+%			compo.append(deltax*(sum(integrand)-integrand[0]/2.-integrand[-1]/.2))\\
+%			return np.array(compo)\\}
+%		\\
+		In this case, this difference with the run time using the old method and the new one is considerable. Changing the discretization, $N$, and plotting the time between frames we compare the two methods \footnote{When calling the $comp()$ function, between those frames the app will run the $comp()$ function and the plotting function, so we will see a change in the time between frames.}. For just three cases the difference is clear enough:
+		\begin{table}[H]
+			\centering
+			\begin{tabular}{c|c|c} 
+				\textbf{N} & \textbf{Old method [s]} & \textbf{New method [s]}\\
+				1000 & 0.286 & 0.07 \\
+				2000 & 0.985 & 0.14 \\
+				3000 & 2.12 & 0.36 \\
+			\end{tabular}
+			\captionsetup{justification = centering, width = .8\textwidth}
+			\caption{Time between frames when projecting using differents methods. The average time when comp() isn't called is 0.06 seconds. In the first case $N = 1000$, for the new method, this run time is slightly above the average time so no delay can be aprecciated. All this tests have been runned using 1/60 as interval argument in $Clock.schedule\_inteval$.}
+		\end{table}
+		
+		\item \textbf{Eigenparam: getting eigen values and vectors.} What old method did was: first to build the hamiltonian H looping through the diagonals and then calling $eigh(H)$ from $np.linalg$. Finally, the normalization process was called, this has been already discussed. Here we tried two approaches to speed up $eigenparam()$\footnote{Now the run time will be checked using the module  $timeit$ and its attribute $default\_timer$}:
+		\begin{enumerate}
+			\item \textbf{Changing the way we build H.} Instead of using loops, we tried using $np.diag(array, k)$. It builds a matrix with the $k$'th diagonal being 'array' ( $ k = 0:$ Main,$\ k<0 $ Lower,$\ k>0$ Upper). We build these arrays using the $potential$ array for the main diagonal, and $np.full$ for the off-set diagonals. The results weren't the expected.
+			\begin{table}[H]
+				\centering
+				\begin{tabular}{c|c|c} 
+					\textbf{N} & \textbf{Old method [s]} & \textbf{New method [s]}\\
+					1000 & 0.012 & 0.020 \\
+					2000 & 0.027 & 0.054 \\
+					3000 & 0.037 & 0.150 \\
+				\end{tabular}
+				\captionsetup{justification = centering, width = .8\textwidth}
+				\caption{Run times for different ways of building up H. In this case, looping was more effective. We even tried using \textit{diagflat} instead of \textit{diag}. It improved diag's results but didn't beat looping run times.}
+			\end{table}
+		
+			\item \textbf{Changing \textit{eigh}.} Since we already tried improving how to build H and normalization, the only thing left to check is \textit{eigh}. Searching new methods of diagonalizaing for a tridiagonal matrix we found \textit{eigh\_tridiagonal} from \textit{scipy} module. We import at the beggining \textit{linalg} from \textit{scipy}, \textit{eigh\_tridiagonal} is an attribute from it. This function even avoids builng the H matrix, only the main diagonal and one of the off\_set diagonals need to be given. We set \textit{check\_finite = False} for more speed, this avoids checking for NaN's. The results were remarkable:
+			\begin{table}[H]
+				\centering
+				\begin{tabular}{c|c|c} 
+					\textbf{N} & \textbf{\textit{np.eigh} [s]} & \textbf{sp.linalg.eigh\_tridiagonal [s]}\\
+					1000 & 0.30 & 0.12 \\
+					2000 & 2.25 & 0.40 \\
+					3000 & 6.57 & 0.95 \\
+				\end{tabular}
+				\captionsetup{justification = centering, width = .8\textwidth}
+				\caption{Run times for different ways of computing the eigenvalues and eigenvectors.}
+			\end{table}
+		\end{enumerate}
+		
+		\item \textbf{Computing psiev.} We tried building the comp*exp vector using $*$ and then using $np.dot$ to calculate psiev and surprisingly the old method goes faster. I supose its because we were using matrix objects that gives a lot of speed when doing the matrix product. Mixing it, we build compexp using $*$ and reshaping to matrix and then do the matrix product. Looking at the real interval times we see this goes slightly faster than when we used a comprehension list.\\
+		After we got the column vector with psiev, we were using again a comprehension list to unpack the values in form of an array (needed for the input when seting the new data in the plots). Trying to instead reshaping to a row vector (although still being a matrix object), transforming it to an array object and \textbf{then} taking out the first index (due to matrix indexing) we got the same result. Checking for run time, the lalatter method proved to be considerably faster. We test this after fixing N to 800 (explained in one of the following points). The results in this case were (in seconds): 
+		\[
+		t_{old} \approx 4 \times 10^{–3}  \qquad t_{new} \approx 5 \times 10^{-5}
+		\]
+		So we change now and use the latter explained method.
+
+		
+	\end{itemize}
+	
+	\item \textbf{Potentials traps.} When removing the explicit large potentials values from the potential in the edges, it seems that no change occur.  The evolution looks the same. It's like the walls are already there without explicitly putting them. One thing  I noticed, is that $\left\langle E \right\rangle$ is significantly smaller when 'there are no walls'. This is reasonable, but in the evolution sense no difference can be easly appreciated.
+	
+	\item \textbf{Potential and psi objects.} They both are 1D arrays and are created using $pot\_init$ and $psi\_init$.
+	
+	\item \textbf{New \textit{psi0\_init}.} Before we were using the following expresion to initialize \textit{psi0}:
+	\[
+	psi0 = \sqrt{\frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{(x-\mu)^2}{2\sigma^2}}} e^{-ip_0x}
+	\]
+	It is the analytic expression for a normalized guassian distribution when squared its absolute value. Although this expression \textbf{is} normalized, maybe when integrating the actual array (its absolute square)  we don't get 1, since it depends on whitch points we get from \textit{mesh}. And we would have to normalize again to get a normalized \textbf{array}. So, intead of wasting time with a complex expression like the previous one, we are going to initialize first with only the part that gives shape (the exponentials) with no multiplying constants and then normalizing it. The remaing expressions would be:
+	\[
+	psi0' = \sqrt{e^{-\frac{(x-\mu)^2}{2\sigma^2}}} e^{-ip_0x} \rightarrow C^2 =  ^*trapezoids\ integration^* \rightarrow psi0 = \frac{psi0'}{C}
+	\]
+	This method is even quicker than the previous one. Its a win win change. Furthermore, this allow us not having to normalize again when measuring.
+	
+	\item \textbf{Dirac's sigma.} The sigma after measures its going to be \textit{dirac\_sigma}. It has to be the smallest possible in order to resemble a dirac's delta. If it's too small the evolution is too fast post measurement and with too many 'interferences' (run a test to see this). We set here this $dirac\_sigma$ to be:
+	\[
+	dirac\_sigma = 0.2
+	\]
+	This sigma gives more and more energy to the post-measure wave function as we make it smaller and smaller. And we want to keep the wave function's energy low, orders of the centered potential, so it doesn't have the reutrning points to far from the middle.
+	
+	\item \textbf{THE POTENTIAL.} We begin testing different potentials with the usual combination of harmonic and gaussian potentials \footnote{The factor before this combination during these test have been always 20.}. Changing the gaussian parameters (for $k = 1$) we see that the wave function doesn't really 'bounces' further away, so it never reaches the walls. As expected, for the gaussian potential tends to zero when approaching the walls.\\
+	We are going to change the harmonic parameters without the gaussian potential. We find that the wall's influence starts to kick in \textbf{from $k = 0.4$ and below}.
+	
+	\item \textbf{Fixing N.} To acomplish this, first we have to discuss where does N influence. Normalization doesn't depend on N. What does depends is the frame rate. If N is too high the plotting time per frame is significantly big and you see the animation with 'lag'\footnote{We could fins a way to make this plotting run time smaller but I don't think it's possible to do much better than \textit{draw()} does. Righ now we will consider plotting with \textit{draw()}}. Considering this fact, \textbf{$N = 1500$ becomes an upper limit}. \\
+	But what we want to find is the minimum N so all functions don't take too much time to compute (keeping a good and smooth plotting). Keeping the smoothness of the plot, \textbf{we can get it low to $N = 800$}. At this point, not even the gaussian potential with $\sigma = 0.17$ looks sharp nor with edges.\\
+	About run times, opening the tab takes no time and measuring also causes no problem.
+	
+	\item \textbf{Directly compute only truncated values.} Using the optional argument \textit{select = 'v'} and \textit{select\_range = (min\_eval, max\_eval)} from \textit{eigh\_tridiagonal}, it returns only eigenvalues with value inside the given range and its related eigenvectors! Since we are talking about the Hamiltonian, its eigenvalues will be energy values. This means we are setting a limit on the energy values. This looks perfect for keeping our wave functions centered. 
+	
+	\item \textbf{Truncated components.} Since we now don't have all evects to compose the given psi0, when adding up the liniear combination using truncated components and the corresponding evects, we don't get exactly the same psi0 back. Has the same shape (except for some minor vibrations) but the norm isn't the one psi0 had (1). Even though this norm is not exactly 1, it is conserved allong the evolution! So we have to normalize when computing these components. 
+	
+	\item \textbf{Improvements when truncating.} Using a max eval of 200. About run times. Computing the eigevalue and vectors the time is reduced to half. Not a huge improvement, but it is one. When computing, run time goes down by a factor of 10. Talking about evolution, some vibrations appear in the new psi, but they are not really fast nor sharp. But in the other hand, when the old psi felt the wall and started vibrating really fast, now this psi tends to avoid this vibration (untill ac ertain point). We now actually are more isolated from the walls. 
+\end{itemize}
 
 
 \end{document}
