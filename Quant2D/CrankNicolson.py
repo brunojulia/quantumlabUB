@@ -53,13 +53,13 @@ def CrankNicolson (dx,dt,ndim,ntime,r,V,psi):
                 B[i,j]=r
     
     norma=[]
-    print(Norm(Probability(psi,ndim),ndim,dx), 0)
+#    print(Norm(Probability(psi,ndim),ndim,dx), 0)
     for t in range(0,ntime):
         
         psi=CrankStep(dx,dt,ndim,r,V,psi,A1,A3,B)
         
         prob=Probability(psi,ndim)
-        print(Norm(prob,ndim,dx), t+1)
+#        print(Norm(prob,ndim,dx), t+1)
         norma=np.append(norma,Norm(prob,ndim,dx))
     
     return psi,norma
@@ -116,7 +116,7 @@ def CrankStep (dx,dt,ndim,r,V,psi,Asup,Ainf,Bmatrix):
 
 #POTENTIAL
 def Pot(x,y):
-    k=1.
+#    k=0.
     #x0=ndim*dx/2.
     return 0.5*k*((x-2.5)**2+(y-2.5)**2)
 
@@ -124,20 +124,22 @@ def Pot(x,y):
         #x->a
         #y->b
 def EigenOsci(x,y):
-    k=1.
+#    k=20.
     m=1.
     
     a=0
     b=0
-    
-    w=np.sqrt(k/m)
-    zetx=np.sqrt(m*w/hbar)*(x-2.5)
-    zety=np.sqrt(m*w/hbar)*(y-2.5)
-    Hx=ss.eval_hermite(a,zetx)
-    Hy=ss.eval_hermite(b,zety)
-    c_ab=(2**(a+b)*np.math.factorial(a)*np.math.factorial(b))**(-0.5)
-    cte=(m*w/(np.pi*hbar))**0.5
-    return c_ab*cte*np.exp(-(zetx**2+zety**2)/2)*Hx*Hy
+    if (k==0.):
+        return (2./5.)*np.sin(np.pi*(x-2.5)/5)*np.sin(np.pi*(y-2.5)/5)
+    else: 
+        w=np.sqrt(k/m)
+        zetx=np.sqrt(m*w/hbar)*(x-2.5)
+        zety=np.sqrt(m*w/hbar)*(y-2.5)
+        Hx=ss.eval_hermite(a,zetx)
+        Hy=ss.eval_hermite(b,zety)
+        c_ab=(2**(a+b)*np.math.factorial(a)*np.math.factorial(b))**(-0.5)
+        cte=(m*w/(np.pi*hbar))**0.5
+        return c_ab*cte*np.exp(-(zetx**2+zety**2)/2)*Hx*Hy
 
 def Coherent(x,y):
             #x0,y0 descentering 
@@ -295,8 +297,78 @@ hbar=1.
 r=1j*dt/(4.*m*dx**2)
 
 
-f=fig(EigenOsci,Pot,ndim=100,ntime=100)
+#f=fig(EigenOsci,Pot,ndim=100,ntime=100)
 #an=anim(EigenOsci,Pot,ndim,ntime=100)
 
 #f=fig(Coherent,Pot,ndim=100,ntime=100)
 #an=anim(Coherent,Pot,ndim,ntime=200)
+
+########################################################################
+
+#doc=open('Comportament_norma.dat','w')
+
+#for k in range (0,46,15):
+    
+#    psi0=Psizero(EigenOsci,ndim)
+#    norm0=Norm(Probability(psi0,ndim),ndim,dx)
+#    print(norm0)
+#      
+#    psi,norm=CrankNicolson (dx,dt,ndim,151,r,Pot,psi0)
+    
+#    for t in range(0,101,20):
+#        quocient=norm[t] #/norm0
+#        doc.write(str(quocient)+'\t')
+    
+#    doc.write('\n')
+#    print(norm[99])
+#doc.close()
+
+########################################################################3
+
+doc=open('Comportament_norma.dat','r')
+
+titer=np.linspace(0,100,6)
+
+#K=0
+line=doc.readline()
+line=line.split()
+line0=[]
+for item in line:
+    line0=np.append(line0,float(item))
+    
+#K=15
+line=doc.readline()
+line=line.split()
+line15=[]
+for item in line:
+    line15=np.append(line15,float(item))
+
+#K=30
+line=doc.readline()
+line=line.split()
+line30=[]
+for item in line:
+    line30=np.append(line30,float(item))
+
+#K=45
+line=doc.readline()
+line=line.split()
+line45=[]
+for item in line:
+    line45=np.append(line45,float(item))
+
+plt.scatter(titer,line0,s=10,c='b', marker="s", label='k=0')
+plt.scatter(titer,line15,s=10, c='r', marker="o", label='k=15')
+plt.scatter(titer,line30,s=10,c='y', marker="+", label='k=30')
+plt.scatter(titer,line45,s=10,c='g', marker="s", label='k=45')
+
+plt.ylabel('Norm value')
+plt.xlabel('nº of time iterations')
+
+plt.title('Time evolution of the norm for different k for (0,0) eigenstates of the harmonic oscillator')
+
+axes = plt.gca()
+axes.set_ylim([0.9850,1.0005])
+
+plt.legend(loc='lower left')
+
