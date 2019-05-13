@@ -303,6 +303,8 @@ r=1j*dt/(4.*m*dx**2)
 #f=fig(Coherent,Pot,ndim=100,ntime=100)
 #an=anim(Coherent,Pot,ndim,ntime=200)
 
+########################################################################
+
 #doc=open('Comportament_norma.dat','w')
 
 #for k in range (0,46,15):
@@ -320,6 +322,8 @@ r=1j*dt/(4.*m*dx**2)
 #    doc.write('\n')
 #    print(norm[99])
 #doc.close()
+
+########################################################################3
 
 doc=open('Comportament_norma.dat','r')
 
@@ -367,3 +371,4 @@ axes = plt.gca()
 axes.set_ylim([0.9850,1.0005])
 
 plt.legend(loc='lower left')
+
