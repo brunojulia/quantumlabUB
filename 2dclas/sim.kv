@@ -15,10 +15,13 @@
 	vy0: vy0_slider.value
 
 	plotbox: plot_box
-
+	speedbutton: speed_button
+	statuslabel: status_label
+	
 	BoxLayout:
 		id: plot_box
-		size_hint: (1, 1)
+		size_hint: (None, 1)
+		size: (self.height, self.height)
 	BoxLayout:
 		orientation: 'vertical'
 		size_hint: (0.25, 1)
@@ -32,13 +35,19 @@
 				text: 'Pause'
 				on_press: root.pause()
 			Button:
-				text: '1x'
+				text: 'Stop'
+				on_press: root.stop()
+			Button:
+				id: speed_button
+				on_press: root.change_speed()
 		BoxLayout:
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
 			Button:
 				text: 'Compute'
 				on_press: root.compute()
+			Label:
+				id: status_label
 			Button:
 				text: 'Reset'
 		TabbedPanel:
