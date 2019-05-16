@@ -125,8 +125,6 @@ class Particle():
             except IndexError:
                 break
             
-        self.trax = interp1d(self.steps.cumsum(),self.trajectory[:,0],kind='quadratic')
-        self.tray = interp1d(self.steps.cumsum(),self.trajectory[:,1],kind='quadratic')
             
     def ComputeTrajectoryF(self,r0,pot):
         self.pot = pot
@@ -139,15 +137,15 @@ class Particle():
             self.h = 1
             try:
                 tranext , newstep = self.RKF(self.trajectory[i,:])
-                if(np.abs(tranext[0]) >= L/2 or np.abs(tranext[1]) >= L/2):
-                    break
-                else:
-                    self.trajectory = np.append(self.trajectory,tranext.reshape(1,4),axis=0)
-                    self.steps = np.append(self.steps,newstep)
-                    i += 1
+                self.trajectory = np.append(self.trajectory,tranext.reshape(1,4),axis=0)
+                self.steps = np.append(self.steps,newstep)
+                i += 1
             except IndexError:
                 break
-                
+        
+        self.trax = interp1d(self.steps.cumsum(),self.trajectory[:,0],kind='quadratic')
+        self.tray = interp1d(self.steps.cumsum(),self.trajectory[:,1],kind='quadratic')
+        
     def KEnergy(self):
         KEnergy = np.zeros([self.trajectory.shape[0]])
         for i in range(0,self.trajectory.shape[0]):
