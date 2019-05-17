@@ -63,6 +63,11 @@ y_ball=9
 X_hovered=30
 Y_hovered=30
 
+difficulty=10
+no_bricks=False
+score_color=(0,1,0)
+ball_color=(0,1,0)
+
 #-------------------------------------------------------------------------
 # WAVE FUNCTION
 # Generated following the nomenclature of BJD derivation.
@@ -357,12 +362,31 @@ def draw_wave():
     data_new, ax, x_vect, V_vect, Vk, ixk, psi_vect, E, \
     N_root, eigen_energies_list, level, \
     x_ball, y_ball, \
-    score, lives, ball_value, value_txt, score_txt, lives_txt
+    score, lives, ball_value, value_txt, score_txt, lives_txt,\
+    bdiff, axdiff, ldiff, difficulty, score_color, ball_color
 
+
+    if score>=100:
+        if bdiff.label.get_text()=='EASY':
+            difficulty=5
+            ball_color=(1,1,0)
+            bdiff.label.set_text('FAIR')
+            axdiff.spines['top'].set_color((1,1,0))
+            axdiff.spines['bottom'].set_color((1,1,0))
+            axdiff.spines['right'].set_color((1,1,0))
+            axdiff.spines['left'].set_color((1,1,0))
+            
+    if score>=300:
+        if bdiff.label.get_text()=='FAIR':
+            difficulty=4
+            ball_color=(1,0,0)
+            bdiff.label.set_text('HARD')
+            axdiff.spines['top'].set_color((1,0,0))
+            axdiff.spines['bottom'].set_color((1,0,0))
+            axdiff.spines['right'].set_color((1,0,0))
+            axdiff.spines['left'].set_color((1,0,0))
 
     ax.cla()
-    
-
 
     Vk=data_to_Vk(data)
     
@@ -414,12 +438,12 @@ def draw_wave():
         lives_txt.remove()    
         lives_txt = fig.text(0.815, 0.815, trans[late]['game over'])#, transform=ax.transAxes)
         score_txt.remove()    
-        score_txt = fig.text(0.82, 0.765, trans[late]['score = %d']%(score))#, transform=ax.transAxes)
+        score_txt = fig.text(0.82, 0.765, trans[late]['score = %d']%(score),bbox={'facecolor':score_color, 'alpha':0.5, 'pad':5})#, transform=ax.transAxes)
     else:
         lives_txt.remove()    
         lives_txt = fig.text(0.82, 0.815, '<3 '*lives)#, transform=ax.transAxes)
         score_txt.remove()    
-        score_txt = fig.text(0.82, 0.765, trans[late]['score = %d']%(score)*(int(lives/abs(lives))))#, transform=ax.transAxes)
+        score_txt = fig.text(0.82, 0.765, trans[late]['score = %d']%(score)*(int(lives/abs(lives))) ,bbox={'facecolor':score_color, 'alpha':0.5, 'pad':5})#, transform=ax.transAxes)
         value_txt.remove()
         value_txt = fig.text(axl+(axr-axl)*(1-(x_ball+0.675)/pieces),\
                              axb+(axt-axb)*((y_ball+0.35)/10), \
@@ -464,7 +488,7 @@ ax.yaxis.set_label_position('right')
 # colors to plot the matrix 'data' as a relief map: 
 #                           background, hover, potential 
 def cmap(data):
-    global ball_value
+    global ball_value, ball_color
     try:
         ball_value
     
@@ -472,12 +496,15 @@ def cmap(data):
         ball_value = max_value
 
     if bmode.label.get_text()=='SURVIVAL':
-        green=(0.7*(1-ball_value/(max_value)),1,0.7*(1-ball_value/(max_value)))
-        cmap = colors.ListedColormap(['white','0.5','0.65',green])
+        value_color=(max(ball_color[0],0.7*(1-ball_value/(max_value))),
+                    max(ball_color[1],0.7*(1-ball_value/(max_value))),
+                    max(ball_color[2],0.7*(1-ball_value/(max_value))))
+
+        cmap = colors.ListedColormap(['white','0.5','0.65',value_color])
         if data.min()==1:
-            cmap = colors.ListedColormap(['0.5','0.65', green])
+            cmap = colors.ListedColormap(['0.5','0.65', value_color])
         if data.min()==2:
-            cmap = colors.ListedColormap(['0.65',green])
+            cmap = colors.ListedColormap(['0.65', value_color])
     else:
         cmap = colors.ListedColormap(['white','0.5','0.65'])
         if data.min()==1:
@@ -510,7 +537,7 @@ def ClickColor(event):
     left_extrem, right_extrem, top_extrem, bottom_extrem, \
     data_new, ax, x_vect, V_vect, Vk, ixk, psi_vect, E, \
     lives, score, score_txt, lives_txt,\
-    level
+    level, no_bricks
     
     # If the mouse is inside the grid
     if event.x < right_extrem and event.x > left_extrem and event.y < top_extrem and event.y > bottom_extrem: 
@@ -530,6 +557,8 @@ def ClickColor(event):
         # if I don't have enough bricks, draw the remaining only
         if (Y+1)>(bricks(data)+data_to_Vk(data)[pieces-1-X]):
             Y=bricks(data)+data_to_Vk(data)[pieces-1-X]-1
+            if Y==-1:
+                no_bricks=True
         
 #        # if V=1 you can delete the brick
 #        if Y==0 and data_to_Vk(data)[pieces-1-X]==1:
@@ -547,6 +576,7 @@ def ClickColor(event):
         
         # do I have enough bricks?
         if bricks(data)<0:
+            no_bricks=True
             data=np.copy(data0)
             return True
         else:
@@ -587,6 +617,13 @@ def HoverColor(event):
             linfo.set_visible(False)
         
         if binfo.label.get_text()==trans[late]['Instructions: on']:
+            
+            if axdiff.get_visible():
+                if event.inaxes == axdiff:
+                    if not  ldiff.get_visible():
+                        ldiff.set_visible(True)
+                else:
+                    ldiff.set_visible(False)
     
             if axmore.get_visible():
                 if event.inaxes == axmore:
@@ -658,6 +695,7 @@ def HoverColor(event):
     elif isinstance(event.xdata, float) and isinstance(event.ydata, float):
 
         linfo.set_visible(False)
+        ldiff.set_visible(False)
         lmore.set_visible(False)
         lless.set_visible(False)
         lnew.set_visible(False)
@@ -755,7 +793,7 @@ def language_reboot(event):
     global trans, late, detrans, lated,\
     lives, lives_txt, score_txt,\
     binfo, linfo, lmore, lless, bnew, lnew, bmode, lmode, lup, ldown,\
-    demos_txt, lgauss, bstep, lstep, bwall, lwall
+    demos_txt, lgauss, bstep, lstep, bwall, lwall, ldiff
     
     if lives==0:
         lives_txt.remove()    
@@ -765,9 +803,12 @@ def language_reboot(event):
     else:
         score_txt.remove()    
         score_txt = fig.text(0.82, 0.765, trans[late]['score = %d']%(score)*(int(lives/abs(lives))))#, transform=ax.transAxes)
-        
+    
+    
     binfo.label.set_text(trans[late][detrans[lated][binfo.label.get_text()]])
     linfo.set_text(trans[late][detrans[lated][linfo.get_text()]])
+    
+    ldiff.set_text(trans[late]['Change the amount of\npotential allowed'])
     
     lmore.set_text(trans[late]['Add a column'])
     lless.set_text(trans[late]['Remove a column'])
@@ -806,9 +847,9 @@ axESP = plt.axes([0.92, 0.94, 0.05, 0.0375])
 bESP = Button(axESP, 'esp', color='0.65', hovercolor='0.5')
 bESP.on_clicked(ESP)
 
-trans=[{'turtle':'turtle',      'game over':'game over',        'score = %d':'score = %d',  'Instructions: on':'Instructions: on',  'Instructions: off':'Instructions: off', 'Click to see\ninstructions\non balloons':'Click to see\ninstructions\non balloons',      'Click to stop\nseeing balloons':'Click to stop\nseeing balloons',      'Add a column':'Add a column',       'Remove a column':'Remove a\ncolumn',  'New':'New',  'Go back to the\ninitial potential':'Go back to the\ninitial potential',  'demos':'  demos',   '     Change to\nSURVIVAL mode':'     Change to\nSURVIVAL mode','Change to\nZEN mode':'Change to\nZEN mode',  '   Go up 1\nenergy level':'   Go up 1\nenergy level',   ' Go down 1\nenergy level':' Go down 1\nenergy level',  'Gauss':'Gauss', '  Draw our old friend\nthe Harmonic Oscillator':'  Draw our old friend\nthe Harmonic Oscillator',     'Step':'Step',   'Draw a high step':'Draw a high step',         'Wall':'Wall', ' Draw a wall\non the middle':' Draw a wall\non the middle'},
-       {'turtle':'tortuga',     'game over':'has perdut',       'score = %d':'punts = %d',  'Instructions: on':'Instruccions: sí',  'Instructions: off':'Instruccions:  no', 'Click to see\ninstructions\non balloons':'Clica per veure\ninstruccions\nen bafarades',  'Click to stop\nseeing balloons':'Clica per\ndeixar de veure\nbafarades','Add a column':'Afegeix\nuna columna','Remove a column':'Treu una\ncolumna', 'New':'Nou',  'Go back to the\ninitial potential':'Torna al\npotencial\ndel principi',   'demos':'exemples','     Change to\nSURVIVAL mode':'Canvia a mode\nsupervivència','Change to\nZEN mode':'Canvia a\nmode lliure','   Go up 1\nenergy level':"Puja 1 nivell\nd'energia",' Go down 1\nenergy level':"Baixa 1 nivell\nd'energia",'Gauss':'Gauss', '  Draw our old friend\nthe Harmonic Oscillator':"    Dibuixa al nostre\n          vell amic\nl'oscil·lador harmónic",'Step':'Esglaó', 'Draw a high step':'Dibuixa un\nesglaó alt',   'Wall':'Paret',' Draw a wall\non the middle':'Dibuixa una\nparet al mig'},     
-       {'turtle':'sapoconcha',  'game over':'fin de partida',   'score = %d':'puntos  %d',  'Instructions: on':'Instrucciones: si',  'Instructions: off':'Instrucciones: no', 'Click to see\ninstructions\non balloons':'Clica para ver\ninstructiones\nen bocadillos', 'Click to stop\nseeing balloons':'Clica para\ndejar de ver\nbocadillos', 'Add a column':'Añade una\ncolumna',  'Remove a column':'Quita una\ncolumna','New':'Nuevo','Go back to the\ninitial potential':'Vuelve al\npotencial\ndel principio', 'demos':'ejemplos','     Change to\nSURVIVAL mode':'Cambia a modo\nsupervivencia','Change to\nZEN mode':'Cambia a\nmodo libre', '   Go up 1\nenergy level':'Sube 1 nivel\nde enegia',' Go down 1\nenergy level':'Baja 1 nivel\nde energia', 'Gauss':'Gauss', '  Draw our old friend\nthe Harmonic Oscillator':'  Dibuja a nuestro\n   viejo amigo el\noscilador armónico','Step':'Escalón','Draw a high step':'  Dibuja un\nescalón alto','Wall':'Muro', ' Draw a wall\non the middle':'Dibuja\nun muro\nenmedio'}]
+trans=[{'turtle':'turtle',      'game over':'game over',        'score = %d':'score = %d',  'Instructions: on':'Instructions: on',  'Instructions: off':'Instructions: off', 'Click to see\ninstructions\non balloons':'Click to see\ninstructions\non balloons',      'Click to stop\nseeing balloons':'Click to stop\nseeing balloons',      'Add a column':'Add a column',       'Remove a column':'Remove a\ncolumn',  'New':'New',  'Go back to the\ninitial potential':'Go back to the\ninitial potential',  'demos':'  demos',   '     Change to\nSURVIVAL mode':'     Change to\nSURVIVAL mode','Change to\nZEN mode':'Change to\nZEN mode',  '   Go up 1\nenergy level':'   Go up 1\nenergy level',   ' Go down 1\nenergy level':' Go down 1\nenergy level',  'Gauss':'Gauss', '  Draw our old friend\nthe Harmonic Oscillator':'  Draw our old friend\nthe Harmonic Oscillator',     'Step':'Step',   'Draw a high step':'Draw a high step',         'Wall':'Wall', ' Draw a wall\non the middle':' Draw a wall\non the middle', 'Change the amount of\npotential allowed':'Change the amount of\npotential allowed'},
+       {'turtle':'tortuga',     'game over':'has perdut',       'score = %d':'punts = %d',  'Instructions: on':'Instruccions: sí',  'Instructions: off':'Instruccions:  no', 'Click to see\ninstructions\non balloons':'Clica per veure\ninstruccions\nen bafarades',  'Click to stop\nseeing balloons':'Clica per\ndeixar de veure\nbafarades','Add a column':'Afegeix\nuna columna','Remove a column':'Treu una\ncolumna', 'New':'Nou',  'Go back to the\ninitial potential':'Torna al\npotencial\ndel principi',   'demos':'exemples','     Change to\nSURVIVAL mode':'Canvia a mode\nsupervivència','Change to\nZEN mode':'Canvia a\nmode lliure','   Go up 1\nenergy level':"Puja 1 nivell\nd'energia",' Go down 1\nenergy level':"Baixa 1 nivell\nd'energia",'Gauss':'Gauss', '  Draw our old friend\nthe Harmonic Oscillator':"    Dibuixa al nostre\n          vell amic\nl'oscil·lador harmónic",'Step':'Esglaó', 'Draw a high step':'Dibuixa un\nesglaó alt',   'Wall':'Paret',' Draw a wall\non the middle':'Dibuixa una\nparet al mig', 'Change the amount of\npotential allowed':'Canvia la quantitat\nde potencial permès'},     
+       {'turtle':'sapoconcha',  'game over':'fin de partida',   'score = %d':'puntos  %d',  'Instructions: on':'Instrucciones: si',  'Instructions: off':'Instrucciones: no', 'Click to see\ninstructions\non balloons':'Clica para ver\ninstructiones\nen bocadillos', 'Click to stop\nseeing balloons':'Clica para\ndejar de ver\nbocadillos', 'Add a column':'Añade una\ncolumna',  'Remove a column':'Quita una\ncolumna','New':'Nuevo','Go back to the\ninitial potential':'Vuelve al\npotencial\ndel principio', 'demos':'ejemplos','     Change to\nSURVIVAL mode':'Cambia a modo\nsupervivencia','Change to\nZEN mode':'Cambia a\nmodo libre', '   Go up 1\nenergy level':'Sube 1 nivel\nde enegia',' Go down 1\nenergy level':'Baja 1 nivel\nde energia', 'Gauss':'Gauss', '  Draw our old friend\nthe Harmonic Oscillator':'  Dibuja a nuestro\n   viejo amigo el\noscilador armónico','Step':'Escalón','Draw a high step':'  Dibuja un\nescalón alto','Wall':'Muro', ' Draw a wall\non the middle':'Dibuja\nun muro\nenmedio', 'Change the amount of\npotential allowed':'Cambia la cantidad de\npotencial permitido'}]
 
 detrans=[{v: k for k, v in language.items()} for language in trans]
 
@@ -1138,24 +1179,6 @@ lmode.set_visible(False)
 
 #---------------------------------------------------------------------------
 
-# remaining bricks
-# Counts how many bricks you have.
-# 6*pieces for people to get creative.
-
-def bricks(data):
-    global pieces
-    
-    bricks0 = 10*pieces
-    
-    return bricks0-np.sum(data_to_Vk(data))
-
-#axbrick = plt.axes([0.820, 0.62, 0.05, 0.0375])
-#bbrick = Button(axbrick, '', color='0.65', hovercolor='0.5')
-#
-#txt = fig.text(0.885, 0.625, 'x %d'%(int(bricks(data))), transform=ax.transAxes)
-
-#---------------------------------------------------------------------------
-
 # [ ↑ ] button
 # changes from the first energy level to the others, up to N_root
 
@@ -1351,15 +1374,108 @@ lwall = axwall.annotate(trans[late][' Draw a wall\non the middle'],
 lwall.set_visible(False)
 
 #---------------------------------------------------------------------------
+
+# difficulty button
+
+# remaining bricks
+# Counts how many bricks you have.
+# at 6*pieces people start to get creative.
+
+def bricks(data):
+    global pieces,difficulty,bmode
+    
+    if bmode.label.get_text()=='SURVIVAL':
+        bricks0 = difficulty*pieces
+    else:
+        bricks0 = 10*pieces
+    
+    return bricks0-np.sum(data_to_Vk(data))
+
+#axbrick = plt.axes([0.820, 0.62, 0.05, 0.0375])
+#bbrick = Button(axbrick, '', color='0.65', hovercolor='0.5')
+#
+#txt = fig.text(0.885, 0.625, 'x %d'%(int(bricks(data))), transform=ax.transAxes)
+
+def diff(event):
+
+    global trans, late, new, \
+    cid_click, fig, \
+    bdiff, axdiff, ldiff, difficulty, score_color, ball_color
+
+    ldiff.set_visible(False)  
+    
+    print('inside')
+
+    if bdiff.label.get_text()=='EASY':
+        difficulty=5
+        bdiff.label.set_text('FAIR')
+        score_color=(1,1,0)
+        ball_color=(1,1,0)
+        axdiff.spines['top'].set_color((1,1,0))
+        axdiff.spines['bottom'].set_color((1,1,0))
+        axdiff.spines['right'].set_color((1,1,0))
+        axdiff.spines['left'].set_color((1,1,0))
+        cid_click = fig.canvas.mpl_connect('button_press_event', ClickColor)
+        
+        
+    elif bdiff.label.get_text()=='FAIR':
+        difficulty=4
+        bdiff.label.set_text('HARD')
+        score_color=(1,0,0)
+        ball_color=(1,0,0)
+        axdiff.spines['top'].set_color((1,0,0))
+        axdiff.spines['bottom'].set_color((1,0,0))
+        axdiff.spines['right'].set_color((1,0,0))
+        axdiff.spines['left'].set_color((1,0,0))
+        cid_click = fig.canvas.mpl_connect('button_press_event', ClickColor)
+        
+        
+    elif bdiff.label.get_text()=='HARD':
+        difficulty=10
+        score_color=(0,1,0)
+        ball_color=(0,1,0)
+        bdiff.label.set_text('EASY')
+        axdiff.spines['top'].set_color((0,1,0))
+        axdiff.spines['bottom'].set_color((0,1,0))
+        axdiff.spines['right'].set_color((0,1,0))
+        axdiff.spines['left'].set_color((0,1,0))
+        cid_click = fig.canvas.mpl_connect('button_press_event', ClickColor)
+    
+    draw_wave()
+    event.canvas.draw()
+    new(event)
+
+axdiff = plt.axes([0.02, 0.92, 0.08, 0.05])
+bdiff = Button(axdiff, 'EASY')
+bdiff.on_clicked(diff)
+axdiff.spines['top'].set_color((0,1,0))
+axdiff.spines['bottom'].set_color((0,1,0))
+axdiff.spines['right'].set_color((0,1,0))
+axdiff.spines['left'].set_color((0,1,0))
+
+ldiff = axdiff.annotate(trans[late]['Change the amount of\npotential allowed'], 
+                        xy=(1,0.5), xytext=(+35,-20),
+                        textcoords='offset points',
+                        size=10, va='center',
+                        bbox=dict(boxstyle='round', fc=(0.7, 0.7, 1), ec='none'),
+                        arrowprops=dict(arrowstyle='wedge,tail_width=1.',
+                                        fc=(0.7, 0.7, 1), ec='none',
+                                        patchA=None,
+                                        patchB=el,
+                                        relpos=(0.2, 0.5)))
+ldiff.set_visible(False)
+
+#---------------------------------------------------------------------------
 # SCORE 
 # How survival mode works
 # The green square is calles ball
 #---------------------------------------------------------------------------
 
 def play_ball(touched):
-    global x_ball, y_ball, ball_value, max_value, score, score, lives,\
-        bmode, axup,axdown,axgauss,axstep,axwall,demos_txt
-
+    global x_ball, y_ball, ball_value, max_value, score, lives,\
+        bmode, axup,axdown,axgauss,axstep,axwall,demos_txt,\
+        no_bricks,bdiff
+    
     if bmode.label.get_text()=='SURVIVAL':
         if x_ball==0 and y_ball==9:
             new_ball(touched)
@@ -1377,6 +1493,9 @@ def play_ball(touched):
                 
             else:
                 ball_value-=1
+                if no_bricks:
+                    ball_value+=1
+                    no_bricks=False
                 if ball_value==0:
                     lives-=1
                     if lives==0:
@@ -1407,7 +1526,8 @@ def play_ball(touched):
     
 
 def new_ball(touched):
-    global x_ball, y_ball, ball_value
+    global x_ball, y_ball, ball_value, bdiff
+    
     x_ball  = random.randint(0,len(touched)-1)
     while touched[len(touched)-1-x_ball]>7:
         x_ball  = random.randint(0,len(touched)-1)
@@ -1420,6 +1540,18 @@ def new_ball(touched):
             
     if y_ball==1 or y_ball==0:
         new_ball(touched)
+
+    if bdiff.label.get_text()=='FAIR':
+        if x_ball==0 and y_ball==8:
+            new_ball(touched)
+        if y_ball>8:
+            new_ball(touched)
+        
+    if bdiff.label.get_text()=='HARD':
+        if x_ball==0 and y_ball==8:
+            new_ball(touched)
+        if y_ball>7:
+            new_ball(touched)
         
             
 value_txt = fig.text(0.885, 0.925, '%d'%(max_value))#, transform=ax.transAxes)
