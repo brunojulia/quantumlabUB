@@ -4,24 +4,30 @@
 	orientation: 'horizontal'
 
 	param0: param0_slider.value
+	param0slider: param0_slider
 	param1: param1_slider.value
+	param1slider: param1_slider
 	param2: param2_slider.value
 	param3: param3_slider.value
 	
 	mass: mass_slider.value
 	x0: x0_slider.value
+	x0slider: x0_slider
 	y0: y0_slider.value
+	y0slider: y0_slider
 	vx0: vx0_slider.value
 	vy0: vy0_slider.value
 
 	plotbox: plot_box
 	speedbutton: speed_button
 	statuslabel: status_label
+	menu: menu
 	
 	BoxLayout:
 		id: plot_box
 		size_hint: (None, 1)
 		size: (self.height, self.height)
+		on_touch_down: root.update_parameters(args[1])
 	BoxLayout:
 		orientation: 'vertical'
 		size_hint: (0.25, 1)
@@ -51,6 +57,7 @@
 			Button:
 				text: 'Reset'
 		TabbedPanel:
+			id: menu
 			size_hint: (1, 1)
 			do_default_tab: False
 			TabbedPanelItem:
@@ -81,7 +88,7 @@
 								text: 'x0'
 								size_hint: (0.2, 1)
 							Label:
-								text: str(param0_slider.value)
+								text: str(round(param0_slider.value,2))
 								size_hint: (0.2, 1)
 							Slider:
 								id: param0_slider
@@ -95,7 +102,7 @@
 								text: 'y0'
 								size_hint: (0.2, 1)
 							Label:
-								text: str(param1_slider.value)
+								text: str(round(param1_slider.value,2))
 								size_hint: (0.2, 1)
 							Slider:
 								id: param1_slider
@@ -109,7 +116,7 @@
 								text: 'V0'
 								size_hint: (0.2, 1)
 							Label:
-								text: str(param2_slider.value)
+								text: str(round(param2_slider.value,2))
 								size_hint: (0.2, 1)
 							Slider:
 								id: param2_slider
@@ -123,7 +130,7 @@
 								text: 'Sigma'
 								size_hint: (0.2, 1)
 							Label:
-								text: str(param3_slider.value)
+								text: str(round(param3_slider.value,2))
 								size_hint: (0.2, 1)
 							Slider:
 								id: param3_slider
@@ -159,7 +166,7 @@
 								text: 'm'
 								size_hint: (0.2, 1)
 							Label:
-								text: str(mass_slider.value)
+								text: str(round(mass_slider.value,2))
 								size_hint: (0.2, 1)
 							Slider:
 								id: mass_slider
@@ -173,7 +180,7 @@
 								text: 'x0'
 								size_hint: (0.2, 1)
 							Label:
-								text: str(x0_slider.value)
+								text: str(round(x0_slider.value,2))
 								size_hint: (0.2, 1)
 							Slider:
 								id: x0_slider
@@ -187,7 +194,7 @@
 								text: 'y0'
 								size_hint: (0.2, 1)
 							Label:
-								text: str(y0_slider.value)
+								text: str(round(y0_slider.value,2))
 								size_hint: (0.2, 1)
 							Slider:
 								id: y0_slider
@@ -201,7 +208,7 @@
 								text: 'vx0'
 								size_hint: (0.2, 1)
 							Label:
-								text: str(vx0_slider.value)
+								text: str(round(vx0_slider.value,2))
 								size_hint: (0.2, 1)
 							Slider:
 								id: vx0_slider
@@ -215,7 +222,7 @@
 								text: 'vy0'
 								size_hint: (0.2, 1)
 							Label:
-								text: str(vy0_slider.value)
+								text: str(round(vy0_slider.value))
 								size_hint: (0.2, 1)
 							Slider:
 								id: vy0_slider
