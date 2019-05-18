@@ -370,14 +370,22 @@ def draw_wave():
         if bdiff.label.get_text()=='EASY':
             difficulty=5
             ball_color=(1,1,0)
-            bdiff.label.set_text('FAIR')
+            bdiff.label.set_text('FAIR.')
             axdiff.spines['top'].set_color((1,1,0))
             axdiff.spines['bottom'].set_color((1,1,0))
             axdiff.spines['right'].set_color((1,1,0))
             axdiff.spines['left'].set_color((1,1,0))
-            
-    if score>=300:
         if bdiff.label.get_text()=='FAIR':
+            difficulty=4
+            ball_color=(1,0,0)
+            bdiff.label.set_text('HARD')
+            axdiff.spines['top'].set_color((1,0,0))
+            axdiff.spines['bottom'].set_color((1,0,0))
+            axdiff.spines['right'].set_color((1,0,0))
+            axdiff.spines['left'].set_color((1,0,0))
+            
+    if score>=200:
+        if bdiff.label.get_text()=='FAIR.':
             difficulty=4
             ball_color=(1,0,0)
             bdiff.label.set_text('HARD')
@@ -554,10 +562,48 @@ def ClickColor(event):
         data0=np.copy(data)
         
         # if I don't have enough bricks, draw the remaining only
-        if (Y+1)>(bricks(data)+data_to_Vk(data)[pieces-1-X]):
+#        if (Y+1)>(bricks(data)+data_to_Vk(data)[pieces-1-X]):
+#            print('you try',(Y+1),'when',data_to_Vk(data)[pieces-1-X])
+#            print('can give',(bricks(data)+data_to_Vk(data)[pieces-1-X]))
+#            Y=bricks(data)+data_to_Vk(data)[pieces-1-X]-1
+#            if Y==-1:
+#                no_bricks=True
+#                print(X,Y,'no bricks',bricks(data))
+
+#        print('------------------------------')
+#        print(Y+1,'-',data_to_Vk(data)[pieces-1-X],'=<',bricks(data),
+#              (Y+1-data_to_Vk(data)[pieces-1-X])<=bricks(data))
+#        #if I don't have enough bricks, erase and draw the remaining only
+#        if (Y+1)>(bricks(data)+data_to_Vk(data)[pieces-1-X]):
+#            print('you try',(Y+1),'when',data_to_Vk(data)[pieces-1-X])
+#            if (Y+1)<data_to_Vk(data)[pieces-1-X]:
+#                print('okey u erasing')
+#                no_bricks=False
+#            else:
+#                print('you have no bricks')
+
+        print(bricks(data))
+        #only give the remaining bricks
+        if bricks(data)>0 and \
+           (Y+1)>(bricks(data)+data_to_Vk(data)[pieces-1-X]):
             Y=bricks(data)+data_to_Vk(data)[pieces-1-X]-1
-            if Y==-1:
+            print('te doy menos')
+        #or if you are erasing
+        elif bricks(data)<=0:
+            if (Y+1)<=data_to_Vk(data)[pieces-1-X]:
+                Y=Y_hovered
+                no_bricks=False
+                print('vale, borrando')
+            else:
                 no_bricks=True
+                print('click invalido')
+
+        # if V=click you can delete the entire column
+        if Y+1==data_to_Vk(data)[pieces-1-X]:
+            data[X][:Y+1]=0
+        else:
+            data[X][:Y+1]=2
+        data[X][Y+1:]=0 
         
 #        # if V=1 you can delete the brick
 #        if Y==0 and data_to_Vk(data)[pieces-1-X]==1:
@@ -565,17 +611,10 @@ def ClickColor(event):
 #        else:
 #            data[X][:Y+1]=2
 #        data[X][Y+1:]=0
-            
-        # if V=click you can delete the entire column
-        if Y+1==data_to_Vk(data)[pieces-1-X]:
-            data[X][:Y+1]=0
-        else:
-            data[X][:Y+1]=2
-        data[X][Y+1:]=0
         
         # do I have enough bricks?
-        if bricks(data)<0:
-            no_bricks=True
+        if no_bricks:
+            print('no bricks')
             data=np.copy(data0)
             return True
         else:
@@ -721,9 +760,16 @@ def HoverColor(event):
     
             data0=np.copy(data)
             
-            # only hover the remaining bricks
-            if (Y+1)>(bricks(data)+data_to_Vk(data)[pieces-1-X]):
+            #only hover the remaining bricks
+            if bricks(data)>0 and \
+               (Y+1)>(bricks(data)+data_to_Vk(data)[pieces-1-X]):
                 Y=bricks(data)+data_to_Vk(data)[pieces-1-X]-1
+            #or if you are erasing
+            elif bricks(data)<=0:
+                if (Y+1)<=data_to_Vk(data)[pieces-1-X]:
+                    Y=Y_hovered
+                else:
+                    Y=-1
             
             data[X][:Y+1]=1
             
@@ -798,10 +844,10 @@ def language_reboot(event):
         lives_txt.remove()    
         lives_txt = fig.text(0.815, 0.815, trans[late]['game over'])#, transform=ax.transAxes)
         score_txt.remove()    
-        score_txt = fig.text(0.82, 0.765, trans[late]['score = %d']%(score))#, transform=ax.transAxes)
+        score_txt = fig.text(0.82, 0.765, trans[late]['score = %d']%(score),bbox={'facecolor':score_color, 'alpha':0.5, 'pad':5})#, transform=ax.transAxes)
     else:
         score_txt.remove()    
-        score_txt = fig.text(0.82, 0.765, trans[late]['score = %d']%(score)*(int(lives/abs(lives))))#, transform=ax.transAxes)
+        score_txt = fig.text(0.82, 0.765, trans[late]['score = %d']%(score)*(int(lives/abs(lives))),bbox={'facecolor':score_color, 'alpha':0.5, 'pad':5})#, transform=ax.transAxes)
     
     
     binfo.label.set_text(trans[late][detrans[lated][binfo.label.get_text()]])
@@ -1401,9 +1447,7 @@ def diff(event):
     cid_click, fig, \
     bdiff, axdiff, ldiff, difficulty, score_color, ball_color
 
-    ldiff.set_visible(False)  
-    
-    print('inside')
+    ldiff.set_visible(False) 
 
     if bdiff.label.get_text()=='EASY':
         difficulty=5
@@ -1417,7 +1461,7 @@ def diff(event):
         cid_click = fig.canvas.mpl_connect('button_press_event', ClickColor)
         
         
-    elif bdiff.label.get_text()=='FAIR':
+    elif bdiff.label.get_text()=='FAIR' or bdiff.label.get_text()=='FAIR.':
         difficulty=4
         bdiff.label.set_text('HARD')
         score_color=(1,0,0)
@@ -1493,6 +1537,7 @@ def play_ball(touched):
             else:
                 ball_value-=1
                 if no_bricks:
+                    print('stupid')
                     ball_value+=1
                     no_bricks=False
                 if ball_value==0:
