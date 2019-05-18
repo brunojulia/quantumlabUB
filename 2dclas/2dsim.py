@@ -14,6 +14,7 @@ from kivy.properties import ObjectProperty,ListProperty,NumericProperty,StringPr
 from kivy.graphics.texture import Texture
 from kivy.graphics import Rectangle,Color,Ellipse
 from kivy.clock import Clock
+from matplotlib import cm
 
 L = 200
 
@@ -52,7 +53,7 @@ class main(BoxLayout):
         self.set_texture()
         self.time = 0.
         self.T = 30
-        self.speedindex = 0
+        self.speedindex = 3
         self.change_speed()
         
     def set_texture(self):
@@ -65,9 +66,8 @@ class main(BoxLayout):
     def background(self):
         xx,yy, = np.meshgrid(np.linspace(-L/2.,L/2.,self.nx,endpoint=True),np.linspace(-L/2.,L/2.,self.nx,endpoint=True))
         self.im = np.zeros((self.nx,self.nx))
-        for i in range(0,self.im.shape[0]):
-            for j in range(0,self.im.shape[1]):
-                    self.im[i,j] = self.pot.val(xx[i,j],yy[i,j])
+        self.im = self.pot.val(xx,yy)
+        self.im = self.im + np.abs(self.im.min())
         self.im = np.uint8(255.*(self.im/self.im.max()))
             
     def update_texture(self):
@@ -86,7 +86,21 @@ class main(BoxLayout):
             Color(1.0,1.0,1.0)
             Rectangle(texture = self.plot_texture, pos = (cx,cy),size = (b,b))
             
-            
+        
+    def update_parameters(self,touch):
+        w = self.plotbox.size[0]
+        h = self.plotbox.size[1]
+        b = min(w,h)
+        scale = b/200.
+        x = (touch.pos[0] - b/2.)/scale
+        y = (touch.pos[1] - b/2.)/scale
+
+        if(self.menu.current_tab.text == 'Potentials'):
+            self.param0slider.value = x
+            self.param1slider.value = y
+        if(self.menu.current_tab.text == 'Particles'):
+            self.x0slider.value = x
+            self.y0slider.value = y
             
     def add_pot_list(self):
         self.potentials.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0,2),round(self.param1,2),round(self.param2,2),round(self.param3,2)))
@@ -152,11 +166,11 @@ class main(BoxLayout):
         
     def change_speed(self):
         sl = [1,2,5,10]
-        self.speed = sl[self.speedindex]
         if(self.speedindex == len(sl)-1):
             self.speedindex = 0
         else:
             self.speedindex += 1
+        self.speed = sl[self.speedindex]
         self.speedbutton.text = str(self.speed)+'x'
     
     def stop(self):
@@ -178,9 +192,9 @@ class main(BoxLayout):
                 Color(1.0,0.0,0.0)
             
                 Ellipse(pos=(p.trax(self.time)*scalew+w/2.-5.,p.tray(self.time)*scaleh+h/2.-5.),size=(10,10))
-        if(self.time <= self.T):
-            self.time += interval
-        else:
+        
+        self.time += interval*self.speed
+        if(self.time >= self.T):
             self.time = 0.
             
             
