@@ -15,6 +15,7 @@ from kivy.graphics.texture import Texture
 from kivy.graphics import Rectangle,Color,Ellipse
 from kivy.clock import Clock
 from matplotlib import cm
+import pickle
 
 L = 200
 
@@ -40,7 +41,9 @@ class main(BoxLayout):
     
     
     potentials = ListProperty()
+    potentialsave = []
     particlestrings = ListProperty()
+    particlesave = []
     particles = []
     init_conds = []
     
@@ -66,9 +69,12 @@ class main(BoxLayout):
     def background(self):
         xx,yy, = np.meshgrid(np.linspace(-L/2.,L/2.,self.nx,endpoint=True),np.linspace(-L/2.,L/2.,self.nx,endpoint=True))
         self.im = np.zeros((self.nx,self.nx))
-        self.im = self.pot.val(xx,yy)
-        self.im = self.im + np.abs(self.im.min())
-        self.im = np.uint8(255.*(self.im/self.im.max()))
+        if(self.pot.functions.size == 0):
+            self.im = np.uint8(self.im)
+        else:
+            self.im = self.pot.val(xx,yy)
+            self.im = self.im + np.abs(self.im.min())
+            self.im = np.uint8(255.*(self.im/self.im.max()))
             
     def update_texture(self):
         L = 200
@@ -104,6 +110,7 @@ class main(BoxLayout):
             
     def add_pot_list(self):
         self.potentials.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0,2),round(self.param1,2),round(self.param2,2),round(self.param3,2)))
+        self.potentialsave.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0,2),round(self.param1,2),round(self.param2,2),round(self.param3,2)))
         self.pot.add_function(gauss,dgaussx,dgaussy,[self.param0,self.param1,self.param2,self.param3])
         self.background()
         self.update_texture()
@@ -115,7 +122,9 @@ class main(BoxLayout):
     def reset_pot_list(self):
         self.pot.clear()
         self.potentials = []
+        self.potentialsave =[]
         self.plotbox.canvas.clear()
+        self.background()
         
         with self.statuslabel.canvas:
             Color(1,0,0)
@@ -123,6 +132,7 @@ class main(BoxLayout):
         
     def add_particle_list(self):
         self.particlestrings.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.mass,2),round(self.x0,2),round(self.y0,2),round(self.vx0,2),round(self.vy0,2)))
+        self.particlesave.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.mass,2),round(self.x0,2),round(self.y0,2),round(self.vx0,2),round(self.vy0,2)))
         self.particles.append(Particle(self.mass,self.charge,np.ones([1,4]),dt))
         self.init_conds.append([self.x0,self.y0,self.vx0,self.vy0])
         
@@ -132,6 +142,7 @@ class main(BoxLayout):
             
     def reset_particle_list(self):
         self.particlestrings = []
+        self.particlesave = []
         self.particles = []
         self.init_conds = []
         
@@ -178,7 +189,26 @@ class main(BoxLayout):
         self.time = 0
         self.plotbox.canvas.clear()
         self.update_texture()
+    
+    def save(self):
+        savedata = np.array([self.pot.functions,self.pot.dfunctionsx,self.pot.dfunctionsy,self.potentialsave,self.particles,self.init_conds,self.particlesave])
+        with open('save.dat','wb') as file:
+            pickle.dump(savedata,file)
         
+    def load(self):
+        with open('save.dat','rb') as file:
+            savedata = pickle.load(file)
+        
+        self.pot.functions = savedata[0]
+        self.pot.dfunctionsx = savedata[1]
+        self.pot.dfunctionsy = savedata[2]
+        self.potentials = savedata[3]
+        self.particles = savedata[4]
+        self.init_conds = savedata[5]
+        self.particlestrings = savedata[6]
+        
+        self.background()
+        self.update_texture()
     def animate(self,interval):
         w = self.plotbox.size[0]
         h = self.plotbox.size[1]
