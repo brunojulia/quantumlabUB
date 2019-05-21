@@ -55,7 +55,11 @@
 			Label:
 				id: status_label
 			Button:
-				text: 'Reset'
+				text: 'Save'
+				on_press: root.save()
+			Button:
+				text: 'Load'
+				on_press: root.load()
 		TabbedPanel:
 			id: menu
 			size_hint: (1, 1)
@@ -222,7 +226,7 @@
 								text: 'vy0'
 								size_hint: (0.2, 1)
 							Label:
-								text: str(round(vy0_slider.value))
+								text: str(round(vy0_slider.value,2))
 								size_hint: (0.2, 1)
 							Slider:
 								id: vy0_slider
