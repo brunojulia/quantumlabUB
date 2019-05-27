@@ -114,7 +114,7 @@ class main(BoxLayout):
         self.pot.add_function(gauss,dgaussx,dgaussy,[self.param0,self.param1,self.param2,self.param3])
         self.background()
         self.update_texture()
-        
+
         with self.statuslabel.canvas:
             Color(1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
@@ -133,7 +133,7 @@ class main(BoxLayout):
     def add_particle_list(self):
         self.particlestrings.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.mass,2),round(self.x0,2),round(self.y0,2),round(self.vx0,2),round(self.vy0,2)))
         self.particlesave.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.mass,2),round(self.x0,2),round(self.y0,2),round(self.vx0,2),round(self.vy0,2)))
-        self.particles.append(Particle(self.mass,self.charge,np.ones([1,4]),dt))
+        self.particles.append(Particle(self.mass,self.charge,dt))
         self.init_conds.append([self.x0,self.y0,self.vx0,self.vy0])
         
         with self.statuslabel.canvas:
@@ -154,7 +154,7 @@ class main(BoxLayout):
         with self.statuslabel.canvas:
             Color(1,0.1,0.1)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-            
+
         for i,p in enumerate(self.particles,0):
             p.ComputeTrajectoryF(self.init_conds[i],self.pot)
         print('Done')
