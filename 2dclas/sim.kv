@@ -3,25 +3,35 @@
 <main>:
 	orientation: 'horizontal'
 
-	param0: param0_slider.value
-	param0slider: param0_slider
-	param1: param1_slider.value
-	param1slider: param1_slider
-	param2: param2_slider.value
-	param3: param3_slider.value
+	param0slider: param0_slider.__self__
+	param1slider: param1_slider.__self__
+
+	param2gslider: param2g_slider.__self__
+	param3gslider: param3g_slider.__self__
+
+
+	param2wsslider: param2ws_slider.__self__
+	param3wsslider: param3ws_slider.__self__
+	param4wsslider: param4ws_slider.__self__
+	param5wsslider: param5ws_slider.__self__
 	
 	mass: mass_slider.value
 	x0: x0_slider.value
-	x0slider: x0_slider
+	x0slider: x0_slider.__self__
 	y0: y0_slider.value
-	y0slider: y0_slider
+	y0slider: y0_slider.__self__
 	vx0: vx0_slider.value
 	vy0: vy0_slider.value
 
-	plotbox: plot_box
-	speedbutton: speed_button
-	statuslabel: status_label
-	menu: menu
+	plotbox: plot_box.__self__
+	speedbutton: speed_button.__self__
+	statuslabel: status_label.__self__
+	menu: menu.__self__
+
+	pottab: pot_tab.__self__
+	potmenu: pot_menu.__self__
+
+	parttab: part_tab.__self__
 	
 	BoxLayout:
 		id: plot_box
@@ -66,6 +76,7 @@
 			do_default_tab: False
 			TabbedPanelItem:
 				text: 'Potentials'
+				id: pot_tab
 				BoxLayout:
 					size_hint: (1, 1)
 					orientation: 'vertical'
@@ -83,67 +94,138 @@
 							text: 'Reset'
 							on_press: root.reset_pot_list()
 					BoxLayout:
-						orientation: 'vertical'
-						size_hint: (1, 1)
-
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'x0'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(round(param0_slider.value,2))
-								size_hint: (0.2, 1)
-							Slider:
-								id: param0_slider
+						orientation: 'horizontal'
+						size_hint: (1, 0.1)
+						Label:
+							text: 'x0'
+							size_hint: (0.2, 1)
+						Label:
+							text: str(round(param0_slider.value,2))
+							size_hint: (0.2, 1)
+						Slider:
+							id: param0_slider
+							size_hint: (1, 1)
+							min: -100
+							max: 100
+							step: 1
+					BoxLayout:
+						orientation: 'horizontal'
+						size_hint: (1, 0.1)
+						Label:
+							text: 'y0'
+							size_hint: (0.2, 1)
+						Label:
+							text: str(round(param1_slider.value,2))
+							size_hint: (0.2, 1)
+						Slider:
+							id: param1_slider
+							size_hint: (1, 1)
+							min: -100
+							max: 100
+							step: 1
+					TabbedPanel:
+						id: pot_menu
+						size_hint: (1, 0.5)
+						do_default_tab: False
+						TabbedPanelItem:
+							text: 'Gauss'
+							id: gauss_tab				
+							BoxLayout:
+								orientation: 'vertical'
 								size_hint: (1, 1)
-								min: -100
-								max: 100
-								step: 1
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'y0'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(round(param1_slider.value,2))
-								size_hint: (0.2, 1)
-							Slider:
-								id: param1_slider
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'V0'
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param2g_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param2g_slider
+										size_hint: (1, 1)
+										min: -100
+										max: 100
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'Sigma'
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param3g_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param3g_slider
+										size_hint: (1, 1)
+										min: 0.1
+										max: 20
+										step: 0.1
+						TabbedPanelItem:
+							text: 'Woods-Saxon'
+							id: ws_tab				
+							BoxLayout:
+								orientation: 'vertical'
 								size_hint: (1, 1)
-								min: -100
-								max: 100
-								step: 1
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'V0'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(round(param2_slider.value,2))
-								size_hint: (0.2, 1)
-							Slider:
-								id: param2_slider
-								size_hint: (1, 1)
-								min: -100
-								max: 100
-								step: 1
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'Sigma'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(round(param3_slider.value,2))
-								size_hint: (0.2, 1)
-							Slider:
-								id: param3_slider
-								size_hint: (1, 1)
-								min: 0.1
-								max: 20
-								step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'V0'
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param2ws_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param2ws_slider
+										size_hint: (1, 1)
+										min: -100
+										max: 100
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'Rx'
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param3ws_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param3ws_slider
+										size_hint: (1, 1)
+										min: 5
+										max: 100
+										step: 1	
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'Ry'
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param4ws_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param4ws_slider
+										size_hint: (1, 1)
+										min: 5
+										max: 100
+										step: 1	
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'a'
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param5ws_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param5ws_slider
+										size_hint: (1, 1)
+										min: 0.3
+										max: 1
+										step: 0.1								
 			TabbedPanelItem:
 				text: 'Particles'
+				id: part_tab
 				BoxLayout:
 					size_hint: (1, 1)
 					orientation: 'vertical'
