@@ -78,14 +78,16 @@ def woodsaxon(r,param):
     x0 = param[0]
     y0 = param[1]
     V0 = param[2]
-    R = param[3]
-    a = param[4]
+    Rx = param[3]
+    Ry = param[4]
+    a = param[5]
     
     x = r[0] - x0
+    px = np.sqrt(x**2)
     y = r[1] - y0
-    d = np.sqrt(x**2+y**2)
+    py = np.sqrt(y**2)
     
-    f = - (V0)/(1 + np.exp((d-R)/a))
+    f = V0*(1/(1 + np.exp((px-Rx)/a)))*(1/(1 + np.exp((py-Ry)/a)))
     
     return f
 
@@ -93,33 +95,36 @@ def dwoodsaxonx(r,param):
     x0 = param[0]
     y0 = param[1]
     V0 = param[2]
-    R = param[3]
-    a = param[4]
+    Rx = param[3]
+    Ry = param[4]
+    a = param[5]
     
     x = r[0] - x0
+    px = np.sqrt(x**2)
     y = r[1] - y0
-    d = np.sqrt(x**2+y**2)
-    if(d>0.00001):
-        f = (V0*x*np.exp((d+R)/a))/(a*d*(np.exp(R/a)+np.exp(d/a))**2)
-    else:
-        f = 0.
+    py = np.sqrt(y**2)
+    
+    sign = np.where(x>0,1,-1)
+    
+    f = -V0*((sign*np.exp((Rx+px)/a))/(a*(np.exp(Rx/a)+np.exp(px/a))**2))*(1/(1 + np.exp((py-Ry)/a)))
     return f
 
 def dwoodsaxony(r,param):
     x0 = param[0]
     y0 = param[1]
     V0 = param[2]
-    R = param[3]
-    a = param[4]
+    Rx = param[3]
+    Ry = param[4]
+    a = param[5]
     
     x = r[0] - x0
+    px = np.sqrt(x**2)
     y = r[1] - y0
-    d = np.sqrt(x**2+y**2)
-    if(d>0.00001):
-        f = (V0*y*np.exp((d+R)/a))/(a*d*(np.exp(R/a)+np.exp(d/a))**2)
-    else:
-        f = 0.
+    py = np.sqrt(y**2)
     
+    sign = np.where(y>0,1,-1)
+    
+    f = -V0*((sign*np.exp((Ry+py)/a))/(a*(np.exp(Ry/a)+np.exp(py/a))**2))*(1/(1 + np.exp((px-Rx)/a)))
     return f
 #############################
     

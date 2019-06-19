@@ -27,11 +27,6 @@ dt = 0.1
 class main(BoxLayout):
     
     
-    param0 = NumericProperty()
-    param1 = NumericProperty()
-    param2 = NumericProperty()
-    param3 = NumericProperty()
-    
     mass = NumericProperty()
     charge = 1.
     x0 = NumericProperty()
@@ -58,6 +53,7 @@ class main(BoxLayout):
         self.T = 30
         self.speedindex = 3
         self.change_speed()
+        self.running = False
         
     def set_texture(self):
         L = 200
@@ -109,9 +105,14 @@ class main(BoxLayout):
             self.y0slider.value = y
             
     def add_pot_list(self):
-        self.potentials.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0,2),round(self.param1,2),round(self.param2,2),round(self.param3,2)))
-        self.potentialsave.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0,2),round(self.param1,2),round(self.param2,2),round(self.param3,2)))
-        self.pot.add_function(gauss,dgaussx,dgaussy,[self.param0,self.param1,self.param2,self.param3])
+        if(self.potmenu.current_tab.text == 'Gauss'):
+            self.potentials.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
+            self.potentialsave.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
+            self.pot.add_function(gauss,dgaussx,dgaussy,[self.param0slider.value,self.param1slider.value,self.param2gslider.value,self.param3gslider.value])
+        elif(self.potmenu.current_tab.text == 'Woods-Saxon'):
+            self.potentials.append('WS:x0 = {}, y0 = {}, V0 = {}, Rx = {}, Ry = {}, a = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2wsslider.value,2),round(self.param3wsslider.value,2),round(self.param4wsslider.value,2),round(self.param5wsslider.value,2)))
+            self.potentialsave.append('WS:x0 = {}, y0 = {}, V0 = {}, Rx = {}, Ry = {}, a = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2wsslider.value,2),round(self.param3wsslider.value,2),round(self.param4wsslider.value,2),round(self.param5wsslider.value,2)))
+            self.pot.add_function(woodsaxon,dwoodsaxonx,dwoodsaxony,[self.param0slider.value,self.param1slider.value,self.param2wsslider.value,self.param3wsslider.value,self.param4wsslider.value,self.param5wsslider.value])
         self.background()
         self.update_texture()
 
