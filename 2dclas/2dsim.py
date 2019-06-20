@@ -132,10 +132,25 @@ class main(BoxLayout):
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
         
     def add_particle_list(self):
-        self.particlestrings.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.mass,2),round(self.x0,2),round(self.y0,2),round(self.vx0,2),round(self.vy0,2)))
-        self.particlesave.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.mass,2),round(self.x0,2),round(self.y0,2),round(self.vx0,2),round(self.vy0,2)))
-        self.particles.append(Particle(self.mass,self.charge,dt))
-        self.init_conds.append([self.x0,self.y0,self.vx0,self.vy0])
+        if(self.partmenu.current_tab.text == 'Single'):
+            self.particlestrings.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.vx0slider.value,2),round(self.vy0slider.value,2)))
+            self.particlesave.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.vx0slider.value,2),round(self.vy0slider.value,2)))
+            self.particles.append(Particle(self.massslider.value,self.charge,dt))
+            self.init_conds.append([self.x0slider.value,self.y0slider.value,self.vx0slider.value,self.vy0slider.value])
+        elif(self.partmenu.current_tab.text == 'Dispersion'):
+            self.particlestrings.append('P{}: m = {}, x0 = {}, y0 = {}, N = {}, v = {}, theta = {}, spread = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nslider.value),round(self.vslider.value,2),round(self.thetaslider.value,2),round(self.alphaslider.value,2)))
+            self.particlesave.append('P{}: m = {}, x0 = {}, y0 = {}, N = {}, v = {}, theta = {}, spread = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nslider.value),round(self.vslider.value,2),round(self.thetaslider.value,2),round(self.alphaslider.value,2)))
+            
+            delta = self.alphaslider.value/self.nslider.value
+            theta = self.thetaslider.value - self.alphaslider.value/2.
+            for k in range(0,int(self.nslider.value)):
+                vx = self.vslider.value * np.cos(theta*(np.pi/180.))
+                vy = self.vslider.value * np.sin(theta*(np.pi/180.))
+                
+                self.particles.append(Particle(self.massslider.value,self.charge,dt))
+                self.init_conds.append([self.x0slider.value,self.y0slider.value,vx,vy])
+                
+                theta = theta + delta
         
         with self.statuslabel.canvas:
             Color = (1,0,0)
