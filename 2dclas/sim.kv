@@ -107,7 +107,8 @@
 						orientation: 'horizontal'
 						size_hint: (1, 0.1)
 						Label:
-							text: 'x0'
+							text: 'x[sub]0[/sub]'
+							markup: True
 							size_hint: (0.2, 1)
 						Label:
 							text: str(round(param0_slider.value,2))
@@ -122,7 +123,8 @@
 						orientation: 'horizontal'
 						size_hint: (1, 0.1)
 						Label:
-							text: 'y0'
+							text: 'y[sub]0[/sub]'
+							markup: True
 							size_hint: (0.2, 1)
 						Label:
 							text: str(round(param1_slider.value,2))
@@ -146,7 +148,8 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'V0'
+										text: 'V[sub]0[/sub]'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(param2g_slider.value,2))
@@ -160,7 +163,8 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'Sigma'
+										text: u'\u03C3'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(param3g_slider.value,2))
@@ -180,7 +184,8 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'V0'
+										text: 'V[sub]0[/sub]'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(param2ws_slider.value,2))
@@ -194,7 +199,8 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'Rx'
+										text: 'R[sub]x[/sub]'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(param3ws_slider.value,2))
@@ -208,7 +214,8 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'Ry'
+										text: 'R[sub]y[/sub]'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(param4ws_slider.value,2))
@@ -223,6 +230,7 @@
 									orientation: 'horizontal'
 									Label:
 										text: 'a'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(param5ws_slider.value,2))
@@ -257,6 +265,7 @@
 						size_hint: (1, 0.1)
 						Label:
 							text: 'm'
+							markup: True
 							size_hint: (0.2, 1)
 						Label:
 							text: str(round(mass_slider.value,2))
@@ -271,7 +280,8 @@
 						orientation: 'horizontal'
 						size_hint: (1, 0.1)
 						Label:
-							text: 'x0'
+							text: 'x[sub]0[/sub]'
+							markup: True
 							size_hint: (0.2, 1)
 						Label:
 							text: str(round(x0_slider.value,2))
@@ -286,7 +296,8 @@
 						orientation: 'horizontal'
 						size_hint: (1, 0.1)
 						Label:
-							text: 'y0'
+							text: 'y[sub]0[/sub]'
+							markup: True
 							size_hint: (0.2, 1)
 						Label:
 							text: str(round(y0_slider.value,2))
@@ -310,7 +321,8 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'vx0'
+										text: 'v[sub]x0[/sub]'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(vx0_slider.value,2))
@@ -324,7 +336,8 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'vy0'
+										text: 'v[sub]y0[/sub]'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(vy0_slider.value,2))
@@ -345,6 +358,7 @@
 									orientation: 'horizontal'
 									Label:
 										text: 'N'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(n_slider.value))
@@ -359,6 +373,7 @@
 									orientation: 'horizontal'
 									Label:
 										text: 'v'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(v_slider.value,2))
@@ -373,6 +388,7 @@
 									orientation: 'horizontal'
 									Label:
 										text: 'Angle'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(theta_slider.value,2))
@@ -387,6 +403,7 @@
 									orientation: 'horizontal'
 									Label:
 										text: 'Spread'
+										markup: True
 										size_hint: (0.2, 1)
 									Label:
 										text: str(round(alpha_slider.value,2))

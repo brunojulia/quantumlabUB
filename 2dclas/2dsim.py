@@ -12,7 +12,7 @@ from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.properties import ObjectProperty,ListProperty,NumericProperty,StringProperty
 from kivy.graphics.texture import Texture
-from kivy.graphics import Rectangle,Color,Ellipse
+from kivy.graphics import Rectangle,Color,Ellipse,Line
 from kivy.clock import Clock
 from matplotlib import cm
 import pickle
@@ -54,6 +54,7 @@ class main(BoxLayout):
         self.speedindex = 3
         self.change_speed()
         self.running = False
+        self.previewtimer = Clock.schedule_interval(self.preview,0.04)
         
     def set_texture(self):
         L = 200
@@ -105,6 +106,7 @@ class main(BoxLayout):
             self.y0slider.value = y
             
     def add_pot_list(self):
+        self.stop()
         if(self.potmenu.current_tab.text == 'Gauss'):
             self.potentials.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
             self.potentialsave.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
@@ -121,6 +123,7 @@ class main(BoxLayout):
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
             
     def reset_pot_list(self):
+        self.stop()
         self.pot.clear()
         self.potentials = []
         self.potentialsave =[]
@@ -132,6 +135,7 @@ class main(BoxLayout):
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
         
     def add_particle_list(self):
+        self.stop()
         if(self.partmenu.current_tab.text == 'Single'):
             self.particlestrings.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.vx0slider.value,2),round(self.vy0slider.value,2)))
             self.particlesave.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.vx0slider.value,2),round(self.vy0slider.value,2)))
@@ -157,6 +161,7 @@ class main(BoxLayout):
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
             
     def reset_particle_list(self):
+        self.stop()
         self.particlestrings = []
         self.particlesave = []
         self.particles = []
@@ -191,6 +196,13 @@ class main(BoxLayout):
         else:
             pass
         
+    def stop(self):
+        self.pause()
+        self.time = 0
+        self.plotbox.canvas.clear()
+        self.update_texture()
+    
+        
     def change_speed(self):
         sl = [1,2,5,10]
         if(self.speedindex == len(sl)-1):
@@ -200,12 +212,7 @@ class main(BoxLayout):
         self.speed = sl[self.speedindex]
         self.speedbutton.text = str(self.speed)+'x'
     
-    def stop(self):
-        self.pause()
-        self.time = 0
-        self.plotbox.canvas.clear()
-        self.update_texture()
-    
+   
     def save(self):
         savedata = np.array([self.pot.functions,self.pot.dfunctionsx,self.pot.dfunctionsy,self.potentialsave,self.particles,self.init_conds,self.particlesave])
         with open('save.dat','wb') as file:
@@ -225,6 +232,23 @@ class main(BoxLayout):
         
         self.background()
         self.update_texture()
+    
+    def preview(self,interval):
+        if(self.running == False):
+            if(self.menu.current_tab.text == 'Particles'):
+                if(self.partmenu.current_tab.text == 'Single'):
+                    w = self.plotbox.size[0]
+                    h = self.plotbox.size[1]
+                    b = min(w,h)
+                    scalew = b/200.
+                    scaleh = b/200.
+                    self.plotbox.canvas.clear()
+                    self.update_texture()
+                    with self.plotbox.canvas:
+                        Color(1.0,0.5,0.0)
+                        Ellipse(pos=(self.x0slider.value*scalew+w/2.-5.,self.y0slider.value*scaleh+h/2.-5.),size=(10,10))
+                        Line(points=[self.x0slider.value*scalew+w/2.,self.y0slider.value*scaleh+h/2.,self.vx0slider.value*scalew+w/2.+self.x0slider.value*scalew,self.vy0slider.value*scalew+w/2.+self.y0slider.value*scalew])
+    
     def animate(self,interval):
         w = self.plotbox.size[0]
         h = self.plotbox.size[1]
@@ -236,13 +260,12 @@ class main(BoxLayout):
         with self.plotbox.canvas:
             for p in self.particles:
                 Color(1.0,0.0,0.0)
-            
                 Ellipse(pos=(p.trax(self.time)*scalew+w/2.-5.,p.tray(self.time)*scaleh+h/2.-5.),size=(10,10))
         
         self.time += interval*self.speed
         if(self.time >= self.T):
             self.time = 0.
-            
+
             
 class simApp(App):
 
