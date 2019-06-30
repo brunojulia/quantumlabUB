@@ -3,6 +3,8 @@
 <main>:
 	orientation: 'horizontal'
 
+	pcbutton: pc_button.__self__
+
 	param0slider: param0_slider.__self__
 	param1slider: param1_slider.__self__
 
@@ -55,8 +57,9 @@
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
 			Button:
-				text: 'Play'
-				on_press: root.play()
+				id: pc_button
+				text: 'Compute'
+				on_press: root.playcompute()
 			Button:
 				text: 'Pause'
 				on_press: root.pause()
@@ -69,11 +72,11 @@
 		BoxLayout:
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
-			Button:
-				text: 'Compute'
-				on_press: root.compute()
+			Label:
+				text: 'Status:'
 			Label:
 				id: status_label
+				text: 'Ready'
 			Button:
 				text: 'Save'
 				on_press: root.save()
@@ -229,7 +232,7 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'a'
+										text: 'Theta'
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
@@ -238,9 +241,9 @@
 									Slider:
 										id: param5ws_slider
 										size_hint: (1, 1)
-										min: 0.3
-										max: 1
-										step: 0.1								
+										min: 0
+										max: 180
+										step: 1								
 			TabbedPanelItem:
 				text: 'Particles'
 				id: part_tab

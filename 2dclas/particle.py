@@ -79,7 +79,7 @@ class Particle():
         return rlater
     
     def RKF(self,r):
-        eps = 0.000001
+        eps = 0.00000001
 
         hnew = self.dt
         safety = 0
