@@ -54,6 +54,8 @@ class main(BoxLayout):
         self.speedindex = 3
         self.change_speed()
         self.running = False
+        self.paused = False
+        self.ready = False
         self.previewtimer = Clock.schedule_interval(self.preview,0.04)
         
     def set_texture(self):
@@ -117,10 +119,10 @@ class main(BoxLayout):
             self.pot.add_function(woodsaxon,dwoodsaxonx,dwoodsaxony,[self.param0slider.value,self.param1slider.value,self.param2wsslider.value,self.param3wsslider.value,self.param4wsslider.value,self.param5wsslider.value])
         self.background()
         self.update_texture()
-
-        with self.statuslabel.canvas:
-            Color(1,0,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
+        
+        self.ready = False
+        self.pcbutton.text = "Compute"
+        self.statuslabel.text = 'Not Ready'
             
     def reset_pot_list(self):
         self.stop()
@@ -130,9 +132,9 @@ class main(BoxLayout):
         self.plotbox.canvas.clear()
         self.background()
         
-        with self.statuslabel.canvas:
-            Color(1,0,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
+        self.ready = False
+        self.pcbutton.text = "Compute"
+        self.statuslabel.text = 'Not Ready'
         
     def add_particle_list(self):
         self.stop()
@@ -156,9 +158,10 @@ class main(BoxLayout):
                 
                 theta = theta + delta
         
-        with self.statuslabel.canvas:
-            Color = (1,0,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
+        self.ready = False
+        self.pcbutton.text = "Compute"
+        self.statuslabel.text = 'Not Ready'
+        
             
     def reset_particle_list(self):
         self.stop()
@@ -167,37 +170,39 @@ class main(BoxLayout):
         self.particles = []
         self.init_conds = []
         
-        with self.statuslabel.canvas:
-            Color(1,0,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
+        self.ready = False
+        self.pcbutton.text = "Compute"
+        self.statuslabel.text = 'Not Ready'
     
-    def compute(self):
-        with self.statuslabel.canvas:
-            Color(1,0.1,0.1)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-
-        for i,p in enumerate(self.particles,0):
-            p.ComputeTrajectoryF(self.init_conds[i],self.pot)
-        print('Done')
-        for p in self.particles:
-            print(p.trajectory[-1,:])
-            
-        with self.statuslabel.canvas:
-            Color(0,1,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-            
-    def play(self):
-        self.timer = Clock.schedule_interval(self.animate,0.04)
-        self.running = True
+    def playcompute(self):
+        if(self.ready==False):
+            self.statuslabel.text = 'Computing'
+    
+            for i,p in enumerate(self.particles,0):
+                p.ComputeTrajectoryF(self.init_conds[i],self.pot)
+                
+            self.ready = True
+            self.pcbutton.text = "Play"
+            self.statuslabel.text = 'Ready'
+        elif(self.ready==True):
+            if(self.running==False):
+                self.timer = Clock.schedule_interval(self.animate,0.04)
+                self.running = True
+                self.paused = False
+            elif(self.running==True):
+                pass
     
     def pause(self):
         if(self.running==True):
+            self.paused = True
             self.timer.cancel()
+            self.running = False
         else:
             pass
         
     def stop(self):
         self.pause()
+        self.paused = False
         self.time = 0
         self.plotbox.canvas.clear()
         self.update_texture()
@@ -234,7 +239,7 @@ class main(BoxLayout):
         self.update_texture()
     
     def preview(self,interval):
-        if(self.running == False):
+        if(self.running == False and self.paused == False):
             if(self.menu.current_tab.text == 'Particles'):
                 if(self.partmenu.current_tab.text == 'Single'):
                     w = self.plotbox.size[0]
@@ -249,6 +254,10 @@ class main(BoxLayout):
                         Ellipse(pos=(self.x0slider.value*scalew+w/2.-5.,self.y0slider.value*scaleh+h/2.-5.),size=(10,10))
                         Line(points=[self.x0slider.value*scalew+w/2.,self.y0slider.value*scaleh+h/2.,self.vx0slider.value*scalew+w/2.+self.x0slider.value*scalew,self.vy0slider.value*scalew+w/2.+self.y0slider.value*scalew])
     
+            else:
+                self.plotbox.canvas.clear()
+                self.update_texture() 
+               
     def animate(self,interval):
         w = self.plotbox.size[0]
         h = self.plotbox.size[1]
@@ -258,7 +267,7 @@ class main(BoxLayout):
         self.plotbox.canvas.clear()
         self.update_texture()
         with self.plotbox.canvas:
-            for p in self.particles:
+            for p in self.particles: 
                 Color(1.0,0.0,0.0)
                 Ellipse(pos=(p.trax(self.time)*scalew+w/2.-5.,p.tray(self.time)*scaleh+h/2.-5.),size=(10,10))
         

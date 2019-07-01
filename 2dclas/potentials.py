@@ -80,12 +80,18 @@ def woodsaxon(r,param):
     V0 = param[2]
     Rx = param[3]
     Ry = param[4]
-    a = param[5]
+    theta = param[5]*(np.pi/180.)
+    
+    a = 1.
     
     x = r[0] - x0
-    px = np.sqrt(x**2)
     y = r[1] - y0
-    py = np.sqrt(y**2)
+    
+    xr = x*np.cos(theta) - y*np.sin(theta)
+    yr = x*np.sin(theta) + y*np.cos(theta)
+    
+    px = np.sqrt(xr**2)
+    py = np.sqrt(yr**2)
     
     f = V0*(1/(1 + np.exp((px-Rx)/a)))*(1/(1 + np.exp((py-Ry)/a)))
     
@@ -97,12 +103,18 @@ def dwoodsaxonx(r,param):
     V0 = param[2]
     Rx = param[3]
     Ry = param[4]
-    a = param[5]
+    theta = param[5]*(np.pi/180.)
+    
+    a = 1.
     
     x = r[0] - x0
-    px = np.sqrt(x**2)
     y = r[1] - y0
-    py = np.sqrt(y**2)
+    
+    xr = x*np.cos(theta) - y*np.sin(theta)
+    yr = x*np.sin(theta) + y*np.cos(theta)
+    
+    px = np.sqrt(xr**2)
+    py = np.sqrt(yr**2)
     
     sign = np.where(x>0,1,-1)
     
@@ -115,12 +127,18 @@ def dwoodsaxony(r,param):
     V0 = param[2]
     Rx = param[3]
     Ry = param[4]
-    a = param[5]
+    theta = param[5]*(np.pi/180.)
+    
+    a = 1.
     
     x = r[0] - x0
-    px = np.sqrt(x**2)
     y = r[1] - y0
-    py = np.sqrt(y**2)
+    
+    xr = x*np.cos(theta) - y*np.sin(theta)
+    yr = x*np.sin(theta) + y*np.cos(theta)
+    
+    px = np.sqrt(xr**2)
+    py = np.sqrt(yr**2)
     
     sign = np.where(y>0,1,-1)
     
