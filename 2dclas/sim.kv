@@ -33,6 +33,14 @@
 	thetaslider: theta_slider.__self__
 	alphaslider: alpha_slider.__self__
 
+	nlslider: nl_slider.__self__
+	vlslider: vl_slider.__self__
+	thetalslider: thetal_slider.__self__
+	lslider: l_slider.__self__
+
+	ngslider: ng_slider.__self__
+	kslider: k_slider.__self__
+
 
 	plotbox: plot_box.__self__
 	speedbutton: speed_button.__self__
@@ -202,7 +210,7 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'R[sub]x[/sub]'
+										text: 'L[sub]x[/sub]'
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
@@ -211,13 +219,13 @@
 									Slider:
 										id: param3ws_slider
 										size_hint: (1, 1)
-										min: 5
-										max: 100
+										min: 10
+										max: 200
 										step: 1	
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'R[sub]y[/sub]'
+										text: 'L[sub]y[/sub]'
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
@@ -226,13 +234,13 @@
 									Slider:
 										id: param4ws_slider
 										size_hint: (1, 1)
-										min: 5
-										max: 100
+										min: 10
+										max: 200
 										step: 1	
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'Theta'
+										text: u'\u03B8'
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
@@ -369,7 +377,7 @@
 									Slider:
 										id: n_slider
 										size_hint: (1, 1)
-										min: 1
+										min: 2
 										max: 50
 										step: 1
 								BoxLayout:
@@ -390,7 +398,7 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'Angle'
+										text: u'\u03B8'
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
@@ -417,3 +425,105 @@
 										min: 1
 										max: 90
 										step: 1
+						TabbedPanelItem:
+							text: 'Line'
+							id: line_tab
+							BoxLayout:
+								orientation: 'vertical'
+								size_hint: (1, 1)
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'N'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(nl_slider.value))
+										size_hint: (0.2, 1)
+									Slider:
+										id: nl_slider
+										size_hint: (1, 1)
+										min: 2
+										max: 50
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(vl_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: vl_slider
+										size_hint: (1, 1)
+										min: 0.1
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: u'\u03B8'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(thetal_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: thetal_slider
+										size_hint: (1, 1)
+										min: 0
+										max: 360
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'L'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(l_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: l_slider
+										size_hint: (1, 1)
+										min: 10
+										max: 200
+										step: 1
+						TabbedPanelItem:
+							text: 'Ground State OSC'
+							id: GSO_tab
+							BoxLayout:
+								orientation: 'vertical'
+								size_hint: (1, 1)
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'N'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(ng_slider.value))
+										size_hint: (0.2, 1)
+									Slider:
+										id: ng_slider
+										size_hint: (1, 1)
+										min: 1
+										max: 50
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'k'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(k_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: k_slider
+										size_hint: (1, 1)
+										min: 1
+										max: 10
+										step: 0.1
