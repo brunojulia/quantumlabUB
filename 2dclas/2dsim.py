@@ -10,10 +10,12 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
-from kivy.properties import ObjectProperty,ListProperty,NumericProperty
+from kivy.properties import ObjectProperty,ListProperty,NumericProperty,StringProperty
 from kivy.graphics.texture import Texture
-from kivy.graphics import Rectangle,Color,Ellipse
+from kivy.graphics import Rectangle,Color,Ellipse,Line
 from kivy.clock import Clock
+from matplotlib import cm
+import pickle
 
 L = 200
 
@@ -25,11 +27,6 @@ dt = 0.1
 class main(BoxLayout):
     
     
-    param0 = NumericProperty()
-    param1 = NumericProperty()
-    param2 = NumericProperty()
-    param3 = NumericProperty()
-    
     mass = NumericProperty()
     charge = 1.
     x0 = NumericProperty()
@@ -39,7 +36,9 @@ class main(BoxLayout):
     
     
     potentials = ListProperty()
+    potentialsave = []
     particlestrings = ListProperty()
+    particlesave = []
     particles = []
     init_conds = []
     
@@ -52,6 +51,12 @@ class main(BoxLayout):
         self.set_texture()
         self.time = 0.
         self.T = 30
+        self.speedindex = 3
+        self.change_speed()
+        self.running = False
+        self.paused = False
+        self.ready = False
+        self.previewtimer = Clock.schedule_interval(self.preview,0.04)
         
     def set_texture(self):
         L = 200
@@ -63,10 +68,12 @@ class main(BoxLayout):
     def background(self):
         xx,yy, = np.meshgrid(np.linspace(-L/2.,L/2.,self.nx,endpoint=True),np.linspace(-L/2.,L/2.,self.nx,endpoint=True))
         self.im = np.zeros((self.nx,self.nx))
-        for i in range(0,self.im.shape[0]):
-            for j in range(0,self.im.shape[1]):
-                    self.im[i,j] = self.pot.val(xx[i,j],yy[i,j])
-        self.im = np.uint8(255.*(self.im/self.im.max()))
+        if(self.pot.functions.size == 0):
+            self.im = np.uint8(self.im)
+        else:
+            self.im = self.pot.val(xx,yy)
+            self.im = self.im + np.abs(self.im.min())
+            self.im = np.uint8(255.*(self.im/self.im.max()))
             
     def update_texture(self):
         L = 200
@@ -81,62 +88,265 @@ class main(BoxLayout):
             
             
             self.plot_texture.blit_buffer(self.im.reshape(self.im.size),colorfmt='luminance')
-            Rectangle(texture = self.plot_texture, pos = (b/4.,cy),size = (b,b))
-            print(w,h)
-            print(cx,cy)
+            Color(1.0,1.0,1.0)
+            Rectangle(texture = self.plot_texture, pos = (cx,cy),size = (b,b))
             
-            
-            
-    def add_pot_list(self):
-        self.potentials.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0,2),round(self.param1,2),round(self.param2,2),round(self.param3,2)))
-        self.pot.add_function(gauss,dgaussx,dgaussy,[self.param0,self.param1,self.param2,self.param3])
-        self.background()
-        self.update_texture()
-    def reset_pot_list(self):
-        self.pot.clear()
-        self.potentials = []
-        self.plotbox.canvas.clear()
         
-    def add_particle_list(self):
-        self.particlestrings.append('P{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.mass,2),round(self.x0,2),round(self.y0,2),round(self.vx0,2),round(self.vy0,2)))
-        self.particles.append(Particle(self.mass,self.charge,np.ones([1,4]),dt))
-        self.init_conds.append([self.x0,self.y0,self.vx0,self.vy0])
-    def reset_particle_list(self):
-        self.particlestrings = []
-        self.particles = []
-        self.init_conds = []
-    
-    def compute(self):
-        for i,p in enumerate(self.particles,0):
-            p.ComputeTrajectoryF(self.init_conds[i],self.pot)
-        print('Done')
-        for p in self.particles:
-            print(p.trajectory[-1,:])
-            
-    def play(self):
-        self.timer = Clock.schedule_interval(self.animate,0.04)
-    
-    def pause(self):
-        self.timer.cancel()
-        
-    def animate(self,interval):
-#        self.speed = 1.
+    def update_parameters(self,touch):
         w = self.plotbox.size[0]
         h = self.plotbox.size[1]
         b = min(w,h)
-        scalew = w/200.
-        scaleh = h/200.
+        scale = b/200.
+        x = (touch.pos[0] - b/2.)/scale
+        y = (touch.pos[1] - b/2.)/scale
+
+        if(self.menu.current_tab.text == 'Potentials'):
+            self.param0slider.value = x
+            self.param1slider.value = y
+        if(self.menu.current_tab.text == 'Particles'):
+            self.x0slider.value = x
+            self.y0slider.value = y
+            
+    def add_pot_list(self):
+        self.stop()
+        if(self.potmenu.current_tab.text == 'Gauss'):
+            self.potentials.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
+            self.potentialsave.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
+            self.pot.add_function(gauss,dgaussx,dgaussy,[self.param0slider.value,self.param1slider.value,self.param2gslider.value,self.param3gslider.value])
+        elif(self.potmenu.current_tab.text == 'Woods-Saxon'):
+            self.potentials.append('WS:x0 = {}, y0 = {}, V0 = {}, Lx = {}, Ly = {}, a = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2wsslider.value,2),round(self.param3wsslider.value,2),round(self.param4wsslider.value,2),round(self.param5wsslider.value,2)))
+            self.potentialsave.append('WS:x0 = {}, y0 = {}, V0 = {}, Lx = {}, Ly = {}, a = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2wsslider.value,2),round(self.param3wsslider.value,2),round(self.param4wsslider.value,2),round(self.param5wsslider.value,2)))
+            self.pot.add_function(woodsaxon,dwoodsaxonx,dwoodsaxony,[self.param0slider.value,self.param1slider.value,self.param2wsslider.value,self.param3wsslider.value/2.,self.param4wsslider.value/2.,self.param5wsslider.value])
+        self.background()
+        self.update_texture()
+        
+        self.ready = False
+        self.pcbutton.text = "Compute"
+        self.statuslabel.text = 'Not Ready'
+            
+    def reset_pot_list(self):
+        self.stop()
+        self.pot.clear()
+        self.potentials = []
+        self.potentialsave =[]
+        self.plotbox.canvas.clear()
+        self.background()
+        
+        self.ready = False
+        self.pcbutton.text = "Compute"
+        self.statuslabel.text = 'Not Ready'
+        
+    def add_particle_list(self):
+        self.stop()
+        if(self.partmenu.current_tab.text == 'Single'):
+            self.particlestrings.append('{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.vx0slider.value,2),round(self.vy0slider.value,2)))
+            self.particlesave.append('{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.vx0slider.value,2),round(self.vy0slider.value,2)))
+            self.particles.append(Particle(self.massslider.value,self.charge,dt))
+            self.init_conds.append([self.x0slider.value,self.y0slider.value,self.vx0slider.value,self.vy0slider.value])
+        elif(self.partmenu.current_tab.text == 'Dispersion'):
+            self.particlestrings.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, v = {}, theta = {}, spread = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nslider.value),round(self.vslider.value,2),round(self.thetaslider.value,2),round(self.alphaslider.value,2)))
+            self.particlesave.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, v = {}, theta = {}, spread = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nslider.value),round(self.vslider.value,2),round(self.thetaslider.value,2),round(self.alphaslider.value,2)))
+            
+            delta = self.alphaslider.value/(self.nslider.value-1)
+            theta = self.thetaslider.value - self.alphaslider.value/2.
+            for k in range(0,int(self.nslider.value)):
+                vx = self.vslider.value * np.cos(theta*(np.pi/180.))
+                vy = self.vslider.value * np.sin(theta*(np.pi/180.))
+                
+                self.particles.append(Particle(self.massslider.value,self.charge,dt))
+                self.init_conds.append([self.x0slider.value,self.y0slider.value,vx,vy])
+                
+                theta = theta + delta
+        elif(self.partmenu.current_tab.text == 'Line'):
+            self.particlestrings.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, v = {}, theta = {}, L = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nlslider.value),round(self.vlslider.value,2),round(self.thetalslider.value,2),round(self.lslider.value,2)))
+            self.particlesave.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, v = {}, theta = {}, L = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nlslider.value),round(self.vlslider.value,2),round(self.thetalslider.value,2),round(self.lslider.value,2)))
+            
+            delta = self.lslider.value/(self.nlslider.value-1)
+            r = np.array([self.x0slider.value,self.y0slider.value]) - self.lslider.value*0.5*np.array([-np.sin(self.thetalslider.value*(np.pi/180.)),np.cos(self.thetalslider.value*(np.pi/180.))])
+            
+            vx = self.vlslider.value*np.cos(self.thetalslider.value*(np.pi/180.))
+            vy = self.vlslider.value*np.sin(self.thetalslider.value*(np.pi/180.))
+            for k in range(0,int(self.nlslider.value)):
+                self.particles.append(Particle(self.massslider.value,self.charge,dt))
+                self.init_conds.append([r[0],r[1],vx,vy])
+                
+                r = r + delta*np.array([-np.sin(self.thetalslider.value*(np.pi/180.)),np.cos(self.thetalslider.value*(np.pi/180.))])
+                
+                
+        elif(self.partmenu.current_tab.text == 'Ground State OSC'):
+            self.particlestrings.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, k = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.ngslider.value,2),round(self.kslider.value,2)))
+            self.particlesave.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, k = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.ngslider.value,2),round(self.kslider.value,2)))
+            
+            x,y = acceptreject(int(self.ngslider.value),-100,100,1/np.sqrt(np.pi),groundstateosc,[self.massslider.value,self.kslider.value])
+            px,py = acceptreject(int(self.ngslider.value),-100,100,1,groundstateoscp,[self.massslider.value,self.kslider.value])
+            
+            for i in range(0,int(self.ngslider.value)):
+                self.particles.append(Particle(self.massslider.value,self.charge,dt))
+                self.init_conds.append([x[i],y[i],px[i]/self.massslider.value,py[i]/self.massslider.value])    
+            
+            
+        self.ready = False
+        self.pcbutton.text = "Compute"
+        self.statuslabel.text = 'Not Ready'
+        
+            
+    def reset_particle_list(self):
+        self.stop()
+        self.particlestrings = []
+        self.particlesave = []
+        self.particles = []
+        self.init_conds = []
+        
+        self.ready = False
+        self.pcbutton.text = "Compute"
+        self.statuslabel.text = 'Not Ready'
+    
+    def playcompute(self):
+        if(self.ready==False):
+            self.statuslabel.text = 'Computing'
+    
+            for i,p in enumerate(self.particles,0):
+                p.ComputeTrajectoryF(self.init_conds[i],self.pot)
+                
+            self.ready = True
+            self.pcbutton.text = "Play"
+            self.statuslabel.text = 'Ready'
+        elif(self.ready==True):
+            if(self.running==False):
+                self.timer = Clock.schedule_interval(self.animate,0.04)
+                self.running = True
+                self.paused = False
+            elif(self.running==True):
+                pass
+    
+    def pause(self):
+        if(self.running==True):
+            self.paused = True
+            self.timer.cancel()
+            self.running = False
+        else:
+            pass
+        
+    def stop(self):
+        self.pause()
+        self.paused = False
+        self.time = 0
+        self.plotbox.canvas.clear()
+        self.update_texture()
+    
+        
+    def change_speed(self):
+        sl = [1,2,5,10]
+        if(self.speedindex == len(sl)-1):
+            self.speedindex = 0
+        else:
+            self.speedindex += 1
+        self.speed = sl[self.speedindex]
+        self.speedbutton.text = str(self.speed)+'x'
+    
+   
+    def save(self):
+        savedata = np.array([self.pot.functions,self.pot.dfunctionsx,self.pot.dfunctionsy,self.potentialsave,self.particles,self.init_conds,self.particlesave])
+        with open('save.dat','wb') as file:
+            pickle.dump(savedata,file)
+        
+    def load(self):
+        with open('save.dat','rb') as file:
+            savedata = pickle.load(file)
+        
+        self.pot.functions = savedata[0]
+        self.pot.dfunctionsx = savedata[1]
+        self.pot.dfunctionsy = savedata[2]
+        self.potentials = savedata[3]
+        self.particles = savedata[4]
+        self.init_conds = savedata[5]
+        self.particlestrings = savedata[6]
+        
+        self.ready = False
+        self.pcbutton.text = "Compute"
+        self.statuslabel.text = 'Not Ready'
+        
+        self.background()
+        self.update_texture()
+    
+    def preview(self,interval):
+        if(self.running == False and self.paused == False):
+            if(self.menu.current_tab.text == 'Particles'):
+                if(self.partmenu.current_tab.text == 'Single'):
+                    w = self.plotbox.size[0]
+                    h = self.plotbox.size[1]
+                    b = min(w,h)
+                    scalew = b/200.
+                    scaleh = b/200.
+                    self.plotbox.canvas.clear()
+                    self.update_texture()
+                    with self.plotbox.canvas:
+                        Color(1.0,0.5,0.0)
+                        Ellipse(pos=(self.x0slider.value*scalew+w/2.-5.,self.y0slider.value*scaleh+h/2.-5.),size=(10,10))
+                        Line(points=[self.x0slider.value*scalew+w/2.,self.y0slider.value*scaleh+h/2.,self.vx0slider.value*scalew+w/2.+self.x0slider.value*scalew,self.vy0slider.value*scalew+w/2.+self.y0slider.value*scalew])
+                elif(self.partmenu.current_tab.text == 'Dispersion'):
+                    w = self.plotbox.size[0]
+                    h = self.plotbox.size[1]
+                    b = min(w,h)
+                    scalew = b/200.
+                    scaleh = b/200.
+                    
+                    vx1 = self.vslider.value * np.cos((self.thetaslider.value - self.alphaslider.value/2.)*(np.pi/180.))
+                    vy1 = self.vslider.value * np.sin((self.thetaslider.value - self.alphaslider.value/2.)*(np.pi/180.))
+                    vx2 = self.vslider.value * np.cos((self.thetaslider.value + self.alphaslider.value/2.)*(np.pi/180.))
+                    vy2 = self.vslider.value * np.sin((self.thetaslider.value + self.alphaslider.value/2.)*(np.pi/180.))
+                    
+                    self.plotbox.canvas.clear()
+                    self.update_texture()
+                    with self.plotbox.canvas:
+                        Color(1.0,0.5,0.0)
+                        Line(points=[self.x0slider.value*scalew+w/2.,self.y0slider.value*scaleh+h/2.,vx1*scalew+w/2.+self.x0slider.value*scalew,vy1*scalew+w/2.+self.y0slider.value*scalew])
+                        Line(points=[self.x0slider.value*scalew+w/2.,self.y0slider.value*scaleh+h/2.,vx2*scalew+w/2.+self.x0slider.value*scalew,vy2*scalew+w/2.+self.y0slider.value*scalew])
+                elif(self.partmenu.current_tab.text == 'Line'):
+                    w = self.plotbox.size[0]
+                    h = self.plotbox.size[1]
+                    b = min(w,h)
+                    scalew = b/200.
+                    scaleh = b/200.
+                    
+                    r1 = np.array([self.x0slider.value,self.y0slider.value]) - self.lslider.value*0.5*np.array([-np.sin(self.thetalslider.value*(np.pi/180.)),np.cos(self.thetalslider.value*(np.pi/180.))])
+                    r2 = np.array([self.x0slider.value,self.y0slider.value]) + self.lslider.value*0.5*np.array([-np.sin(self.thetalslider.value*(np.pi/180.)),np.cos(self.thetalslider.value*(np.pi/180.))])
+                    r = r1
+                    delta = self.lslider.value/(self.nlslider.value-1)
+                    
+                    vx = self.vlslider.value*np.cos(self.thetalslider.value*(np.pi/180.))
+                    vy = self.vlslider.value*np.sin(self.thetalslider.value*(np.pi/180.))
+                    
+                    self.plotbox.canvas.clear()
+                    self.update_texture()
+                    with self.plotbox.canvas:
+                        Color(1.0,0.5,0.0)
+                        Line(points=[r1[0]*scalew+w/2.,r1[1]*scaleh+h/2.,r2[0]*scalew+w/2.,r2[1]*scaleh+h/2.])
+
+                        for k in range(0,int(self.nlslider.value)):
+                            Line(points =[r[0]*scalew+w/2.,r[1]*scaleh+h/2.,r[0]*scalew+w/2. + vx*scalew,r[1]*scaleh+h/2. + vy*scalew])
+                            r = r + delta*np.array([-np.sin(self.thetalslider.value*(np.pi/180.)),np.cos(self.thetalslider.value*(np.pi/180.))])
+            else:
+                self.plotbox.canvas.clear()
+                self.update_texture() 
+               
+    def animate(self,interval):
+        w = self.plotbox.size[0]
+        h = self.plotbox.size[1]
+        b = min(w,h)
+        scalew = b/200.
+        scaleh = b/200.
         self.plotbox.canvas.clear()
         self.update_texture()
         with self.plotbox.canvas:
-            for p in self.particles:
-                Color(1.0,1.0,1.0)
-                Ellipse(pos=(p.trax(self.time)*scalew+w/2.,p.tray(self.time)*scaleh+h/2.),size=(10,10))
-        if(self.time <= self.T):
-            self.time += interval
-        else:
+            for p in self.particles: 
+                Color(1.0,0.0,0.0)
+                Ellipse(pos=(p.trax(self.time)*scalew+w/2.-5.,p.tray(self.time)*scaleh+h/2.-5.),size=(10,10))
+        
+        self.time += interval*self.speed
+        if(self.time >= self.T):
             self.time = 0.
-            
+
             
 class simApp(App):
 

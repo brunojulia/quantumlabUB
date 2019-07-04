@@ -49,10 +49,10 @@ class Phi():
 class Particle():
     
     
-    def __init__(self,mass,charge,tra,dt):
+    def __init__(self,mass,charge,dt):
         self.mass = mass
         self.charge = charge
-        self.trajectory = tra
+        self.trajectory = np.zeros([1,4])
         self.dt = dt
         self.steps = np.array([0])
         self.h = 1
@@ -79,7 +79,7 @@ class Particle():
         return rlater
     
     def RKF(self,r):
-        eps = 0.000001
+        eps = 10**-10
 
         hnew = self.dt
         safety = 0
@@ -125,12 +125,16 @@ class Particle():
             except IndexError:
                 break
             
-        self.trax = interp1d(self.steps.cumsum(),self.trajectory[:,0],kind='quadratic')
-        self.tray = interp1d(self.steps.cumsum(),self.trajectory[:,1],kind='quadratic')
             
     def ComputeTrajectoryF(self,r0,pot):
         self.pot = pot
+        self.trajectory = np.zeros([1,4])
         self.trajectory[0,:] = r0
+        
+        self.steps = np.array([0])
+        self.trax = 0
+        self.tray = 0
+        
         L = 200
         T = 30
         dt = 0.1
@@ -139,15 +143,15 @@ class Particle():
             self.h = 1
             try:
                 tranext , newstep = self.RKF(self.trajectory[i,:])
-                if(np.abs(tranext[0]) >= L/2 or np.abs(tranext[1]) >= L/2):
-                    break
-                else:
-                    self.trajectory = np.append(self.trajectory,tranext.reshape(1,4),axis=0)
-                    self.steps = np.append(self.steps,newstep)
-                    i += 1
+                self.trajectory = np.append(self.trajectory,tranext.reshape(1,4),axis=0)
+                self.steps = np.append(self.steps,newstep)
+                i += 1
             except IndexError:
                 break
-                
+        
+        self.trax = interp1d(self.steps.cumsum(),self.trajectory[:,0],kind='quadratic')
+        self.tray = interp1d(self.steps.cumsum(),self.trajectory[:,1],kind='quadratic')
+        
     def KEnergy(self):
         KEnergy = np.zeros([self.trajectory.shape[0]])
         for i in range(0,self.trajectory.shape[0]):

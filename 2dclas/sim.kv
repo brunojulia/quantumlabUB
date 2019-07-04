@@ -3,22 +3,61 @@
 <main>:
 	orientation: 'horizontal'
 
-	param0: param0_slider.value
-	param1: param1_slider.value
-	param2: param2_slider.value
-	param3: param3_slider.value
+	pcbutton: pc_button.__self__
+
+	param0slider: param0_slider.__self__
+	param1slider: param1_slider.__self__
+
+	param2gslider: param2g_slider.__self__
+	param3gslider: param3g_slider.__self__
+
+
+	param2wsslider: param2ws_slider.__self__
+	param3wsslider: param3ws_slider.__self__
+	param4wsslider: param4ws_slider.__self__
+	param5wsslider: param5ws_slider.__self__
 	
-	mass: mass_slider.value
-	x0: x0_slider.value
-	y0: y0_slider.value
-	vx0: vx0_slider.value
-	vy0: vy0_slider.value
 
-	plotbox: plot_box
 
+	massslider: mass_slider.__self__
+	x0slider: x0_slider.__self__
+	y0slider: y0_slider.__self__
+
+
+	vx0slider: vx0_slider.__self__
+	vy0slider: vy0_slider.__self__
+
+
+	nslider: n_slider.__self__
+	vslider: v_slider.__self__
+	thetaslider: theta_slider.__self__
+	alphaslider: alpha_slider.__self__
+
+	nlslider: nl_slider.__self__
+	vlslider: vl_slider.__self__
+	thetalslider: thetal_slider.__self__
+	lslider: l_slider.__self__
+
+	ngslider: ng_slider.__self__
+	kslider: k_slider.__self__
+
+
+	plotbox: plot_box.__self__
+	speedbutton: speed_button.__self__
+	statuslabel: status_label.__self__
+	menu: menu.__self__
+
+	pottab: pot_tab.__self__
+	potmenu: pot_menu.__self__
+
+	parttab: part_tab.__self__
+	partmenu: part_menu.__self__
+	
 	BoxLayout:
 		id: plot_box
-		size_hint: (1, 1)
+		size_hint: (None, 1)
+		size: (self.height, self.height)
+		on_touch_down: root.update_parameters(args[1])
 	BoxLayout:
 		orientation: 'vertical'
 		size_hint: (0.25, 1)
@@ -26,26 +65,39 @@
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
 			Button:
-				text: 'Play'
-				on_press: root.play()
+				id: pc_button
+				text: 'Compute'
+				on_press: root.playcompute()
 			Button:
 				text: 'Pause'
 				on_press: root.pause()
 			Button:
-				text: '1x'
+				text: 'Stop'
+				on_press: root.stop()
+			Button:
+				id: speed_button
+				on_press: root.change_speed()
 		BoxLayout:
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
+			Label:
+				text: 'Status:'
+			Label:
+				id: status_label
+				text: 'Ready'
 			Button:
-				text: 'Compute'
-				on_press: root.compute()
+				text: 'Save'
+				on_press: root.save()
 			Button:
-				text: 'Reset'
+				text: 'Load'
+				on_press: root.load()
 		TabbedPanel:
+			id: menu
 			size_hint: (1, 1)
 			do_default_tab: False
 			TabbedPanelItem:
 				text: 'Potentials'
+				id: pot_tab
 				BoxLayout:
 					size_hint: (1, 1)
 					orientation: 'vertical'
@@ -63,67 +115,146 @@
 							text: 'Reset'
 							on_press: root.reset_pot_list()
 					BoxLayout:
-						orientation: 'vertical'
-						size_hint: (1, 1)
-
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'x0'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(param0_slider.value)
-								size_hint: (0.2, 1)
-							Slider:
-								id: param0_slider
+						orientation: 'horizontal'
+						size_hint: (1, 0.1)
+						Label:
+							text: 'x[sub]0[/sub]'
+							markup: True
+							size_hint: (0.2, 1)
+						Label:
+							text: str(round(param0_slider.value,2))
+							size_hint: (0.2, 1)
+						Slider:
+							id: param0_slider
+							size_hint: (1, 1)
+							min: -100
+							max: 100
+							step: 1
+					BoxLayout:
+						orientation: 'horizontal'
+						size_hint: (1, 0.1)
+						Label:
+							text: 'y[sub]0[/sub]'
+							markup: True
+							size_hint: (0.2, 1)
+						Label:
+							text: str(round(param1_slider.value,2))
+							size_hint: (0.2, 1)
+						Slider:
+							id: param1_slider
+							size_hint: (1, 1)
+							min: -100
+							max: 100
+							step: 1
+					TabbedPanel:
+						id: pot_menu
+						size_hint: (1, 0.5)
+						do_default_tab: False
+						TabbedPanelItem:
+							text: 'Gauss'
+							id: gauss_tab				
+							BoxLayout:
+								orientation: 'vertical'
 								size_hint: (1, 1)
-								min: -100
-								max: 100
-								step: 1
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'y0'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(param1_slider.value)
-								size_hint: (0.2, 1)
-							Slider:
-								id: param1_slider
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'V[sub]0[/sub]'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param2g_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param2g_slider
+										size_hint: (1, 1)
+										min: -100
+										max: 100
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: u'\u03C3'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param3g_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param3g_slider
+										size_hint: (1, 1)
+										min: 0.1
+										max: 20
+										step: 0.1
+						TabbedPanelItem:
+							text: 'Woods-Saxon'
+							id: ws_tab				
+							BoxLayout:
+								orientation: 'vertical'
 								size_hint: (1, 1)
-								min: -100
-								max: 100
-								step: 1
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'V0'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(param2_slider.value)
-								size_hint: (0.2, 1)
-							Slider:
-								id: param2_slider
-								size_hint: (1, 1)
-								min: -100
-								max: 100
-								step: 1
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'Sigma'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(param3_slider.value)
-								size_hint: (0.2, 1)
-							Slider:
-								id: param3_slider
-								size_hint: (1, 1)
-								min: 0.1
-								max: 20
-								step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'V[sub]0[/sub]'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param2ws_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param2ws_slider
+										size_hint: (1, 1)
+										min: -100
+										max: 100
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'L[sub]x[/sub]'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param3ws_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param3ws_slider
+										size_hint: (1, 1)
+										min: 10
+										max: 200
+										step: 1	
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'L[sub]y[/sub]'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param4ws_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param4ws_slider
+										size_hint: (1, 1)
+										min: 10
+										max: 200
+										step: 1	
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: u'\u03B8'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(param5ws_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: param5ws_slider
+										size_hint: (1, 1)
+										min: 0
+										max: 180
+										step: 1								
 			TabbedPanelItem:
 				text: 'Particles'
+				id: part_tab
 				BoxLayout:
 					size_hint: (1, 1)
 					orientation: 'vertical'
@@ -141,76 +272,258 @@
 							text: 'Reset'
 							on_press: root.reset_particle_list()
 					BoxLayout:
-						orientation: 'vertical'
-						size_hint: (1, 1)
-
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'm'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(mass_slider.value)
-								size_hint: (0.2, 1)
-							Slider:
-								id: mass_slider
+						orientation: 'horizontal'
+						size_hint: (1, 0.1)
+						Label:
+							text: 'm'
+							markup: True
+							size_hint: (0.2, 1)
+						Label:
+							text: str(round(mass_slider.value,2))
+							size_hint: (0.2, 1)
+						Slider:
+							id: mass_slider
+							size_hint: (1, 1)
+							min: 1
+							max: 10
+							step: 0.5
+					BoxLayout:
+						orientation: 'horizontal'
+						size_hint: (1, 0.1)
+						Label:
+							text: 'x[sub]0[/sub]'
+							markup: True
+							size_hint: (0.2, 1)
+						Label:
+							text: str(round(x0_slider.value,2))
+							size_hint: (0.2, 1)
+						Slider:
+							id: x0_slider
+							size_hint: (1, 1)
+							min: -100
+							max: 100
+							step: 1
+					BoxLayout:
+						orientation: 'horizontal'
+						size_hint: (1, 0.1)
+						Label:
+							text: 'y[sub]0[/sub]'
+							markup: True
+							size_hint: (0.2, 1)
+						Label:
+							text: str(round(y0_slider.value,2))
+							size_hint: (0.2, 1)
+						Slider:
+							id: y0_slider
+							size_hint: (1, 1)
+							min: -100
+							max: 100
+							step: 1
+					TabbedPanel:
+						id: part_menu
+						size_hint: (1, 0.5)
+						do_default_tab: False
+						TabbedPanelItem:
+							text: 'Single'
+							id: single_tab
+							BoxLayout:
+								orientation: 'vertical'
 								size_hint: (1, 1)
-								min: 1
-								max: 10
-								step: 0.5
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'x0'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(x0_slider.value)
-								size_hint: (0.2, 1)
-							Slider:
-								id: x0_slider
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v[sub]x0[/sub]'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(vx0_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: vx0_slider
+										size_hint: (1, 1)
+										min: -10
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v[sub]y0[/sub]'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(vy0_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: vy0_slider
+										size_hint: (1, 1)
+										min: -10
+										max: 10
+										step: 0.1
+						TabbedPanelItem:
+							text: 'Dispersion'
+							id: disp_tab
+							BoxLayout:
+								orientation: 'vertical'
 								size_hint: (1, 1)
-								min: -100
-								max: 100
-								step: 1
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'y0'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(y0_slider.value)
-								size_hint: (0.2, 1)
-							Slider:
-								id: y0_slider
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'N'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(n_slider.value))
+										size_hint: (0.2, 1)
+									Slider:
+										id: n_slider
+										size_hint: (1, 1)
+										min: 2
+										max: 50
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(v_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: v_slider
+										size_hint: (1, 1)
+										min: 0.1
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: u'\u03B8'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(theta_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: theta_slider
+										size_hint: (1, 1)
+										min: 0
+										max: 360
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'Spread'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(alpha_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: alpha_slider
+										size_hint: (1, 1)
+										min: 1
+										max: 90
+										step: 1
+						TabbedPanelItem:
+							text: 'Line'
+							id: line_tab
+							BoxLayout:
+								orientation: 'vertical'
 								size_hint: (1, 1)
-								min: -100
-								max: 100
-								step: 1
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'vx0'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(vx0_slider.value)
-								size_hint: (0.2, 1)
-							Slider:
-								id: vx0_slider
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'N'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(nl_slider.value))
+										size_hint: (0.2, 1)
+									Slider:
+										id: nl_slider
+										size_hint: (1, 1)
+										min: 2
+										max: 50
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(vl_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: vl_slider
+										size_hint: (1, 1)
+										min: 0.1
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: u'\u03B8'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(thetal_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: thetal_slider
+										size_hint: (1, 1)
+										min: 0
+										max: 360
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'L'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(l_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: l_slider
+										size_hint: (1, 1)
+										min: 10
+										max: 200
+										step: 1
+						TabbedPanelItem:
+							text: 'Ground State OSC'
+							id: GSO_tab
+							BoxLayout:
+								orientation: 'vertical'
 								size_hint: (1, 1)
-								min: -10
-								max: 10
-								step: 0.1
-						BoxLayout:
-							orientation: 'horizontal'
-							Label:
-								text: 'vy0'
-								size_hint: (0.2, 1)
-							Label:
-								text: str(vy0_slider.value)
-								size_hint: (0.2, 1)
-							Slider:
-								id: vy0_slider
-								size_hint: (1, 1)
-								min: -10
-								max: 10
-								step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'N'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(ng_slider.value))
+										size_hint: (0.2, 1)
+									Slider:
+										id: ng_slider
+										size_hint: (1, 1)
+										min: 1
+										max: 50
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'k'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(k_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: k_slider
+										size_hint: (1, 1)
+										min: 1
+										max: 10
+										step: 0.1
