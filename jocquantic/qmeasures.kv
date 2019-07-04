@@ -3,36 +3,41 @@
     box1: box1_id
     label1: label1_id
     label2: label2_id
+    label_vel: change_vel_id
 
     BoxLayout:
         orientation: 'vertical'
-            
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: 0.2
-                 
-            Button:
-                id: measure_btn_id
-                text: 'Measure'
-                size_hint_x: 0.25
-                on_press: root.measure()
-                
-            Button:
-                id: trk_measure_btn_id
-                text: 'Trk measure'
-                size_hint_x: 0.25
-                on_press: root.all_measure()
-                
-            Label:
-                id: label2_id
-                size_hint_x: 0.2
-                
-            Label:
-                id: label1_id
-                size_hint_x: 0.3
                 
         BoxLayout:
             id: box1_id
             size_hint_y_: 0.8
             
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.2
             
+            Button: 
+                id: change_vel_id
+                text: 'Velocity \n     1X'
+                size_hint_x: 0.2
+                on_press: root.change_vel()
+                
+            Button:
+                id: pause_id
+                text: 'Pause'
+                size_hint_x: 0.2
+                on_press: root.pause() 
+                 
+            Button:
+                id: measure_btn_id
+                text: 'Measure'
+                size_hint_x: 0.3
+                on_press: root.measure()
+                                
+            Label:
+                id: label2_id
+                size_hint_x: 0.1
+                
+            Label:
+                id: label1_id
+                size_hint_x: 0.2  
