@@ -47,9 +47,12 @@ def dwoodsaxonx(r,param):
     px = np.sqrt(xr**2)
     py = np.sqrt(yr**2)
     
-    sign = np.where(x>0,1,-1)
+    sign1 = np.where(xr>0,1,-1)
+    sign2 = np.where(yr>0,1,-1)
     
-    f = -V0*((sign*np.exp((Rx+px)/a))/(a*(np.exp(Rx/a)+np.exp(px/a))**2))*(1/(1 + np.exp((py-Ry)/a)))
+    f1 = -V0*((sign1*np.cos(theta)*np.exp((Rx+px)/a))/(a*(np.exp(Rx/a)+np.exp(px/a))**2))*(1/(1 + np.exp((py-Ry)/a)))
+    f2 = -V0*((sign2*np.sin(theta)*np.exp((Ry+py)/a))/(a*(np.exp(Ry/a)+np.exp(py/a))**2))*(1/(1 + np.exp((px-Rx)/a)))
+    f = f1 + f2
     return f
 
 def dwoodsaxony(r,param):
@@ -71,9 +74,12 @@ def dwoodsaxony(r,param):
     px = np.sqrt(xr**2)
     py = np.sqrt(yr**2)
     
-    sign = np.where(y>0,1,-1)
+    sign1 = np.where(xr>0,1,-1)
+    sign2 = np.where(yr>0,1,-1)
     
-    f = -V0*((sign*np.exp((Ry+py)/a))/(a*(np.exp(Ry/a)+np.exp(py/a))**2))*(1/(1 + np.exp((px-Rx)/a)))
+    f1 = V0*((sign1*np.sin(theta)*np.exp((Rx+px)/a))/(a*(np.exp(Rx/a)+np.exp(px/a))**2))*(1/(1 + np.exp((py-Ry)/a)))
+    f2 = -V0*((sign2*np.cos(theta)*np.exp((Ry+py)/a))/(a*(np.exp(Ry/a)+np.exp(py/a))**2))*(1/(1 + np.exp((px-Rx)/a)))
+    f = f1 + f2
     return f
 #############################
     
@@ -154,5 +160,32 @@ def groundstateoscp(px,py,param):
     
     f = (1/np.sqrt(a))*np.exp(-(1/(4*a))*((px)**2+(py)**2))
     return f
+
+def freepart(x,y,param):
+    x0 = param[0]
+    y0 = param[1]
+    px0 = param[2]
+    py0 = param[3]
+    sig = param[4]
+    
+    r = (x-x0)**2+(y-y0)**2
+    
+    f = (1/np.sqrt(2*np.pi*sig**2))*np.exp(1j*(px0*x + py0*y))*np.exp(-r/(4*sig**2))
+    f = np.abs(f)**2
+    return f
+   
+def freepartp(px,py,param):
+    x0 = param[0]
+    y0 = param[1]
+    px0 = param[2]
+    py0 = param[3]
+    sig = param[4]
+    
+    sigp = 1/(sig*2)
+    
+    f = (1/(np.sqrt(np.pi)))*np.exp(-(((px-px0)**2 + (py-py0)**2)/sigp)/4.)
+    f = np.abs(f)**2
+    return f
+    
     
     
