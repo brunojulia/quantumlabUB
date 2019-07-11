@@ -38,8 +38,11 @@
 	thetalslider: thetal_slider.__self__
 	lslider: l_slider.__self__
 
-	ngslider: ng_slider.__self__
-	kslider: k_slider.__self__
+	nfslider: nf_slider.__self__
+	pxfslider: pxf_slider.__self__
+	pyfslider: pyf_slider.__self__
+	sigfslider: sigf_slider.__self__
+
 
 
 	plotbox: plot_box.__self__
@@ -492,8 +495,8 @@
 										max: 200
 										step: 1
 						TabbedPanelItem:
-							text: 'Ground State OSC'
-							id: GSO_tab
+							text: 'Free Part.'
+							id: fp_tab
 							BoxLayout:
 								orientation: 'vertical'
 								size_hint: (1, 1)
@@ -504,10 +507,10 @@
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
-										text: str(round(ng_slider.value))
+										text: str(round(nf_slider.value))
 										size_hint: (0.2, 1)
 									Slider:
-										id: ng_slider
+										id: nf_slider
 										size_hint: (1, 1)
 										min: 1
 										max: 50
@@ -515,14 +518,44 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'k'
+										text: 'px0'
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
-										text: str(round(k_slider.value,2))
+										text: str(round(pxf_slider.value,2))
 										size_hint: (0.2, 1)
 									Slider:
-										id: k_slider
+										id: pxf_slider
+										size_hint: (1, 1)
+										min: -10
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'py0'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(pyf_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: pyf_slider
+										size_hint: (1, 1)
+										min: -10
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'sigma'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(sigf_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: sigf_slider
 										size_hint: (1, 1)
 										min: 1
 										max: 10

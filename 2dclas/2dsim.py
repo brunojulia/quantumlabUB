@@ -16,6 +16,7 @@ from kivy.graphics import Rectangle,Color,Ellipse,Line
 from kivy.clock import Clock
 from matplotlib import cm
 import pickle
+import threading
 
 L = 200
 
@@ -26,13 +27,7 @@ dt = 0.1
 
 class main(BoxLayout):
     
-    
-    mass = NumericProperty()
     charge = 1.
-    x0 = NumericProperty()
-    y0 = NumericProperty()
-    vx0 = NumericProperty()
-    vy0 = NumericProperty()
     
     
     potentials = ListProperty()
@@ -173,14 +168,14 @@ class main(BoxLayout):
                 r = r + delta*np.array([-np.sin(self.thetalslider.value*(np.pi/180.)),np.cos(self.thetalslider.value*(np.pi/180.))])
                 
                 
-        elif(self.partmenu.current_tab.text == 'Ground State OSC'):
-            self.particlestrings.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, k = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.ngslider.value,2),round(self.kslider.value,2)))
-            self.particlesave.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, k = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.ngslider.value,2),round(self.kslider.value,2)))
+        elif(self.partmenu.current_tab.text == 'Free Part.'):
+            self.particlestrings.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, px0 = {}, py0 = {}, sig = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nfslider.value,2),round(self.pxfslider.value,2),round(self.pyfslider.value,2),round(self.sigfslider.value,2)))
+            self.particlesave.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, px0 = {}, py0 = {}, sig = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nfslider.value,2),round(self.pxfslider.value,2),round(self.pyfslider.value,2),round(self.sigfslider.value,2)))
             
-            x,y = acceptreject(int(self.ngslider.value),-100,100,1/np.sqrt(np.pi),groundstateosc,[self.massslider.value,self.kslider.value])
-            px,py = acceptreject(int(self.ngslider.value),-100,100,1,groundstateoscp,[self.massslider.value,self.kslider.value])
+            x,y = acceptreject(int(self.nfslider.value),-100,100,1/np.sqrt(2*np.pi*self.sigfslider.value**2),freepart,[self.x0slider.value,self.y0slider.value,self.pxfslider.value,self.pyfslider.value,self.sigfslider.value])
+            px,py = acceptreject(int(self.nfslider.value),-10,10,1/(np.sqrt(np.pi)),freepartp,[self.x0slider.value,self.y0slider.value,self.pxfslider.value,self.pyfslider.value,self.sigfslider.value])
             
-            for i in range(0,int(self.ngslider.value)):
+            for i in range(0,int(self.nfslider.value)):
                 self.particles.append(Particle(self.massslider.value,self.charge,dt))
                 self.init_conds.append([x[i],y[i],px[i]/self.massslider.value,py[i]/self.massslider.value])    
             
@@ -203,14 +198,9 @@ class main(BoxLayout):
     
     def playcompute(self):
         if(self.ready==False):
-            self.statuslabel.text = 'Computing'
-    
-            for i,p in enumerate(self.particles,0):
-                p.ComputeTrajectoryF(self.init_conds[i],self.pot)
-                
-            self.ready = True
-            self.pcbutton.text = "Play"
-            self.statuslabel.text = 'Ready'
+            self.statuslabel.text = 'Computing...'
+            Clock.schedule_once(self.computation)
+
         elif(self.ready==True):
             if(self.running==False):
                 self.timer = Clock.schedule_interval(self.animate,0.04)
@@ -218,7 +208,25 @@ class main(BoxLayout):
                 self.paused = False
             elif(self.running==True):
                 pass
-    
+    def computation(self,*args):
+        for i,p in enumerate(self.particles,0):
+            p.ComputeTrajectoryF(self.init_conds[i],self.pot)
+        print('---Computation Start---')
+#        self.energycheck()
+        print('---Computation End---')
+        self.ready = True
+        self.pcbutton.text = "Play"
+        self.statuslabel.text = 'Ready'
+        
+    def energycheck(self):
+        ok = 0
+        tol = 10**(-6)
+        for i,p in enumerate(self.particles,0):
+            if(p.Energy().std() < tol):
+                ok += 1
+        print('{} particles conserved the total energy up to {}'.format(ok,tol))
+        print('{} particles did not conserve the total energy'.format(len(self.particles)-ok))
+        
     def pause(self):
         if(self.running==True):
             self.paused = True
