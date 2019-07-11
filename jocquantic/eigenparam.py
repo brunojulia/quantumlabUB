@@ -61,16 +61,12 @@ def eigenparam(a, b, N, m, poten):
     #in columns).
     evals, evect = np.linalg.eigh(H)
     
-    #Normalization. Used trapezoid's method formula, given that sum(evect**2)=1
-    factor = np.zeros((N+1)) #Evect will be multiplied by 1/sqrt(factor)
-    for col in range(N+1):
-        factor[col] = deltax * (1. - evect[0,col]/2. - evect[-1,col]/2.)
-
+    #Normalization. Used trapezoids method formula and that sum(evect**2)=1
+    factors =1/np.sqrt(deltax * (1. - evect[0,:]/2. - evect[-1,:]/2.))
     #Normalized vectors
-    for col in range(N+1):
-        evect[:,col] *= 1/np.sqrt(factor[col])
-         
-    return evals, evect
+    evect = evect*factors
+             
+    return evals, evect, H
 
 def norm(vector, dx):
     """
@@ -85,12 +81,12 @@ def norm(vector, dx):
 a = -10.  #Aº
 b= 10.    #Aº
 m = 0.1316 #For an electron (eV·Aº**2)**-1/2
-N = 200
+N = 300
 dx = (b-a)/float(N)
 #Mesh for all the plots (includes the boundaries)
 mesh = np.linspace(a, b, N+1)
 
-pvals, pvect = eigenparam(a, b, N, m, poten)
+pvals, pvect, H = eigenparam(a, b, N, m, poten)
 #plt.axes(xlabel = '$x (\AA)$', ylabel = '$Re(\Psi)\   (\AA^{-1/2} fs^{-1/2})$')
 #plt.title('Vector propi #{} amb N = {} \n (representat amb pixels)'.
 #          format(int(N/4), N))
@@ -136,23 +132,29 @@ def comp(evect, psi, deltax):
     compo = []
     for ev in np.transpose(evect): #ev: each basis vector
         #for each ev, we integrate ev conjugate * psi = integrand 
-        integrand =[np.conjugate(v)*p for v, p in zip(ev, psi)] 
+        integrand = np.conjugate(ev)*psi
         #integrations by trapezoids
         compo.append(deltax*(sum(integrand)-integrand[0]/2.-integrand[-1]/.2))
         
+    
+    phipsi = np.transpose(np.transpose(np.conj(evect)) * psi)
+    comp2 = deltax * (np.sum(phipsi, axis = 0) - phipsi[0,:]/2. - phipsi[-1,:]/2.)
+    print(comp2 - np.array(compo))
     return np.array(compo)
 #%%
     
+psi = gpacket(mesh, 0.)
+psicomp = comp(pvect, psi, (b-a)/float(N))
 #print(comp(pvect, pvect[:,5], dx))
-momentum = []
-angleE = []
-for pp in np.arange(0., 5., 0.2):
-    psi = gpacket(mesh,pp)
-    psicomp = comp(pvect, psi, (b-a)/float(N))
-    expect_E = sum([p*np.abs(c)**2 for p,c in zip(pvals, psicomp)])
-    momentum.append(pp)
-    angleE.append(expect_E) 
-    print(pp, expect_E)
+#momentum = []
+#angleE = []
+#for pp in np.arange(0., 5., 0.2):
+#    psi = gpacket(mesh,pp)
+#    psicomp = comp(pvect, psi, (b-a)/float(N))
+#    expect_E = sum([p*np.abs(c)**2 for p,c in zip(pvals, psicomp)])
+#    momentum.append(pp)
+#    angleE.append(expect_E) 
+#    print(pp, expect_E)
 #%%
     
    #print(comp(pvect, pvect[:,5], dx))
