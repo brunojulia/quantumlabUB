@@ -1,4 +1,4 @@
-
+#:import Factory kivy.factory.Factory
 
 <main>:
 	orientation: 'horizontal'
@@ -90,10 +90,10 @@
 				text: 'Ready'
 			Button:
 				text: 'Save'
-				on_press: root.save()
+				on_press: root.savepopup()
 			Button:
 				text: 'Load'
-				on_press: root.load()
+				on_press: root.loadpopup()
 		TabbedPanel:
 			id: menu
 			size_hint: (1, 1)
@@ -560,3 +560,43 @@
 										min: 1
 										max: 10
 										step: 0.1
+
+
+<savewindow>:
+	text_input: text_input
+	BoxLayout:
+		orientation: 'vertical'
+		FileChooserListView:
+			id: file_chooser
+			on_selection: text_input.text = self.selection and self.selection[0] or ''
+		TextInput:
+			id: text_input
+			size_hint: (1, None)
+			height: 30
+			multiline: False
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint: (1, None)
+			height: 60
+			Button:
+				text: 'Save'
+				on_press: root.save(file_chooser.path, text_input.text)
+			Button:
+				text: 'Cancel'
+				on_press: root.cancel()
+
+<loadwindow>:
+	BoxLayout:
+		orientation: 'vertical'
+		FileChooserListView:
+			id: file_chooser
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint: (1, None)
+			height: 60
+			Button:
+				text: 'Load'
+				on_press: root.load(file_chooser.path, file_chooser.selection)
+			Button:
+				text: 'Cancel'
+				on_press: root.cancel()
