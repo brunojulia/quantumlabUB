@@ -4,40 +4,62 @@
     label1: label1_id
     label2: label2_id
     label_vel: change_vel_id
+    label_pause: pause_id
+    label_lvl: label_lvl_id
+    label_points: label_points_id
 
     BoxLayout:
         orientation: 'vertical'
-                
-        BoxLayout:
-            id: box1_id
-            size_hint_y_: 0.8
-            
+        
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.2
+            size_hint_y: 0.1
             
-            Button: 
-                id: change_vel_id
-                text: 'Velocity \n     1X'
-                size_hint_x: 0.2
-                on_press: root.change_vel()
-                
-            Button:
-                id: pause_id
-                text: 'Pause'
-                size_hint_x: 0.2
-                on_press: root.pause() 
-                 
-            Button:
-                id: measure_btn_id
-                text: 'Measure'
-                size_hint_x: 0.3
-                on_press: root.measure()
-                                
             Label:
-                id: label2_id
-                size_hint_x: 0.1
+                id: label_lvl_id
+                text: 'Level 1'
+                size_hint_x: 0.5
                 
             Label:
-                id: label1_id
-                size_hint_x: 0.2  
+                id: label_points_id
+                text: '0 points'
+                size_hint_x: 0.5
+    
+    
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 0.9
+                    
+            BoxLayout:
+                id: box1_id
+                size_hint_y: 0.8
+                
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: 0.2
+                
+                Button: 
+                    id: change_vel_id
+                    text: 'Velocity \n     1X'
+                    size_hint_x: 0.2
+                    on_press: root.change_vel()
+                    
+                Button:
+                    id: pause_id
+                    text: 'Play'
+                    size_hint_x: 0.2
+                    on_press: root.pause() 
+                     
+                Button:
+                    id: measure_btn_id
+                    text: 'Measure'
+                    size_hint_x: 0.3
+                    on_press: root.measure()
+                                    
+                Label:
+                    id: label2_id
+                    size_hint_x: 0.1
+                    
+                Label:
+                    id: label1_id
+                    size_hint_x: 0.2  
