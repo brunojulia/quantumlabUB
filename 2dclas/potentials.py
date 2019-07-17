@@ -29,6 +29,7 @@ def woodsaxon(r,param):
     return f
 
 def dwoodsaxonx(r,param):
+    np.seterr(all='raise')
     x0 = param[0]
     y0 = param[1]
     V0 = param[2]
@@ -49,9 +50,15 @@ def dwoodsaxonx(r,param):
     
     sign1 = np.where(xr>0,1,-1)
     sign2 = np.where(yr>0,1,-1)
-    
-    f1 = -V0*((sign1*np.cos(theta)*np.exp((Rx+px)/a))/(a*(np.exp(Rx/a)+np.exp(px/a))**2))*(1/(1 + np.exp((py-Ry)/a)))
-    f2 = -V0*((sign2*np.sin(theta)*np.exp((Ry+py)/a))/(a*(np.exp(Ry/a)+np.exp(py/a))**2))*(1/(1 + np.exp((px-Rx)/a)))
+    try:
+        f1 = -V0*((sign1*np.cos(theta)*np.exp((Rx+px)/a))/(a*(np.exp(Rx/a)+np.exp(px/a))**2))*(1/(1 + np.exp((py-Ry)/a)))
+        f2 = -V0*((sign2*np.sin(theta)*np.exp((Ry+py)/a))/(a*(np.exp(Ry/a)+np.exp(py/a))**2))*(1/(1 + np.exp((px-Rx)/a)))
+    except RuntimeWarning:
+        f1 = 0.
+        f2 = 0.
+    except FloatingPointError:
+        f1 = 0.
+        f2 = 0.
     f = f1 + f2
     return f
 
@@ -76,9 +83,15 @@ def dwoodsaxony(r,param):
     
     sign1 = np.where(xr>0,1,-1)
     sign2 = np.where(yr>0,1,-1)
-    
-    f1 = V0*((sign1*np.sin(theta)*np.exp((Rx+px)/a))/(a*(np.exp(Rx/a)+np.exp(px/a))**2))*(1/(1 + np.exp((py-Ry)/a)))
-    f2 = -V0*((sign2*np.cos(theta)*np.exp((Ry+py)/a))/(a*(np.exp(Ry/a)+np.exp(py/a))**2))*(1/(1 + np.exp((px-Rx)/a)))
+    try:
+        f1 = V0*((sign1*np.sin(theta)*np.exp((Rx+px)/a))/(a*(np.exp(Rx/a)+np.exp(px/a))**2))*(1/(1 + np.exp((py-Ry)/a)))
+        f2 = -V0*((sign2*np.cos(theta)*np.exp((Ry+py)/a))/(a*(np.exp(Ry/a)+np.exp(py/a))**2))*(1/(1 + np.exp((px-Rx)/a)))
+    except RuntimeWarning:
+        f1 = 0.
+        f2 = 0.
+    except FloatingPointError:
+        f1 = 0.
+        f2 = 0.
     f = f1 + f2
     return f
 #############################
