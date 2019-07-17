@@ -79,13 +79,13 @@ class Particle():
         return rlater
     
     def RKF(self,r):
-        eps = 10**-8
+        eps = 10**-2
 
         hnew = self.dt
         safety = 0
         while(hnew<self.h):
             safety += 1
-            if(safety>10):
+            if(safety>100):
                 break
             
             self.h = hnew
@@ -97,9 +97,11 @@ class Particle():
             k5 = self.RightHand(r - (8.*self.h/27.)*k0 + 2.*self.h*k1 - (3544.*self.h/2565.)*k2 + (1859.*self.h/4104.)*k3 - (11.*self.h/40.)*k4)
             rnexthat = r + (16.*self.h/135.)*k0 + (6656.*self.h/12825.)*k2 + (28561.*self.h/56430.)*k3 - (9.*self.h/50.)*k4 + (2.*self.h/55.)*k5
             delta = self.h*((1./360.)*k0 - (128./4275.)*k2 - (2197./75240.)*k3 + (1./50.)*k4 + (2./55.)*k5)
-            if(np.sqrt(np.sum(delta**2))>eps):
+            try:
                 hnew = 0.9*self.h*(np.abs(self.h)*eps/np.sqrt(np.sum(delta**2)))**(1./4.)
-            else:
+            except RuntimeWarning:
+                hnew = self.dt
+            except FloatingPointError:
                 hnew = self.dt
             
             if(hnew>self.dt):
@@ -126,7 +128,7 @@ class Particle():
                 break
             
             
-    def ComputeTrajectoryF(self,r0,pot):
+    def ComputeTrajectoryF(self,r0,T,pot):
         self.pot = pot
         self.trajectory = np.zeros([1,4])
         self.trajectory[0,:] = r0
@@ -136,7 +138,6 @@ class Particle():
         self.tray = 0
         
         L = 200
-        T = 30
         dt = 0.1
         i = 0
         while(self.steps.sum() < T):
