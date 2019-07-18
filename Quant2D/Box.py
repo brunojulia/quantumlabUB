@@ -17,14 +17,18 @@ class main(BoxLayout):
     dx=0.05
     dt=0.01
     ntime=100
+    L=N*dx
     
     mass = 1.
     charge = 1.
     x0 = NumericProperty()
     y0 = NumericProperty()    
     
+    xx,yy = np.meshgrid(np.arange(-L/2,L/2,dx),np.arange(-L/2,L/2,dx),sparse=True)
+    
     potentials = ListProperty()
     potsave = []
+    particles = []
     init_conds = []
     
     plot_texture = ObjectProperty()
@@ -33,6 +37,8 @@ class main(BoxLayout):
     def __init__(self, **kwargs):
         super(main, self).__init__(**kwargs)
         self.pot = wavef.Phi()
+        self.wav = wavef.Phi()
+        
         self.set_texture()
         self.time = 0.
         self.T = 100
@@ -44,17 +50,14 @@ class main(BoxLayout):
         self.n = 100
         self.im = np.zeros((self.n,self.n),dtype=np.uint8)
         self.plot_texture = Texture.create(size=self.im.shape,colorfmt='luminance',bufferfmt='uint')
+        self.plotwave_texture = Texture.create(size=self.im.shape,colorfmt='luminance',bufferfmt='uint')
         
     def background(self):
-        N=100
-        dx=0.05
-        L=5.
-        xx,yy = np.meshgrid(np.arange(-L/2,L/2,dx),np.arange(-L/2,L/2,dx))
         self.im = np.zeros((self.n,self.n))
         if(self.pot.functions.size == 0):
             self.im = np.uint8(self.im)
         else:
-            self.im = self.pot.val(xx,yy)
+            self.im = self.pot.val(self.xx,self.yy)
             self.im = self.im + np.abs(self.im.min())
             self.im = np.uint8(255.*(self.im/self.im.max()))
 
@@ -88,11 +91,11 @@ class main(BoxLayout):
               
     def add_pot_list(self):
         if(self.potmenu.current_tab.text == 'Oscilador'):
-            self.potentials.append('Oscilador:x0 = {}, y0 = {}, k = {}'.format(round(self.param0slider.value,3),round(self.param1slider.value,3),round(self.param2oslider.value,2)))
+            self.potentials.append('Oscilador: x0 = {}, y0 = {}, k = {}'.format(round(self.param0slider.value,3),round(self.param1slider.value,3),round(self.param2oslider.value,2)))
    #         self.potentialsave.append('Oscilador:x0 = {}, y0 = {}, k = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2oslider.value,2)))
             self.pot.add_function(potentials.osc,[self.param0slider.value,self.param1slider.value,self.param2oslider.value])
         elif(self.potmenu.current_tab.text == 'Gaussian'):
-            self.potentials.append('Gaussian:x0 = {}, y0 = {}, V0 = {}, Sigma = {}'.format(round(self.param0slider.value,3),round(self.param1slider.value,3),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
+            self.potentials.append('Gaussian: x0 = {}, y0 = {}, V0 = {}, Sigma = {}'.format(round(self.param0slider.value,3),round(self.param1slider.value,3),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
    #         self.potentialsave.append('Gaussian:x0 = {}, y0 = {}, V0 = {}, Sigma = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
             self.pot.add_function(potentials.gauss,[self.param0slider.value,self.param1slider.value,self.param2gslider.value,self.param3gslider.value])
         
@@ -113,13 +116,39 @@ class main(BoxLayout):
         with self.statuslabel.canvas:
             Color(1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-'''        
+    
+    def background_main(self):
+        self.im = np.zeros((self.n,self.n))
+        if(self.wav.functions.size == 0):
+            self.im = np.uint8(self.im)
+        else:
+            self.im = self.wav.val(self.xx,self.yy)
+            self.im = self.im + np.abs(self.im.min())
+            self.im = np.uint8(255.*(self.im/self.im.max()))
+    
+    def update_texture_main(self):
+        with self.wavebox.canvas:
+            cx = self.wavebox.pos[0]
+            cy = self.wavebox.pos[1]
+            w = self.wavebox.size[0]
+            h = self.wavebox.size[1]
+            b = min(w,h)
+            
+            self.plotwave_texture.blit_buffer(self.im.reshape(self.im.size),colorfmt='luminance')
+            Color(1.0,1.0,1.0)
+            Rectangle(texture = self.plotwave_texture, pos = (cx,cy),size = (b,b))
+    
     def add_wave_list(self):
-        if(self.partmenu.current_tab.text == 'Eigenst. Harm.Osci.'):
-            self.particlestrings.append('P{}: x0 = {}, y0 = {}'.format(len(self.particlestrings)+1,round(self.x0slider.value,2),round(self.y0slider.value,2)))
-            self.particlesave.append('P{}: x0 = {}, y0 = {}'.format(len(self.particlestrings)+1,round(self.x0slider.value,2),round(self.y0slider.value,2)))
-            self.particles.append(wavef.Wave(self.pot,wavef.InitWavef.OsciEigen([self.x0slider.value,self.y0slider.value,self.param2gslider.value])))
-            self.init_conds.append(wavef.InitWavef.OsciEigen([self.x0slider.value,self.y0slider.value,self.param2gslider.value]))
+        if(self.partmenu.current_tab.text == 'Eig. Osci.'):
+         #   self.particlestrings.append('Eig.Osci.: x0 = {}, y0 = {}, k = {}, a = {}, b={}'.format(round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.kslider.value,2),round(self.aslider.value,2),round(self.bslider.value,2)))
+         #   self.particlesave.append('Eig.Osci.: x0 = {}, y0 = {}, k = {}, a = {}, b={}'.format(round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.kslider.value,2),round(self.aslider.value,2),round(self.bslider.value,2)))
+         #   self.particles.append(wavef.Wave(self.pot,wavef.InitWavef.OsciEigen([self.xx,self.yy],[self.x0slider.value,self.y0slider.value,self.kslider.value,self.aslider.value,self.bslider.value])))
+            self.init_conds.append(wavef.InitWavef.OsciEigen([self.xx,self.yy],[self.x0slider.value,self.y0slider.value,self.kslider.value,self.aslider.value,self.bslider.value]))
+            self.wav.add_function(wavef.InitWavef.OsciEigen,[self.x0slider.value,self.y0slider.value,self.kslider.value,self.aslider.value,self.bslider.value])
+            
+        self.background_main()
+        self.update_texture_main()
+        
         
         with self.statuslabel.canvas:
             Color = (1,0,0)
@@ -130,20 +159,24 @@ class main(BoxLayout):
         self.particlesave = []
         self.particles = []
         self.init_conds = []
+        self.wavebox.canvas.clear()
+        self.wav.clear()
+      #  self.background()
         
         with self.statuslabel.canvas:
             Color(1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
 
     def compute(self):
+        self.prob = wavef.Wave(self.pot.val(self.xx,self.yy),self.wav.val(self.xx,self.yy))
+        
         with self.statuslabel.canvas:
             Color(1,0.1,0.1)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
 
-     #   for i,p in enumerate(self.particles,0):
-        prob=wavef.Wave.ProbEvolution(self.pot,self.init_conds)
-     #  for p in self.particles:
-        print(prob[:,:,:])
+        probability = self.prob.ProbEvolution() #wavef.Wave.ProbEvolution(self.pot.val,self.wav.val)
+       # print(probability[:,:,:])
+        print('ok')
             
         with self.statuslabel.canvas:
             Color(0,1,0)
@@ -194,23 +227,23 @@ class main(BoxLayout):
  #       self.background()
  #       self.update_texture()
     def animate(self,interval):
+        
+        
+        '''
         w = self.wavebox.size[0]
         h = self.wavebox.size[1]
         b = min(w,h)
-        scalew = b/200.
-        scaleh = b/200.
+     #   scalew = b/200.
+     #   scaleh = b/200.
         self.wavebox.canvas.clear()
-        self.update_texture()
+        self.update_texture_main()
         with self.wavebox.canvas:
-            for p in self.particles:
-                Color(1.0,0.0,0.0)
-            
                 Ellipse(pos=(p.trax(self.time)*scalew+w/2.-5.,p.tray(self.time)*scaleh+h/2.-5.),size=(10,10))
         
         self.time += interval*self.speed
         if(self.time >= self.T):
             self.time = 0.
-   '''     
+        '''
             
 class BoxApp(App):
 

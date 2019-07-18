@@ -7,12 +7,13 @@ import numpy as np
 def osc(r,param):
     x0 = param[0]
     y0 = param[1]
-    k = param[2]
+    w = param[2]
+    m=1.
     
     xx=r[0]-x0 #ROW
     yy=r[1]-y0 #COLUMN
     
-    return 0.5*k*(xx**2+yy**2) #MATRIX
+    return 0.5*m*w**2*(xx**2+yy**2) #MATRIX
 
 #############################
     

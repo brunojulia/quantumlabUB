@@ -8,13 +8,17 @@ class Phi():
 
     def add_function(self,fun,param):
         self.functions = np.append(self.functions,(fun,param))
-
         return
+    
     def val(self,x,y):
-        value = 0
-        r = (x,y)
-        for i in range(0,self.functions.shape[0],2):
-            value = value + self.functions[i](r,self.functions[i+1])
+        if self.functions==[]:
+            n=len(x)
+            value=np.zeros((n,n),dtype=float)
+        else:
+            value = 0
+            r = (x,y)
+            for i in range(0,self.functions.shape[0],2):
+                value = value + self.functions[i](r,self.functions[i+1])
         return value
 
     def clear(self):
@@ -29,7 +33,7 @@ class Wave():
         self.PsiIni = PsiIni
         self.pot = pot
     
-    def tridiag(a, b, c, d):
+    def tridiag(self,a, b, c, d):
         """
         Analogous to the function tridiag.f
         Refer to http://en.wikipedia.org/wiki/Tridiagonal_matrix_algorithm
@@ -55,7 +59,7 @@ class Wave():
     
         return x
     
-    def Adiagonals(N,r):
+    def Adiagonals(self,N,r):
             b = np.full(N, 1 + 2*r)
             a = np.full(N, -r)
             a[N -1] = 0
@@ -63,7 +67,7 @@ class Wave():
             c[0] = 0
             return a, b, c
     
-    def CrankEvolution(self,Pot,PsiIni):
+    def CrankEvolution(self):
         N=100
         dx=0.05
         dt=0.01
@@ -76,19 +80,16 @@ class Wave():
         x=np.arange(-L,L,dx)
         meshx , meshy = np.meshgrid(x,x,sparse=True)
             
-        potential=Pot(meshx,meshy)
-            
-     
-        psi0=PsiIni(meshx,meshy)
-        
+      #  potential=Pot(meshx,meshy)
+      #  psi0=PsiIni(meshx,meshy)
         
         #3D array. First index indicates step of time
         psitime = np.zeros([ntime, N, N], dtype = np.complex)
         
         #2D arrays
-        psi=psi0[:,:] +0j
-        V=potential[:,:]
-                
+        psi=self.PsiIni[:,:] + 0j
+        V=self.pot[:,:]
+        
         #A diagonals
         Asup, Adiag, Ainf = self.Adiagonals(N,r)
         
@@ -133,7 +134,7 @@ class Wave():
         return psitime  #Evolution of the wave function
 
     
-    def Probability(f):
+    def Probability(self,f):
         n=len(f[0,:])
         p=np.zeros((n,n),dtype=float)
         for i in range (0,n):
@@ -141,8 +142,8 @@ class Wave():
                 p[i,j]=np.real(np.conjugate(f[i,j])*f[i,j])
         return p
     
-    def ProbEvolution(self,Pot,PsiIni):
-        f=self.CrankEvolution(self,Pot,PsiIni)
+    def ProbEvolution(self):
+        f=self.CrankEvolution()
         ntime = len(f[:,0,0])
         n=len(f[0,0,:])
         
@@ -160,13 +161,13 @@ class InitWavef():
         
         x0 = param[0]
         y0 = param[1]
-        k = param[2]
-        a = 0  #param[3]
-        b = 0  #param[4]
+        w = param[2]
+        a = int(param[3])
+        b = int(param[4])
         
         m=1.
         hbar=1.
-        w=np.sqrt(k/m)
+        # w=np.sqrt(abs(k)/m)
         
         zetx=np.sqrt(m*w/hbar)*(xx-x0)
         zety=np.sqrt(m*w/hbar)*(yy-y0)
