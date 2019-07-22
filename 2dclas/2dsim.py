@@ -60,6 +60,7 @@ class main(BoxLayout):
         self.ready = False
         self.previewtimer = Clock.schedule_interval(self.preview,0.04)
         self.previewlist = []
+        self.progress = 0.
         
     def set_texture(self):
         L = 200
@@ -174,13 +175,15 @@ class main(BoxLayout):
                 
         elif(self.partmenu.current_tab.text == 'Free Part.'):
             
-            x,y = acceptreject(int(self.nfslider.value),-100,100,1/np.sqrt(2*np.pi*self.sigfslider.value**2),freepart,[self.x0slider.value,self.y0slider.value,self.pxfslider.value,self.pyfslider.value,self.sigfslider.value])
-            px,py = acceptreject(int(self.nfslider.value),-10,10,1/(np.sqrt(np.pi)),freepartp,[self.x0slider.value,self.y0slider.value,self.pxfslider.value,self.pyfslider.value,self.sigfslider.value])
+            x,y = acceptreject(int(self.nfslider.value),-100,100,1/np.sqrt(2*np.pi*self.sigfslider.value**2),freepart,[self.x0slider.value,self.y0slider.value,self.vxfslider.value*self.massslider.value,self.vyfslider.value*self.massslider.value,self.sigfslider.value])
+            px,py = acceptreject(int(self.nfslider.value),-10,10,1/(np.sqrt(np.pi)),freepartp,[self.x0slider.value,self.y0slider.value,self.vxfslider.value*self.massslider.value,self.vyfslider.value*self.massslider.value,self.sigfslider.value])
             
             for i in range(0,int(self.nfslider.value)):
                 self.particles.append(Particle(self.massslider.value,self.charge,dt))
-                self.init_conds.append([x[i],y[i],px[i]/self.massslider.value,py[i]/self.massslider.value])    
-            
+                self.init_conds.append([x[i],y[i],px[i]/self.massslider.value,py[i]/self.massslider.value])  
+                
+            self.previewlist.append('Free Part.')
+            self.previewlist.append([self.x0slider.value,self.y0slider.value,self.vxfslider.value,self.vyfslider.value,self.sigfslider.value])
             
         self.ready = False
         self.pcbutton.text = "Compute"
@@ -211,15 +214,21 @@ class main(BoxLayout):
                 pass
     def computation(self,*args):
         print('---Computation Start---')
+        self.progress = 0.
         for i,p in enumerate(self.particles,0):
             p.ComputeTrajectoryF(self.init_conds[i],self.T,self.pot)
-            print('Particle ',i,' done')
+            print('Particle ',i+1,' done')
+            self.progress += 1
         
 #        self.energycheck()
         print('---Computation End---')
         self.ready = True
         self.pcbutton.text = "Play"
         self.statuslabel.text = 'Ready'
+    
+    def updateprogress(self,*args):
+        val = (self.progress+1)/len(self.particles)
+        self.progressbar.value = val*100
         
     def energycheck(self):
         ok = 0
@@ -267,7 +276,8 @@ class main(BoxLayout):
         self._popup = Popup(title='Save File', content = content, size_hint=(1,1))
         self._popup.open()
     
-    def load(self,path,name):
+    def load(self,path,name,demo=False):
+        print(name)
         self.stop()
         with open(os.path.join(path,name[0]),'rb') as file:
             savedata = pickle.load(file)
@@ -285,8 +295,8 @@ class main(BoxLayout):
         
         self.background()
         self.update_texture()
-        
-        self.dismiss_popup()
+        if(demo==False):
+            self.dismiss_popup()
     
     def loadpopup(self):
         content = loadwindow(load = self.load, cancel = self.dismiss_popup)
@@ -295,6 +305,32 @@ class main(BoxLayout):
     
     def dismiss_popup(self):
         self._popup.dismiss()
+        
+    def timeinversion(self):
+        if(self.ready==True):
+            self.pause()
+            t = self.time
+            self.stop()
+            reversedpart = []
+            reversedconds = []
+            reversedpreview = []
+            
+            for p in self.particles:
+                reversedpart.append(Particle(self.massslider.value,self.charge,dt))
+                reversedconds.append([p.trax(t),p.tray(t),-p.travx(t),-p.travy(t)])
+                reversedpreview.append('Single')
+                reversedpreview.append([p.trax(t),p.tray(t),-p.travx(t),-p.travy(t)])
+                
+            self.particles = reversedpart
+            self.init_conds = reversedconds
+            self.previewlist = reversedpreview
+            
+            self.ready = False
+            self.pcbutton.text = "Compute"
+            self.statuslabel.text = 'Not Ready'
+        else:
+            pass
+        
     
     def preview(self,interval):
         if(self.running == False and self.paused == False):
@@ -353,6 +389,19 @@ class main(BoxLayout):
                         for k in range(0,int(self.nlslider.value)):
                             Line(points =[r[0]*scalew+w/2.,r[1]*scaleh+h/2.,r[0]*scalew+w/2. + vx*scalew,r[1]*scaleh+h/2. + vy*scalew])
                             r = r + delta*np.array([-np.sin(self.thetalslider.value*(np.pi/180.)),np.cos(self.thetalslider.value*(np.pi/180.))])
+                elif(self.partmenu.current_tab.text == 'Free Part.'):
+                    w = self.plotbox.size[0]
+                    h = self.plotbox.size[1]
+                    b = min(w,h)
+                    scalew = b/200.
+                    scaleh = b/200.
+                    self.plotbox.canvas.clear()
+                    self.update_texture()
+                    with self.plotbox.canvas:
+                        Color(1.0,0.5,0.0)
+                        Line(circle=(self.x0slider.value*scalew+w/2.,self.y0slider.value*scaleh+h/2.,self.sigfslider.value*scalew))
+                        Line(points=[self.x0slider.value*scalew+w/2.,self.y0slider.value*scaleh+h/2.,self.vxfslider.value*scalew+w/2.+self.x0slider.value*scalew,self.vyfslider.value*scalew+w/2.+self.y0slider.value*scalew])
+                    
                 else:
                     self.plotbox.canvas.clear()
                     self.update_texture()
@@ -428,7 +477,22 @@ class main(BoxLayout):
                             for k in range(0,int(self.nlslider.value)):
                                 Line(points =[r[0]*scalew+w/2.,r[1]*scaleh+h/2.,r[0]*scalew+w/2. + vx*scalew,r[1]*scaleh+h/2. + vy*scalew])
                                 r = r + delta*np.array([-np.sin(theta*(np.pi/180.)),np.cos(theta*(np.pi/180.))])
-                            
+                    if(self.previewlist[i] == 'Free Part.'):
+                        x0 = self.previewlist[i+1][0]
+                        y0 = self.previewlist[i+1][1]
+                        vx = self.previewlist[i+1][2]
+                        vy = self.previewlist[i+1][3]
+                        sig = self.previewlist[i+1][4]
+                        
+                        w = self.plotbox.size[0]
+                        h = self.plotbox.size[1]
+                        b = min(w,h)
+                        scalew = b/200.
+                        scaleh = b/200.
+                        with self.plotbox.canvas:
+                            Color(0.0,0.0,1.0)
+                            Line(circle=(x0*scalew+w/2.,y0*scaleh+h/2.,sig*scalew))
+                            Line(points=[x0*scalew+w/2.,y0*scaleh+h/2.,vx*scalew+w/2.+x0*scalew,vy*scalew+w/2.+y0*scalew])
                
     def animate(self,interval):
         w = self.plotbox.size[0]

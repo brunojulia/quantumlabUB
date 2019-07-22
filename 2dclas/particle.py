@@ -58,6 +58,8 @@ class Particle():
         self.h = 1
         self.trax = 0
         self.tray = 0
+        self.travx = 0
+        self.travy = 0
         self.pot = 0
     
     def RightHand(self,r):
@@ -136,6 +138,8 @@ class Particle():
         self.steps = np.array([0])
         self.trax = 0
         self.tray = 0
+        self.travx = 0
+        self.travy = 0
         
         L = 200
         dt = 0.1
@@ -152,6 +156,8 @@ class Particle():
         
         self.trax = interp1d(self.steps.cumsum(),self.trajectory[:,0],kind='quadratic')
         self.tray = interp1d(self.steps.cumsum(),self.trajectory[:,1],kind='quadratic')
+        self.travx = interp1d(self.steps.cumsum(),self.trajectory[:,2],kind='quadratic')
+        self.travy = interp1d(self.steps.cumsum(),self.trajectory[:,3],kind='quadratic')
         
     def KEnergy(self):
         KEnergy = np.zeros([self.trajectory.shape[0]])

@@ -39,8 +39,8 @@
 	lslider: l_slider.__self__
 
 	nfslider: nf_slider.__self__
-	pxfslider: pxf_slider.__self__
-	pyfslider: pyf_slider.__self__
+	vxfslider: vxf_slider.__self__
+	vyfslider: vyf_slider.__self__
 	sigfslider: sigf_slider.__self__
 
 
@@ -55,6 +55,7 @@
 
 	parttab: part_tab.__self__
 	partmenu: part_menu.__self__
+	progressbar: progress_bar.__self__
 	
 	BoxLayout:
 		id: plot_box
@@ -94,9 +95,34 @@
 			Button:
 				text: 'Load'
 				on_press: root.loadpopup()
+		ProgressBar:
+			id: progress_bar
+			max: 100
+			size_hint: (1, 0.01)
+		GridLayout:
+			size_hint: (1, 0.5)
+			rows: 3
+			cols: 3
+			Button:
+				text: 'Time Inversion'
+				on_press: root.timeinversion()
+			Button:
+				text: 'Single Slit Demo'
+				on_press: root.load('Demos',['ds1s.dat'],demo=True)
+			Button:
+				text: 'Double Slit Demo'
+				on_press: root.load('Demos',['ds2s.dat'],demo=True)
+			Button:
+				text: 'Lattice Demo'
+				on_press: root.load('Demos',['lattice.dat'],demo=True)
+			Label:
+			Label:
+			Label:
+			Label:
+			Label:
 		TabbedPanel:
 			id: menu
-			size_hint: (1, 1)
+			size_hint: (1, 0.5)
 			do_default_tab: False
 			TabbedPanelItem:
 				text: 'Potentials'
@@ -104,9 +130,6 @@
 				BoxLayout:
 					size_hint: (1, 1)
 					orientation: 'vertical'
-					Label:
-						text: 'Placeholder'
-						size_hint: (1, 1)
 					BoxLayout:
 						orientation: 'horizontal'
 						size_hint: (1, 0.1)
@@ -221,7 +244,7 @@
 									Slider:
 										id: param3ws_slider
 										size_hint: (1, 1)
-										min: 10
+										min: 5
 										max: 200
 										step: 1	
 								BoxLayout:
@@ -236,7 +259,7 @@
 									Slider:
 										id: param4ws_slider
 										size_hint: (1, 1)
-										min: 10
+										min: 5
 										max: 200
 										step: 1	
 								BoxLayout:
@@ -260,9 +283,6 @@
 				BoxLayout:
 					size_hint: (1, 1)
 					orientation: 'vertical'
-					Label:
-						text: 'Placeholder'
-						size_hint: (1, 1)
 					BoxLayout:
 						orientation: 'horizontal'
 						size_hint: (1, 0.1)
@@ -516,14 +536,14 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'px0'
+										text: 'v[sub]x0[/sub]'
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
-										text: str(round(pxf_slider.value,2))
+										text: str(round(vxf_slider.value,2))
 										size_hint: (0.2, 1)
 									Slider:
-										id: pxf_slider
+										id: vxf_slider
 										size_hint: (1, 1)
 										min: -10
 										max: 10
@@ -531,14 +551,14 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'py0'
+										text: 'v[sub]y0[/sub]'
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
-										text: str(round(pyf_slider.value,2))
+										text: str(round(vyf_slider.value,2))
 										size_hint: (0.2, 1)
 									Slider:
-										id: pyf_slider
+										id: vyf_slider
 										size_hint: (1, 1)
 										min: -10
 										max: 10
@@ -546,7 +566,7 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'sigma'
+										text: u'\u03C3'
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
@@ -556,7 +576,7 @@
 										id: sigf_slider
 										size_hint: (1, 1)
 										min: 1
-										max: 10
+										max: 20
 										step: 0.1
 
 
