@@ -277,7 +277,6 @@ class main(BoxLayout):
         self._popup.open()
     
     def load(self,path,name,demo=False):
-        print(name)
         self.stop()
         with open(os.path.join(path,name[0]),'rb') as file:
             savedata = pickle.load(file)
