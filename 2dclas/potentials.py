@@ -29,7 +29,7 @@ def woodsaxon(r,param):
     return f
 
 def dwoodsaxonx(r,param):
-    np.seterr(all='raise')
+#    np.seterr(all='raise')
     x0 = param[0]
     y0 = param[1]
     V0 = param[2]

@@ -19,6 +19,7 @@ from kivy.uix.popup import Popup
 from matplotlib import cm
 import pickle
 import os
+import time
 
 L = 200
 
@@ -121,7 +122,9 @@ class main(BoxLayout):
         self.update_texture()
         
         self.ready = False
-        self.pcbutton.text = "Compute"
+#        self.pcbutton.text = "Compute"
+        self.pcbutton.background_normal = 'Icons/compute.png'
+        self.pcbutton.background_down = 'Icons/computeb.png'
         self.statuslabel.text = 'Not Ready'
             
     def reset_pot_list(self):
@@ -131,7 +134,9 @@ class main(BoxLayout):
         self.background()
         
         self.ready = False
-        self.pcbutton.text = "Compute"
+#        self.pcbutton.text = "Compute"
+        self.pcbutton.background_normal = 'Icons/compute.png'
+        self.pcbutton.background_down = 'Icons/computeb.png'
         self.statuslabel.text = 'Not Ready'
         
     def add_particle_list(self):
@@ -186,7 +191,9 @@ class main(BoxLayout):
             self.previewlist.append([self.x0slider.value,self.y0slider.value,self.vxfslider.value,self.vyfslider.value,self.sigfslider.value])
             
         self.ready = False
-        self.pcbutton.text = "Compute"
+#        self.pcbutton.text = "Compute"
+        self.pcbutton.background_normal = 'Icons/compute.png'
+        self.pcbutton.background_down = 'Icons/computeb.png'
         self.statuslabel.text = 'Not Ready'
         
             
@@ -197,7 +204,9 @@ class main(BoxLayout):
         self.previewlist = []
         
         self.ready = False
-        self.pcbutton.text = "Compute"
+#        self.pcbutton.text = "Compute"
+        self.pcbutton.background_normal = 'Icons/compute.png'
+        self.pcbutton.background_down = 'Icons/computeb.png'
         self.statuslabel.text = 'Not Ready'
     
     def playcompute(self):
@@ -212,9 +221,11 @@ class main(BoxLayout):
                 self.paused = False
             elif(self.running==True):
                 pass
+            
     def computation(self,*args):
         print('---Computation Start---')
         self.progress = 0.
+        start = time.time()
         for i,p in enumerate(self.particles,0):
             p.ComputeTrajectoryF(self.init_conds[i],self.T,self.pot)
             print('Particle ',i+1,' done')
@@ -222,8 +233,11 @@ class main(BoxLayout):
         
 #        self.energycheck()
         print('---Computation End---')
+        print('Exec time = ',time.time() - start)
         self.ready = True
-        self.pcbutton.text = "Play"
+#        self.pcbutton.text = "Play"
+        self.pcbutton.background_normal = 'Icons/play.png'
+        self.pcbutton.background_down = 'Icons/playb.png'
         self.statuslabel.text = 'Ready'
     
     def updateprogress(self,*args):
@@ -289,7 +303,9 @@ class main(BoxLayout):
         self.previewlist = savedata[5]
         
         self.ready = False
-        self.pcbutton.text = "Compute"
+#        self.pcbutton.text = "Compute"
+        self.pcbutton.background_normal = 'Icons/compute.png'
+        self.pcbutton.background_down = 'Icons/computeb.png'
         self.statuslabel.text = 'Not Ready'
         
         self.background()
@@ -325,7 +341,9 @@ class main(BoxLayout):
             self.previewlist = reversedpreview
             
             self.ready = False
-            self.pcbutton.text = "Compute"
+#            self.pcbutton.text = "Compute"
+            self.pcbutton.background_normal = 'Icons/compute.png'
+            self.pcbutton.background_down = 'Icons/computeb.png'
             self.statuslabel.text = 'Not Ready'
         else:
             pass

@@ -8,7 +8,6 @@ from numpy.polynomial.polynomial import Polynomial
 from scipy.interpolate import interp1d
 from potentials import *
 
-
 class Phi():
     
     def __init__(self):
@@ -71,6 +70,7 @@ class Particle():
         f[3] = -self.pot.dvaly(r[0],r[1])/self.mass
         return f
     
+    
     def RK4(self,t,dt,r):
         k1 = self.RightHand(r)
         k2 = self.RightHand(r+k1*self.dt/2)
@@ -97,7 +97,7 @@ class Particle():
             k3 = self.RightHand(r + (1932.*self.h/2197.)*k0 - (7200.*self.h/2197.)*k1 + (7296.*self.h/2197.)*k2)
             k4 = self.RightHand(r + (439.*self.h/216.)*k0 - 8.*self.h*k1 + (3680.*self.h/513.)*k2 - (845.*self.h/4104.)*k3)
             k5 = self.RightHand(r - (8.*self.h/27.)*k0 + 2.*self.h*k1 - (3544.*self.h/2565.)*k2 + (1859.*self.h/4104.)*k3 - (11.*self.h/40.)*k4)
-            rnexthat = r + (16.*self.h/135.)*k0 + (6656.*self.h/12825.)*k2 + (28561.*self.h/56430.)*k3 - (9.*self.h/50.)*k4 + (2.*self.h/55.)*k5
+#            rnexthat = r + (16.*self.h/135.)*k0 + (6656.*self.h/12825.)*k2 + (28561.*self.h/56430.)*k3 - (9.*self.h/50.)*k4 + (2.*self.h/55.)*k5
             delta = self.h*((1./360.)*k0 - (128./4275.)*k2 - (2197./75240.)*k3 + (1./50.)*k4 + (2./55.)*k5)
             try:
                 hnew = 0.9*self.h*(np.abs(self.h)*eps/np.sqrt(np.sum(delta**2)))**(1./4.)
@@ -110,7 +110,7 @@ class Particle():
                 hnew = self.dt
         self.h = hnew
         hfinal = hnew
-        rlater = rnexthat
+        rlater = r + (16.*self.h/135.)*k0 + (6656.*self.h/12825.)*k2 + (28561.*self.h/56430.)*k3 - (9.*self.h/50.)*k4 + (2.*self.h/55.)*k5
         return rlater,hfinal
     
     
