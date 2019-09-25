@@ -88,6 +88,7 @@ class Wave():
         
         #2D arrays
         psi=self.PsiIni[:,:] + 0j
+      #  print(type(self.pot[:,:]))
         V=self.pot[:,:]
         
         #A diagonals
@@ -139,7 +140,7 @@ class Wave():
         p=np.zeros((n,n),dtype=float)
         for i in range (0,n):
             for j in range (0,n):
-                p[i,j]=np.real(np.conjugate(f[i,j])*f[i,j])
+                p[i,j]=abs(np.real(np.conjugate(f[i,j])*f[i,j]))
         return p
     
     def ProbEvolution(self):
