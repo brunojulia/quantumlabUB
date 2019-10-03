@@ -1,4 +1,4 @@
-
+#:import Factory kivy.factory.Factory
 
 <main>:
 	orientation: 'horizontal'
@@ -38,8 +38,11 @@
 	thetalslider: thetal_slider.__self__
 	lslider: l_slider.__self__
 
-	ngslider: ng_slider.__self__
-	kslider: k_slider.__self__
+	nfslider: nf_slider.__self__
+	vxfslider: vxf_slider.__self__
+	vyfslider: vyf_slider.__self__
+	sigfslider: sigf_slider.__self__
+
 
 
 	plotbox: plot_box.__self__
@@ -52,6 +55,8 @@
 
 	parttab: part_tab.__self__
 	partmenu: part_menu.__self__
+	progressbar: progress_bar.__self__
+
 	
 	BoxLayout:
 		id: plot_box
@@ -66,17 +71,31 @@
 			orientation: 'horizontal'
 			Button:
 				id: pc_button
-				text: 'Compute'
+				#text: 'Compute'
+				background_normal: 'Icons/compute.png'
+				background_down: 'Icons/computeb.png'
 				on_press: root.playcompute()
 			Button:
-				text: 'Pause'
+				#text: 'Pause'
+				background_normal: 'Icons/pause.png'
+				background_down: 'Icons/pauseb.png'
 				on_press: root.pause()
 			Button:
-				text: 'Stop'
+				#text: 'Stop'
+				background_normal: 'Icons/stop.png'
+				background_down: 'Icons/stopb.png'
 				on_press: root.stop()
 			Button:
 				id: speed_button
+				background_normal: 'Icons/black.png'
+				font_size: '30sp'
+				markup: True
 				on_press: root.change_speed()
+			Button:
+				#text: 'Time Inversion'
+				background_normal: 'Icons/rewind.png'
+				background_down: 'Icons/rewindb.png'
+				on_press: root.timeinversion()
 		BoxLayout:
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
@@ -86,70 +105,124 @@
 				id: status_label
 				text: 'Ready'
 			Button:
-				text: 'Save'
-				on_press: root.save()
+				#text: 'Save'
+				background_normal: 'Icons/save.png'
+				background_down: 'Icons/saveb.png'
+				on_press: root.savepopup()
 			Button:
-				text: 'Load'
-				on_press: root.load()
+				#text: 'Load'
+				background_normal: 'Icons/load.png'
+				background_down: 'Icons/laodb.png'
+				on_press: root.loadpopup()
+		ProgressBar:
+			id: progress_bar
+			max: 100
+			size_hint: (1, 0.01)
+		GridLayout:
+			size_hint: (1, 0.5)
+			rows: 3
+			cols: 3
+			Button:
+				text: 'Single Slit Demo'
+				background_normal: 'Icons/black.png'
+				font_size: '20sp'
+				markup: True
+				on_press: root.load('Demos',['ds1s.dat'],demo=True)
+			Button:
+				text: 'Double Slit Demo'
+				background_normal: 'Icons/black.png'
+				font_size: '20sp'
+				markup: True
+				on_press: root.load('Demos',['ds2s.dat'],demo=True)
+			Button:
+				text: 'Lattice Demo'
+				background_normal: 'Icons/black.png'
+				font_size: '20sp'
+				markup: True
+				on_press: root.load('Demos',['lattice.dat'],demo=True)
+			Button:
+				text: 'Lattice Alternative Demo'
+				background_normal: 'Icons/black.png'
+				font_size: '20sp'
+				markup: True
+				on_press: root.load('Demos',['latticealt.dat'],demo=True)
+			Button:
+				text: 'Square Demo'
+				background_normal: 'Icons/black.png'
+				font_size: '20sp'
+				markup: True
+				on_press: root.load('Demos',['square150.dat'],demo=True)
+			Label:
+			Label:
+			Label:
+			Label:
 		TabbedPanel:
 			id: menu
-			size_hint: (1, 1)
+			size_hint: (1, 0.5)
 			do_default_tab: False
+			background_image: 'Icons/black.png'
 			TabbedPanelItem:
 				text: 'Potentials'
 				id: pot_tab
 				BoxLayout:
 					size_hint: (1, 1)
 					orientation: 'vertical'
-					ListView:
-						id: pot_list
-						item_strings: root.potentials
-						size_hint: (1, 1)
 					BoxLayout:
 						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Button:
-							text: 'Add'
-							on_press: root.add_pot_list()
-						Button:
-							text: 'Reset'
-							on_press: root.reset_pot_list()
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Label:
-							text: 'x[sub]0[/sub]'
-							markup: True
-							size_hint: (0.2, 1)
-						Label:
-							text: str(round(param0_slider.value,2))
-							size_hint: (0.2, 1)
-						Slider:
-							id: param0_slider
+						size_hint: (1, 0.5)
+						BoxLayout:
+							orientation: 'vertical'
+							size_hint: (0.1, 1)
+							Button:
+								#text: 'Add'
+								background_normal: 'Icons/add.png'
+								background_down: 'Icons/addb.png'
+								on_press: root.add_pot_list()
+							Button:
+								#text: 'Reset'
+								background_normal: 'Icons/clear.png'
+								background_down: 'Icons/clearb.png'
+								on_press: root.reset_pot_list()
+						BoxLayout:
+							orientation: 'vertical'
 							size_hint: (1, 1)
-							min: -100
-							max: 100
-							step: 1
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Label:
-							text: 'y[sub]0[/sub]'
-							markup: True
-							size_hint: (0.2, 1)
-						Label:
-							text: str(round(param1_slider.value,2))
-							size_hint: (0.2, 1)
-						Slider:
-							id: param1_slider
-							size_hint: (1, 1)
-							min: -100
-							max: 100
-							step: 1
+							BoxLayout:
+								orientation: 'horizontal'
+								size_hint: (1, 0.1)
+								Label:
+									text: 'x[sub]0[/sub]'
+									markup: True
+									size_hint: (0.2, 1)
+								Label:
+									text: str(round(param0_slider.value,2))
+									size_hint: (0.2, 1)
+								Slider:
+									id: param0_slider
+									size_hint: (1, 1)
+									min: -100
+									max: 100
+									step: 1
+							BoxLayout:
+								orientation: 'horizontal'
+								size_hint: (1, 0.1)
+								Label:
+									text: 'y[sub]0[/sub]'
+									markup: True
+									size_hint: (0.2, 1)
+								Label:
+									text: str(round(param1_slider.value,2))
+									size_hint: (0.2, 1)
+								Slider:
+									id: param1_slider
+									size_hint: (1, 1)
+									min: -100
+									max: 100
+									step: 1
 					TabbedPanel:
 						id: pot_menu
-						size_hint: (1, 0.5)
+						size_hint: (1, 1)
 						do_default_tab: False
+						background_image: 'Icons/black.png'
 						TabbedPanelItem:
 							text: 'Gauss'
 							id: gauss_tab				
@@ -219,7 +292,7 @@
 									Slider:
 										id: param3ws_slider
 										size_hint: (1, 1)
-										min: 10
+										min: 5
 										max: 200
 										step: 1	
 								BoxLayout:
@@ -234,7 +307,7 @@
 									Slider:
 										id: param4ws_slider
 										size_hint: (1, 1)
-										min: 10
+										min: 5
 										max: 200
 										step: 1	
 								BoxLayout:
@@ -258,71 +331,78 @@
 				BoxLayout:
 					size_hint: (1, 1)
 					orientation: 'vertical'
-					ListView:
-						id: part_list
-						item_strings: root.particlestrings
-						size_hint: (1, 1)
 					BoxLayout:
 						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Button:
-							text: 'Add'
-							on_press: root.add_particle_list()
-						Button:
-							text: 'Reset'
-							on_press: root.reset_particle_list()
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Label:
-							text: 'm'
-							markup: True
-							size_hint: (0.2, 1)
-						Label:
-							text: str(round(mass_slider.value,2))
-							size_hint: (0.2, 1)
-						Slider:
-							id: mass_slider
+						size_hint: (1, 0.5)
+						BoxLayout:
+							orientation: 'vertical'
+							size_hint: (0.1, 1)
+							Button:
+								#text: 'Add'
+								background_normal: 'Icons/add.png'
+								background_down: 'Icons/addb.png'
+								on_press: root.add_particle_list()
+							Button:
+								#text: 'Reset'
+								background_normal: 'Icons/clear.png'
+								background_down: 'Icons/clearb.png'
+								on_press: root.reset_particle_list()
+						BoxLayout:
+							orientation: 'vertical'
 							size_hint: (1, 1)
-							min: 1
-							max: 10
-							step: 0.5
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Label:
-							text: 'x[sub]0[/sub]'
-							markup: True
-							size_hint: (0.2, 1)
-						Label:
-							text: str(round(x0_slider.value,2))
-							size_hint: (0.2, 1)
-						Slider:
-							id: x0_slider
-							size_hint: (1, 1)
-							min: -100
-							max: 100
-							step: 1
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Label:
-							text: 'y[sub]0[/sub]'
-							markup: True
-							size_hint: (0.2, 1)
-						Label:
-							text: str(round(y0_slider.value,2))
-							size_hint: (0.2, 1)
-						Slider:
-							id: y0_slider
-							size_hint: (1, 1)
-							min: -100
-							max: 100
-							step: 1
+							BoxLayout:
+								orientation: 'horizontal'
+								size_hint: (1, 0.1)
+								Label:
+									text: 'm'
+									markup: True
+									size_hint: (0.2, 1)
+								Label:
+									text: str(round(mass_slider.value,2))
+									size_hint: (0.2, 1)
+								Slider:
+									id: mass_slider
+									size_hint: (1, 1)
+									min: 1
+									max: 10
+									step: 0.5
+							BoxLayout:
+								orientation: 'horizontal'
+								size_hint: (1, 0.1)
+								Label:
+									text: 'x[sub]0[/sub]'
+									markup: True
+									size_hint: (0.2, 1)
+								Label:
+									text: str(round(x0_slider.value,2))
+									size_hint: (0.2, 1)
+								Slider:
+									id: x0_slider
+									size_hint: (1, 1)
+									min: -100
+									max: 100
+									step: 1
+							BoxLayout:
+								orientation: 'horizontal'
+								size_hint: (1, 0.1)
+								Label:
+									text: 'y[sub]0[/sub]'
+									markup: True
+									size_hint: (0.2, 1)
+								Label:
+									text: str(round(y0_slider.value,2))
+									size_hint: (0.2, 1)
+								Slider:
+									id: y0_slider
+									size_hint: (1, 1)
+									min: -100
+									max: 100
+									step: 1
 					TabbedPanel:
 						id: part_menu
-						size_hint: (1, 0.5)
+						size_hint: (1, 1)
 						do_default_tab: False
+						background_image: 'Icons/black.png'
 						TabbedPanelItem:
 							text: 'Single'
 							id: single_tab
@@ -492,8 +572,8 @@
 										max: 200
 										step: 1
 						TabbedPanelItem:
-							text: 'Ground State OSC'
-							id: GSO_tab
+							text: 'Free Part.'
+							id: fp_tab
 							BoxLayout:
 								orientation: 'vertical'
 								size_hint: (1, 1)
@@ -504,10 +584,10 @@
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
-										text: str(round(ng_slider.value))
+										text: str(round(nf_slider.value))
 										size_hint: (0.2, 1)
 									Slider:
-										id: ng_slider
+										id: nf_slider
 										size_hint: (1, 1)
 										min: 1
 										max: 50
@@ -515,15 +595,87 @@
 								BoxLayout:
 									orientation: 'horizontal'
 									Label:
-										text: 'k'
+										text: 'v[sub]x0[/sub]'
 										markup: True
 										size_hint: (0.2, 1)
 									Label:
-										text: str(round(k_slider.value,2))
+										text: str(round(vxf_slider.value,2))
 										size_hint: (0.2, 1)
 									Slider:
-										id: k_slider
+										id: vxf_slider
 										size_hint: (1, 1)
-										min: 1
+										min: -10
 										max: 10
 										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v[sub]y0[/sub]'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(vyf_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: vyf_slider
+										size_hint: (1, 1)
+										min: -10
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: u'\u03C3'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(sigf_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: sigf_slider
+										size_hint: (1, 1)
+										min: 1
+										max: 20
+										step: 0.1
+
+
+<savewindow>:
+	text_input: text_input
+	BoxLayout:
+		orientation: 'vertical'
+		FileChooserListView:
+			id: file_chooser
+			on_selection: text_input.text = self.selection and self.selection[0] or ''
+			rootpath: 'Saves'
+		TextInput:
+			id: text_input
+			size_hint: (1, None)
+			height: 30
+			multiline: False
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint: (1, None)
+			height: 60
+			Button:
+				text: 'Save'
+				on_press: root.save(file_chooser.path, text_input.text)
+			Button:
+				text: 'Cancel'
+				on_press: root.cancel()
+
+<loadwindow>:
+	BoxLayout:
+		orientation: 'vertical'
+		FileChooserListView:
+			id: file_chooser
+			rootpath: 'Saves'
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint: (1, None)
+			height: 60
+			Button:
+				text: 'Load'
+				on_press: root.load(file_chooser.path, file_chooser.selection)
+			Button:
+				text: 'Cancel'
+				on_press: root.cancel()

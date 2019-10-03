@@ -8,7 +8,6 @@ from numpy.polynomial.polynomial import Polynomial
 from scipy.interpolate import interp1d
 from potentials import *
 
-
 class Phi():
     
     def __init__(self):
@@ -58,6 +57,8 @@ class Particle():
         self.h = 1
         self.trax = 0
         self.tray = 0
+        self.travx = 0
+        self.travy = 0
         self.pot = 0
     
     def RightHand(self,r):
@@ -69,6 +70,7 @@ class Particle():
         f[3] = -self.pot.dvaly(r[0],r[1])/self.mass
         return f
     
+    
     def RK4(self,t,dt,r):
         k1 = self.RightHand(r)
         k2 = self.RightHand(r+k1*self.dt/2)
@@ -79,13 +81,13 @@ class Particle():
         return rlater
     
     def RKF(self,r):
-        eps = 10**-10
+        eps = 10**-2
 
         hnew = self.dt
         safety = 0
         while(hnew<self.h):
             safety += 1
-            if(safety>10):
+            if(safety>100):
                 break
             
             self.h = hnew
@@ -95,18 +97,20 @@ class Particle():
             k3 = self.RightHand(r + (1932.*self.h/2197.)*k0 - (7200.*self.h/2197.)*k1 + (7296.*self.h/2197.)*k2)
             k4 = self.RightHand(r + (439.*self.h/216.)*k0 - 8.*self.h*k1 + (3680.*self.h/513.)*k2 - (845.*self.h/4104.)*k3)
             k5 = self.RightHand(r - (8.*self.h/27.)*k0 + 2.*self.h*k1 - (3544.*self.h/2565.)*k2 + (1859.*self.h/4104.)*k3 - (11.*self.h/40.)*k4)
-            rnexthat = r + (16.*self.h/135.)*k0 + (6656.*self.h/12825.)*k2 + (28561.*self.h/56430.)*k3 - (9.*self.h/50.)*k4 + (2.*self.h/55.)*k5
+#            rnexthat = r + (16.*self.h/135.)*k0 + (6656.*self.h/12825.)*k2 + (28561.*self.h/56430.)*k3 - (9.*self.h/50.)*k4 + (2.*self.h/55.)*k5
             delta = self.h*((1./360.)*k0 - (128./4275.)*k2 - (2197./75240.)*k3 + (1./50.)*k4 + (2./55.)*k5)
-            if(np.sqrt(np.sum(delta**2))>eps):
+            try:
                 hnew = 0.9*self.h*(np.abs(self.h)*eps/np.sqrt(np.sum(delta**2)))**(1./4.)
-            else:
+            except RuntimeWarning:
+                hnew = self.dt
+            except FloatingPointError:
                 hnew = self.dt
             
             if(hnew>self.dt):
                 hnew = self.dt
         self.h = hnew
         hfinal = hnew
-        rlater = rnexthat
+        rlater = r + (16.*self.h/135.)*k0 + (6656.*self.h/12825.)*k2 + (28561.*self.h/56430.)*k3 - (9.*self.h/50.)*k4 + (2.*self.h/55.)*k5
         return rlater,hfinal
     
     
@@ -126,7 +130,7 @@ class Particle():
                 break
             
             
-    def ComputeTrajectoryF(self,r0,pot):
+    def ComputeTrajectoryF(self,r0,T,pot):
         self.pot = pot
         self.trajectory = np.zeros([1,4])
         self.trajectory[0,:] = r0
@@ -134,9 +138,10 @@ class Particle():
         self.steps = np.array([0])
         self.trax = 0
         self.tray = 0
+        self.travx = 0
+        self.travy = 0
         
         L = 200
-        T = 30
         dt = 0.1
         i = 0
         while(self.steps.sum() < T):
@@ -151,6 +156,8 @@ class Particle():
         
         self.trax = interp1d(self.steps.cumsum(),self.trajectory[:,0],kind='quadratic')
         self.tray = interp1d(self.steps.cumsum(),self.trajectory[:,1],kind='quadratic')
+        self.travx = interp1d(self.steps.cumsum(),self.trajectory[:,2],kind='quadratic')
+        self.travy = interp1d(self.steps.cumsum(),self.trajectory[:,3],kind='quadratic')
         
     def KEnergy(self):
         KEnergy = np.zeros([self.trajectory.shape[0]])

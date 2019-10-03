@@ -7,6 +7,7 @@ from potentials import *
 from kivy.app import App
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
@@ -14,8 +15,11 @@ from kivy.properties import ObjectProperty,ListProperty,NumericProperty,StringPr
 from kivy.graphics.texture import Texture
 from kivy.graphics import Rectangle,Color,Ellipse,Line
 from kivy.clock import Clock
+from kivy.uix.popup import Popup
 from matplotlib import cm
 import pickle
+import os
+import time
 
 L = 200
 
@@ -24,21 +28,20 @@ T = 30
 dt = 0.1
 
 
+class savewindow(FloatLayout):
+    save = ObjectProperty(None)
+    text_input = ObjectProperty(None)
+    cancel = ObjectProperty(None)   
+    
+class loadwindow(FloatLayout):
+    load = ObjectProperty(None)
+    cancel = ObjectProperty(None)
+
+
 class main(BoxLayout):
     
-    
-    mass = NumericProperty()
     charge = 1.
-    x0 = NumericProperty()
-    y0 = NumericProperty()
-    vx0 = NumericProperty()
-    vy0 = NumericProperty()
     
-    
-    potentials = ListProperty()
-    potentialsave = []
-    particlestrings = ListProperty()
-    particlesave = []
     particles = []
     init_conds = []
     
@@ -50,13 +53,15 @@ class main(BoxLayout):
         self.pot = Phi()
         self.set_texture()
         self.time = 0.
-        self.T = 30
+        self.T = 45
         self.speedindex = 3
         self.change_speed()
         self.running = False
         self.paused = False
         self.ready = False
         self.previewtimer = Clock.schedule_interval(self.preview,0.04)
+        self.previewlist = []
+        self.progress = 0.
         
     def set_texture(self):
         L = 200
@@ -110,42 +115,39 @@ class main(BoxLayout):
     def add_pot_list(self):
         self.stop()
         if(self.potmenu.current_tab.text == 'Gauss'):
-            self.potentials.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
-            self.potentialsave.append('Gauss:x0 = {}, y0 = {}, V0 = {}, Sig = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2gslider.value,2),round(self.param3gslider.value,2)))
             self.pot.add_function(gauss,dgaussx,dgaussy,[self.param0slider.value,self.param1slider.value,self.param2gslider.value,self.param3gslider.value])
         elif(self.potmenu.current_tab.text == 'Woods-Saxon'):
-            self.potentials.append('WS:x0 = {}, y0 = {}, V0 = {}, Lx = {}, Ly = {}, a = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2wsslider.value,2),round(self.param3wsslider.value,2),round(self.param4wsslider.value,2),round(self.param5wsslider.value,2)))
-            self.potentialsave.append('WS:x0 = {}, y0 = {}, V0 = {}, Lx = {}, Ly = {}, a = {}'.format(round(self.param0slider.value,2),round(self.param1slider.value,2),round(self.param2wsslider.value,2),round(self.param3wsslider.value,2),round(self.param4wsslider.value,2),round(self.param5wsslider.value,2)))
             self.pot.add_function(woodsaxon,dwoodsaxonx,dwoodsaxony,[self.param0slider.value,self.param1slider.value,self.param2wsslider.value,self.param3wsslider.value/2.,self.param4wsslider.value/2.,self.param5wsslider.value])
         self.background()
         self.update_texture()
         
         self.ready = False
-        self.pcbutton.text = "Compute"
+#        self.pcbutton.text = "Compute"
+        self.pcbutton.background_normal = 'Icons/compute.png'
+        self.pcbutton.background_down = 'Icons/computeb.png'
         self.statuslabel.text = 'Not Ready'
             
     def reset_pot_list(self):
         self.stop()
         self.pot.clear()
-        self.potentials = []
-        self.potentialsave =[]
         self.plotbox.canvas.clear()
         self.background()
         
         self.ready = False
-        self.pcbutton.text = "Compute"
+#        self.pcbutton.text = "Compute"
+        self.pcbutton.background_normal = 'Icons/compute.png'
+        self.pcbutton.background_down = 'Icons/computeb.png'
         self.statuslabel.text = 'Not Ready'
         
     def add_particle_list(self):
         self.stop()
         if(self.partmenu.current_tab.text == 'Single'):
-            self.particlestrings.append('{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.vx0slider.value,2),round(self.vy0slider.value,2)))
-            self.particlesave.append('{}: m = {}, x0 = {}, y0 = {}, vx0 = {}, vy0 = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.vx0slider.value,2),round(self.vy0slider.value,2)))
             self.particles.append(Particle(self.massslider.value,self.charge,dt))
             self.init_conds.append([self.x0slider.value,self.y0slider.value,self.vx0slider.value,self.vy0slider.value])
+            
+            self.previewlist.append('Single')
+            self.previewlist.append([self.x0slider.value,self.y0slider.value,self.vx0slider.value,self.vy0slider.value])
         elif(self.partmenu.current_tab.text == 'Dispersion'):
-            self.particlestrings.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, v = {}, theta = {}, spread = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nslider.value),round(self.vslider.value,2),round(self.thetaslider.value,2),round(self.alphaslider.value,2)))
-            self.particlesave.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, v = {}, theta = {}, spread = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nslider.value),round(self.vslider.value,2),round(self.thetaslider.value,2),round(self.alphaslider.value,2)))
             
             delta = self.alphaslider.value/(self.nslider.value-1)
             theta = self.thetaslider.value - self.alphaslider.value/2.
@@ -157,9 +159,10 @@ class main(BoxLayout):
                 self.init_conds.append([self.x0slider.value,self.y0slider.value,vx,vy])
                 
                 theta = theta + delta
+            
+            self.previewlist.append('Dispersion')
+            self.previewlist.append([self.x0slider.value,self.y0slider.value,self.vslider.value,self.thetaslider.value,self.alphaslider.value])
         elif(self.partmenu.current_tab.text == 'Line'):
-            self.particlestrings.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, v = {}, theta = {}, L = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nlslider.value),round(self.vlslider.value,2),round(self.thetalslider.value,2),round(self.lslider.value,2)))
-            self.particlesave.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, v = {}, theta = {}, L = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.nlslider.value),round(self.vlslider.value,2),round(self.thetalslider.value,2),round(self.lslider.value,2)))
             
             delta = self.lslider.value/(self.nlslider.value-1)
             r = np.array([self.x0slider.value,self.y0slider.value]) - self.lslider.value*0.5*np.array([-np.sin(self.thetalslider.value*(np.pi/180.)),np.cos(self.thetalslider.value*(np.pi/180.))])
@@ -171,46 +174,46 @@ class main(BoxLayout):
                 self.init_conds.append([r[0],r[1],vx,vy])
                 
                 r = r + delta*np.array([-np.sin(self.thetalslider.value*(np.pi/180.)),np.cos(self.thetalslider.value*(np.pi/180.))])
-                
-                
-        elif(self.partmenu.current_tab.text == 'Ground State OSC'):
-            self.particlestrings.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, k = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.ngslider.value,2),round(self.kslider.value,2)))
-            self.particlesave.append('{}: m = {}, x0 = {}, y0 = {}, N = {}, k = {}'.format(len(self.particlestrings)+1,round(self.massslider.value,2),round(self.x0slider.value,2),round(self.y0slider.value,2),round(self.ngslider.value,2),round(self.kslider.value,2)))
             
-            x,y = acceptreject(int(self.ngslider.value),-100,100,1/np.sqrt(np.pi),groundstateosc,[self.massslider.value,self.kslider.value])
-            px,py = acceptreject(int(self.ngslider.value),-100,100,1,groundstateoscp,[self.massslider.value,self.kslider.value])
+            self.previewlist.append('Line')
+            self.previewlist.append([self.x0slider.value,self.y0slider.value,self.nlslider.value,self.vlslider.value,self.thetalslider.value,self.lslider.value])
+                
+        elif(self.partmenu.current_tab.text == 'Free Part.'):
             
-            for i in range(0,int(self.ngslider.value)):
+            x,y = acceptreject(int(self.nfslider.value),-100,100,1/np.sqrt(2*np.pi*self.sigfslider.value**2),freepart,[self.x0slider.value,self.y0slider.value,self.vxfslider.value*self.massslider.value,self.vyfslider.value*self.massslider.value,self.sigfslider.value])
+            px,py = acceptreject(int(self.nfslider.value),-10,10,1/(np.sqrt(np.pi)),freepartp,[self.x0slider.value,self.y0slider.value,self.vxfslider.value*self.massslider.value,self.vyfslider.value*self.massslider.value,self.sigfslider.value])
+            
+            for i in range(0,int(self.nfslider.value)):
                 self.particles.append(Particle(self.massslider.value,self.charge,dt))
-                self.init_conds.append([x[i],y[i],px[i]/self.massslider.value,py[i]/self.massslider.value])    
-            
+                self.init_conds.append([x[i],y[i],px[i]/self.massslider.value,py[i]/self.massslider.value])  
+                
+            self.previewlist.append('Free Part.')
+            self.previewlist.append([self.x0slider.value,self.y0slider.value,self.vxfslider.value,self.vyfslider.value,self.sigfslider.value])
             
         self.ready = False
-        self.pcbutton.text = "Compute"
+#        self.pcbutton.text = "Compute"
+        self.pcbutton.background_normal = 'Icons/compute.png'
+        self.pcbutton.background_down = 'Icons/computeb.png'
         self.statuslabel.text = 'Not Ready'
         
             
     def reset_particle_list(self):
         self.stop()
-        self.particlestrings = []
-        self.particlesave = []
         self.particles = []
         self.init_conds = []
+        self.previewlist = []
         
         self.ready = False
-        self.pcbutton.text = "Compute"
+#        self.pcbutton.text = "Compute"
+        self.pcbutton.background_normal = 'Icons/compute.png'
+        self.pcbutton.background_down = 'Icons/computeb.png'
         self.statuslabel.text = 'Not Ready'
     
     def playcompute(self):
         if(self.ready==False):
-            self.statuslabel.text = 'Computing'
-    
-            for i,p in enumerate(self.particles,0):
-                p.ComputeTrajectoryF(self.init_conds[i],self.pot)
-                
-            self.ready = True
-            self.pcbutton.text = "Play"
-            self.statuslabel.text = 'Ready'
+            self.statuslabel.text = 'Computing...'
+            Clock.schedule_once(self.computation)
+
         elif(self.ready==True):
             if(self.running==False):
                 self.timer = Clock.schedule_interval(self.animate,0.04)
@@ -218,7 +221,39 @@ class main(BoxLayout):
                 self.paused = False
             elif(self.running==True):
                 pass
+            
+    def computation(self,*args):
+        print('---Computation Start---')
+        self.progress = 0.
+        start = time.time()
+        for i,p in enumerate(self.particles,0):
+            p.ComputeTrajectoryF(self.init_conds[i],self.T,self.pot)
+            print('Particle ',i+1,' done')
+            self.progress += 1
+        
+#        self.energycheck()
+        print('---Computation End---')
+        print('Exec time = ',time.time() - start)
+        self.ready = True
+#        self.pcbutton.text = "Play"
+        self.pcbutton.background_normal = 'Icons/play.png'
+        self.pcbutton.background_down = 'Icons/playb.png'
+        self.statuslabel.text = 'Ready'
     
+    def updateprogress(self,*args):
+        val = (self.progress+1)/len(self.particles)
+        self.progressbar.value = val*100
+        
+    def energycheck(self):
+        ok = 0
+        tol = 10**(-6)
+        for i,p in enumerate(self.particles,0):
+#            if(p.Energy().std() < tol):
+            if(np.all(np.diff(p.Energy()) < tol)):
+                ok += 1
+        print('{} particles conserved the total energy up to {}'.format(ok,tol))
+        print('{} particles did not conserve the total energy'.format(len(self.particles)-ok))
+        
     def pause(self):
         if(self.running==True):
             self.paused = True
@@ -244,30 +279,75 @@ class main(BoxLayout):
         self.speed = sl[self.speedindex]
         self.speedbutton.text = str(self.speed)+'x'
     
-   
-    def save(self):
-        savedata = np.array([self.pot.functions,self.pot.dfunctionsx,self.pot.dfunctionsy,self.potentialsave,self.particles,self.init_conds,self.particlesave])
-        with open('save.dat','wb') as file:
+    def save(self,path,name):
+        savedata = np.array([self.pot.functions,self.pot.dfunctionsx,self.pot.dfunctionsy,self.particles,self.init_conds,self.previewlist])
+        with open(os.path.join(path,name+'.dat'),'wb') as file:
             pickle.dump(savedata,file)
-        
-    def load(self):
-        with open('save.dat','rb') as file:
+        self.dismiss_popup()
+    
+    def savepopup(self):
+        content = savewindow(save = self.save, cancel = self.dismiss_popup)
+        self._popup = Popup(title='Save File', content = content, size_hint=(1,1))
+        self._popup.open()
+    
+    def load(self,path,name,demo=False):
+        self.stop()
+        with open(os.path.join(path,name[0]),'rb') as file:
             savedata = pickle.load(file)
         
         self.pot.functions = savedata[0]
         self.pot.dfunctionsx = savedata[1]
         self.pot.dfunctionsy = savedata[2]
-        self.potentials = savedata[3]
-        self.particles = savedata[4]
-        self.init_conds = savedata[5]
-        self.particlestrings = savedata[6]
+        self.particles = savedata[3]
+        self.init_conds = savedata[4]
+        self.previewlist = savedata[5]
         
         self.ready = False
-        self.pcbutton.text = "Compute"
+#        self.pcbutton.text = "Compute"
+        self.pcbutton.background_normal = 'Icons/compute.png'
+        self.pcbutton.background_down = 'Icons/computeb.png'
         self.statuslabel.text = 'Not Ready'
         
         self.background()
         self.update_texture()
+        if(demo==False):
+            self.dismiss_popup()
+    
+    def loadpopup(self):
+        content = loadwindow(load = self.load, cancel = self.dismiss_popup)
+        self._popup = Popup(title='Load File', content = content, size_hint=(1,1))
+        self._popup.open()
+    
+    def dismiss_popup(self):
+        self._popup.dismiss()
+        
+    def timeinversion(self):
+        if(self.ready==True):
+            self.pause()
+            t = self.time
+            self.stop()
+            reversedpart = []
+            reversedconds = []
+            reversedpreview = []
+            
+            for p in self.particles:
+                reversedpart.append(Particle(self.massslider.value,self.charge,dt))
+                reversedconds.append([p.trax(t),p.tray(t),-p.travx(t),-p.travy(t)])
+                reversedpreview.append('Single')
+                reversedpreview.append([p.trax(t),p.tray(t),-p.travx(t),-p.travy(t)])
+                
+            self.particles = reversedpart
+            self.init_conds = reversedconds
+            self.previewlist = reversedpreview
+            
+            self.ready = False
+#            self.pcbutton.text = "Compute"
+            self.pcbutton.background_normal = 'Icons/compute.png'
+            self.pcbutton.background_down = 'Icons/computeb.png'
+            self.statuslabel.text = 'Not Ready'
+        else:
+            pass
+        
     
     def preview(self,interval):
         if(self.running == False and self.paused == False):
@@ -326,9 +406,110 @@ class main(BoxLayout):
                         for k in range(0,int(self.nlslider.value)):
                             Line(points =[r[0]*scalew+w/2.,r[1]*scaleh+h/2.,r[0]*scalew+w/2. + vx*scalew,r[1]*scaleh+h/2. + vy*scalew])
                             r = r + delta*np.array([-np.sin(self.thetalslider.value*(np.pi/180.)),np.cos(self.thetalslider.value*(np.pi/180.))])
+                elif(self.partmenu.current_tab.text == 'Free Part.'):
+                    w = self.plotbox.size[0]
+                    h = self.plotbox.size[1]
+                    b = min(w,h)
+                    scalew = b/200.
+                    scaleh = b/200.
+                    self.plotbox.canvas.clear()
+                    self.update_texture()
+                    with self.plotbox.canvas:
+                        Color(1.0,0.5,0.0)
+                        Line(circle=(self.x0slider.value*scalew+w/2.,self.y0slider.value*scaleh+h/2.,self.sigfslider.value*scalew))
+                        Line(points=[self.x0slider.value*scalew+w/2.,self.y0slider.value*scaleh+h/2.,self.vxfslider.value*scalew+w/2.+self.x0slider.value*scalew,self.vyfslider.value*scalew+w/2.+self.y0slider.value*scalew])
+                    
+                else:
+                    self.plotbox.canvas.clear()
+                    self.update_texture()
+                    
             else:
                 self.plotbox.canvas.clear()
                 self.update_texture() 
+                
+            with self.plotbox.canvas:
+                for i in range(0,len(self.previewlist),2):
+                    if(self.previewlist[i] == 'Single'):
+                        x0 = self.previewlist[i+1][0]
+                        y0 = self.previewlist[i+1][1]
+                        vx0 = self.previewlist[i+1][2]
+                        vy0 = self.previewlist[i+1][3]
+                        
+                        w = self.plotbox.size[0]
+                        h = self.plotbox.size[1]
+                        b = min(w,h)
+                        scalew = b/200.
+                        scaleh = b/200.
+                        
+                        Color(0.0,0.0,1.0)
+                        Ellipse(pos=(x0*scalew+w/2.-5.,y0*scaleh+h/2.-5.),size=(10,10))
+                        Line(points=[x0*scalew+w/2.,y0*scaleh+h/2.,vx0*scalew+w/2.+x0*scalew,vy0*scalew+w/2.+y0*scalew])
+                    if(self.previewlist[i] == 'Dispersion'):
+                        x0 = self.previewlist[i+1][0]
+                        y0 = self.previewlist[i+1][1]
+                        v = self.previewlist[i+1][2]
+                        theta = self.previewlist[i+1][3]
+                        alpha = self.previewlist[i+1][4]
+                    
+                        w = self.plotbox.size[0]
+                        h = self.plotbox.size[1]
+                        b = min(w,h)
+                        scalew = b/200.
+                        scaleh = b/200.
+                        
+                        vx1 = v * np.cos((theta - alpha/2.)*(np.pi/180.))
+                        vy1 = v * np.sin((theta - alpha/2.)*(np.pi/180.))
+                        vx2 = v * np.cos((theta + alpha/2.)*(np.pi/180.))
+                        vy2 = v * np.sin((theta + alpha/2.)*(np.pi/180.))
+                        
+                        with self.plotbox.canvas:
+                            Color(0.0,0.0,1.0)
+                            Line(points=[x0*scalew+w/2.,y0*scaleh+h/2.,vx1*scalew+w/2.+x0*scalew,vy1*scalew+w/2.+y0*scalew])
+                            Line(points=[x0*scalew+w/2.,y0*scaleh+h/2.,vx2*scalew+w/2.+x0*scalew,vy2*scalew+w/2.+y0*scalew])
+                    if(self.previewlist[i] == 'Line'):
+                        x0 = self.previewlist[i+1][0]
+                        y0 = self.previewlist[i+1][1]
+                        n = self.previewlist[i+1][2]
+                        v = self.previewlist[i+1][3]
+                        theta = self.previewlist[i+1][4]
+                        l = self.previewlist[i+1][5]
+                        
+                        w = self.plotbox.size[0]
+                        h = self.plotbox.size[1]
+                        b = min(w,h)
+                        scalew = b/200.
+                        scaleh = b/200.
+                        
+                        r1 = np.array([x0,y0]) - l*0.5*np.array([-np.sin(theta*(np.pi/180.)),np.cos(theta*(np.pi/180.))])
+                        r2 = np.array([x0,y0]) + l*0.5*np.array([-np.sin(theta*(np.pi/180.)),np.cos(theta*(np.pi/180.))])
+                        r = r1
+                        delta = l/(n-1)
+                        
+                        vx = v*np.cos(theta*(np.pi/180.))
+                        vy = v*np.sin(theta*(np.pi/180.))
+                        with self.plotbox.canvas:
+                            Color(0.0,0.0,1.0)
+                            Line(points=[r1[0]*scalew+w/2.,r1[1]*scaleh+h/2.,r2[0]*scalew+w/2.,r2[1]*scaleh+h/2.])
+    
+                            for k in range(0,int(self.nlslider.value)):
+                                Line(points =[r[0]*scalew+w/2.,r[1]*scaleh+h/2.,r[0]*scalew+w/2. + vx*scalew,r[1]*scaleh+h/2. + vy*scalew])
+                                r = r + delta*np.array([-np.sin(theta*(np.pi/180.)),np.cos(theta*(np.pi/180.))])
+                    if(self.previewlist[i] == 'Free Part.'):
+                        x0 = self.previewlist[i+1][0]
+                        y0 = self.previewlist[i+1][1]
+                        vx = self.previewlist[i+1][2]
+                        vy = self.previewlist[i+1][3]
+                        sig = self.previewlist[i+1][4]
+                        
+                        w = self.plotbox.size[0]
+                        h = self.plotbox.size[1]
+                        b = min(w,h)
+                        scalew = b/200.
+                        scaleh = b/200.
+                        with self.plotbox.canvas:
+                            Color(0.0,0.0,1.0)
+                            Line(circle=(x0*scalew+w/2.,y0*scaleh+h/2.,sig*scalew))
+                            Line(points=[x0*scalew+w/2.,y0*scaleh+h/2.,vx*scalew+w/2.+x0*scalew,vy*scalew+w/2.+y0*scalew])
                
     def animate(self,interval):
         w = self.plotbox.size[0]
@@ -346,6 +527,8 @@ class main(BoxLayout):
         self.time += interval*self.speed
         if(self.time >= self.T):
             self.time = 0.
+
+    
 
             
 class simApp(App):
