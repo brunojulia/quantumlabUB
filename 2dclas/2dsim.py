@@ -97,7 +97,7 @@ class main(BoxLayout):
             Rectangle(texture = self.plot_texture, pos = (cx,cy),size = (b,b))
             
         
-    def update_parameters(self,touch):
+    def update_pos(self,touch):
         w = self.plotbox.size[0]
         h = self.plotbox.size[1]
         b = min(w,h)
@@ -111,6 +111,45 @@ class main(BoxLayout):
         if(self.menu.current_tab.text == 'Particles'):
             self.x0slider.value = x
             self.y0slider.value = y
+            
+    def update_angle(self,touch):
+        w = self.plotbox.size[0]
+        h = self.plotbox.size[1]
+        b = min(w,h)
+        scale = b/200.
+        x = (touch.pos[0] - b/2.)/scale
+        y = (touch.pos[1] - b/2.)/scale
+        xdif = x-self.x0slider.value
+        ydif = y-self.y0slider.value
+        if(np.abs(xdif)<0.01):
+            if(ydif>0):
+                angle = np.pi/2.
+            else:
+                angle = -np.pi/2.
+        elif(xdif > 0 and ydif > 0):
+            angle = np.arctan((ydif)/(xdif))
+        elif(xdif < 0 and ydif < 0):
+            angle = np.arctan((ydif)/(xdif)) + np.pi
+        elif(xdif < 0 and ydif > 0):
+            angle = np.arctan((ydif)/(xdif)) + np.pi
+        else:
+            angle = np.arctan((ydif)/(xdif)) + 2*np.pi
+        if(np.abs(x) < 100. and np.abs(y) < 100.):   
+#            if(self.partmenu.current_tab.text == 'Single'):
+#                v = np.sqrt(self.vx0slider.value**2 + self.vy0slider.value**2)
+#                self.vx0slider.value = round(v*np.cos(angle),0)
+#                self.vy0slider.value = round(v*np.sin(angle),0)
+                
+            if(self.partmenu.current_tab.text == 'Dispersion'):
+                self.thetaslider.value = int(round(angle*(180/np.pi),0))
+                
+            if(self.partmenu.current_tab.text == 'Line'):
+                self.thetalslider.value = int(round(angle*(180/np.pi),0))
+                
+#            if(self.partmenu.current_tab.text == 'Free Part.'):
+#                v = np.sqrt(self.vxfslider.value**2 + self.vyfslider.value**2)
+#                self.vxfslider.value = round(v*np.cos(angle),1)
+#                self.vyfslider.value = round(v*np.sin(angle),1)
             
     def add_pot_list(self):
         self.stop()
@@ -279,7 +318,12 @@ class main(BoxLayout):
         self.speed = sl[self.speedindex]
         self.speedbutton.text = str(self.speed)+'x'
     
-    def save(self,path,name):
+    def save(self,path,name,comp=False):
+        if(comp == False):
+            self.particles = []
+            self.init_conds = []
+            self.previewlist = []
+        
         savedata = np.array([self.pot.functions,self.pot.dfunctionsx,self.pot.dfunctionsy,self.particles,self.init_conds,self.previewlist])
         with open(os.path.join(path,name+'.dat'),'wb') as file:
             pickle.dump(savedata,file)
@@ -301,12 +345,21 @@ class main(BoxLayout):
         self.particles = savedata[3]
         self.init_conds = savedata[4]
         self.previewlist = savedata[5]
-        
-        self.ready = False
-#        self.pcbutton.text = "Compute"
-        self.pcbutton.background_normal = 'Icons/compute.png'
-        self.pcbutton.background_down = 'Icons/computeb.png'
-        self.statuslabel.text = 'Not Ready'
+        if(len(self.particles) > 0):
+            if(self.particles[0].steps.size>1):
+                self.ready = True
+#               self.pcbutton.text = "Play"
+                self.pcbutton.background_normal = 'Icons/play.png'
+                self.pcbutton.background_down = 'Icons/playb.png'
+                self.statuslabel.text = 'Ready'
+                print('Loaded simulation {} with computation'.format(name))
+        else: 
+            self.ready = False
+#           self.pcbutton.text = "Compute"
+            self.pcbutton.background_normal = 'Icons/compute.png'
+            self.pcbutton.background_down = 'Icons/computeb.png'
+            self.statuslabel.text = 'Not Ready'
+            print('Loaded simulation {}'.format(name))
         
         self.background()
         self.update_texture()

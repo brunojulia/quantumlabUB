@@ -56,13 +56,13 @@
 	parttab: part_tab.__self__
 	partmenu: part_menu.__self__
 	progressbar: progress_bar.__self__
-
 	
 	BoxLayout:
 		id: plot_box
 		size_hint: (None, 1)
 		size: (self.height, self.height)
-		on_touch_down: root.update_parameters(args[1])
+		on_touch_down: root.update_pos(args[1])
+		on_touch_move: root.update_angle(args[1])
 	BoxLayout:
 		orientation: 'vertical'
 		size_hint: (0.25, 1)
@@ -123,32 +123,32 @@
 			rows: 3
 			cols: 3
 			Button:
-				text: 'Single Slit Demo'
-				background_normal: 'Icons/black.png'
+				#text: 'Single Slit Demo'
+				background_normal: 'Icons/ss.png'
 				font_size: '20sp'
 				markup: True
 				on_press: root.load('Demos',['ds1s.dat'],demo=True)
 			Button:
-				text: 'Double Slit Demo'
-				background_normal: 'Icons/black.png'
+				#text: 'Double Slit Demo'
+				background_normal: 'Icons/ds.png'
 				font_size: '20sp'
 				markup: True
 				on_press: root.load('Demos',['ds2s.dat'],demo=True)
 			Button:
-				text: 'Lattice Demo'
-				background_normal: 'Icons/black.png'
+				#text: 'Lattice Demo'
+				background_normal: 'Icons/lattice.png'
 				font_size: '20sp'
 				markup: True
 				on_press: root.load('Demos',['lattice.dat'],demo=True)
 			Button:
-				text: 'Lattice Alternative Demo'
-				background_normal: 'Icons/black.png'
+				#text: 'Lattice Alternative Demo'
+				background_normal: 'Icons/alattice.png'
 				font_size: '20sp'
 				markup: True
 				on_press: root.load('Demos',['latticealt.dat'],demo=True)
 			Button:
-				text: 'Square Demo'
-				background_normal: 'Icons/black.png'
+				#text: 'Square Demo'
+				background_normal: 'Icons/square.png'
 				font_size: '20sp'
 				markup: True
 				on_press: root.load('Demos',['square150.dat'],demo=True)
@@ -641,6 +641,7 @@
 
 <savewindow>:
 	text_input: text_input
+	comp_checkbox: comp_checkbox
 	BoxLayout:
 		orientation: 'vertical'
 		FileChooserListView:
@@ -658,10 +659,16 @@
 			height: 60
 			Button:
 				text: 'Save'
-				on_press: root.save(file_chooser.path, text_input.text)
+				on_press: root.save(file_chooser.path, text_input.text,comp=comp_checkbox.active)
 			Button:
 				text: 'Cancel'
 				on_press: root.cancel()
+			BoxLayout:
+				orientation: 'horizontal'
+				Label:
+					text: 'Save particles and computation'
+				CheckBox:
+					id: comp_checkbox
 
 <loadwindow>:
 	BoxLayout:
