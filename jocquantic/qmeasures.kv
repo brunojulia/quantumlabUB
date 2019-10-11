@@ -1,6 +1,7 @@
 <QMeasures>:
 
     box1: box1_id
+#    box2: box2_id
     label1: label1_id
     label2: label2_id
     label_vel: change_vel_id
@@ -13,53 +14,56 @@
         
         BoxLayout:
             orientation: 'horizontal'
-            size_hint_y: 0.1
+            size_hint_y: 1
             
             Label:
                 id: label_lvl_id
                 text: 'Level 1'
-                size_hint_x: 0.5
+                size_hint_x: 1
                 
             Label:
                 id: label_points_id
                 text: '0 points'
-                size_hint_x: 0.5
+                size_hint_x: 1
     
     
         BoxLayout:
             orientation: 'vertical'
-            size_hint_y: 0.9
-                    
-            BoxLayout:
-                id: box1_id
-                size_hint_y: 0.8
+            size_hint_y: 8
+            id: box1_id
+            
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 1
+            
+            Button: 
+                id: change_vel_id
+                text: 'Velocity \n     1X'
+                size_hint_x: 0.2
+                on_press: root.change_vel()
                 
-            BoxLayout:
-                orientation: 'horizontal'
-                size_hint_y: 0.2
+            Button:
+                id: pause_id
+                text: 'Play'
+                size_hint_x: 0.2
+                on_press: root.pause() 
+                 
+            Button:
+                id: measure_btn_id
+                text: 'Measure'
+                size_hint_x: 0.2
+                on_press: root.measure()
                 
-                Button: 
-                    id: change_vel_id
-                    text: 'Velocity \n     1X'
-                    size_hint_x: 0.2
-                    on_press: root.change_vel()
-                    
-                Button:
-                    id: pause_id
-                    text: 'Play'
-                    size_hint_x: 0.2
-                    on_press: root.pause() 
-                     
-                Button:
-                    id: measure_btn_id
-                    text: 'Measure'
-                    size_hint_x: 0.3
-                    on_press: root.measure()
-                                    
-                Label:
-                    id: label2_id
-                    size_hint_x: 0.1
-                    
-                Label:
-                    id: label1_id
-                    size_hint_x: 0.2  
+            Button:
+                id: measure_btn_id
+                text: 'KB'
+                size_hint_x: 0.1
+                on_press: root.request_KB()
+                                
+            Label:
+                id: label2_id
+                size_hint_x: 0.1
+                
+            Label:
+                id: label1_id
+                size_hint_x: 0.2  
