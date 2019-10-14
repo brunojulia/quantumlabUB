@@ -17,14 +17,14 @@ from kivy.clock import Clock #Tools to manage events in Kivy (used to animate)
 
 #OTHER GENERAL IMPORTS
 import numpy as np
-from matplotlib.figure import Figure #This figure is the tipical one from 
+#from matplotlib.figure import Figure #This figure is the tipical one from 
 #matplotlib and is the one we shall 'adapt' to kivy using FigureCanvasKivyAgg
-#import matplotlib.pyplot as plt #Testing plots
-
+import matplotlib.pyplot as plt #Testing plots
 #import timeit as ti #Used to check run times
 from scipy import linalg as spLA #Its attribute eigh_tridiagonal diagonalizes H
+from matplotlib import gridspec
 
-#from kivy.core.window import Window #Window manegement
+from kivy.core.window import Window #Window manegement
 #Window.fullscreen = 'auto'
 
 ###############################################################################
@@ -64,7 +64,7 @@ class QMeasures(BoxLayout):
         
                     ###### Double well potential's properties ######
         #Load file with settings data and first initial settings: first 3 are
-        #potential settings and the rest realted data for color zones.
+        #potential settings and the rest related data for color zones.
         self.settings = open('lvl_settings.txt','r')
         self.lvl_set = np.array(eval(self.settings.readline().strip()))
         #Parameters         
@@ -81,18 +81,15 @@ class QMeasures(BoxLayout):
                             ###### Wave functions ######
         #Initial (gaussian parameters)
         self.p0 = 0.    
-        self.sigma0 = 0.3
-        self.mu0 = 0.2
+        self.dirac_sigma = 0.3
+        self.sigma0 = self.dirac_sigma
+        self.mu0 = 1
         #Related object
         self.psi0 = np.zeros(self.N + 1)    #Value of the initial wave function
         self.comp0 = np.zeros(self.N + 1)   #Its components. They are row vects
         #Evolved
         self.psiev = np.zeros(self.N + 1)
         self.compev = np.zeros(self.N + 1)
-        
-                                 ###### Measure ######                         
-        #'Sigma' of dirac's delta after measuring
-        self.dirac_sigma = 0.4
         
                                 ###### TEXT LABEL ######
         #Game
@@ -103,7 +100,26 @@ class QMeasures(BoxLayout):
         self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' + \
             'Prob.:             ' + '-' + '\n' + \
             'Max. prob.:    ' + '-'
-            
+        
+        
+                                ###### KEYBOARD ######
+        #request_keyboard returns an instance that represents the events on 
+        #the keyboard. It can give two events (witch we can bind to functions).
+        #Furthermore, each event comes with some input arguments:
+        #on_key_down    --      keycode, text, modifiers
+        #on_key_up      --      keycode
+        #Using the functions bind and unbind on this instance we can bind or 
+        #unbind the instance event with a callback/function AND passing the
+        #above arguments into the function.
+        #When using request_keyboard a callback/function must be given. It is 
+        #going to be called when releasing/closing the keyboard (shutting the 
+        #app, or reasigning the keyboard with another request_keyboard). It 
+        #usualy unbinds everything bound.
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
+        self._keyboard.bind(on_key_down=self._on_keyboard_down)
+    
+        
+        
       
 
         # ------------ FIRST RUN OF EIGENPARAM AND COMP -----------------------
@@ -129,45 +145,52 @@ class QMeasures(BoxLayout):
         self.box/panel_id.add_widget(self.FigureCanvasKivyAggs_name)
         """
         
-        #Canvas
-        self.main_fig = Figure()    #Main ploting object where we will do two 
-        #differents plottings ('twins'), one for psi and one for the potential.
-        #111 specifies one on top of the other
+        #COLORS
+        self.zonecol_red = '#AA3939'
+        self.zonecol_green = '#7B9F35'
+        self.potcol = '#226666'
+        
+        #LIMITS
+        self.pot_tlim = 50
+        self.pot_blim = 0
+        self.psi_tlim = 1.5
+        self.psi_blim = 0
+        
+        #VISU
+        self.num_visu = len(self.mesh) #Cannot be greater than the number of indices
+        self.cir_rad = 0.2
+        self.min_alpha = 0.1
+        
+        
+        self.main_fig = plt.figure()
         self.main_fig.patch.set_facecolor('black') #All background outside plot
-        
-        #Pot plot
-        self.pot_twin = self.main_fig.add_subplot(111)
-        self.pot_twin.axis([self.a, self.b, 0, 50])
-        self.pot_twin.set_xlabel('x [$\AA$]', color = 'white')
-        self.pot_twin.set_ylabel('Potential [eV]', color = 'white')
-#        self.pot_twin.spines['bottom'].set_color('white') #Border lines
-#        self.pot_twin.spines['top'].set_color('white') 
-#        self.pot_twin.spines['right'].set_color('white')
-#        self.pot_twin.spines['left'].set_color('white')
-        self.pot_twin.tick_params(axis='x', colors='white')
-        self.pot_twin.tick_params(axis='y', colors='white')
-        self.pot_data, = self.pot_twin.plot(self.mesh, self.potential)
 
-        #Psi plot
-        self.psi_twin = self.pot_twin.twinx()
-        self.psi_twin.axis([self.a, self.b, 0, 1.5])
-        self.psi_twin.set_ylabel('Probability [$\AA^{-1}$]', color = 'white')        
-#        self.psi_twin.spines['bottom'].set_color('white') #Border lines
-#        self.psi_twin.spines['top'].set_color('white') 
-#        self.psi_twin.spines['right'].set_color('white')
-#        self.psi_twin.spines['left'].set_color('white')
-        self.psi_twin.tick_params(axis='y', colors='white')
-        self.psi_data, = self.psi_twin.plot(self.mesh, np.abs(self.psi0)**2,
-                                            alpha = 0.0)
-        self.psi_twin.fill_between(self.mesh,np.abs(self.psiev)**2,
-                                       facecolor = 'black', alpha = 1)
+#        Object passed to kv
+        self.main_canvas = FigureCanvasKivyAgg(self.main_fig)
+        self.box1.add_widget(self.main_canvas)
         
-        #Background plot
-        self.bkg_twin = self.pot_twin.twinx()
-        self.bkg_twin.axis([self.a, self.b, 0, 1.5]) #Same as psi_twin
-        self.bkg_twin.axis('off')    
-        #We take every other border from the file and fill the previous zone
-        #(red) and the following zone (green). Last one added a side (red).
+        #THE GRID
+        self.gs = gridspec.GridSpec(2, 1, height_ratios=[7, 1])
+        
+        #BACKGROUND PLOT
+        self.bkg_twin = plt.subplot(self.gs[0])
+        self.bkg_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
+        figheight = self.main_fig.get_figheight() #In inches (100 p = 1 inch)
+        self.bkg_twin.set_title('x [$\AA$]', color = 'white'
+                                , pad = 0.05*figheight*100, fontsize = 10)
+        #pad is passed in points 
+        self.bkg_twin.tick_params(axis = 'x', labelbottom=False,labeltop=True, 
+                                  bottom = False, top = True)
+        #We are using their axis for 'x' axis and 'prob' axis for the default
+        #bkg axis position suits us
+        self.bkg_twin.set_ylabel('Probability [$\AA^{-1}$]', color = 'white') 
+#        self.bkg_twin.set_xlabel('x [$\AA$]', color = 'white')
+        self.bkg_twin.tick_params(colors='white')
+                
+        self.bkg_twin.set_facecolor('black')
+
+        #Filling: we take every other border from the file and fill the prev. 
+        # zone(red) and the following zone (green).Last one added a side (red).
         prev = self.a
         #To keep track which points are in the red zone
         self.redzone = np.array([])
@@ -182,28 +205,348 @@ class QMeasures(BoxLayout):
             redzone = self.mesh[prev_index:index+1] #+1 due to slice
             self.redzone = np.append(self.redzone, redzone)
             self.bkg_twin.fill_between(redzone,bot,top,
-                                       facecolor = 'red', alpha = 0.5)
+                                       facecolor = self.zonecol_red)
             #Green
             bot = (np.abs(self.psiev)**2)[index:nxt_index+1] #(")
             top = np.zeros_like(bot) + 2.
             greenzone = self.mesh[index:nxt_index+1] #(")
             self.bkg_twin.fill_between(greenzone, bot, top,
-                                       facecolor = 'green', alpha = 0.5)
+                                       facecolor = self.zonecol_green)
             #Looping by giving the new prev position
             prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)]
-            
         #Last zone (red)
         bot = (np.abs(self.psiev)**2)[nxt_index:]
         top = np.zeros_like(bot) + 2.
         redzone = self.mesh[nxt_index:]
         self.redzone = np.append(self.redzone, redzone)
         self.bkg_twin.fill_between(redzone,bot,top,
-                                       facecolor = 'red', alpha = 0.5)
+                                       facecolor = self.zonecol_red)
+        
+        
+        
+         #PSI PLOT
+        self.psi_twin = self.bkg_twin.twinx()
+#        
+        self.psi_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
+        self.psi_twin.axis('off') #bkg axis already taken care of.
+        
+        self.psi_data, = self.psi_twin.plot(self.mesh, np.abs(self.psi0)**2,
+                                            alpha = 0.0)
+        
+        self.psi_twin.set_facecolor('black')
 
-        #Object passed to kivy
-        self.main_canvas = FigureCanvasKivyAgg(self.main_fig)
-        self.box1.add_widget(self.main_canvas)
+        self.psi_twin.fill_between(self.mesh,np.abs(self.psiev)**2,
+                                       facecolor = 'black')
+        
+          #POTENTIAL PLOT
+        self.pot_twin = self.bkg_twin.twinx()
+        
+        self.pot_twin.axis([self.a, self.b, self.pot_blim, self.pot_tlim])
+        
+        self.pot_twin.set_ylabel('Potential [eV]', color = 'white')
+        self.pot_twin.tick_params(axis='y', colors='white')
+                
+        self.pot_twin.set_facecolor('black')
 
+        self.pot_data, = self.pot_twin.plot(self.mesh, self.potential)
+               
+         
+        
+          #VIsualplot
+        self.visuax = plt.subplot(self.gs[1])
+        self.visuax.axis('off')
+        step = int(len(self.psiev)/self.num_visu)
+        self.visu_im = self.visuax.imshow([np.abs(self.psiev[::step])**2], 
+                      aspect='auto', interpolation = 'sinc', cmap = 'gray')
+        
+        
+#        maxpsi = np.max(np.abs(self.psiev)**2)
+#        for i in range(0,len(self.psi0), int(len(self.psi0)/self.num_visu)):
+#            prob_psi = np.abs(self.psiev[i])**2
+#            a = prob_psi/maxpsi
+#            if a > self.min_alpha :
+#                self.visuax.add_patch(plt.Circle((self.mesh[i], 0), 
+#                                         self.cir_rad, color='white', alpha=a))
+#        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+#        
+#        #VIsualplot
+#        self.visuax = plt.subplot(self.gs[1])
+#        
+#        self.visuax.axis([self.a, self.b, -1.0, 1.0])
+#        self.visuax.axis('off')
+#        
+#        
+#        maxpsi = np.max(np.abs(self.psiev)**2)
+#        for i in range(0,len(self.psi0), int(len(self.psi0)/self.num_visu)):
+#            prob_psi = np.abs(self.psiev[i])**2
+#            a = prob_psi/maxpsi
+#            if a > self.min_alpha :
+#                self.visuax.add_patch(plt.Circle((self.mesh[i], 0), 
+#                                         self.cir_rad, color='white', alpha=a))
+#                
+          #FIRST DRAW
+        self.main_fig.tight_layout() #Fills all available space (title space).
+        #This 'tight' needs to be at the end so it considers all objects drawn
+        self.main_canvas.draw_idle() 
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+#        self.main_fig, self.axs = plt.subplots(2,1)
+#        self.main_fig.patch.set_facecolor('black') #All background outside plot
+#        #Object passed to kv
+#        self.main_canvas = FigureCanvasKivyAgg(self.main_fig)
+#        self.box1.add_widget(self.main_canvas)
+#        
+#        
+#        #BACKGROUND PLOT
+#        self.bkg_twin = self.axs[0]
+#        self.bkg_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
+#        figheight = self.main_fig.get_figheight() #In inches (100 p = 1 inch)
+#        self.bkg_twin.set_title('x [$\AA$]', color = 'white'
+#                                , pad = 0.05*figheight*100, fontsize = 10)
+#        #pad is passed in points 
+#        self.bkg_twin.tick_params(axis = 'x', labelbottom=False,labeltop=True, 
+#                                  bottom = False, top = True)
+#
+#        #We are using their axis for 'x' axis and 'prob' axis for the default
+#        #bkg axis position suits us
+#        self.bkg_twin.set_ylabel('Probability [$\AA^{-1}$]', color = 'white') 
+##        self.bkg_twin.set_xlabel('x [$\AA$]', color = 'white')
+#        self.bkg_twin.tick_params(colors='white')
+#                
+#        #Filling: we take every other border from the file and fill the prev. 
+#        # zone(red) and the following zone (green).Last one added a side (red).
+#        prev = self.a
+#        #To keep track which points are in the red zone
+#        self.redzone = np.array([])
+#        for i in range(3, len(self.lvl_set)-1, 2):
+#            #Index
+#            prev_index = int((prev - self.a)//self.deltax)
+#            index = int((self.lvl_set[i]-self.a)//self.deltax)
+#            nxt_index = int((self.lvl_set[i+1]- self.a)//self.deltax)
+#            #Red
+#            bot = (np.abs(self.psiev)**2)[prev_index:index+1] #+1 due to slice
+#            top = np.zeros_like(bot) + 2.
+#            redzone = self.mesh[prev_index:index+1] #+1 due to slice
+#            self.redzone = np.append(self.redzone, redzone)
+#            self.bkg_twin.fill_between(redzone,bot,top,
+#                                       facecolor = self.zonecol_red)
+#            #Green
+#            bot = (np.abs(self.psiev)**2)[index:nxt_index+1] #(")
+#            top = np.zeros_like(bot) + 2.
+#            greenzone = self.mesh[index:nxt_index+1] #(")
+#            self.bkg_twin.fill_between(greenzone, bot, top,
+#                                       facecolor = self.zonecol_green)
+#            #Looping by giving the new prev position
+#            prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)]
+#        #Last zone (red)
+#        bot = (np.abs(self.psiev)**2)[nxt_index:]
+#        top = np.zeros_like(bot) + 2.
+#        redzone = self.mesh[nxt_index:]
+#        self.redzone = np.append(self.redzone, redzone)
+#        self.bkg_twin.fill_between(redzone,bot,top,
+#                                       facecolor = self.zonecol_red)
+#        
+#        
+#         #PSI PLOT
+#        self.psi_twin = self.bkg_twin.twinx()
+#        
+#        self.psi_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
+#        self.psi_twin.axis('off') #bkg axis already taken care of.
+#        
+#        self.psi_data, = self.psi_twin.plot(self.mesh, np.abs(self.psi0)**2,
+#                                            alpha = 0.0)
+#        
+#        self.psi_twin.fill_between(self.mesh,np.abs(self.psiev)**2,
+#                                       facecolor = 'black')
+#        
+#          #POTENTIAL PLOT
+#        self.pot_twin = self.bkg_twin.twinx()
+#        
+#        self.pot_twin.axis([self.a, self.b, self.pot_blim, self.pot_tlim])
+#        
+#        self.pot_twin.set_ylabel('Potential [eV]', color = 'white')
+#        self.pot_twin.tick_params(axis='y', colors='white')
+#                
+#        self.pot_data, = self.pot_twin.plot(self.mesh, self.potential)
+#        
+#        
+#        #VIsualplot
+#        self.visuax = self.axs[1]
+#        
+#        self.visuax.axis([self.a, self.b, -1.0, 1.0])
+#        self.visuax.axis('off')
+#        
+#        for pos in np.linspace(self.a, self.b, 10):
+#            self.visuax.add_patch(plt.Circle((pos, 0), 1, color='white', alpha=1))
+#        
+#        
+#         #FIRST DRAW
+#        self.main_fig.tight_layout() #Fills all available space (title space).
+#        #This 'tight' needs to be at the end so it considers all objects drawn
+#        self.main_canvas.draw_idle() 
+#        
+#        
+#        
+#        
+#        
+#        
+#        
+#        
+#        
+#        
+#        
+        
+        
+        
+        
+        
+        
+#        
+#        #FIGURE AND CANVAS
+#        #Figure where we draw and first subplot 
+#        self.main_fig, self.bkg_twin = plt.subplots()
+#        self.main_fig.patch.set_facecolor('black') #All background outside plot
+#        #Object passed to kv
+#        self.main_canvas = FigureCanvasKivyAgg(self.main_fig)
+#        self.box1.add_widget(self.main_canvas)
+#        
+#        #BACKGROUND PLOT
+#        self.bkg_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
+#        figheight = self.main_fig.get_figheight() #In inches (100 p = 1 inch)
+#        self.bkg_twin.set_title('x [$\AA$]', color = 'white'
+#                                , pad = 0.05*figheight*100, fontsize = 10)
+#        #pad is passed in points 
+#        self.bkg_twin.tick_params(axis = 'x', labelbottom=False,labeltop=True, 
+#                                  bottom = False, top = True)
+#
+#        #We are using their axis for 'x' axis and 'prob' axis for the default
+#        #bkg axis position suits us
+#        self.bkg_twin.set_ylabel('Probability [$\AA^{-1}$]', color = 'white') 
+##        self.bkg_twin.set_xlabel('x [$\AA$]', color = 'white')
+#        self.bkg_twin.tick_params(colors='white')
+#                
+#        #Filling: we take every other border from the file and fill the prev. 
+#        # zone(red) and the following zone (green).Last one added a side (red).
+#        prev = self.a
+#        #To keep track which points are in the red zone
+#        self.redzone = np.array([])
+#        for i in range(3, len(self.lvl_set)-1, 2):
+#            #Index
+#            prev_index = int((prev - self.a)//self.deltax)
+#            index = int((self.lvl_set[i]-self.a)//self.deltax)
+#            nxt_index = int((self.lvl_set[i+1]- self.a)//self.deltax)
+#            #Red
+#            bot = (np.abs(self.psiev)**2)[prev_index:index+1] #+1 due to slice
+#            top = np.zeros_like(bot) + 2.
+#            redzone = self.mesh[prev_index:index+1] #+1 due to slice
+#            self.redzone = np.append(self.redzone, redzone)
+#            self.bkg_twin.fill_between(redzone,bot,top,
+#                                       facecolor = self.zonecol_red)
+#            #Green
+#            bot = (np.abs(self.psiev)**2)[index:nxt_index+1] #(")
+#            top = np.zeros_like(bot) + 2.
+#            greenzone = self.mesh[index:nxt_index+1] #(")
+#            self.bkg_twin.fill_between(greenzone, bot, top,
+#                                       facecolor = self.zonecol_green)
+#            #Looping by giving the new prev position
+#            prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)]
+#        #Last zone (red)
+#        bot = (np.abs(self.psiev)**2)[nxt_index:]
+#        top = np.zeros_like(bot) + 2.
+#        redzone = self.mesh[nxt_index:]
+#        self.redzone = np.append(self.redzone, redzone)
+#        self.bkg_twin.fill_between(redzone,bot,top,
+#                                       facecolor = self.zonecol_red)
+#        
+#        #PSI PLOT
+#        self.psi_twin = self.bkg_twin.twinx()
+#        
+#        self.psi_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
+#        self.psi_twin.axis('off') #bkg axis already taken care of.
+#        
+#        self.psi_data, = self.psi_twin.plot(self.mesh, np.abs(self.psi0)**2,
+#                                            alpha = 0.0)
+#        
+#        self.psi_twin.fill_between(self.mesh,np.abs(self.psiev)**2,
+#                                       facecolor = 'black')
+#        
+#        
+#         #POTENTIAL PLOT
+#        self.pot_twin = self.bkg_twin.twinx()
+#        
+#        self.pot_twin.axis([self.a, self.b, self.pot_blim, self.pot_tlim])
+#        
+#        self.pot_twin.set_ylabel('Potential [eV]', color = 'white')
+#        self.pot_twin.tick_params(axis='y', colors='white')
+#                
+#        self.pot_data, = self.pot_twin.plot(self.mesh, self.potential)
+#        
+#        
+#        
+#        for pos in np.linspace(self.a, self.b, 2):
+#            self.pot_twin.add_patch(plt.Circle((pos, -5), 5, color='yellow', alpha=1))
+#        
+#        
+#        
+##        
+##        #VISUAL REPRESENTATION
+##        self.visuax = self.bkg_twin.twinx()
+##        
+##        self.visuax.axis([self.a, self.b, 0, 50])
+##        
+#        #Change all background colors inside plots so it seems to be the
+#        #outside color
+#        self.pot_twin.set_facecolor('black')
+#        self.bkg_twin.set_facecolor('black')
+#        self.psi_twin.set_facecolor('black')
+#        
+#        #FIRST DRAW
+#        self.main_fig.tight_layout() #Fills all available space (title space).
+#        #This 'tight' needs to be at the end so it considers all objects drawn
+#        self.main_canvas.draw_idle() 
+#        
+        
+        
+        
+#        #VISUAL REPRESENTATION PLOT
+#        #FIGURE AND CANVAS
+#        #Figure where we draw and first subplot 
+#        self.visu_fig, self.visuax = plt.subplots()
+#        self.visu_fig.patch.set_facecolor('black') #All background outside plot
+#        #Object passed to kv
+#        self.visu_canvas = FigureCanvasKivyAgg(self.visu_fig)
+#        self.box2.add_widget(self.visu_canvas)
+#        
+#        #VISUAL PLOT
+#        self.visuax.axis([self.a, self.b, -1.0, 1.0])
+#        self.visuax.axis('off')
+#        
+#        for pos in np.linspace(self.a, self.b, 10):
+#            self.visuax.add_patch(plt.Circle((pos, 0), 1, color='white', alpha=1))
+#            
+#        self.visu_fig.tight_layout()
+#        self.visu_canvas.draw_idle()    
+            
+        
+        
+    
         # ------------------------ CLOCK --------------------------------------
         """
         Here all animation will be happening. The plotting function definied in
@@ -216,7 +559,8 @@ class QMeasures(BoxLayout):
         self.plt_time = 0.
         self.plt_dt = 1./30.
         #Plotting velocity
-        self.plt_vel_factor = 1 #Factor in dt
+        self.plt_vel_factor = 9 #Factor in dt
+        self.label_vel.text = 'Velocity \n    ' + str(self.plt_vel_factor) +'X'
         #Pausing
         self.pause_state = True #Begins paused
         
@@ -244,6 +588,7 @@ class QMeasures(BoxLayout):
                     np.exp(-(self.mesh-self.pot_mu)**2/(2.*self.pot_sigma**2))\
                     +\
                     0.5*self.pot_k*self.mesh**2)
+        
     
     #PSI0: initial wavefunciton. Later on this will be defined, meaning the 
     #initial conditions by the user or the game itself.
@@ -266,6 +611,42 @@ class QMeasures(BoxLayout):
     
     #_______________"FUNCTIONAL" FUNCTION (compute something)__________________
     
+    #KEYBOARD
+    def _keyboard_closed(self):
+        """
+        Actions taken when keyboard is released/closed. Unbinding and 
+        'removing' the _keyboard.
+        """
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        print('keyboard released')
+        #Is happening that clicking on the box (outside any button) relases the 
+        #keyboard. This can be 'fixed' adding a button that requests the 
+        #keyboard again.
+        self._keyboard = None
+        
+    def request_KB(self):
+        """
+        Requesting and binding keyboard again, only if it has been released.
+        """
+        if self._keyboard == None: #It has been released
+            self._keyboard = Window.request_keyboard(self._keyboard_closed, 
+                                                     self)
+            self._keyboard.bind(on_key_down=self._on_keyboard_down)
+        else:
+            pass
+            
+
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        """
+        Bind to the event on_key_down, whenever keyboard is used this function
+        will be called. So, it contains every function related to the keyboard.
+        """
+        #We still want the escape to close the window, so diong the following,
+        #pressing twice escape will close it.
+        if keycode[1] == 'spacebar':
+             self.measure()
+        return 
+    
     #CHANGE_VEL: Changes the factor in the time exponential in ary_compexp from
     #plotpsiev().
     def change_vel(self):
@@ -277,6 +658,7 @@ class QMeasures(BoxLayout):
             self.plt_vel_factor = 1
         #Label in kivy file
         self.label_vel.text = 'Velocity \n    ' + str(self.plt_vel_factor) +'X'
+        
         
     #PAUSE: Changes the pause state from true to false and viceversa.
     def pause(self):
@@ -346,13 +728,13 @@ class QMeasures(BoxLayout):
                 top = np.zeros_like(bot) + 2.
                 redzone = self.mesh[prev_index:index+1] #+1 due to slice
                 self.bkg_twin.fill_between(redzone,bot,top,
-                                           facecolor = 'red', alpha = 0.5)
+                                           facecolor = self.zonecol_red)
                 #Green
                 bot = (np.abs(self.psiev)**2)[index:nxt_index+1] #(")
                 top = np.zeros_like(bot) + 2.
                 greenzone = self.mesh[index:nxt_index+1] #(")
                 self.bkg_twin.fill_between(greenzone, bot, top,
-                                           facecolor = 'green', alpha = 0.5)
+                                           facecolor = self.zonecol_green)
                 #Looping by giving a new prev position            
                 prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)]
                 
@@ -361,10 +743,36 @@ class QMeasures(BoxLayout):
             top = np.zeros_like(bot) + 2.
             redzone = self.mesh[nxt_index:]
             self.bkg_twin.fill_between(redzone,bot,top,
-                                           facecolor = 'red', alpha = 0.5)
-        
+                                           facecolor = self.zonecol_red)
+            
+            
+            
+             
+            #Visual pltt
+            self.visu_im.remove()
+            step = int(len(self.psiev)/self.num_visu)
+            self.visu_im = self.visuax.imshow([np.abs(self.psiev[::step])**2], 
+                          aspect='auto', interpolation = 'gaussian', 
+                          cmap = 'gray', alpha = 0.5)
+            
+            
+            
+            #VIsualplot
+#            [circle.remove() for circle in self.visuax.patches]
+#            
+#            maxpsi = np.max(np.abs(self.psiev)**2)
+#            
+#            for i in range(0,len(self.psiev), int(len(self.psiev)/self.num_visu)):
+#                prob_psi = np.abs(self.psiev[i])**2
+#                a = prob_psi/maxpsi
+#                if a > self.min_alpha :
+#                    self.visuax.add_patch(plt.Circle((self.mesh[i], 0), 
+#                                        self.cir_rad, color='white', alpha=a))
+
+
+
         #Draw (keeps drawing even if ther hasn't been an update)
-        self.main_canvas.draw_idle()      
+        self.main_canvas.draw()
     
     #EIGENPARAM: Computes the eigenvalues and eigenvectors of the hamiltonian
     #with a certain potential
@@ -443,38 +851,94 @@ class QMeasures(BoxLayout):
         #Reset time 
         self.plt_time = 0.
         #Check zone
-        #Points/lvl
-        self.lvl += 1
+        #Points
         if self.mu0 in self.redzone: #Bad, out of limits
             self.points -= 5
         else:
-            self.points += 10
-        #Read new lvl
-        self.lvl_set = np.array(eval(self.settings.readline().strip()))
-        #New redzone
-        self.redzone = np.array([])
-        prev = self.a
-        for i in range(3, len(self.lvl_set)-1, 2):
-            #Index
-            prev_index = int((prev - self.a)//self.deltax)
-            index = int((self.lvl_set[i]-self.a)//self.deltax)
-            #Slicing
-            redzone = self.mesh[prev_index:index+1] #+1 due to slice
+            self.points += 10 #level passed
+            #Read new lvl
+            self.lvl += 1
+            self.lvl_set = np.array(eval(self.settings.readline().strip()))
+            
+            #New redzone and refilling
+            self.redzone = np.array([])
+            prev = self.a
+            for i in range(3, len(self.lvl_set)-1, 2):
+                #Index
+                prev_index = int((prev - self.a)//self.deltax)
+                nxt_index = int((self.lvl_set[-1]- self.a)//self.deltax)
+                index = int((self.lvl_set[i]-self.a)//self.deltax)
+                
+#                #Red
+#                bot = (np.abs(self.psiev)**2)[prev_index:index+1] #+1 due to slice
+#                top = np.zeros_like(bot) + 2.
+                
+                #Slicing
+                redzone = self.mesh[prev_index:index+1] #+1 due to slice
+                
+#                self.bkg_twin.fill_between(redzone,bot,top,
+#                                           facecolor = self.zonecol_red)
+                
+                self.redzone = np.append(self.redzone, redzone)
+                
+#                #Green
+#                bot = (np.abs(self.psiev)**2)[index:nxt_index+1] #(")
+#                top = np.zeros_like(bot) + 2.
+#                greenzone = self.mesh[index:nxt_index+1] #(")
+#                self.bkg_twin.fill_between(greenzone, bot, top,
+#                                           facecolor = self.zonecol_green)
+                
+                #Looping by giving the new prev position
+                prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)]
+                
+            #Last zone red
+            redzone = self.mesh[nxt_index:]
             self.redzone = np.append(self.redzone, redzone)
-            #Looping by giving the new prev position
-            prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)]
-        #Last zone red
-        nxt_index = int((self.lvl_set[-1]- self.a)//self.deltax)
-        redzone = self.mesh[nxt_index:]
-        self.redzone = np.append(self.redzone, redzone)
-        #New pot
-        self.pot_mu = self.lvl_set[0]
-        self.pot_sigma = self.lvl_set[1]
-        self.pot_k = self.lvl_set[2]
-        self.pot_init()
-        self.pot_data.set_data(self.mesh, self.potential)
-        #Eigenparam
-        self.eigenparam()
+                
+#            bot = (np.abs(self.psiev)**2)[nxt_index:]
+#            top = np.zeros_like(bot) + 2.
+#            self.bkg_twin.fill_between(redzone,bot,top,
+#                                           facecolor = self.zonecol_red)
+                
+                
+#                 for i in range(3, len(self.lvl_set)-1, 2):
+#                #Index
+#                prev_index = int((prev - self.a)//self.deltax)
+#                nxt_index = int((self.lvl_set[i+1]- self.a)//self.deltax)
+#                index = int((self.lvl_set[i]-self.a)//self.deltax)
+#                #Red
+#                bot = (np.abs(self.psiev)**2)[prev_index:index+1] #+1 due to slice
+#                top = np.zeros_like(bot) + 2.
+#                redzone = self.mesh[prev_index:index+1] #+1 due to slice
+#                self.bkg_twin.fill_between(redzone,bot,top,
+#                                           facecolor = self.zonecol_red)
+#                #Green
+#                bot = (np.abs(self.psiev)**2)[index:nxt_index+1] #(")
+#                top = np.zeros_like(bot) + 2.
+#                greenzone = self.mesh[index:nxt_index+1] #(")
+#                self.bkg_twin.fill_between(greenzone, bot, top,
+#                                           facecolor = self.zonecol_green)
+#                #Looping by giving a new prev position            
+#                prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)]
+#                
+#            #Last zone red
+#            bot = (np.abs(self.psiev)**2)[nxt_index:]
+#            top = np.zeros_like(bot) + 2.
+#            redzone = self.mesh[nxt_index:]
+#            self.bkg_twin.fill_between(redzone,bot,top,
+#                                           facecolor = self.zonecol_red)
+            
+                
+                
+            #New pot
+            self.pot_mu = self.lvl_set[0]
+            self.pot_sigma = self.lvl_set[1]
+            self.pot_k = self.lvl_set[2]
+            self.pot_init()
+            self.pot_data.set_data(self.mesh, self.potential)
+            #Eigenparam
+            self.eigenparam()
+        
         #New psi0
         self.sigma0 = self.dirac_sigma
         self.psi0_init()
@@ -496,6 +960,21 @@ class QMeasures(BoxLayout):
             #Game info
         self.label_lvl.text = 'Level ' + str(self.lvl)
         self.label_points.text = str(self.points) + ' points'
+        
+        
+        
+        
+        #Drawing by the measure function itself (just once). pot already
+        #updated.
+#        self.psi_data.set_data(self.mesh, np.abs(self.psi0)**2)
+#        #FILLING. Under psi curve in psi_twin & in bck_twin (the zones).
+#        #Psi
+#        self.psi_twin.collections.clear()
+#        self.psi_twin.fill_between(self.mesh, np.abs(self.psi0)**2,
+#                                   facecolor = 'black')
+
+#        self.main_canvas.draw_idle() 
+        
         
 class QMeasuresApp(App):
     """
