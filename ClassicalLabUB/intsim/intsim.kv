@@ -1,0 +1,484 @@
+#:import Factory kivy.factory.Factory
+
+<main>:
+	orientation: 'horizontal'
+
+	pcbutton: pc_button.__self__
+
+
+
+	massslider: mass_slider.__self__
+	x0slider: x0_slider.__self__
+	y0slider: y0_slider.__self__
+
+
+	vsslider: vs_slider.__self__
+	thetasslider: thetas_slider.__self__
+
+
+	nslider: n_slider.__self__
+	vslider: v_slider.__self__
+	thetaslider: theta_slider.__self__
+	alphaslider: alpha_slider.__self__
+
+	nlslider: nl_slider.__self__
+	vlslider: vl_slider.__self__
+	thetalslider: thetal_slider.__self__
+	lslider: l_slider.__self__
+
+	nfslider: nf_slider.__self__
+	vxfslider: vxf_slider.__self__
+	vyfslider: vyf_slider.__self__
+	sigfslider: sigf_slider.__self__
+
+
+
+	plotbox: plot_box.__self__
+	speedbutton: speed_button.__self__
+	statuslabel: status_label.__self__
+	menu: menu.__self__
+
+	parttab: part_tab.__self__
+	partmenu: part_menu.__self__
+	progressbar: progress_bar.__self__
+
+	BoxLayout:
+		id: plot_box
+		size_hint: (None, 1)
+		size: (self.height, self.height)
+		on_touch_down: root.update_pos(args[1])
+		on_touch_move: root.update_angle(args[1])
+	BoxLayout:
+		orientation: 'vertical'
+		size_hint: (0.25, 1)
+		BoxLayout:
+			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Button:
+				id: pc_button
+				#text: 'Compute'
+				background_normal: 'Icons/compute.png'
+				background_down: 'Icons/computeb.png'
+				on_press: root.playcompute()
+			Button:
+				#text: 'Pause'
+				background_normal: 'Icons/pause.png'
+				background_down: 'Icons/pauseb.png'
+				on_press: root.pause()
+			Button:
+				#text: 'Stop'
+				background_normal: 'Icons/stop.png'
+				background_down: 'Icons/stopb.png'
+				on_press: root.stop()
+			Button:
+				id: speed_button
+				background_normal: 'Icons/black.png'
+				font_size: '30sp'
+				markup: True
+				on_press: root.change_speed()
+			Button:
+				#text: 'Time Inversion'
+				background_normal: 'Icons/rewind.png'
+				background_down: 'Icons/rewindb.png'
+				on_press: root.timeinversion()
+		BoxLayout:
+			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Label:
+				text: 'Status:'
+			Label:
+				id: status_label
+				text: 'Ready'
+			Button:
+				#text: 'Save'
+				background_normal: 'Icons/save.png'
+				background_down: 'Icons/saveb.png'
+				on_press: root.savepopup()
+			Button:
+				#text: 'Load'
+				background_normal: 'Icons/load.png'
+				background_down: 'Icons/laodb.png'
+				on_press: root.loadpopup()
+		ProgressBar:
+			id: progress_bar
+			max: 100
+			size_hint: (1, 0.01)
+		GridLayout:
+			size_hint: (1, 0.5)
+			rows: 3
+			cols: 3
+			Label:
+			Label:
+			Label:
+			Label:
+			Label:
+			Label:
+			Label:
+			Label:
+			Label:
+		TabbedPanel:
+			id: menu
+			size_hint: (1, 0.5)
+			do_default_tab: False
+			background_image: 'Icons/black.png'						
+			TabbedPanelItem:
+				text: 'Particles'
+				id: part_tab
+				BoxLayout:
+					size_hint: (1, 1)
+					orientation: 'vertical'
+					BoxLayout:
+						orientation: 'horizontal'
+						size_hint: (1, 0.5)
+						BoxLayout:
+							orientation: 'vertical'
+							size_hint: (0.1, 1)
+							Button:
+								#text: 'Add'
+								background_normal: 'Icons/add.png'
+								background_down: 'Icons/addb.png'
+								on_press: root.add_particle_list()
+							Button:
+								#text: 'Reset'
+								background_normal: 'Icons/clear.png'
+								background_down: 'Icons/clearb.png'
+								on_press: root.reset_particle_list()
+						BoxLayout:
+							orientation: 'vertical'
+							size_hint: (1, 1)
+							BoxLayout:
+								orientation: 'horizontal'
+								size_hint: (1, 0.1)
+								Label:
+									text: 'm'
+									markup: True
+									size_hint: (0.2, 1)
+								Label:
+									text: str(round(mass_slider.value,2))
+									size_hint: (0.2, 1)
+								Slider:
+									id: mass_slider
+									size_hint: (1, 1)
+									min: 1
+									max: 10
+									step: 0.5
+							BoxLayout:
+								orientation: 'horizontal'
+								size_hint: (1, 0.1)
+								Label:
+									text: 'x[sub]0[/sub]'
+									markup: True
+									size_hint: (0.2, 1)
+								Label:
+									text: str(round(x0_slider.value,2))
+									size_hint: (0.2, 1)
+								Slider:
+									id: x0_slider
+									size_hint: (1, 1)
+									min: -100
+									max: 100
+									step: 1
+							BoxLayout:
+								orientation: 'horizontal'
+								size_hint: (1, 0.1)
+								Label:
+									text: 'y[sub]0[/sub]'
+									markup: True
+									size_hint: (0.2, 1)
+								Label:
+									text: str(round(y0_slider.value,2))
+									size_hint: (0.2, 1)
+								Slider:
+									id: y0_slider
+									size_hint: (1, 1)
+									min: -100
+									max: 100
+									step: 1
+					TabbedPanel:
+						id: part_menu
+						size_hint: (1, 1)
+						do_default_tab: False
+						background_image: 'Icons/black.png'
+						TabbedPanelItem:
+							text: 'Single'
+							id: single_tab
+							BoxLayout:
+								orientation: 'vertical'
+								size_hint: (1, 1)
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v[sub]0[/sub]'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(vs_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: vs_slider
+										size_hint: (1, 1)
+										min: -10
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: u'\u03B8'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(thetas_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: thetas_slider
+										size_hint: (1, 1)
+										min: 0
+										max: 360
+										step: 1
+						TabbedPanelItem:
+							text: 'Dispersion'
+							id: disp_tab
+							BoxLayout:
+								orientation: 'vertical'
+								size_hint: (1, 1)
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'N'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(n_slider.value))
+										size_hint: (0.2, 1)
+									Slider:
+										id: n_slider
+										size_hint: (1, 1)
+										min: 2
+										max: 50
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(v_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: v_slider
+										size_hint: (1, 1)
+										min: 0.1
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: u'\u03B8'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(theta_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: theta_slider
+										size_hint: (1, 1)
+										min: 0
+										max: 360
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'Spread'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(alpha_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: alpha_slider
+										size_hint: (1, 1)
+										min: 1
+										max: 90
+										step: 1
+						TabbedPanelItem:
+							text: 'Line'
+							id: line_tab
+							BoxLayout:
+								orientation: 'vertical'
+								size_hint: (1, 1)
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'N'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(nl_slider.value))
+										size_hint: (0.2, 1)
+									Slider:
+										id: nl_slider
+										size_hint: (1, 1)
+										min: 2
+										max: 50
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(vl_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: vl_slider
+										size_hint: (1, 1)
+										min: 0.1
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: u'\u03B8'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(thetal_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: thetal_slider
+										size_hint: (1, 1)
+										min: 0
+										max: 360
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'L'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(l_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: l_slider
+										size_hint: (1, 1)
+										min: 10
+										max: 200
+										step: 1
+						TabbedPanelItem:
+							text: 'Free Part.'
+							id: fp_tab
+							BoxLayout:
+								orientation: 'vertical'
+								size_hint: (1, 1)
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'N'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(nf_slider.value))
+										size_hint: (0.2, 1)
+									Slider:
+										id: nf_slider
+										size_hint: (1, 1)
+										min: 1
+										max: 50
+										step: 1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v[sub]x0[/sub]'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(vxf_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: vxf_slider
+										size_hint: (1, 1)
+										min: -10
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: 'v[sub]y0[/sub]'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(vyf_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: vyf_slider
+										size_hint: (1, 1)
+										min: -10
+										max: 10
+										step: 0.1
+								BoxLayout:
+									orientation: 'horizontal'
+									Label:
+										text: u'\u03C3'
+										markup: True
+										size_hint: (0.2, 1)
+									Label:
+										text: str(round(sigf_slider.value,2))
+										size_hint: (0.2, 1)
+									Slider:
+										id: sigf_slider
+										size_hint: (1, 1)
+										min: 1
+										max: 20
+										step: 0.1
+
+
+<savewindow>:
+	text_input: text_input
+	comp_checkbox: comp_checkbox
+	BoxLayout:
+		orientation: 'vertical'
+		FileChooserListView:
+			id: file_chooser
+			on_selection: text_input.text = self.selection and self.selection[0] or ''
+			rootpath: 'Saves'
+		TextInput:
+			id: text_input
+			size_hint: (1, None)
+			height: 30
+			multiline: False
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint: (1, None)
+			height: 60
+			Button:
+				text: 'Save'
+				on_press: root.save(file_chooser.path, text_input.text,comp=comp_checkbox.active)
+			Button:
+				text: 'Cancel'
+				on_press: root.cancel()
+			BoxLayout:
+				orientation: 'horizontal'
+				Label:
+					text: 'Save particles and computation'
+				CheckBox:
+					id: comp_checkbox
+
+<loadwindow>:
+	BoxLayout:
+		orientation: 'vertical'
+		FileChooserListView:
+			id: file_chooser
+			rootpath: 'Saves'
+		BoxLayout:
+			orientation: 'horizontal'
+			size_hint: (1, None)
+			height: 60
+			Button:
+				text: 'Load'
+				on_press: root.load(file_chooser.path, file_chooser.selection)
+			Button:
+				text: 'Cancel'
+				on_press: root.cancel()
