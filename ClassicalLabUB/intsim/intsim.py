@@ -36,6 +36,7 @@ class loadwindow(FloatLayout):
 
 class main(BoxLayout):
     
+    charge = 1.
     
     particles = np.array([])
     
