@@ -29,9 +29,11 @@ class Phi():
 
 class Wave():
     
-    def __init__(self,pot,PsiIni):
+    def __init__(self,pot,PsiIni,dt,T):
         self.PsiIni = PsiIni
         self.pot = pot
+        self.dt = dt
+        self.T = T
     
     def tridiag(self,a, b, c, d):
         """
@@ -68,14 +70,16 @@ class Wave():
             return a, b, c
     
     def CrankEvolution(self):
+        print('Calculating')
+        
         N=100
         dx=0.05
-        dt=0.01
+        dt=self.dt
         hbar=1.
         
         L=dx*N/2.
         r=1j*dt/(4.*dx**2)
-        ntime=100
+        ntime=self.T
         
         x=np.arange(-L,L,dx)
         meshx , meshy = np.meshgrid(x,x,sparse=True)
@@ -129,13 +133,22 @@ class Wave():
                 
                 #Change the old for the new values of psi
                 psi[i,:]=psiy[:]
+                
+            if (t == int(ntime/4.)):
+                print('25%')
+            if (t == int(ntime/2.)):
+                print('50%')
+            if (t == int(3.*ntime/4.)):
+                print('75%')
             
             psitime[t,:,:]=psi[:,:]
             
         return psitime  #Evolution of the wave function
-
     
+        
+        
     def Probability(self,f):
+        " Calculate probability matrix where f is wave function matrix "
         n=len(f[0,:])
         p=np.zeros((n,n),dtype=float)
         for i in range (0,n):
@@ -152,6 +165,16 @@ class Wave():
         for i in range (0,ntime):
             p[i,:,:]=self.Probability(f[i,:,:])
         return p
+    
+    def Norm(self,f):
+        " Calculate norm where f is probability matrix "
+        norm=0.
+        n=len(f[0,:])
+        pas=0.05
+        for i in range (0,n):
+            for j in range (0,n):
+                norm=norm+f[i,j]
+        return norm*pas**2
        
 
 class InitWavef():

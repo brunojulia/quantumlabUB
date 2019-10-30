@@ -15,8 +15,8 @@ class main(BoxLayout):
     
     N=100
     dx=0.05
-    dt=0.01
-    ntime=100
+    dt=0.0025
+    #ntime=1000
     L=N*dx
     
     mass = 1.
@@ -41,8 +41,9 @@ class main(BoxLayout):
         
         self.set_texture()
         self.time = 0.
-        self.T = 100
-        self.speed = 0.3
+        self.T = 800
+        self.dt = 0.0025
+        self.speed = 0.4
      #   self.change_speed()
         self.running = False
         
@@ -167,21 +168,47 @@ class main(BoxLayout):
         with self.statuslabel.canvas:
             Color(1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-
-    def compute(self):
-        with self.statuslabel.canvas:
-            Color(0.5,0.5,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
+            
+    
+    def demo1(self):
+        'Demo1 = harm osci ground eigenstate not centered'
         
-        self.initwave = wavef.Wave(self.pot.val(self.xx,self.yy),self.wav.val(self.xx,self.yy))
+        x0 = -0.5
+        y0 = 0.
+        w = 3.
+        
+        #Add potential
+        
+        self.pot.add_function(potentials.osc,[0.,0.,w])
+        
+        self.background()
+        self.update_texture()
+        
+        #Add wave function
+        
+        self.init_conds.append(wavef.InitWavef.OsciEigen([self.xx,self.yy],[x0,y0,w,0,0]))
+        self.wav.add_function(wavef.InitWavef.OsciEigen,[x0,y0,w,0,0])
+            
+        self.background_main()
+        self.update_texture_main()
+        
+       
 
+    def compute(self):        
+        self.initwave = wavef.Wave(self.pot.val(self.xx,self.yy),self.wav.val(self.xx,self.yy),self.dt,self.T)
         self.probability = self.initwave.ProbEvolution() #wavef.Wave.ProbEvolution(self.pot.val,self.wav.val)
-       # print(self.probability[:,1,1])
-       # print('ok')
             
         with self.statuslabel.canvas:
             Color(0,1,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
+        
+        norm0 = wavef.Wave.Norm(self,self.probability[0,:,:])
+        norm1 = wavef.Wave.Norm(self,self.probability[self.T-1,:,:])
+        
+        print('Norma t_ini: ', norm0)
+        print('Norma t_final: ', norm1)
+        
+        
             
     def play(self):
         self.timer = Clock.schedule_interval(self.animate,0.04) #0.04=interval
@@ -205,9 +232,10 @@ class main(BoxLayout):
     def stop(self):
         self.pause()
         self.time = 0
-        self.plotbox.canvas.clear()
-        self.wavebox.canvas.clear()
-        self.update_texture()
+        
+        self.reset_pot_list()
+        self.reset_wave_list()
+      
     
  #   def save(self):
  #       savedata = np.array([self.pot.functions,self.pot.dfunctionsx,self.pot.dfunctionsy,self.potentialsave,self.particles,self.init_conds,self.particlesave])
@@ -228,6 +256,9 @@ class main(BoxLayout):
  #       
  #       self.background()
  #       self.update_texture()
+ 
+    ''' El tiempo de la animacion!!!!!! '''
+ 
     def animate(self,interval):
         cx = self.wavebox.pos[0]
         cy = self.wavebox.pos[1]
@@ -235,10 +266,11 @@ class main(BoxLayout):
         h = self.wavebox.size[1]
         b = min(w,h)
         
-        dt=0.01
+        dt=self.dt
         
-        t = self.time % (self.T*dt) # T*dt=Tmax
-        t = int(t*self.T)
+        t = int(self.time/dt) # T*dt=Tmax
+        if t >= self.T :
+            t = 0.
         
         self.im = self.probability[t,:,:]
         
@@ -256,57 +288,7 @@ class main(BoxLayout):
         self.time += interval*self.speed
         if(self.time >= self.T*dt):
             self.time = 0.
-        
-        
-        '''
-        # create a 64x64 texture, defaults to rgba / ubyte
-        texture = Texture.create(size=(64, 64))
-        
-        # create 64x64 rgb tab, and fill with values from 0 to 255
-        # we'll have a gradient from black to white
-        size = 64 * 64 * 3
-        buf = [int(x * 255 / size) for x in range(size)]
-        
-        # then, convert the array to a ubyte string
-        buf = b''.join(map(chr, buf))
-        
-        # then blit the buffer
-        texture.blit_buffer(buf, colorfmt='rgb', bufferfmt='ubyte')
-        
-        # that's all ! you can use it in your graphics now :)
-        # if self is a widget, you can do this
-        with self.canvas:
-            Rectangle(texture=texture, pos=self.pos, size=(64, 64))
-        
-                ---------
-        
-        counter=0
-        while (counter <= int(self.T/self.dt)):
-            self.im = self.im[counter,:,:]
-            with self.wavebox.canvas:
-                self.plotwave_texture.blit_buffer(self.im.reshape(self.im.size),colorfmt='luminance')
-                Color(1.0,1.0,1.0)
-                Rectangle(texture = self.plotwave_texture, pos = (cx,cy),size = (b,b))
             
-            self.time += interval*self.speed
-            if(self.time >= self.T):
-                self.time = 0.
-        '''    
-        '''
-        w = self.wavebox.size[0]
-        h = self.wavebox.size[1]
-        b = min(w,h)
-     #   scalew = b/200.
-     #   scaleh = b/200.
-        self.wavebox.canvas.clear()
-        self.update_texture_main()
-        with self.wavebox.canvas:
-                Ellipse(pos=(p.trax(self.time)*scalew+w/2.-5.,p.tray(self.time)*scaleh+h/2.-5.),size=(10,10))
-        
-        self.time += interval*self.speed
-        if(self.time >= self.T):
-            self.time = 0.
-        '''
             
 class BoxApp(App):
 

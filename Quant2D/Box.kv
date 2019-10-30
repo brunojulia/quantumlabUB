@@ -3,43 +3,17 @@
 <main>:
 	orientation: 'horizontal'
 
-	param0slider: param0_slider.__self__
-	param1slider: param1_slider.__self__
-
-	param2oslider: param2o_slider.__self__
-
-	param2gslider: param2g_slider.__self__
-	param3gslider: param3g_slider.__self__
-
-
-
-#	massslider: mass_slider.__self__
-	x0slider: x0_slider.__self__
-	y0slider: y0_slider.__self__
-
-
-	kslider: k_slider.__self__
-	aslider: a_slider.__self__
-	bslider: b_slider.__self__
-
-
-#	nslider: n_slider.__self__
-#	vslider: v_slider.__self__
-#	thetaslider: theta_slider.__self__
-#	alphaslider: alpha_slider.__self__
-
-
 	plotbox: plot_box.__self__
 	wavebox: wave_box.__self__
 	speedbutton: speed_button.__self__
 	statuslabel: status_label.__self__
-	menu: menu.__self__
+	#menu: menu.__self__
 
-	pottab: pot_tab.__self__
-	potmenu: pot_menu.__self__
+	#pottab: pot_tab.__self__
+	#potmenu: pot_menu.__self__
 
-	parttab: part_tab.__self__
-	partmenu: part_menu.__self__
+	#parttab: part_tab.__self__
+	#partmenu: part_menu.__self__
 	
 	BoxLayout:
 		id: wave_box
@@ -50,7 +24,7 @@
 		orientation: 'vertical'
 		size_hint: (0.25, 1)
 		BoxLayout:
-			size_hint: (1, 0.1)
+			size_hint: (1, 0.2)
 			orientation: 'horizontal'
 			Button:
 				text: 'Play'
@@ -65,7 +39,7 @@
 				id: speed_button
 				on_press: root.change_speed()
 		BoxLayout:
-			size_hint: (1, 0.1)
+			size_hint: (1, 0.2)
 			orientation: 'horizontal'
 			Button:
 				text: 'Compute'
@@ -78,227 +52,56 @@
 		#	Button:
 		#		text: 'Load'
 		#		on_press: root.load()
-		TabbedPanel:
-			id: menu
+		
+		BoxLayout:
+			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Label:
+				text: 'Demos'
+		
+		BoxLayout:
+			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Button:
+				text: 'Demo1'
+				on_press: root.demo1()
+		#	Label:
+		#		id: status_label
+		#	Button:
+		#		text: 'Save'
+		#		on_press: root.save()
+		#	Button:
+		#		text: 'Load'
+		#		on_press: root.load()
+		
+		BoxLayout:
+			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Label:
+				text: 'Demos'
+		BoxLayout:
+			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Label:
+				text: 'Demos'
+		BoxLayout:
+			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Label:
+				text: 'Demos'
+		
+		BoxLayout:
 			size_hint: (1, 1)
-			do_default_tab: False
-			TabbedPanelItem:
-				text: 'Potentials'
-				id: pot_tab
-				BoxLayout:
-					size_hint: (1, 1)
-					orientation: 'vertical'
-					BoxLayout:
-						id: plot_box
-						size_hint: (1, 1)
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Button:
-							text: 'Add'
-							on_press: root.add_pot_list()
-						Button:
-							text: 'Reset'
-							on_press: root.reset_pot_list()
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Label:
-							text: 'x0'
-							size_hint: (0.2, 1)
-						Label:
-							text: str(round(param0_slider.value,3))
-							size_hint: (0.2, 1)
-						Slider:
-							id: param0_slider
-							size_hint: (1, 1)
-							min: -2.5
-							max: 2.5
-							step: 0.5
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Label:
-							text: 'y0'
-							size_hint: (0.2, 1)
-						Label:
-							text: str(round(param1_slider.value,3))
-							size_hint: (0.2, 1)
-						Slider:
-							id: param1_slider
-							size_hint: (1, 1)
-							min: -2.5
-							max: 2.5
-							step: 0.1
-					TabbedPanel:
-						id: pot_menu
-						size_hint: (1, 0.5)
-						do_default_tab: False
-						TabbedPanelItem:
-							text: 'Oscilador'
-							id: gauss_tab				
-							BoxLayout:
-								orientation: 'vertical'
-								size_hint: (1, 1)
-								BoxLayout:
-									orientation: 'horizontal'
-									Label:
-										text: 'w'
-										size_hint: (0.2, 1)
-									Label:
-										text: str(round(param2o_slider.value,2))
-										size_hint: (0.2, 1)
-									Slider:
-										id: param2o_slider
-										size_hint: (1, 1)
-										min: 0
-										max: 10
-										step: 0.5
-								
-						TabbedPanelItem:
-							text: 'Gaussian'
-							id: ws_tab				
-							BoxLayout:
-								orientation: 'vertical'
-								size_hint: (1, 1)
-								BoxLayout:
-									orientation: 'horizontal'
-									Label:
-										text: 'V0'
-										size_hint: (0.2, 1)
-									Label:
-										text: str(round(param2g_slider.value,2))
-										size_hint: (0.2, 1)
-									Slider:
-										id: param2g_slider
-										size_hint: (1, 1)
-										min: -50
-										max: 50
-										step: 1
-								BoxLayout:
-									orientation: 'horizontal'
-									Label:
-										text: 'Sigma'
-										size_hint: (0.2, 1)
-									Label:
-										text: str(round(param3g_slider.value,2))
-										size_hint: (0.2, 1)
-									Slider:
-										id: param3g_slider
-										size_hint: (1, 1)
-										min: 0.5
-										max: 2.5
-										step: 0.1	
-														
-			TabbedPanelItem:
-				text: 'Wave Funct.'
-				id: part_tab
-				BoxLayout:
-					size_hint: (1, 1)
-					orientation: 'vertical'
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Button:
-							text: 'Add'
-							on_press: root.add_wave_list()
-						Button:
-							text: 'Reset'
-							on_press: root.reset_wave_list()
-				#	BoxLayout:
-				#		orientation: 'horizontal'
-				#		size_hint: (1, 0.1)
-				#		Label:
-				#			text: 'm'
-				#			size_hint: (0.2, 1)
-				#		Label:
-				#			text: str(round(mass_slider.value,2))
-				#			size_hint: (0.2, 1)
-				#		Slider:
-				#			id: mass_slider
-				#			size_hint: (1, 1)
-				#			min: 1
-				#			max: 10
-				#			step: 0.5
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Label:
-							text: 'x0'
-							size_hint: (0.2, 1)
-						Label:
-							text: str(round(x0_slider.value,2))
-							size_hint: (0.2, 1)
-						Slider:
-							id: x0_slider
-							size_hint: (1, 1)
-							min: -2.5
-							max: 2.5
-							step: 0.1
-					BoxLayout:
-						orientation: 'horizontal'
-						size_hint: (1, 0.1)
-						Label:
-							text: 'y0'
-							size_hint: (0.2, 1)
-						Label:
-							text: str(round(y0_slider.value,2))
-							size_hint: (0.2, 1)
-						Slider:
-							id: y0_slider
-							size_hint: (1, 1)
-							min: -2.5
-							max: 2.5
-							step: 0.1
-					TabbedPanel:
-						id: part_menu
-						size_hint: (1, 0.5)
-						do_default_tab: False
-						TabbedPanelItem:
-							text: 'Eig. Osci.'
-							id: eigosci_tab
-							BoxLayout:
-								orientation: 'vertical'
-								size_hint: (1, 1)
-								BoxLayout:
-									orientation: 'horizontal'
-									Label:
-										text: 'w'
-										size_hint: (0.2, 1)
-									Label:
-										text: str(round(k_slider.value,2))
-										size_hint: (0.2, 1)
-									Slider:
-										id: k_slider
-										size_hint: (1, 1)
-										min: 0
-										max: 10
-										step: 0.5
-								BoxLayout:
-									orientation: 'horizontal'
-									Label:
-										text: 'nx'
-										size_hint: (0.2, 1)
-									Label:
-										text: str(round(a_slider.value,2))
-										size_hint: (0.2, 1)
-									Slider:
-										id: a_slider
-										size_hint: (1, 1)
-										min: 0
-										max: 5
-										step: 1
-								BoxLayout:
-									orientation: 'horizontal'
-									Label:
-										text: 'ny'
-										size_hint: (0.2, 1)
-									Label:
-										text: str(round(b_slider.value,2))
-										size_hint: (0.2, 1)
-									Slider:
-										id: b_slider
-										size_hint: (1, 1)
-										min: 0
-										max: 5
-										step: 1
+			orientation: 'horizontal'
+			Label:
+				text: 'Data'
+		
+		BoxLayout:
+			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Label:
+				text: 'Potential'
+		
+		BoxLayout:
+			id: plot_box
+			size_hint: (1, 1)
