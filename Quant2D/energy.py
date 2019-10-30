@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 import wavef
 import potentials
@@ -48,8 +49,38 @@ def Norm(f):
             norm=norm+abs(np.real(np.conjugate(f[i,j])*f[i,j]))
     return norm*pas**2
 
+def XExpected(pot, psi,order):
+    n = len(psi[0,:])
+    pas = 0.05
+    r = order
+    xpsi = np.zeros((n,n),dtype=complex)
+    
+    for i in range(0,n):
+        x = i*pas-2.5
+        for j in range(0,n):
+            xpsi[i,j] = (x**r)*psi[i,j]
+    
+    psii = np.conjugate(psi)
+    XExp = 0.
+    
+    for i in range (0,n):
+        for j in range (0,n):
+            XExp = XExp + psii[i,j]*xpsi[i,j]
+    
+    return XExp*pas**2
 
-def Evaluate1(wgreatest,pts):
+def XDeviation(pot, psi):
+    ''' sigma**2 = <x**2> - <x>**2 '''
+    sigma2 = XExpected(pot,psi,2) - (XExpected(pot, psi,1))**2
+    
+    return np.sqrt(sigma2)
+    
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+
+
+def EvaluateEnergy(wgreatest,pts):
     
     N=100
     dx=0.05
@@ -91,28 +122,32 @@ def Evaluate1(wgreatest,pts):
         Ec_fin[i] = float(Ecfin)
         E_ini[i] = float(Et)
         E_fin[i] = float(Etfin)
-
-    plt.subplot(221)
-    plt.title('Efin-Eini')
-    plt.plot(w_list, abs(E_fin-E_ini))
+        
+    fig = plt.figure()
     
-    plt.subplot(222)
-    plt.title('Ep_fin, Ep_ini vs E=w/2')
-    plt.plot(w_list, Ep_fin, 'o',w_list, Ep_ini, '^', w_list, w_list/2.)
+    ax1 = fig.add_subplot(121)
+    ax1.set_xlabel('Frequence w')
+    ax1.set_title('|Efin-Eini|')
     
-    plt.subplot(223)
-    plt.title('Ep, Ec and Etotal at t=0')
-    plt.plot(w_list, Ep_ini, 'o', w_list, Ec_ini, '^', w_list, E_ini, 's')
+    ax1.plot(w_list, abs(E_fin-E_ini), 'o')
     
-    plt.subplot(224)
-    plt.title('Ep and Ec and Etotal at t=T')
-    plt.plot(w_list, Ep_fin, 'o', w_list, Ec_fin, '^', w_list, E_ini, 's')
+    
+    ax2 = fig.add_subplot(122)
+    ax2.set_xlabel('Frequence w')
+    ax2.set_title('Final and initial potential energy and theoretical values')
+    
+    ax2.plot(w_list, Ep_fin, 'o', label='Final Ep')
+    ax2.plot(w_list, Ep_ini, '^', label='Initital Ep')
+    ax2.plot(w_list, w_list/2.,label='Theoretical: E=w/2')
+    
+    legend = ax2.legend(loc='right lower')
+    
     
     plt.show()
     
 
 
-def Evaluate2(wgreatest,pts):
+def EvaluateNorm(wgreatest,pts):
     
     N=100
     dx=0.05
@@ -158,28 +193,89 @@ def Evaluate2(wgreatest,pts):
         E_fin[i] = float(Etfin)
         Norma_ini[i] = Norm(wa)
         Norma_fin[i] = Norm(PSIEVOL[99,:,:])
-
-    plt.subplot(221)
-    plt.title('|Efin-Eini|')
-    plt.plot(w_list, abs(E_fin-E_ini))
+        
+    fig = plt.figure()
     
-    plt.subplot(222)
-    plt.title('Ep_fin(blue), Ep_ini(orange) vs E=w/2')
-    plt.plot(w_list, Ep_fin, 'o',w_list, Ep_ini, '^', w_list, w_list/2.)
+    ax1 = fig.add_subplot(121)
+    ax1.set_xlabel('Frequence w')
+    ax1.set_title('|Norm_fin - Norm_ini|')
     
-    plt.subplot(223)
-    plt.title('|Norma_fin - Norm_ini|')
-    plt.plot(w_list,abs(Norma_fin-Norma_ini), 'o')
+    ax1.plot(w_list,abs(Norma_fin-Norma_ini), 'o')
     
-    plt.subplot(224)
-    plt.title('Norm_ fin(blue) and Norm_ini(orange)')
-    plt.plot(w_list, Norma_fin, 'o', w_list, Norma_ini, '^')
-    plt.axhline(y=1.)
+    
+    ax2 = fig.add_subplot(122)
+    ax2.set_xlabel('Frequence w')
+    ax2.set_title('Final and initial norm values')
+    
+    ax2.plot(w_list, Norma_fin,'o',label='Final norm')
+    ax2.plot(w_list, Norma_ini,'^', label='Initital norm')
+    ax2.axhline(y=1.)
+    
+    legend = ax2.legend(loc='lower center')
     
     plt.show()
 
 #------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 
-Evaluate2(wgreatest=5.,pts=5)
-''' Presentación en el intervalo de frecuencias [0,wgreatest]
-    pts=numero de puntos (equiespaciados) representados   '''
+
+
+def CalcEnForTime():
+    file = open('Data-time.txt', 'w')
+    xx, yy = np.meshgrid(np.arange(-2.5,2.5,0.05),np.arange(-2.5,2.5,0.05),sparse=True)
+    for w in [1.5,2.,3.,4.,5.]:
+        print('w=',w)
+        file.write('w=' + str(w) + '\n')
+        
+        initwave = wavef.InitWavef.OsciEigen((xx,yy),(0.,0.,w,0,0))
+        pot = potentials.osc((xx,yy),(0,0,w))
+        
+        norm0 = Norm(initwave)
+        Ep0,Ec0,E0 = Energy(pot, initwave)
+        
+        Epteo = w/2.
+        
+        df = pd.DataFrame(columns=['dt','T','nor_i','nor_f','Ei','Ef','Epi','Epf','Ept','Eci','Ecf'])
+        
+        for T in [100,200,400,500,800,1000]:
+            print('T=',T)
+            dt=1./float(T)
+            WAVE = wavef.Wave(pot,initwave,dt,T)
+            wavevol = WAVE.CrankEvolution()
+            
+            normf = Norm(wavevol[T-1,:,:])
+            Epf,Ecf,Ef = Energy(pot, wavevol[T-1,:,:])
+            
+            df = df.append({'dt':dt, 'T':T, 'nor_i':norm0, 'nor_f':normf, 'Ei':E0, 'Ef':Ef, 'Epi':Ep0, 'Epf':Epf ,'Ept':Epteo, 'Eci':Ec0, 'Ecf':Ecf}, ignore_index=True)
+                
+        file.write(df.to_string())
+        file.write('\n')
+    
+    file.close()
+
+'''
+def CalcXExpForTime():
+    file = open('Data-Expected.txt', 'w')
+    file.write('dt'+'\t'+'T'+'\t'+'<x>'+'\t'+'Sigmax'+'\n')
+    xx, yy = np.meshgrid(np.arange(-2.5,2.5,0.05),np.arange(-2.5,2.5,0.05),sparse=True)
+    w=3.
+    
+    for T in [100,200,400,500,800,1000]:
+        dt = 1./float(T)
+        
+        initwave = wavef.InitWavef.OsciEigen((xx,yy),(-1.,0.,w,0,0))
+        pot = potentials.osc((xx,yy),(0,0,w))
+        
+        WAVE = wavef.Wave(pot,initwave,dt,T)
+        wavevol = WAVE.CrankEvolution()
+        
+        xex = XExpected(pot, wavevol[T-1,:,:],1)
+        xsig = XDeviation(pot, wavevol[T-1,:,:])
+        
+        file.write(str(dt)+'\t'+str(T)+'\t'+str(xex)+'\t'+str(xsig)+'\n')
+    file.close()
+'''
+#---------------------------------------------------------------------------
+
+CalcEnForTime()
