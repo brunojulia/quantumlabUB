@@ -68,31 +68,35 @@ class QMeasures(BoxLayout):
         #Load file with settings data and first initial settings: first 3 are
         #potential settings and the rest related data for color zones.
         self.settings = open('lvl_settings.txt','r')
-        self.lvl_set = np.array(eval(self.settings.readline().strip()))
-        #Parameters         
-        self.pot_mu = self.lvl_set[0]
-        self.pot_sigma = self.lvl_set[1]
-        self.pot_k = self.lvl_set[2]
-        #Potential object
-        self.potential = np.zeros(self.N + 1)
+        
+        
+#        self.lvl_set = np.array(eval(self.settings.readline().strip()))
+#        #Parameters         
+#        self.pot_mu = self.lvl_set[0]
+#        self.pot_sigma = self.lvl_set[1]
+#        self.pot_k = self.lvl_set[2]
+#        #Potential object
+#        self.potential = np.zeros(self.N + 1)
+        
+        self.read_settigns()
         
                     ###### Eigenvalues and eigenvectors ######  
-        self.evals = np.zeros(self.N + 1) #Row (N+1) vector (due to eigh func)
-        self.evect = np.zeros((self.N + 1, self.N + 1)) #(N+1)x(N+1) array
+#        self.evals = np.zeros(self.N + 1) #Row (N+1) vector (due to eigh func)
+#        self.evect = np.zeros((self.N + 1, self.N + 1)) #(N+1)x(N+1) array
         
                             ###### Wave functions ######
         #Initial (gaussian parameters)
         self.p0 = 0.    
-        self.dirac_sigma = 0.4
+        self.dirac_sigma = 0.6
         self.sigma0 = self.dirac_sigma
         self.init_mu0 = 1
         self.mu0 = self.init_mu0
         #Related object
-        self.psi0 = np.zeros(self.N + 1)    #Value of the initial wave function
-        self.comp0 = np.zeros(self.N + 1)   #Its components. They are row vects
+#        self.psi0 = np.zeros(self.N + 1)    #Value of the initial wave function
+#        self.comp0 = np.zeros(self.N + 1)   #Its components. They are row vects
         #Evolved
-        self.psiev = np.zeros(self.N + 1)
-        self.compev = np.zeros(self.N + 1)
+#        self.psiev = np.zeros(self.N + 1)
+#        self.compev = np.zeros(self.N + 1)
         
                                    ###### GAME ######
         
@@ -138,12 +142,12 @@ class QMeasures(BoxLayout):
         # ------------ FIRST RUN OF EIGENPARAM AND COMP -----------------------
         
         #INIT POT, PSI AND ITS COMP (1st doing EIGENPARAM)
-        self.pot_init() 
+#        self.pot_init() 
         self.eigenparam()
-        self.psi0_init() 
+        self.psi0_init()
+        self.shift_psi0(2)
         self.psiev = self.psi0 #Just in case we measure before running (bug)
-        self.comp()  
-        print(self.evect[1])
+        self.comp()
 
         #ENERGY
         energy = np.sum(np.abs(self.comp0)**2 * self.evals)
@@ -162,6 +166,8 @@ class QMeasures(BoxLayout):
         self.zonecol_red = '#AA3939'
         self.zonecol_green = '#7B9F35'
         self.potcol = '#226666'
+        self.orange = '#AA6C39'
+        self.cmap_name = 'gray'
         
         #LIMITS
         self.pot_tlim = 50
@@ -172,6 +178,8 @@ class QMeasures(BoxLayout):
         #VISU
         self.num_visu = len(self.mesh) #Can't be greater than the # of indices
         self.inter_visu = 'gaussian'
+        
+        
         
         #FIGURE
         self.main_fig = plt.figure()
@@ -210,6 +218,23 @@ class QMeasures(BoxLayout):
         self.psi_twin.fill_between(self.mesh,np.abs(self.psiev)**2,
                                        facecolor = 'black')
         
+        #ANNOTATION (just creating the instances)
+        self.ann_corr = 0.001  #Drawing correction
+        self.measure_ann_d = self.psi_twin.annotate("",xy=(0,0))
+        self.measure_ann_u = self.psi_twin.annotate("",xy=(0,0))
+        self.ann_d_color = 'silver'
+        self.ann_u_color = '#582A72'
+        
+        
+        self.b_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
+        self.u_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
+        self.b_arrow_color = 'silver'
+        self.u_arrow_color = '#582A72'
+        
+#        arrow = self.psi_twin.arrow(0, 1, 0, 0.2)
+#        arrow.set_alpha(0.2)
+        
+        
         #POTENTIAL PLOT
         self.pot_twin = self.bkg_twin.twinx()
         self.pot_twin.axis([self.a, self.b, self.pot_blim, self.pot_tlim])
@@ -223,7 +248,8 @@ class QMeasures(BoxLayout):
         self.visuax.axis('off')
         step = int(len(self.psiev)/self.num_visu) #num_visu points in gray map
         self.visu_im = self.visuax.imshow([np.abs(self.psiev[::step])**2], 
-                 aspect='auto', interpolation = self.inter_visu, cmap = 'gray')
+                 aspect='auto', interpolation = self.inter_visu, 
+                 cmap = self.cmap_name)
          
         #FIRST DRAW
         #This 'tight' needs to be at the end so it considers all objects drawn
@@ -239,6 +265,8 @@ class QMeasures(BoxLayout):
         
                                 ###### Time steps ######
         #PLOT TIME & VELOCITY
+        self.out_time = 0.
+        self.out_dt = 1./30.
         self.plt_time = 0.
         self.plt_dt = 1./30.
         self.plt_vel_factor = 18 #Factor in dt
@@ -268,25 +296,27 @@ class QMeasures(BoxLayout):
                 img.source = 'skull_img.jpg'
         
     #POTENTIAL
-    def pot_init(self):
-        """
-        Creates the potential array object, combining the harmonic and the 
-        gaussian potential. Same shape as mesh.
-        """
-        #First line: factor to scale the potential. 
-        #Second line and third line: gaussian potential. 
-        #Last line: harmonic potential.
-        dx = 0
-        if self.lvl == 4:
-            dx = -5
-        elif self.lvl == 5:
-            dx = +2.5
-        self.potential = 20*(\
-                    1./np.sqrt(2*np.pi*self.pot_sigma**2)*\
-                    np.exp(-(self.mesh-self.pot_mu)**2/(2.*self.pot_sigma**2))\
-                    +\
-                    0.5*self.pot_k*(self.mesh - dx)**2)
-        
+#    def pot_init(self):
+#        """
+#        Creates the potential array object, combining the harmonic and the 
+#        gaussian potential. Same shape as mesh.
+#        """
+#        #First line: factor to scale the potential. 
+#        #Second line and third line: gaussian potential. 
+#        #Last line: harmonic potential.
+#        dx = 0
+#        if self.lvl == 3:
+#            dx = -2.5
+#        elif self.lvl == 4:
+#            dx = +0
+#        elif self.lvl == 5:
+#            dx = +2.5
+#        self.potential = 20*(\
+#                    1./np.sqrt(2*np.pi*self.pot_sigma**2)*\
+#                    np.exp(-(self.mesh-self.pot_mu)**2/(2.*self.pot_sigma**2))\
+#                    +\
+#                    0.5*self.pot_k*(self.mesh - dx)**2)
+#        
 #        self.pot_sigma = 0.5
 #        self.pot_mu = 0
 #        self.pot_k = 0.2
@@ -296,8 +326,111 @@ class QMeasures(BoxLayout):
 #                    np.exp(-(self.mesh-self.pot_mu)**2/(2.*self.pot_sigma**2))\
 #                    +\
 #                    0.5*self.pot_k*self.mesh**2)
+    
+    def measure_ann(self):
+        """
+        Draws the annotation (line) on the measured mu0. Two annotations: line
+        from bottom to the probilibity we got, and another from there to the 
+        max probability.
+        """
+        #Clears before drawing
+#        self.measure_ann_d.remove()
+#        self.measure_ann_u.remove()
+        
+        self.b_arrow.remove()
+        self.u_arrow.remove()
         
         
+        prob = np.abs(self.psiev)**2 #%·Å^-1
+        m_prob = prob[int((self.mu0 - self.a)/self.deltax)]
+        max_prob = np.max(prob)
+        
+#        self.measure_ann_d = self.psi_twin.annotate("",
+#              xy=(self.mu0, -self.ann_corr), xycoords='data',
+#              xytext=(self.mu0, m_prob + self.ann_corr), textcoords='data',
+#              arrowprops=dict(arrowstyle="-", connectionstyle="arc3,rad=0.", 
+#                              color = self.ann_d_color, alpha = 1, lw = 5),
+#                              annotation_clip = False)
+#        
+#        self.measure_ann_u = self.psi_twin.annotate("",
+#              xy=(self.mu0, m_prob-self.ann_corr), xycoords='data',
+#              xytext=(self.mu0, max_prob+self.ann_corr), textcoords='data',
+#              arrowprops=dict(arrowstyle="-", connectionstyle="arc3,rad=0.", 
+#                              color = self.ann_u_color, alpha = 1, lw = 5),
+#                              annotation_clip = False)
+       
+        self.b_arrow = self.psi_twin.arrow(self.mu0, 0, 0, m_prob,
+                                           color = self.b_arrow_color, 
+                                           width = 0.25, 
+                                           head_width = 0.0, head_length = 0.0)
+        
+        self.u_arrow = self.psi_twin.arrow(self.mu0, m_prob, 
+                                           0, max_prob - m_prob,
+                                           color = self.u_arrow_color, 
+                                           width = 0.25,
+                                           head_width = 0.0, head_length = 0.0)       
+        
+    def read_settigns(self):
+        """
+        Reads file settings, assigns parameters and initializes the potentials.
+        First element chooses potential:
+            
+            - If 0: HARMONIC
+            Line: 0, dx, k, **redzone
+            
+            - If 1: DOUBLE WELL (20*[HARMONIC + CG*GAUSSIAN])
+            Line: 1, dx, k, mu, sigma, CG, **redzone
+            
+            - If 2: TRIPLE WELL (20*[HARMONIC + CG1*GAUSSIAN + CG2*GAUSSIAN2])
+            Line: 2, dx, k, mu1, sigma1, CG1, mu2, sigma2, CG2, **redzone
+            
+        """
+        self.lvl_set = np.array(eval(self.settings.readline().strip()))
+        
+        if self.lvl_set[0] == 0: #HARMONIC
+            dx = self.lvl_set[1]
+            k = self.lvl_set[2]
+            self.potential = 20*0.5*k*(self.mesh - dx)**2
+            
+        elif self.lvl_set[0] == 1: #DOUBLE WELL
+            dx = self.lvl_set[1]
+            k = self.lvl_set[2]
+            mu = self.lvl_set[3]
+            sigma = self.lvl_set[4]
+            CG = self.lvl_set[5]
+            self.potential = 20*(\
+                    0.5*k*(self.mesh - dx)**2
+                    +\
+                    CG/np.sqrt(2*np.pi*sigma**2)*\
+                    np.exp(-(self.mesh-mu)**2/(2.*sigma**2)))
+            
+        elif self.lvl_set[0] == 2: #TRIPLE WELL
+            dx = self.lvl_set[1]
+            k = self.lvl_set[2]
+            mu1 = self.lvl_set[3]
+            sigma1 = self.lvl_set[4]
+            CG1 = self.lvl_set[5]
+            mu2 = self.lvl_set[6]
+            sigma2 = self.lvl_set[7]
+            CG2 = self.lvl_set[8]
+            self.potential = 20*(\
+                    0.5*k*(self.mesh - dx)**2
+                    +\
+                    CG1/np.sqrt(2*np.pi*sigma1**2)*\
+                    np.exp(-(self.mesh-mu1)**2/(2.*sigma1**2))
+                    +\
+                    CG2/np.sqrt(2*np.pi*sigma2**2)*\
+                    np.exp(-(self.mesh-mu2)**2/(2.*sigma2**2)))
+        
+        elif self.lvl_set[0] == 3: #WOOD-SAXON
+            H = 50
+            R = 3.5
+            a = 0.35
+            self.potential = -H/(1+np.exp((abs(self.mesh)-R)/a)) + H
+            
+        else:
+            print('ERROR: Bad code word for potential (1st element in line).')
+                    
     
     #PSI0
     def psi0_init(self):
@@ -314,6 +447,31 @@ class QMeasures(BoxLayout):
         self.psi0 *= 1. / np.sqrt(self.deltax*\
                       (np.sum(prob_psi0) - prob_psi0[0]/2. - prob_psi0[-1]/2.))
         
+        self.psiev = self.psi0
+        
+    def shift_psi0(self, x):
+        """
+        Makes psi0 a given eigenvector of the hamiltonian but shifted a
+        certain amount x. Negative x means shift to the left and vicerversa.
+        """
+        if x  == 0 or x <= self.a or x >= self.b:
+            self.psi0 = self.evect[:,2]
+            print('Not shifted')
+            return
+        
+        #compute how many indices are in x:
+        n = int(abs(x)/self.deltax)
+        if x < 0:
+            eigen = self.evect[:,0]
+            app = np.append(eigen, np.zeros(n))
+            self.psi0 = app[-(self.N+1):]
+            print('Shifted')
+        if x > 0:
+            eigen = self.evect[:,0]
+            app = np.append(np.zeros(n), eigen)
+            self.psi0 = app[:self.N + 1]
+            print('Shifted')
+            
 #        self.psi0 = self.evect[:,0]
 #        print(np.shape(self.psi0))
 #        self.psi0 = np.append(np.zeros(100), self.psi0)
@@ -368,7 +526,6 @@ class QMeasures(BoxLayout):
         #Label in kivy file
         self.label_vel.text = 'Velocity \n    ' + str(self.plt_vel_factor) +'X'
         
-    #PAUSE
     def pause(self):
         """
         Changes the pause state from true to false and viceversa.
@@ -395,7 +552,17 @@ class QMeasures(BoxLayout):
         self.bkg_twin.collections.clear() #Clear before so we don't draw on top
         self.redzone = np.array([])
         prev = self.a
-        for i in range(3, len(self.lvl_set)-1, 2):
+        #Since the number of potentials arguments changes:
+        if self.lvl_set[0] == 0: #HARMONIC
+            start_i = 3
+        elif self.lvl_set[0] == 1: #DOUBLE WELL
+            start_i = 6
+        elif self.lvl_set[0] == 2: #TRIPLE WELL
+            start_i = 9
+        elif self.lvl_set[0] == 3: #WOOD-SAXON
+            start_i = 1
+            
+        for i in range(start_i, len(self.lvl_set)-1, 2):
             #Index
             prev_index = int((prev - self.a)//self.deltax)
             nxt_index = int((self.lvl_set[-1]- self.a)//self.deltax)
@@ -441,7 +608,6 @@ class QMeasures(BoxLayout):
         self.label2.text = '<E> =  \n' + '%.3f' % energy
         #GAME
         self.label_lvl.text = 'Level ' + str(self.lvl)
-#        self.label_points.text = str(self.points) + ' points'
         
         
     
@@ -481,6 +647,11 @@ class QMeasures(BoxLayout):
             self.psi_twin.collections.clear()
             self.psi_twin.fill_between(self.mesh, np.abs(self.psiev)**2,
                                        facecolor = 'black')
+            
+            self.b_arrow.set_alpha(np.exp(-t/10))
+            self.u_arrow.set_alpha(np.exp(-t/10))
+      
+        
             #FILLING BKG
             self.fill_bkg(self.psiev)
             
@@ -488,8 +659,9 @@ class QMeasures(BoxLayout):
             self.visu_im.remove()
             step = int(len(self.psiev)/self.num_visu) #Same as in the 1st plot
             self.visu_im = self.visuax.imshow([np.abs(self.psiev[::step])**2], 
-                 aspect='auto', interpolation = self.inter_visu, cmap = 'gray')
-      
+                 aspect='auto', interpolation = self.inter_visu, 
+                 cmap = self.cmap_name)
+         
         #DRAW 
         #(keeps drawing even if ther hasn't been an update)
         self.main_canvas.draw()
@@ -595,6 +767,19 @@ class QMeasures(BoxLayout):
         """
         prob = self.deltax*np.abs(self.psiev)**2 #Get instant probability
         self.mu0 = np.random.choice(self.mesh, p=prob) #Pick new random mu0
+        
+        
+#        self.measure_ann.remove()
+#        self.measure_ann = self.psi_twin.annotate("",
+#              xy=(self.mu0, self.ann_bot), xycoords='data',
+#              xytext=(self.mu0, 0.6), textcoords='data',
+#              arrowprops=dict(arrowstyle="-",
+#                              connectionstyle="arc3,rad=0.", color = 'white'),
+#                              annotation_clip = False)
+              
+        self.measure_ann()
+              
+              
         self.plt_time = 0. #Reset time 
         self.sigma0 = self.dirac_sigma #New sigma
         
@@ -620,22 +805,37 @@ class QMeasures(BoxLayout):
             self.visu_im.remove()
             step = int(len(self.psi0)/self.num_visu) #Same as in the 1st plot
             self.visu_im = self.visuax.imshow([np.abs(self.psi0[::step])**2], 
-                 aspect='auto', interpolation = self.inter_visu, cmap = 'gray')
+                 aspect='auto', interpolation = self.inter_visu, 
+                 cmap = self.cmap_name)
             
             
         else:
 #            self.points += 10 #level passed
             self.lvl += 1 #Read new lvl
-            self.lvl_set = np.array(eval(self.settings.readline().strip()))
-            #New pot
-            self.pot_mu = self.lvl_set[0]
-            self.pot_sigma = self.lvl_set[1]
-            self.pot_k = self.lvl_set[2]
-            self.pot_init()
+            
+            
+#            self.lvl_set = np.array(eval(self.settings.readline().strip()))
+#            #New pot
+#            self.pot_mu = self.lvl_set[0]
+#            self.pot_sigma = self.lvl_set[1]
+#            self.pot_k = self.lvl_set[2]
+#            self.pot_init()
+            
+            self.read_settigns()
+            
+            
             self.pot_data.set_data(self.mesh, self.potential)
             #Eigenparam
             self.eigenparam()
             #New psi0
+            if self.lvl == 6:
+                #Starting double well, we put psi0 in its left min.
+                self.mu0 = self.mesh[np.argmin(self.potential)]
+            if self.lvl == 8:
+                #Starting at the middle maximum
+                self.mu0 = -2
+            if self.lvl == 9:
+                self.mu0 = -6
             self.psi0_init()
             self.comp()
             self.psi_data.set_data(self.mesh, np.abs(self.psi0)**2)
@@ -647,7 +847,8 @@ class QMeasures(BoxLayout):
             self.visu_im.remove()
             step = int(len(self.psi0)/self.num_visu) #Same as in the 1st plot
             self.visu_im = self.visuax.imshow([np.abs(self.psi0[::step])**2], 
-                 aspect='auto', interpolation = self.inter_visu, cmap = 'gray')
+                 aspect='auto', interpolation = self.inter_visu, 
+                 cmap = self.cmap_name)
                 
         self.update_labels()
 
@@ -679,12 +880,18 @@ class QMeasures(BoxLayout):
         self.pause_state = True
         self.settings.close() #We close and open again to start reading again
         self.settings = open('lvl_settings.txt','r')
-        self.lvl_set = np.array(eval(self.settings.readline().strip()))
-        self.pot_mu = self.lvl_set[0]
-        self.pot_sigma = self.lvl_set[1]
-        self.pot_k = self.lvl_set[2]
-        print(self.lvl_set)
-        self.pot_init()
+        
+        
+#        self.lvl_set = np.array(eval(self.settings.readline().strip()))
+#        self.pot_mu = self.lvl_set[0]
+#        self.pot_sigma = self.lvl_set[1]
+#        self.pot_k = self.lvl_set[2]
+#        print(self.lvl_set)
+#        self.pot_init()
+        
+        self.read_settigns()
+        
+        
         self.pot_data.set_data(self.mesh, self.potential)
         self.eigenparam()
         self.mu0 = self.init_mu0
@@ -699,7 +906,8 @@ class QMeasures(BoxLayout):
         self.visu_im.remove()
         step = int(len(self.psi0)/self.num_visu) #Same as in the 1st plot
         self.visu_im = self.visuax.imshow([np.abs(self.psi0[::step])**2], 
-             aspect='auto', interpolation = self.inter_visu, cmap = 'gray')
+             aspect='auto', interpolation = self.inter_visu, 
+             cmap = self.cmap_name)
         self.measure_btn.disabled = False
         self.request_KB()
         self.restart_btn.disabled = True
