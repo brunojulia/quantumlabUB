@@ -5,8 +5,9 @@
 
 	plotbox: plot_box.__self__
 	wavebox: wave_box.__self__
+	demolabel: demo_label.__self__
 	#speedbutton: speed_button.__self__
-	statuslabel: status_label.__self__
+	#statuslabel: status_label.__self__
 	#menu: menu.__self__
 
 	#pottab: pot_tab.__self__
@@ -38,8 +39,8 @@
 			#Button:
 			#	id: speed_button
 			#	on_press: root.change_speed()
-			Label:
-				id: status_label
+			#Label:
+			#	id: status_label
 		#BoxLayout:
 		#	size_hint: (1, 0.2)
 		#	orientation: 'horizontal'
@@ -92,8 +93,9 @@
 		BoxLayout:
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
-			Label:
-				text: 'Demos'
+			Button:
+				text: 'Demo4'
+				on_press: root.demo4()
 		
 		BoxLayout:
 			size_hint: (1, 0.5)
@@ -105,7 +107,7 @@
 			size_hint: (1, 0.5)
 			orientation: 'horizontal'
 			Label:
-				text: 'Description'   
+				id: demo_label  
 			
 		BoxLayout:
 			size_hint: (1, 0.1)

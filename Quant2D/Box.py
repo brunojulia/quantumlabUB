@@ -49,7 +49,7 @@ class main(BoxLayout):
         self.time = 0.
         self.T = 630
         self.dt = 0.0025
-        self.speed = 0.4
+        self.speed = 0.3
      #   self.change_speed()
         self.running = False
         
@@ -109,10 +109,12 @@ class main(BoxLayout):
         self.background()
         self.update_texture()
 
+        '''
         with self.statuslabel.canvas:
             Color(1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-            
+        '''
+        
     def reset_pot_list(self):
         self.pot.clear()
         self.potentials = []
@@ -120,9 +122,11 @@ class main(BoxLayout):
         self.plotbox.canvas.clear()
         self.background()
         
+        '''
         with self.statuslabel.canvas:
             Color(1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
+        '''
     
     def background_main(self):
         self.im = np.zeros((self.n,self.n))
@@ -157,11 +161,11 @@ class main(BoxLayout):
         self.background_main()
         self.update_texture_main()
         
-        
+        '''
         with self.statuslabel.canvas:
             Color = (1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-            
+        '''   
     def reset_wave_list(self):
         self.particlestrings = []
         self.particlesave = []
@@ -170,23 +174,28 @@ class main(BoxLayout):
         self.wavebox.canvas.clear()
         self.wav.clear()
       #  self.background()
-        
+        ''' 
         with self.statuslabel.canvas:
             Color(1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-            
+        '''    
     
     def demo1(self):
         ' Demo1 = harm osci ground eigenstate not centered '
         self.demo = 1
+        self.demolabel = 'harmonic oscillatior ground eigenstate not centered'
+        self.T = 630
         
         x0 = -0.5
         y0 = 0.
         w = 4.
         
+        x0po = 0.
+        y0po = 0.
+        
         #Add potential
         
-        self.pot.add_function(potentials.osc,[0.,0.,w])
+        self.pot.add_function(potentials.osc,[x0po,y0po,w])
         
         self.background()
         self.update_texture()
@@ -200,7 +209,7 @@ class main(BoxLayout):
         
         #Update time evolution from file
         
-        file = open('Demo1.pkl','rb')
+        file = open('Demo1','rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
@@ -209,6 +218,8 @@ class main(BoxLayout):
     def demo2(self):
         'Demo2 = harm osci ground estate pulsating'
         self.demo = 2
+        self.demolabel = 'harmonic oscillatior ground eigenstate with different frequency from the potential'
+        self.T = 840
         
         x0 = 0.
         y0 = 0.
@@ -231,30 +242,33 @@ class main(BoxLayout):
         
         #Update time evolution from file
         
-        file = open('Demo2.pkl','rb')
+        file = open('Demo2','rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
         
     
     def demo3(self):
-        'Demo3 = barrier'
+        'Demo3 = box'
         self.demo = 3
+        self.demolabel = 'smaller box'
+        self.T = 630
         
         x0 = -0.75
         y0 = 0.
-        sigma = 0.5
+        sigma = 0.25
         px0 = 0.
         py0 = 0.
         
         V0pot = 2.
-        R = 0
+        R = 0.5
         a = 0.1
-        x0pot = 1.
+        x0pot = 0.
+        y0pot = 0.
         
         #Add potential
         
-        self.pot.add_function(potentials.barrier_x,[V0pot,R,a,x0pot])
+        self.pot.add_function(potentials.woods_box,[V0pot,R,a,x0pot,y0pot])
         
         self.background()
         self.update_texture()
@@ -267,8 +281,45 @@ class main(BoxLayout):
         self.update_texture_main()
         
         #Update time evolution from file
+    
+        file = open('Demo3','rb')
+        probevol = pkl.load(file)
+
+        self.probability = probevol
         
-        file = open('Demo3.pkl','rb')
+    
+    def demo4(self):
+        'Demo4 = double barrier / double well'
+        self.demo = 4
+        self.demolabel = 'double well in x'
+        self.T = 630
+        
+        x0 = 0.
+        y0 = 0.
+        sigma = 0.25
+        px0 = 0.
+        py0 = 0.
+        
+        V0pot = 10.
+        x0pot = 0.
+        
+        #Add potential
+        
+        self.pot.add_function(potentials.barrier_x,[V0pot,x0pot])
+        
+        self.background()
+        self.update_texture()
+        
+        #Add wave function
+        
+        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,sigma,px0,py0])
+            
+        self.background_main()
+        self.update_texture_main()
+        
+        #Update time evolution from file
+    
+        file = open('Demo4','rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
@@ -282,6 +333,9 @@ class main(BoxLayout):
                     size_hint=(None, None), size=(700, 1000))
         elif (self.demo == 3):
             pop = Popup(title='Energy', content=Image(source='Energy3.png'),
+                    size_hint=(None, None), size=(700, 1000))
+        elif (self.demo == 4):
+            pop = Popup(title='Energy', content=Image(source='Energy4.png'),
                     size_hint=(None, None), size=(700, 1000))
         
         pop.open()

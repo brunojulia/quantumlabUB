@@ -30,13 +30,30 @@ def gauss(r,param):
 
 #############################
     
-def barrier_x(r,param):
+def woods_box(r,param):
     V0 = param[0]
     R = param[1]
     a = param [2]
     x0 = param[3]
+    y0 = param[4]
         
     xx = r[0] - x0 #ROW
-    yy = r[1] #COLUMN
+    yy = r[1] - y0 #COLUMN
     
-    return (-1.*V0/(1.+np.exp((xx-R)/a))+V0/(1.+np.exp((xx-(R+4.*a)/a))))*yy/yy
+   # up = 0. #-1.*V0/(1.+np.exp((yy-R)/a))*xx/xx
+   # down = 0. #+1.*V0/(1.+np.exp((yy-R)/a))*xx/xx
+   # left = 0. #-1.*V0/(1.+np.exp((-1*xx-R)/a))
+    right = -1.*V0/(1.+np.exp((xx-R)/a))
+    
+    return right+(yy-yy)
+
+#############################
+    
+def barrier_x(r,param):
+    V0 = param[0]
+    x0 = param [1]
+        
+    xx = r[0] - x0 #ROW
+    yy = r[1]  #COLUMN
+    
+    return V0*xx**2*yy/yy
