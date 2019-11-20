@@ -1,4 +1,6 @@
 import numpy as np
+import os.path
+import pickle as pkl
 
 import wavef
 import potentials
@@ -7,8 +9,10 @@ from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.properties import ObjectProperty,ListProperty,NumericProperty,StringProperty
 from kivy.graphics.texture import Texture
-from kivy.graphics import Rectangle,Color,Ellipse
+from kivy.graphics import Rectangle,Color
 from kivy.clock import Clock
+from kivy.uix.popup import Popup
+from kivy.uix.image import Image
 
 
 class main(BoxLayout):
@@ -16,7 +20,7 @@ class main(BoxLayout):
     N=100
     dx=0.05
     dt=0.0025
-    #ntime=1000
+    ntime=1000
     L=N*dx
     
     mass = 1.
@@ -38,12 +42,14 @@ class main(BoxLayout):
         super(main, self).__init__(**kwargs)
         self.pot = wavef.Phi()
         self.wav = wavef.Phi()
+        self.demo = 0
         
         self.set_texture()
+        self.n = 100
         self.time = 0.
-        self.T = 800
+        self.T = 630
         self.dt = 0.0025
-        self.speed = 0.4
+        self.speed = 0.3
      #   self.change_speed()
         self.running = False
         
@@ -103,10 +109,12 @@ class main(BoxLayout):
         self.background()
         self.update_texture()
 
+        '''
         with self.statuslabel.canvas:
             Color(1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-            
+        '''
+        
     def reset_pot_list(self):
         self.pot.clear()
         self.potentials = []
@@ -114,9 +122,11 @@ class main(BoxLayout):
         self.plotbox.canvas.clear()
         self.background()
         
+        '''
         with self.statuslabel.canvas:
             Color(1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
+        '''
     
     def background_main(self):
         self.im = np.zeros((self.n,self.n))
@@ -151,11 +161,11 @@ class main(BoxLayout):
         self.background_main()
         self.update_texture_main()
         
-        
+        '''
         with self.statuslabel.canvas:
             Color = (1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-            
+        '''   
     def reset_wave_list(self):
         self.particlestrings = []
         self.particlesave = []
@@ -164,35 +174,171 @@ class main(BoxLayout):
         self.wavebox.canvas.clear()
         self.wav.clear()
       #  self.background()
-        
+        ''' 
         with self.statuslabel.canvas:
             Color(1,0,0)
             Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-            
+        '''    
     
     def demo1(self):
-        'Demo1 = harm osci ground eigenstate not centered'
+        ' Demo1 = harm osci ground eigenstate not centered '
+        self.demo = 1
+        self.demolabel = 'harmonic oscillatior ground eigenstate not centered'
+        self.T = 630
         
         x0 = -0.5
         y0 = 0.
-        w = 3.
+        w = 4.
+        
+        x0po = 0.
+        y0po = 0.
         
         #Add potential
         
-        self.pot.add_function(potentials.osc,[0.,0.,w])
+        self.pot.add_function(potentials.osc,[x0po,y0po,w])
+        
+        self.background()
+        self.update_texture()
+        
+         #Add wave function
+        
+        self.wav.add_function(wavef.InitWavef.OsciEigen,[x0,y0,w,0,0])
+                    
+        self.background_main()
+        self.update_texture_main()
+        
+        #Update time evolution from file
+        
+        file = open('Demo1','rb')
+        probevol = pkl.load(file)
+
+        self.probability = probevol
+       
+    
+    def demo2(self):
+        'Demo2 = harm osci ground estate pulsating'
+        self.demo = 2
+        self.demolabel = 'harmonic oscillatior ground eigenstate with different frequency from the potential'
+        self.T = 840
+        
+        x0 = 0.
+        y0 = 0.
+        ww = 4.
+        wp = 3.
+        
+        #Add potential
+        
+        self.pot.add_function(potentials.osc,[0.,0.,wp])
         
         self.background()
         self.update_texture()
         
         #Add wave function
         
-        self.init_conds.append(wavef.InitWavef.OsciEigen([self.xx,self.yy],[x0,y0,w,0,0]))
-        self.wav.add_function(wavef.InitWavef.OsciEigen,[x0,y0,w,0,0])
+        self.wav.add_function(wavef.InitWavef.OsciEigen,[x0,y0,ww,0,0])
             
         self.background_main()
         self.update_texture_main()
         
-       
+        #Update time evolution from file
+        
+        file = open('Demo2','rb')
+        probevol = pkl.load(file)
+
+        self.probability = probevol
+        
+    
+    def demo3(self):
+        'Demo3 = box'
+        self.demo = 3
+        self.demolabel = 'smaller box'
+        self.T = 630
+        
+        x0 = -0.75
+        y0 = 0.
+        sigma = 0.25
+        px0 = 0.
+        py0 = 0.
+        
+        V0pot = 2.
+        R = 0.5
+        a = 0.1
+        x0pot = 0.
+        y0pot = 0.
+        
+        #Add potential
+        
+        self.pot.add_function(potentials.woods_box,[V0pot,R,a,x0pot,y0pot])
+        
+        self.background()
+        self.update_texture()
+        
+        #Add wave function
+        
+        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,sigma,px0,py0])
+            
+        self.background_main()
+        self.update_texture_main()
+        
+        #Update time evolution from file
+    
+        file = open('Demo3','rb')
+        probevol = pkl.load(file)
+
+        self.probability = probevol
+        
+    
+    def demo4(self):
+        'Demo4 = double barrier / double well'
+        self.demo = 4
+        self.demolabel = 'double well in x'
+        self.T = 630
+        
+        x0 = 0.
+        y0 = 0.
+        sigma = 0.25
+        px0 = 0.
+        py0 = 0.
+        
+        V0pot = 10.
+        x0pot = 0.
+        
+        #Add potential
+        
+        self.pot.add_function(potentials.barrier_x,[V0pot,x0pot])
+        
+        self.background()
+        self.update_texture()
+        
+        #Add wave function
+        
+        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,sigma,px0,py0])
+            
+        self.background_main()
+        self.update_texture_main()
+        
+        #Update time evolution from file
+    
+        file = open('Demo4','rb')
+        probevol = pkl.load(file)
+
+        self.probability = probevol
+        
+    def pop(self):
+        if (self.demo == 1):
+            pop = Popup(title='Energy', content=Image(source='Energy1.png'),
+                    size_hint=(None, None), size=(700, 1000))
+        elif (self.demo == 2):
+            pop = Popup(title='Energy', content=Image(source='Energy2.png'),
+                    size_hint=(None, None), size=(700, 1000))
+        elif (self.demo == 3):
+            pop = Popup(title='Energy', content=Image(source='Energy3.png'),
+                    size_hint=(None, None), size=(700, 1000))
+        elif (self.demo == 4):
+            pop = Popup(title='Energy', content=Image(source='Energy4.png'),
+                    size_hint=(None, None), size=(700, 1000))
+        
+        pop.open()
 
     def compute(self):        
         self.initwave = wavef.Wave(self.pot.val(self.xx,self.yy),self.wav.val(self.xx,self.yy),self.dt,self.T)
@@ -235,6 +381,7 @@ class main(BoxLayout):
         
         self.reset_pot_list()
         self.reset_wave_list()
+        self.init_conds = []
       
     
  #   def save(self):

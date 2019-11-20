@@ -30,38 +30,30 @@ def gauss(r,param):
 
 #############################
     
-def barrierx(r,param):
-    x0 = param[0]
-    
-    n=len(r[0])
-    dx=abs(r[0][0,0]-r[0][0,1])
-    
-    f=np.zeros((n,n))
-    for i in range(0,n+1):
-        if (abs(i*dx-x0) < dx):
-            f[i,:]=10**8
-    
-    return f
+def woods_box(r,param):
+    V0 = param[0]
+    R = param[1]
+    a = param [2]
+    x0 = param[3]
+    y0 = param[4]
         
+    xx = r[0] - x0 #ROW
+    yy = r[1] - y0 #COLUMN
+    
+   # up = 0. #-1.*V0/(1.+np.exp((yy-R)/a))*xx/xx
+   # down = 0. #+1.*V0/(1.+np.exp((yy-R)/a))*xx/xx
+   # left = 0. #-1.*V0/(1.+np.exp((-1*xx-R)/a))
+    right = -1.*V0/(1.+np.exp((xx-R)/a))
+    
+    return right+(yy-yy)
+
 #############################
-'''    
-def dslit(r,param):
-    x0 = param[0]
-    y0 = param[1]
-    d = param[2] #distance to obertures from y0
-    c = param[3] #lenght of obertures
     
-    n=len(r[0])
-    dx=abs(r[0][0,0]-r[0][0,1])
+def barrier_x(r,param):
+    V0 = param[0]
+    x0 = param [1]
+        
+    xx = r[0] - x0 #ROW
+    yy = r[1]  #COLUMN
     
-    f=np.zeros((n,n))
-    for i in range(0,n+1):
-        if (abs(i*dx-x0) < dx):
-            f[i,:]=10**5
-
-    
-    for j in range(0,n+1):
-    
-'''
-
-    
+    return V0*xx**2*yy/yy

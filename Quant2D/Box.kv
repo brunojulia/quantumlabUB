@@ -5,8 +5,9 @@
 
 	plotbox: plot_box.__self__
 	wavebox: wave_box.__self__
-	speedbutton: speed_button.__self__
-	statuslabel: status_label.__self__
+	demolabel: demo_label.__self__
+	#speedbutton: speed_button.__self__
+	#statuslabel: status_label.__self__
 	#menu: menu.__self__
 
 	#pottab: pot_tab.__self__
@@ -35,17 +36,19 @@
 			Button:
 				text: 'Stop'
 				on_press: root.stop()
-			Button:
-				id: speed_button
-				on_press: root.change_speed()
-		BoxLayout:
-			size_hint: (1, 0.2)
-			orientation: 'horizontal'
-			Button:
-				text: 'Compute'
-				on_press: root.compute()
-			Label:
-				id: status_label
+			#Button:
+			#	id: speed_button
+			#	on_press: root.change_speed()
+			#Label:
+			#	id: status_label
+		#BoxLayout:
+		#	size_hint: (1, 0.2)
+		#	orientation: 'horizontal'
+		#	Button:
+		#		text: 'Compute'
+		#		on_press: root.compute()
+		#	Label:
+		#		id: status_label
 		#	Button:
 		#		text: 'Save'
 		#		on_press: root.save()
@@ -77,25 +80,35 @@
 		BoxLayout:
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
-			Label:
-				text: 'Demos'
+			Button:
+				text: 'Demo2'
+				on_press: root.demo2()
+				
 		BoxLayout:
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
-			Label:
-				text: 'Demos'
+			Button:
+				text: 'Demo3'
+				on_press: root.demo3()
 		BoxLayout:
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
-			Label:
-				text: 'Demos'
+			Button:
+				text: 'Demo4'
+				on_press: root.demo4()
 		
 		BoxLayout:
-			size_hint: (1, 1)
+			size_hint: (1, 0.5)
+			orientation: 'horizontal'
+			Button:
+				text: 'Energy and norm evolution'
+				on_press: root.pop()
+		BoxLayout:
+			size_hint: (1, 0.5)
 			orientation: 'horizontal'
 			Label:
-				text: 'Data'
-		
+				id: demo_label  
+			
 		BoxLayout:
 			size_hint: (1, 0.1)
 			orientation: 'horizontal'
