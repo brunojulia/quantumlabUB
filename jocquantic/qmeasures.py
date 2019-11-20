@@ -32,94 +32,232 @@ from kivy.core.window import Window #Window manegement
 ###############################################################################
 #                             MAIN CLASS                                      #
 ###############################################################################
+"""
+
+The way the app is made (with Kivy) is the following. When the file is executed
+Kivy's run() function is called from QMeasuresApp class (see the 'if' at 
+the end). QMeasuresApp class inherits Kivy's app properties from App. 
+This class has acces to  everything in QMeasures class as well, so every 
+tool (functions, plot, animations ...) are defined there.
+
+"""
 
 class QMeasures(BoxLayout):
-    """ 
-    Main class. The one passed to the executable class. It has acces to the 
-    differents parts of the app layout (since it inherits from BoxLayout). 
+    """
+    Main class. The one passed to the executable class. It has acces to  
+    differents parts of the app layout (since it inherits from BoxLayout).
+    
+    This class consists of three main blocks:
+        
+        - COMPUTATION of a wave function's evolution on different potentials
+        - PLOTTING of this evolution
+        - GAME. A game is build on top of this problem.
+    
+    All functions will be organised with this structure in mind. Nevertheless,
+    the core of this class are animation and events flow, managed only
+    by a few functions – they actually use the functions from the main blocks.
+    
+    The animation (events flow) will simply consist of:
+        
+        - A repeatedly called function (called by Kivy's Clock) that computes
+        and plots the evolution of the wave function: PLOTPSIEV.
+        - A function called by the player that takes a measure of the position
+        of the instantaneous wave function, and carries on all its 
+        consequences: MEASURE
+        - A function that allows the player to start again after the game is 
+        over: RESTART
+        - And finally a couple of functions that allow pausing the game and 
+        controlling its velocity: PAUSE & CHANGE_VEL
+        
+    These are the time FLOWING functions.
+    
+    Before starting the calls of plotpsiev, with Clock: 
+        
+        - The evolution problem has to be solved 
+        - The plots have to be initialized 
+        - The game has to be set to the beggining
+        - Clock's call
+        
+    So in init, all of this is done before calling Clock.
     """
     def __init__(self, **kwargs):
         super(QMeasures, self).__init__(**kwargs) #Runs also the superclass
                                                 #BoxLayout's __init__ function
                                                 
-        # -------------------- SOME DEFINITIONS -------------------------------
-        #We shall give initial values but these varibles will be changed by 
-        #the values given in the app, when implemented this procedure.
+        #======================== EVOLUTION PROBLEM ===========================   
+        """                       
+        Solving this problems has two parts: finding the EIGENBASIS and 
+        eigenvalues of the given hamiltonian (with a given potential), and
+        find the COMPONENTS of the intial psi in this basis.
+        """
         
-                                ###### UNITS ######
-        #time: fs
-        #energy: eV
-        #position: Å
-        #wave function: Å**-2
+            #SOLVING 1ST PART
+                                             
+        #UNITS
+        self.unit_time = 'fs' 
+        self.unit_energy = 'eV'
+        self.unit_long = '$\AA$'
+        self.unit_probxlong = '$\AA^{-1}$'
+        
+        #CONSTANTS
         self.hbar = 0.6582   #In these general units
-        
-                            ###### DISCRETIZATION ######
+        self.m_elec = 0.1316 #Its the m factor explained in eigenparam function
+        self.m = self.m_elec #The name 'm' is the one used inside of eigenparam
+        self.dirac_sigma = 0.6
+
+        #DISCRETIZATION
         self.a = -10.   
         self.b = 10.        
         self.N = 800
         self.deltax = (self.b - self.a)/float(self.N)
         self.mesh = np.linspace(self.a, self.b, self.N + 1)
         
-                        ###### Particle's properties ######
-        self.m_elec = 0.1316 #Its the m factor explained in eigenparam function
-        self.m = self.m_elec #The name 'm' is the one used inside of eigenparam
-        
-                    ###### Double well potential's properties ######
-        #Load file with settings data and first initial settings: first 3 are
-        #potential settings and the rest related data for color zones.
+        #POTENTIAL INITAIL SETTINGS
         self.settings = open('lvl_settings.txt','r')
-        
-        
-#        self.lvl_set = np.array(eval(self.settings.readline().strip()))
-#        #Parameters         
-#        self.pot_mu = self.lvl_set[0]
-#        self.pot_sigma = self.lvl_set[1]
-#        self.pot_k = self.lvl_set[2]
-#        #Potential object
-#        self.potential = np.zeros(self.N + 1)
-        
         self.read_settigns()
         
-                    ###### Eigenvalues and eigenvectors ######  
-#        self.evals = np.zeros(self.N + 1) #Row (N+1) vector (due to eigh func)
-#        self.evect = np.zeros((self.N + 1, self.N + 1)) #(N+1)x(N+1) array
+        #EIGENBASIS
+        self.eigenparam()
+       
+            #SOLVING 2ND PART
         
-                            ###### Wave functions ######
-        #Initial (gaussian parameters)
+        #PSI INITIAL SETTINGS
         self.p0 = 0.    
-        self.dirac_sigma = 0.6
         self.sigma0 = self.dirac_sigma
-        self.init_mu0 = 1
+        self.init_mu0 = 2
         self.mu0 = self.init_mu0
-        #Related object
-#        self.psi0 = np.zeros(self.N + 1)    #Value of the initial wave function
-#        self.comp0 = np.zeros(self.N + 1)   #Its components. They are row vects
-        #Evolved
-#        self.psiev = np.zeros(self.N + 1)
-#        self.compev = np.zeros(self.N + 1)
+#        self.psi_init()  
+        self.shift_psi(self.mu0) #Starting with one of the eigenvectors
         
-                                   ###### GAME ######
+        #COMPONENTS
+        self.comp()
         
-        self.max_lives = 10 #If changed, kv's file needs to be changed as well
-        self.lives = self.max_lives #initial lives
-        self.lives_sources() #'Draws' hearts and skulls corresponding to lives
-        #LOAD IMAGE
+        #ENERGY
+        self.energy = np.sum(np.abs(self.compo)**2 * self.evals)        
+        
+        
+        #============================ PLOTTING ================================  
+        """
+        Includes the creation of all plotted objects (legend, axis, ...)
+        but the updated data. This will happen in the plotting function. Here 
+        we should assign the canvas (created with FigureCanvasKivyAgg) to the 
+        'box' where it will be plotted in the app with:
+        self.box/panel_id.add_widget(self.FigureCanvasKivyAggs_name)
+        
+        There are four plots: background (BKG), psi (PSI), potential (POT) and
+        a gray map for visualization (VISU). They are arranged in a (2,1) grid: 
+        first 3  plots on the top of the grid and the other bellow.
+        
+        Those three together share the x axis and are created in an specific 
+        order so important content don't overlap. That is: bkg, psi and pot.
+        
+        Moreover, pot has an extra plot, energy line. And psi as well, two 
+        arrows for visualization of the measure.
+        """
+        
+        #COLORS
+        self.zonecol_red = '#AA3939'
+        self.zonecol_green = '#7B9F35'
+        self.potcol = '#226666'
+        self.potalpha = 0.5
+        self.orange = '#AA6C39'
+        self.cmap_name = 'gray'
+        self.energycol = '#AA8439'
+        self.b_arrow_color = '#C0C0C0'
+        self.u_arrow_color = '#582A72'
+        
+        #LIMITS
+        self.pot_tlim = 50
+        self.pot_blim = 0
+        self.psi_tlim = 1.7
+        self.psi_blim = 0
+        Dpot = self.pot_tlim - self.pot_blim
+        Dpsi = self.psi_tlim - self.psi_blim
+        self.dcoord_factor = Dpot / Dpsi
+        
+        #FIGURE
+        self.main_fig = plt.figure()
+        self.main_fig.patch.set_facecolor('black') 
+        self.main_canvas = FigureCanvasKivyAgg(self.main_fig) #Passed to kv
+        self.box1.add_widget(self.main_canvas)
+        self.gs = gridspec.GridSpec(2, 1, height_ratios=[7, 1], 
+                          hspace=0.1, bottom = 0.05, top = 0.90) #Subplots grid
+        
+        #BACKGROUND
+        #Their axes are going to be as psi's, since their default position 
+        #suits us. The title is going to be used as xaxis label.
+        self.bkg_twin = plt.subplot(self.gs[0])
+        self.bkg_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
+        figheight = self.main_fig.get_figheight() #In inches (100 p = 1 inch)
+        self.bkg_twin.set_title('x [' +  self.unit_long +']', color = 'white',
+                                pad=0.05*figheight*100, fontsize=10) #pad in p
+        self.bkg_twin.set_ylabel('Probability [' +  self.unit_probxlong +']', 
+                                 color = 'white')
+        self.bkg_twin.tick_params(axis = 'x', labelbottom=False,labeltop=True, 
+                                  bottom = False, top = True)
+        self.bkg_twin.tick_params(colors='white')
+        self.bkg_twin.set_facecolor('black')
+        self.fill_bkg(self.psi)
+        
+        #PSI PLOT
+        self.psi_twin = self.bkg_twin.twinx()
+        self.psi_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
+        self.psi_twin.axis('off') #bkg axis already taken care of.
+        self.psi_twin.set_facecolor('black')
+        self.psi_twin.fill_between(self.mesh, self.psi2,
+                                       facecolor = 'black')
+        self.psi_data, = self.psi_twin.plot(self.mesh, self.psi2,
+                                            alpha = 0.0)
+        
+        #Arrows (first drawn transparent just to create the instance)
+        self.b_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
+        self.u_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
+        
+        #POTENTIAL
+        self.pot_twin = self.bkg_twin.twinx()
+        self.pot_twin.axis([self.a, self.b, self.pot_blim, self.pot_tlim])
+        self.pot_twin.set_ylabel('Potential [' +  self.unit_energy +']', 
+                                 color = 'white')
+        self.pot_twin.tick_params(axis='y', colors='white')
+        self.pot_twin.set_facecolor('black')
+        self.pot_data, = self.pot_twin.plot(self.mesh, self.potential, 
+                                            color = self.potcol)
+        #Energy
+        self.E_data, = self.pot_twin.plot(self.mesh, 
+                                         np.zeros_like(self.mesh)+self.energy, 
+                                         color = self.energycol, ls = '--',
+                                         lw = 2)
+        
+        #VISUAL
+        self.visuax = plt.subplot(self.gs[1])
+        self.num_visu = len(self.mesh) #Can't be greater than the # of indices
+        self.inter_visu = 'gaussian'
+        self.visuax.axis('off')
+        step = int(len(self.psi)/self.num_visu) #num_visu points in gray map
+        self.visu_im = self.visuax.imshow([self.psi2[::step]], 
+                 aspect='auto', interpolation = self.inter_visu, 
+                 cmap = self.cmap_name)
+         
+        #FIRST DRAW
+        #This 'tight' needs to be at the end so it considers all objects drawn
+        self.main_fig.tight_layout() #Fills all available space
+        self.main_canvas.draw_idle()
+
+        #============================== GAME ================================== 
+        
+        #IMAGES
         path = os.path.dirname(os.path.abspath(__file__))
         self.gameover_imgdata = mpimg.imread(path + str('/gameover_img.jpg'))
+        self.heart_img = 'heart_img.jpg'
+        self.skull_img = 'skull_img.jpg'        
         
-                                ###### TEXT LABEL ######
-        #GAME
+        #GAME VARIABLES
+        self.max_lives = 10 #If changed, kv's file needs to be changed as well
+        self.lives = self.max_lives 
+        self.lives_sources() 
         self.lvl = 1
-#        self.points = 0
         
-        #PROB & ENERGY
-        #(this variable comes from the kivy file)
-        self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' + \
-            'Prob.:             ' + '-' + '\n' + \
-            'Max. prob.:    ' + '-'
-        
-        
-                                ###### KEYBOARD ######
+        #KEYBOARD
 #       request_keyboard returns an instance that represents the events on 
 #       the keyboard. It can give two events (witch we can bind to functions).
 #       Furthermore, each event comes with some input arguments:
@@ -134,388 +272,276 @@ class QMeasures(BoxLayout):
 #       usualy unbinds everything bound.
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
-    
-        
-        
-      
-
-        # ------------ FIRST RUN OF EIGENPARAM AND COMP -----------------------
-        
-        #INIT POT, PSI AND ITS COMP (1st doing EIGENPARAM)
-#        self.pot_init() 
-        self.eigenparam()
-        self.psi0_init()
-        self.shift_psi0(2)
-        self.psiev = self.psi0 #Just in case we measure before running (bug)
-        self.comp()
-
-        #ENERGY
-        energy = np.sum(np.abs(self.comp0)**2 * self.evals)
-        self.label2.text = '<E> =  \n' + '%.3f' % energy
-        
-        # ---------------------- PLOT OBJECT ----------------------------------
-        """
-        Includes the creation of all the plotted objects (legend, axis, ...)
-        but the updated data. This will happen in the plotting function. Here 
-        we should assign the canvas (created with FigureCanvasKivyAgg) to the 
-        'box' where it will be plotted in the app with:
-        self.box/panel_id.add_widget(self.FigureCanvasKivyAggs_name)
-        """
-        
-        #COLORS
-        self.zonecol_red = '#AA3939'
-        self.zonecol_green = '#7B9F35'
-        self.potcol = '#226666'
-        self.orange = '#AA6C39'
-        self.cmap_name = 'gray'
-        
-        #LIMITS
-        self.pot_tlim = 50
-        self.pot_blim = 0
-        self.psi_tlim = 1.7
-        self.psi_blim = 0
-        
-        #VISU
-        self.num_visu = len(self.mesh) #Can't be greater than the # of indices
-        self.inter_visu = 'gaussian'
-        
-        
-        
-        #FIGURE
-        self.main_fig = plt.figure()
-        self.main_fig.patch.set_facecolor('black') #All background outside plot
-        self.main_canvas = FigureCanvasKivyAgg(self.main_fig) #Passed to kv
-        self.box1.add_widget(self.main_canvas)
-        self.gs = gridspec.GridSpec(2, 1, height_ratios=[7, 1], 
-                          hspace=0.1, bottom = 0.05, top = 0.90) #Subplots grid
-        
-        #BACKGROUND PLOT
-        #Their axes are going to be as psi's, since their default position 
-        #suits us. The title its going to be used as xaxis label.
-        self.bkg_twin = plt.subplot(self.gs[0])
-        self.bkg_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
-        figheight = self.main_fig.get_figheight() #In inches (100 p = 1 inch)
-        self.bkg_twin.set_title('x [$\AA$]', color = 'white',
-                        pad = 0.05*figheight*100, fontsize = 10) #pad in points
-        self.bkg_twin.set_ylabel('Probability [$\AA^{-1}$]', color = 'white')
-        self.bkg_twin.tick_params(axis = 'x', labelbottom=False,labeltop=True, 
-                                  bottom = False, top = True)
-        self.bkg_twin.tick_params(colors='white')
-        self.bkg_twin.set_facecolor('black')
-
-        #FILLING
-        #We take every other border from the file and fill the prev. zone(red) 
-        #and the following zone (green).Last one added a side (red).
-        self.fill_bkg(self.psiev)
-        
-        #PSI PLOT
-        self.psi_twin = self.bkg_twin.twinx()
-        self.psi_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
-        self.psi_twin.axis('off') #bkg axis already taken care of.
-        self.psi_data, = self.psi_twin.plot(self.mesh, np.abs(self.psi0)**2,
-                                            alpha = 0.0)
-        self.psi_twin.set_facecolor('black')
-        self.psi_twin.fill_between(self.mesh,np.abs(self.psiev)**2,
-                                       facecolor = 'black')
-        
-        #ANNOTATION (just creating the instances)
-        self.ann_corr = 0.001  #Drawing correction
-        self.measure_ann_d = self.psi_twin.annotate("",xy=(0,0))
-        self.measure_ann_u = self.psi_twin.annotate("",xy=(0,0))
-        self.ann_d_color = 'silver'
-        self.ann_u_color = '#582A72'
-        
-        
-        self.b_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
-        self.u_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
-        self.b_arrow_color = 'silver'
-        self.u_arrow_color = '#582A72'
-        
-#        arrow = self.psi_twin.arrow(0, 1, 0, 0.2)
-#        arrow.set_alpha(0.2)
-        
-        
-        #POTENTIAL PLOT
-        self.pot_twin = self.bkg_twin.twinx()
-        self.pot_twin.axis([self.a, self.b, self.pot_blim, self.pot_tlim])
-        self.pot_twin.set_ylabel('Potential [eV]', color = 'white')
-        self.pot_twin.tick_params(axis='y', colors='white')
-        self.pot_twin.set_facecolor('black')
-        self.pot_data, = self.pot_twin.plot(self.mesh, self.potential)
-               
-        #VISUAL PLOT
-        self.visuax = plt.subplot(self.gs[1])
-        self.visuax.axis('off')
-        step = int(len(self.psiev)/self.num_visu) #num_visu points in gray map
-        self.visu_im = self.visuax.imshow([np.abs(self.psiev[::step])**2], 
-                 aspect='auto', interpolation = self.inter_visu, 
-                 cmap = self.cmap_name)
-         
-        #FIRST DRAW
-        #This 'tight' needs to be at the end so it considers all objects drawn
-        self.main_fig.tight_layout() #Fills all available space
-        self.main_canvas.draw_idle() 
-        
-        # ------------------------ CLOCK --------------------------------------
-        """
-        Here all animation will be happening. The plotting function definied in
-        the proper section will be called several times per second. It may
-        include a pause or play control (the funciton itself here in clock)
-        """
-        
-                                ###### Time steps ######
-        #PLOT TIME & VELOCITY
-        self.out_time = 0.
-        self.out_dt = 1./30.
+   
+        #TIME
         self.plt_time = 0.
         self.plt_dt = 1./30.
         self.plt_vel_factor = 18 #Factor in dt
-        self.label_vel.text = 'Velocity \n    ' + str(self.plt_vel_factor) +'X'
         self.pause_state = True #Begins paused
+                               
+        #LABELS
+        #(this variable comes from the kivy file)
+        self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' + \
+            'Prob.:             ' + '-' + '\n' + \
+            'Max. prob.:    ' + '-'
+        self.label2.text = '<E> =  \n' + '%.3f' % self.energy
+        self.label_vel.text = 'Velocity \n    ' + str(self.plt_vel_factor) +'X'
+                          
         
-                                ###### Clock ######
-                                    
+        #============================== CLOCK ================================= 
+        """
+        Here all animation will be happening. The plotting function definied in
+        the proper section will be called several times per second.
+        """
+        #'THE' CORE
         Clock.schedule_interval(self.plotpsiev, 1/30.)
-        
-    #========================== FUNCTIONS =====================================  
 
-    #LIVES IMAGES
-    def lives_sources(self):
-        """
-        Replaces every live image source: having N lives, replaces live1 to
-        liveN with 'heart_img.jpg', and live(N+1) to live(max_lives) with 
-        'skull_img.jpg'. So, when changing the amount of lives, this has to be
-        called.
-        """
-        for live_spot in range(1, self.max_lives+1):
-            live_name = 'live' + str(live_spot)
-            img = self.ids[live_name] #self.ids is a dict of all id(s) from kv
-            if live_spot <= self.lives: #Heart
-                img.source = 'heart_img.jpg'
-            else:
-                img.source = 'skull_img.jpg'
-        
-    #POTENTIAL
-#    def pot_init(self):
-#        """
-#        Creates the potential array object, combining the harmonic and the 
-#        gaussian potential. Same shape as mesh.
-#        """
-#        #First line: factor to scale the potential. 
-#        #Second line and third line: gaussian potential. 
-#        #Last line: harmonic potential.
-#        dx = 0
-#        if self.lvl == 3:
-#            dx = -2.5
-#        elif self.lvl == 4:
-#            dx = +0
-#        elif self.lvl == 5:
-#            dx = +2.5
-#        self.potential = 20*(\
-#                    1./np.sqrt(2*np.pi*self.pot_sigma**2)*\
-#                    np.exp(-(self.mesh-self.pot_mu)**2/(2.*self.pot_sigma**2))\
-#                    +\
-#                    0.5*self.pot_k*(self.mesh - dx)**2)
-#        
-#        self.pot_sigma = 0.5
-#        self.pot_mu = 0
-#        self.pot_k = 0.2
-#        
-#        self.potential = 20*(\
-#                    1./np.sqrt(2*np.pi*self.pot_sigma**2)*\
-#                    np.exp(-(self.mesh-self.pot_mu)**2/(2.*self.pot_sigma**2))\
-#                    +\
-#                    0.5*self.pot_k*self.mesh**2)
+    ###########################################################################
+    #                            'FLOW' FUNCTIONS                             #
+    ###########################################################################
+    """
+    - plotpsiev
+    - measure
+    - restart
+    - change_vel
+    - pause
+    """
     
-    def measure_ann(self):
+    #PLOTPSIEV
+    def plotpsiev(self, dt):
         """
-        Draws the annotation (line) on the measured mu0. Two annotations: line
-        from bottom to the probilibity we got, and another from there to the 
-        max probability.
+        Function to be called in the animation loop (clock.schedule_interval),
+        it has to have dt as an argument. Here first is computed psi(t), then
+        the data is updated in psi_data and finally it draws on the canvas. 
+        This parameter dt is not the actual time, its only the real time 
+        interval between calls. The time is obtained with self.plt_time.
         """
-        #Clears before drawing
-#        self.measure_ann_d.remove()
-#        self.measure_ann_u.remove()
+        if not self.pause_state: #Only evolve plt_time if we are unpaused
+            #TIME
+            self.plt_time += self.plt_vel_factor*self.plt_dt #Time step          
+            t = self.plt_time
+            
+            #COMPUTE PSIEV(t).
+            #We do it with two steps (given t).
+            #_1_. 
+            #Column vector containing the product between component and 
+            #exponential factor. 1st build array ary and then col. matrix 'mtx'
+            ary_compexp = self.compo * \
+                        np.exp(np.complex(0.,-1.)*self.evals*t/(50*self.hbar))
+            mtx_compexp = np.matrix(np.reshape(ary_compexp, (self.N + 1,1)))
+            #_2_. 
+            #Psi(t)
+            col_psi = self.evect * mtx_compexp #Matrix product
+            
+            #UPDATE DATA. 
+            #Since col_psi is a column vector (N+1,1) and we 
+            #need to pass a list, we reshape and make it an array.
+            self.psi = np.array(np.reshape(col_psi, self.N + 1))[0]
+            self.psi2 = np.abs(self.psi)**2
+            self.psi_data.set_data(self.mesh, self.psi2)
+            
+            #PSI
+            self.psi_twin.collections.clear()
+            self.psi_twin.fill_between(self.mesh, self.psi2,
+                                       facecolor = 'black')
+            self.b_arrow.set_alpha(np.exp(-t/10))
+            self.u_arrow.set_alpha(np.exp(-t/10))
+            
+            #BKG
+            self.fill_bkg(self.psi)
+            
+            #VISUAL PLOT
+            self.visu_im.remove()
+            step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
+            self.visu_im = self.visuax.imshow([self.psi2[::step]], 
+                 aspect='auto', interpolation = self.inter_visu, 
+                 cmap = self.cmap_name)
+            
+            
+        #DRAW 
+        #(keeps drawing even if therE hasn't been an update)
+        self.main_canvas.draw()
         
+    def measure(self):
+        """
+        Triggered from the kivy file. It takes the actual psi(t), generates 
+        the probability distribution and picks the new value for mu. A new 
+        initial wave function is created with a small sigma witch represents
+        the delta post measure. The time needs to be reset to zero after 
+        measuring. Finally, calls comp() and now plotpsiev() has everything it
+        needs to continue plotting.
+        
+        Schedule:
+            - Get instant probability
+            - Pick new mu0
+            - Reset time
+            - New sigma 
+            - Check zone:
+                OUT
+                * Substract points AND/OR change lives
+                    !(extra with lives game mode)
+                    ! Check if any lives left
+                    ! Pauses the game
+                    ! Game over image
+                    ! Disables measures (buton and spacebar)
+                    ! Enable restart button
+                * New psi (psi_init)
+                * New comp (eigenbassis still the same)
+                * Draw(data) psi and fill
+                * Fill bkg (WITH PSI, tho still the same redzone)
+                * Redraw visuplot
+                IN
+                * Add points
+                * New level
+                * Read new level
+                * New pot
+                * Eigenparam
+                * New psi (psi_init)
+                * New comp (eigenbassis still the same)
+                * Draw(data) psi and fill
+                * Fill bkg (WITH PSI, with new redzone)
+                * Update new redzone (while filling)
+                * Redraw visuplot
+            - Update labels
+        """
+        prob = self.deltax*self.psi2 #Get instant probability
+        self.mu0 = np.random.choice(self.mesh, p=prob) #Pick new random mu0
+              
+        self.measure_arrow()
+              
+        self.plt_time = 0. #Reset time 
+        self.sigma0 = self.dirac_sigma #New sigma
+        
+        if self.mu0 in self.redzone: #OUT
+            self.lives -= 1
+            self.lives_sources()
+            self.psi_init() 
+            self.comp()
+            self.psi_data.set_data(self.mesh, self.psi2)
+            self.psi_twin.collections.clear() 
+            self.psi_twin.fill_between(self.mesh, self.psi2,
+                                       facecolor = 'black')
+            
+            if self.lives <= 0:
+                self.pause_state = True
+                self.GMO_img = self.pot_twin.imshow(self.gameover_imgdata, 
+                                  aspect = 'auto', extent = [-7.5, 7.5, 0, 40])
+                self.measure_btn.disabled = True
+                self.pause_btn.disabled = True
+                self.restart_btn.disabled = False
+                self._keyboard.release()
+    
+            self.fill_bkg(self.psi)
+            
+            #VISUAL PLOT
+            self.visu_im.remove()
+            step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
+            self.visu_im = self.visuax.imshow([self.psi2[::step]], 
+                 aspect='auto', interpolation = self.inter_visu, 
+                 cmap = self.cmap_name)
+            
+            
+        else: #IN
+            self.lvl += 1 #Read new lvl
+            self.read_settigns()
+            self.pot_data.set_data(self.mesh, self.potential)
+            #Eigenparam
+            self.eigenparam()
+            #New psi
+            
+            if self.lvl == 7:
+                #Starting double wood-saxon in the ledt
+                self.mu0 = -4
+                self.p0 = 0
+            if self.lvl == 8:
+                #Starting double well, we put psi in its left min.
+                self.mu0 = self.mesh[np.argmin(self.potential)]
+            if self.lvl == 10:
+                #Starting at the middle maximum
+                self.mu0 = -2
+            if self.lvl == 11:
+                self.mu0 = -6
+                
+                
+            self.psi_init()
+            self.comp()
+            self.psi_data.set_data(self.mesh, self.psi2)
+            self.psi_twin.collections.clear()
+            self.psi_twin.fill_between(self.mesh, self.psi2,
+                                       facecolor = 'black')
+            self.fill_bkg(self.psi)
+            #VISUAL PLOT
+            self.visu_im.remove()
+            step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
+            self.visu_im = self.visuax.imshow([self.psi2[::step]], 
+                 aspect='auto', interpolation = self.inter_visu, 
+                 cmap = self.cmap_name)
+            
+        self.energy = np.sum(np.abs(self.compo)**2 * self.evals)
+
+        
+        self.E_data.set_data(self.mesh, self.energy)
+                
+        self.update_labels()
+
+    #RESTART
+    def restart(self):
+        """
+        After the game is lost, sets everything ready to start again:
+            - Clear game over image
+            - Lvl 1
+            - Lives and its images to max_lives
+            - Pauses again (in cas we unpaused it during game over)
+            - Starts reading the settings file again (lvl 1)
+            - New pot (init)
+            - Eigenparam
+            - New mu0 (initial mu)
+            - New psi (sigma already dirac's)
+            - New comp 
+            - Fill psi
+            - Bkg fill + update redzone
+            - Redraw visuplot
+            - Enables measures (button and spacebar)
+            - Disables restart 
+            - Clears arrows
+        """
+        self.GMO_img.remove()
+        self.lvl = 1
+        self.lives = self.max_lives
+        self.lives_sources()
+        self.pause_state = True
+        self.settings.close() #We close and open again to start reading again
+        self.settings = open('lvl_settings.txt','r')
+        self.read_settigns()
+        self.pot_data.set_data(self.mesh, self.potential)
+        self.eigenparam()
+        self.mu0 = self.init_mu0
+        self.psi_init()
+        self.comp()
+        self.psi_data.set_data(self.mesh, self.psi2)
+        self.psi_twin.collections.clear()
+        self.psi_twin.fill_between(self.mesh, self.psi2,
+                                       facecolor = 'black')
+        self.redzone = np.array([])
+        self.fill_bkg(self.psi)
+        self.visu_im.remove()
+        step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
+        self.visu_im = self.visuax.imshow([self.psi2[::step]], 
+             aspect='auto', interpolation = self.inter_visu, 
+             cmap = self.cmap_name)
+        
+        self.measure_btn.disabled = False
+        self.pause_btn.disabled = False
+        self.request_KB()
+        self.restart_btn.disabled = True
+        self.energy = np.sum(np.abs(self.compo)**2 * self.evals)
+        self.E_data.set_data(self.mesh, self.energy)
+        self.update_labels()
         self.b_arrow.remove()
         self.u_arrow.remove()
+        self.b_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
+        self.u_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
         
-        
-        prob = np.abs(self.psiev)**2 #%·Å^-1
-        m_prob = prob[int((self.mu0 - self.a)/self.deltax)]
-        max_prob = np.max(prob)
-        
-#        self.measure_ann_d = self.psi_twin.annotate("",
-#              xy=(self.mu0, -self.ann_corr), xycoords='data',
-#              xytext=(self.mu0, m_prob + self.ann_corr), textcoords='data',
-#              arrowprops=dict(arrowstyle="-", connectionstyle="arc3,rad=0.", 
-#                              color = self.ann_d_color, alpha = 1, lw = 5),
-#                              annotation_clip = False)
-#        
-#        self.measure_ann_u = self.psi_twin.annotate("",
-#              xy=(self.mu0, m_prob-self.ann_corr), xycoords='data',
-#              xytext=(self.mu0, max_prob+self.ann_corr), textcoords='data',
-#              arrowprops=dict(arrowstyle="-", connectionstyle="arc3,rad=0.", 
-#                              color = self.ann_u_color, alpha = 1, lw = 5),
-#                              annotation_clip = False)
-       
-        self.b_arrow = self.psi_twin.arrow(self.mu0, 0, 0, m_prob,
-                                           color = self.b_arrow_color, 
-                                           width = 0.25, 
-                                           head_width = 0.0, head_length = 0.0)
-        
-        self.u_arrow = self.psi_twin.arrow(self.mu0, m_prob, 
-                                           0, max_prob - m_prob,
-                                           color = self.u_arrow_color, 
-                                           width = 0.25,
-                                           head_width = 0.0, head_length = 0.0)       
-        
-    def read_settigns(self):
-        """
-        Reads file settings, assigns parameters and initializes the potentials.
-        First element chooses potential:
-            
-            - If 0: HARMONIC
-            Line: 0, dx, k, **redzone
-            
-            - If 1: DOUBLE WELL (20*[HARMONIC + CG*GAUSSIAN])
-            Line: 1, dx, k, mu, sigma, CG, **redzone
-            
-            - If 2: TRIPLE WELL (20*[HARMONIC + CG1*GAUSSIAN + CG2*GAUSSIAN2])
-            Line: 2, dx, k, mu1, sigma1, CG1, mu2, sigma2, CG2, **redzone
-            
-        """
-        self.lvl_set = np.array(eval(self.settings.readline().strip()))
-        
-        if self.lvl_set[0] == 0: #HARMONIC
-            dx = self.lvl_set[1]
-            k = self.lvl_set[2]
-            self.potential = 20*0.5*k*(self.mesh - dx)**2
-            
-        elif self.lvl_set[0] == 1: #DOUBLE WELL
-            dx = self.lvl_set[1]
-            k = self.lvl_set[2]
-            mu = self.lvl_set[3]
-            sigma = self.lvl_set[4]
-            CG = self.lvl_set[5]
-            self.potential = 20*(\
-                    0.5*k*(self.mesh - dx)**2
-                    +\
-                    CG/np.sqrt(2*np.pi*sigma**2)*\
-                    np.exp(-(self.mesh-mu)**2/(2.*sigma**2)))
-            
-        elif self.lvl_set[0] == 2: #TRIPLE WELL
-            dx = self.lvl_set[1]
-            k = self.lvl_set[2]
-            mu1 = self.lvl_set[3]
-            sigma1 = self.lvl_set[4]
-            CG1 = self.lvl_set[5]
-            mu2 = self.lvl_set[6]
-            sigma2 = self.lvl_set[7]
-            CG2 = self.lvl_set[8]
-            self.potential = 20*(\
-                    0.5*k*(self.mesh - dx)**2
-                    +\
-                    CG1/np.sqrt(2*np.pi*sigma1**2)*\
-                    np.exp(-(self.mesh-mu1)**2/(2.*sigma1**2))
-                    +\
-                    CG2/np.sqrt(2*np.pi*sigma2**2)*\
-                    np.exp(-(self.mesh-mu2)**2/(2.*sigma2**2)))
-        
-        elif self.lvl_set[0] == 3: #WOOD-SAXON
-            H = 50
-            R = 3.5
-            a = 0.35
-            self.potential = -H/(1+np.exp((abs(self.mesh)-R)/a)) + H
-            
-        else:
-            print('ERROR: Bad code word for potential (1st element in line).')
-                    
-    
-    #PSI0
-    def psi0_init(self):
-        """
-        Creates the initial wave function, a gaussian packet in general. The 
-        output's shape is the same as mesh.
-        """                          
-        #First we generate the shape of a gaussian, no need for norm. constants
-        #We then normalize using the integration over the array.
-        self.psi0 = np.sqrt(\
-                         np.exp(-(self.mesh-self.mu0)**2/(2.*self.sigma0**2)))\
-                                  *np.exp(np.complex(0.,-1.)*self.p0*self.mesh)
-        prob_psi0 = np.abs(self.psi0)**2
-        self.psi0 *= 1. / np.sqrt(self.deltax*\
-                      (np.sum(prob_psi0) - prob_psi0[0]/2. - prob_psi0[-1]/2.))
-        
-        self.psiev = self.psi0
-        
-    def shift_psi0(self, x):
-        """
-        Makes psi0 a given eigenvector of the hamiltonian but shifted a
-        certain amount x. Negative x means shift to the left and vicerversa.
-        """
-        if x  == 0 or x <= self.a or x >= self.b:
-            self.psi0 = self.evect[:,2]
-            print('Not shifted')
-            return
-        
-        #compute how many indices are in x:
-        n = int(abs(x)/self.deltax)
-        if x < 0:
-            eigen = self.evect[:,0]
-            app = np.append(eigen, np.zeros(n))
-            self.psi0 = app[-(self.N+1):]
-            print('Shifted')
-        if x > 0:
-            eigen = self.evect[:,0]
-            app = np.append(np.zeros(n), eigen)
-            self.psi0 = app[:self.N + 1]
-            print('Shifted')
-            
-#        self.psi0 = self.evect[:,0]
-#        print(np.shape(self.psi0))
-#        self.psi0 = np.append(np.zeros(100), self.psi0)
-#        print(np.shape(self.psi0)) 
-#        self.psi0 = self.psi0[:self.N+1]
-#        print(np.shape(self.psi0))
-        
-    #KEYBOARD
-    def _keyboard_closed(self):
-        """
-        Actions taken when keyboard is released/closed. Unbinding and 
-        'removing' the _keyboard.
-        """
-        print('keyboard released')
-        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
-        #Is happening that clicking on the box (outside any button) relases the 
-        #keyboard. This can be 'fixed' adding a button that requests the 
-        #keyboard again.
-        self._keyboard = None
-        
-    def request_KB(self):
-        """
-        Requesting and binding keyboard again, only if it has been released.
-        """
-        if self._keyboard == None: #It has been released
-            self._keyboard = Window.request_keyboard(self._keyboard_closed, 
-                                                     self)
-            self._keyboard.bind(on_key_down=self._on_keyboard_down)
-        else:
-            pass
-            
-
-    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
-        """
-        Bind to the event on_key_down, whenever keyboard is used this function
-        will be called. So, it contains every function related to the keyboard.
-        """
-        #We still want the escape to close the window, so diong the following,
-        #pressing twice escape will close it.
-        if keycode[1] == 'spacebar':
-             self.measure()
-        return 
-    
-    #CHANGE_VEL
     def change_vel(self):
         """
         Changes the factor in the plot time diferential.
@@ -539,134 +565,19 @@ class QMeasures(BoxLayout):
         else:
             self.pause_state = True #Pause
             self.label_pause.text = 'Play'
-            
-    #FILL BACKGROUND
-    def fill_bkg(self, curve):
-        """
-        Fills background in bkg axis, bkg_twin, with red and green zones of the
-        current self.lvl_set. It fills above the given curve (usually psiev or
-        psi0). Keeps track of the red points in self.redzone.
-        We take every other border from the file and fill the prev. zone(red) 
-        and the following zone (green). Last one added a side (red).
-        """
-        self.bkg_twin.collections.clear() #Clear before so we don't draw on top
-        self.redzone = np.array([])
-        prev = self.a
-        #Since the number of potentials arguments changes:
-        if self.lvl_set[0] == 0: #HARMONIC
-            start_i = 3
-        elif self.lvl_set[0] == 1: #DOUBLE WELL
-            start_i = 6
-        elif self.lvl_set[0] == 2: #TRIPLE WELL
-            start_i = 9
-        elif self.lvl_set[0] == 3: #WOOD-SAXON
-            start_i = 1
-            
-        for i in range(start_i, len(self.lvl_set)-1, 2):
-            #Index
-            prev_index = int((prev - self.a)//self.deltax)
-            nxt_index = int((self.lvl_set[-1]- self.a)//self.deltax)
-            index = int((self.lvl_set[i]-self.a)//self.deltax)
-            #Red
-            bot = (np.abs(curve)**2)[prev_index:index+1] 
-            top = np.zeros_like(bot) + 2.
-            redzone = self.mesh[prev_index:index+1] #+1 due to slice
-            self.redzone = np.append(self.redzone, redzone)
-            self.bkg_twin.fill_between(redzone,bot,top,
-                                       facecolor = self.zonecol_red)
-            #Green
-            bot = (np.abs(curve)**2)[index:nxt_index+1]
-            top = np.zeros_like(bot) + 2.
-            greenzone = self.mesh[index:nxt_index+1] #(")
-            self.bkg_twin.fill_between(greenzone, bot, top,
-                                       facecolor = self.zonecol_green)
-            #Looping by giving the new prev position
-            prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)]  
-        #Last zone red
-        bot = (np.abs(curve)**2)[nxt_index:]
-        top = np.zeros_like(bot) + 2.
-        redzone = self.mesh[nxt_index:]
-        self.redzone = np.append(self.redzone, redzone)
-        self.bkg_twin.fill_between(redzone,bot,top,
-                                       facecolor = self.zonecol_red)
-    
-    #UPDATE LABELS
-    def update_labels(self):
-        """
-        Updates probability, energy and game labels.
-        """
-        prob = self.deltax*np.abs(self.psiev)**2 #Get instant probability
-        #PROB LABELS
-        self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' \
-                           'Prob.:          ' + '%.2f' \
-            %(prob[int((self.mu0 - self.a)/self.deltax)] * 100.)\
-            + '\n' + \
-                           'Max. prob.: ' + '%.2f' \
-            %(np.max(prob) * 100.)
-        #ENERGY
-        energy = np.sum(np.abs(self.comp0)**2 * self.evals)
-        self.label2.text = '<E> =  \n' + '%.3f' % energy
-        #GAME
-        self.label_lvl.text = 'Level ' + str(self.lvl)
         
         
-    
-    #PLOTPSIEV
-    def plotpsiev(self, dt):
-        """
-        Function to be called in the animation loop (clock.schedule_interval),
-        it has to have dt as an argument. Here first is computed psi(t), then
-        the data is updated in psi_data and finally it draws on the canvas. 
-        This parameter dt is not the actual time, its only the real time 
-        interval between calls. The time is obtained with self.plt_time.
-        """
-        if not self.pause_state: #Only evolve plt_time if we are unpaused
-            #TIME
-            self.plt_time += self.plt_vel_factor*self.plt_dt #Time step          
-            t = self.plt_time
-            
-            #COMPUTE PSIEV(t).
-            #We do it with two steps (given t).
-            #_1_. 
-            #Column vector containing the product between component and 
-            #exponential factor. 1st build array ary and then col. matrix 'mtx'
-            ary_compexp = self.comp0 * \
-                        np.exp(np.complex(0.,-1.)*self.evals*t/(50*self.hbar))
-            mtx_compexp = np.matrix(np.reshape(ary_compexp, (self.N + 1,1)))
-            #_2_. 
-            #Psi(t)
-            col_psiev = self.evect * mtx_compexp #Matrix product
-            
-            #UPDATE DATA. 
-            #Since col_psiev is a column vector (N+1,1) and we 
-            #need to pass a list, we reshape and make it an array.
-            self.psiev = np.array(np.reshape(col_psiev, self.N + 1))[0]
-            self.psi_data.set_data(self.mesh, np.abs(self.psiev)**2)
-            
-            #FILLING PSI
-            self.psi_twin.collections.clear()
-            self.psi_twin.fill_between(self.mesh, np.abs(self.psiev)**2,
-                                       facecolor = 'black')
-            
-            self.b_arrow.set_alpha(np.exp(-t/10))
-            self.u_arrow.set_alpha(np.exp(-t/10))
-      
-        
-            #FILLING BKG
-            self.fill_bkg(self.psiev)
-            
-            #VISUAL PLOT
-            self.visu_im.remove()
-            step = int(len(self.psiev)/self.num_visu) #Same as in the 1st plot
-            self.visu_im = self.visuax.imshow([np.abs(self.psiev[::step])**2], 
-                 aspect='auto', interpolation = self.inter_visu, 
-                 cmap = self.cmap_name)
-         
-        #DRAW 
-        #(keeps drawing even if ther hasn't been an update)
-        self.main_canvas.draw()
-    
-    #EIGENPARAM
+    ###########################################################################
+    #                            COMPUTING FUNCTIONS                          #
+    ###########################################################################
+    """
+    - eigenparam
+    - comp
+    - read_setings
+    - psi_init
+    - shift_psi
+    """
+ 
     def eigenparam(self):
         """
         Compute a vector with the eigenvalues(eV) and another with the 
@@ -702,218 +613,310 @@ class QMeasures(BoxLayout):
         #Normalized vectors (* here multiplies each factor element by each 
         #evect column)
         self.evect = self.evect * factors
+  
+    def comp(self):
+        """
+        Generates the initial wave function's components on the eigenbasis 
+        stored in self.compo.
+        """
+        #Compute psi components
+        phipsi=np.transpose(np.transpose(np.conj(self.evect)) * self.psi)
+        self.compo = self.deltax * (np.sum(phipsi, axis = 0) \
+                                            - phipsi[0,:]/2. - phipsi[-1,:]/2.)
+            
+    def read_settigns(self):
+        """
+        Reads file settings, assigns parameters and initializes the potentials.
+        First element chooses potential:
+            
+            - If 0: HARMONIC
+            Line: 0, dx, k, **redzone
+            
+            - If 1: DOUBLE WELL (20*[HARMONIC + CG*GAUSSIAN])
+            Line: 1, dx, k, mu, sigma, CG, **redzone
+            
+            - If 2: TRIPLE WELL (20*[HARMONIC + CG1*GAUSSIAN + CG2*GAUSSIAN2])
+            Line: 2, dx, k, mu1, sigma1, CG1, mu2, sigma2, CG2, **redzone
+            
+            - If 3 WOOD-SAXON
+            Line: 3, H, R, 1
+            
+            - If 4: DOUBLE WOOD-SAXON
+            Line: 4, H1, R1, a1, H2, R2, a2, **redzone
+            
+        Number of arguments have to be passed to the realted variable.
+        """
+        self.lvl_set = np.array(eval(self.settings.readline().strip()))
+        
+        if self.lvl_set[0] == 0: #HARMONIC
+            dx = self.lvl_set[1]
+            k = self.lvl_set[2]
+            
+            self.potential = 20*0.5*k*(self.mesh - dx)**2
+            self.fill_start_i = 3
+            
+        elif self.lvl_set[0] == 1: #DOUBLE WELL
+            dx = self.lvl_set[1]
+            k = self.lvl_set[2]
+            mu = self.lvl_set[3]
+            sigma = self.lvl_set[4]
+            CG = self.lvl_set[5]
+            
+            self.potential = 20*(\
+                    0.5*k*(self.mesh - dx)**2
+                    +\
+                    CG/np.sqrt(2*np.pi*sigma**2)*\
+                    np.exp(-(self.mesh-mu)**2/(2.*sigma**2)))
+            self.fill_start_i = 6
+            
+        elif self.lvl_set[0] == 2: #TRIPLE WELL
+            dx = self.lvl_set[1]
+            k = self.lvl_set[2]
+            mu1 = self.lvl_set[3]
+            sigma1 = self.lvl_set[4]
+            CG1 = self.lvl_set[5]
+            mu2 = self.lvl_set[6]
+            sigma2 = self.lvl_set[7]
+            CG2 = self.lvl_set[8]
+            
+            self.potential = 20*(\
+                    0.5*k*(self.mesh - dx)**2
+                    +\
+                    CG1/np.sqrt(2*np.pi*sigma1**2)*\
+                    np.exp(-(self.mesh-mu1)**2/(2.*sigma1**2))
+                    +\
+                    CG2/np.sqrt(2*np.pi*sigma2**2)*\
+                    np.exp(-(self.mesh-mu2)**2/(2.*sigma2**2)))
+            self.fill_start_i = 9
+        
+        elif self.lvl_set[0] == 3: #WOOD-SAXON
+            H = self.lvl_set[1]
+            R = self.lvl_set[2]
+            a = self.lvl_set[3]
+            
+            self.potential = -H/(1+np.exp((abs(self.mesh)-R)/a)) + H
+            self.fill_start_i = 4
+            
+        elif self.lvl_set[0] == 4: #DOUBLE WOOD-SAXON
+            H1 = self.lvl_set[1]
+            R1 = self.lvl_set[2]
+            a1 = self.lvl_set[3]
+            H2 = self.lvl_set[4]
+            R2 = self.lvl_set[5]
+            a2 = self.lvl_set[6]
+            WS1 = - H1/(1 + np.exp((abs(self.mesh)-R1)/a1)) + H1
+            WS2 = H2/(1 + np.exp((abs(self.mesh)-R2)/a2))
+            
+            self.potential = WS1 + WS2
+            self.fill_start_i = 7
+            
+        else:
+            print('ERROR: Bad code word for potential (1st element in line).')
     
-    #COMP   
-    def comp(self, do_psi = False):
-        
+    def psi_init(self):
         """
-        Generates the initial wave function's components on the eigenbasis if 
-        d0_psi = False (stored on comp0). If d0_psi = True computes psiev 
-        components (stored in compev).
+        Creates the initial wave function, a gaussian packet in general. The 
+        output's shape is the same as mesh.
+        """                          
+        #First we generate the shape of a gaussian, no need for norm. constants
+        #We then normalize using the integration over the array.
+        self.psi = np.sqrt(\
+                         np.exp(-(self.mesh-self.mu0)**2/(2.*self.sigma0**2)))\
+                                  *np.exp(np.complex(0.,-1.)*self.p0*self.mesh)
+        prob_psi = np.abs(self.psi)**2
+        self.psi *= 1. / np.sqrt(self.deltax*\
+                      (np.sum(prob_psi) - prob_psi[0]/2. - prob_psi[-1]/2.))
+        
+        self.psi2 = np.abs(self.psi)**2
+        
+    def shift_psi(self, x):
         """
-        if do_psi == True:
-    		#Compute psi's components
-            phipsi=np.transpose(np.transpose(np.conj(self.evect)) * self.psiev)
-            self.compev = self.deltax * (np.sum(phipsi, axis = 0) \
-                                            - phipsi[0,:]/2. - phipsi[-1,:]/2.)
-        else:
-    		#Compute psi0 components
-            phipsi=np.transpose(np.transpose(np.conj(self.evect)) * self.psi0)
-            self.comp0 = self.deltax * (np.sum(phipsi, axis = 0) \
-                                            - phipsi[0,:]/2. - phipsi[-1,:]/2.)
-            
-    #MEASURE
-    def measure(self):
+        Makes psi a given eigenvector of the hamiltonian but shifted a
+        certain amount x. Negative x means shift to the left and vicerversa.
         """
-        Triggered from the kivy file. It takes the actual psiev(t), generates 
-        the probability distribution and picks the new value for mu. A new 
-        initial wave function is created with a small sigma witch represents
-        the delta post measure. The time needs to be reset to zero after 
-        measuring. Finally, calls comp() and now plotpsiev() has everything it
-        needs to continue plotting.
-        
-        Schedule:
-            - Get instant probability
-            - Pick new mu0
-            - Reset time
-            - New sigma 
-            - Check zone:
-                OUT
-                * Substract points AND/OR change lives
-                    !(extra with lives game mode)
-                    ! Check if any lives left
-                    ! Pauses the game
-                    ! Game over image
-                    ! Disables measures (buton and spacebar)
-                    ! Enable restart button
-                * New psi0 (psi0_init)
-                * New comp (eigenbassis still the same)
-                * Draw(data) psi and fill
-                * Fill bkg (WITH PSI0, tho still the same redzone)
-                * Redraw visuplot
-                IN
-                * Add points
-                * New level
-                * Read new level
-                * New pot
-                * Eigenparam
-                * New psi0 (psi0_init)
-                * New comp (eigenbassis still the same)
-                * Draw(data) psi and fill
-                * Fill bkg (WITH PSI0, with new redzone)
-                * Update new redzone (while filling)
-                * Redraw visuplot
-            - Update labels
-        """
-        prob = self.deltax*np.abs(self.psiev)**2 #Get instant probability
-        self.mu0 = np.random.choice(self.mesh, p=prob) #Pick new random mu0
-        
-        
-#        self.measure_ann.remove()
-#        self.measure_ann = self.psi_twin.annotate("",
-#              xy=(self.mu0, self.ann_bot), xycoords='data',
-#              xytext=(self.mu0, 0.6), textcoords='data',
-#              arrowprops=dict(arrowstyle="-",
-#                              connectionstyle="arc3,rad=0.", color = 'white'),
-#                              annotation_clip = False)
-              
-        self.measure_ann()
-              
-              
-        self.plt_time = 0. #Reset time 
-        self.sigma0 = self.dirac_sigma #New sigma
-        
-        if self.mu0 in self.redzone: #Check zone
-#            self.points -= 5 #Bad, out of limits
-            self.lives -= 1
-            self.lives_sources()
-            self.psi0_init() 
-            self.comp()
-            self.psi_data.set_data(self.mesh, np.abs(self.psi0)**2)
-            self.psi_twin.collections.clear() 
-            self.psi_twin.fill_between(self.mesh, np.abs(self.psi0)**2,
-                                       facecolor = 'black')
-            if self.lives <= 0:
-                self.pause_state = True
-                self.GMO_img = self.pot_twin.imshow(self.gameover_imgdata, 
-                                  aspect = 'auto', extent = [-7.5, 7.5, 0, 40])
-                self.measure_btn.disabled = True
-                self.restart_btn.disabled = False
-                self._keyboard.release()
-            self.fill_bkg(self.psi0)
-            #VISUAL PLOT
-            self.visu_im.remove()
-            step = int(len(self.psi0)/self.num_visu) #Same as in the 1st plot
-            self.visu_im = self.visuax.imshow([np.abs(self.psi0[::step])**2], 
-                 aspect='auto', interpolation = self.inter_visu, 
-                 cmap = self.cmap_name)
-            
-            
-        else:
-#            self.points += 10 #level passed
-            self.lvl += 1 #Read new lvl
-            
-            
-#            self.lvl_set = np.array(eval(self.settings.readline().strip()))
-#            #New pot
-#            self.pot_mu = self.lvl_set[0]
-#            self.pot_sigma = self.lvl_set[1]
-#            self.pot_k = self.lvl_set[2]
-#            self.pot_init()
-            
-            self.read_settigns()
-            
-            
-            self.pot_data.set_data(self.mesh, self.potential)
-            #Eigenparam
-            self.eigenparam()
-            #New psi0
-            if self.lvl == 6:
-                #Starting double well, we put psi0 in its left min.
-                self.mu0 = self.mesh[np.argmin(self.potential)]
-            if self.lvl == 8:
-                #Starting at the middle maximum
-                self.mu0 = -2
-            if self.lvl == 9:
-                self.mu0 = -6
-            self.psi0_init()
-            self.comp()
-            self.psi_data.set_data(self.mesh, np.abs(self.psi0)**2)
-            self.psi_twin.collections.clear()
-            self.psi_twin.fill_between(self.mesh, np.abs(self.psi0)**2,
-                                       facecolor = 'black')
-            self.fill_bkg(self.psi0)
-            #VISUAL PLOT
-            self.visu_im.remove()
-            step = int(len(self.psi0)/self.num_visu) #Same as in the 1st plot
-            self.visu_im = self.visuax.imshow([np.abs(self.psi0[::step])**2], 
-                 aspect='auto', interpolation = self.inter_visu, 
-                 cmap = self.cmap_name)
-                
-        self.update_labels()
+        if x  == 0 or x <= self.a or x >= self.b:
+            self.psi = self.evect[:,2]
+            self.psi2 = np.abs(self.psi)**2
 
-    #RESTART
-    def restart(self):
+            return
+        
+        #compute how many indices are in x:
+        n = int(abs(x)/self.deltax)
+        if x < 0:
+            eigen = self.evect[:,0]
+            app = np.append(eigen, np.zeros(n))
+            self.psi = app[-(self.N+1):]
+            self.psi2 = np.abs(self.psi)**2
+
+        if x > 0:
+            eigen = self.evect[:,0]
+            app = np.append(np.zeros(n), eigen)
+            self.psi = app[:self.N + 1]
+            self.psi2 = np.abs(self.psi)**2
+       
+    ###########################################################################
+    #                             PLOTTING FUNCTIONS                          #
+    ###########################################################################
+    """
+    - fill_bkg
+    - measure_arrow
+    - update_labels
+    """
+    
+    def fill_bkg(self, curve):
         """
-        After the game is lost, sets everything ready to start again:
-            - Clear game over image
-            - Lvl 1
-            - Lives and its images to max_lives
-            - Pauses again (in cas we unpaused it during game over)
-            - Starts reading the settings file again (lvl 1)
-            - New pot (init)
-            - Eigenparam
-            - New mu0 (initial mu)
-            - New psi0 (sigma already dirac's)
-            - New comp 
-            - Fill psi
-            - Bkg fill + update redzone
-            - Redraw visuplot
-            - Enables measures (button and spacebar)
-            - Disables restart 
-            - 
+        Fills background in bkg axis, bkg_twin, with red and green zones of the
+        current self.lvl_set. It fills above self.psi2. Keeps track of 
+        the red points in self.redzone. We take every other border from the 
+        file and fill the prev. zone(red) and the following zone (green). 
+        Last one added a side (red).
         """
-        self.GMO_img.remove()
-        self.lvl = 1
-        self.lives = self.max_lives
-        self.lives_sources()
-        self.pause_state = True
-        self.settings.close() #We close and open again to start reading again
-        self.settings = open('lvl_settings.txt','r')
-        
-        
-#        self.lvl_set = np.array(eval(self.settings.readline().strip()))
-#        self.pot_mu = self.lvl_set[0]
-#        self.pot_sigma = self.lvl_set[1]
-#        self.pot_k = self.lvl_set[2]
-#        print(self.lvl_set)
-#        self.pot_init()
-        
-        self.read_settigns()
-        
-        
-        self.pot_data.set_data(self.mesh, self.potential)
-        self.eigenparam()
-        self.mu0 = self.init_mu0
-        self.psi0_init()
-        self.comp()
-        self.psi_data.set_data(self.mesh, np.abs(self.psi0)**2)
-        self.psi_twin.collections.clear()
-        self.psi_twin.fill_between(self.mesh, np.abs(self.psi0)**2,
-                                       facecolor = 'black')
+        self.bkg_twin.collections.clear() #Clear before so we don't draw on top
         self.redzone = np.array([])
-        self.fill_bkg(self.psi0)
-        self.visu_im.remove()
-        step = int(len(self.psi0)/self.num_visu) #Same as in the 1st plot
-        self.visu_im = self.visuax.imshow([np.abs(self.psi0[::step])**2], 
-             aspect='auto', interpolation = self.inter_visu, 
-             cmap = self.cmap_name)
-        self.measure_btn.disabled = False
-        self.request_KB()
-        self.restart_btn.disabled = True
-        self.update_labels()
+        prev = self.a
+            
+        for i in range(self.fill_start_i, len(self.lvl_set)-1, 2):
+            #Index
+            prev_index = int((prev - self.a)//self.deltax)
+            index = int((self.lvl_set[i]-self.a)//self.deltax)
+            nxt_index = int((self.lvl_set[-1]- self.a)//self.deltax)
         
+            #Red
+            bot = (self.psi2)[prev_index:index+1]
+            top = np.zeros_like(bot) + 2.
+            redzone = self.mesh[prev_index:index+1] #+1 due to slice
+            potential = self.potential[prev_index:index+1]/self.dcoord_factor
+            self.redzone = np.append(self.redzone, redzone)
+            self.bkg_twin.fill_between(redzone, bot, potential, 
+                                       where = np.less(bot, potential), 
+                                       facecolor = self.potcol)
+            self.bkg_twin.fill_between(redzone, np.maximum(potential,bot), top,
+                                       facecolor = self.zonecol_red)
+
+            #Green
+            bot = (self.psi2)[index-1:nxt_index+2]
+            top = np.zeros_like(bot) + 2.
+            greenzone = self.mesh[index-1:nxt_index+2] #(")
+            potential = self.potential[index-1:nxt_index+2]/self.dcoord_factor
+            self.bkg_twin.fill_between(greenzone, bot, potential, 
+                                       where = np.less(bot, potential), 
+                                       facecolor = self.potcol)
+            self.bkg_twin.fill_between(greenzone, np.maximum(potential, bot),
+                                       top, facecolor = self.zonecol_green)
+            
+            #Looping by giving the new prev position
+            prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)]  
+            
+        #Last zone red
+        bot = (self.psi2)[nxt_index:]
+        top = np.zeros_like(bot) + 2.
+        redzone = self.mesh[nxt_index:]
+        potential = self.potential[nxt_index:]/self.dcoord_factor
+        self.redzone = np.append(self.redzone, redzone)
+        self.bkg_twin.fill_between(redzone, bot, potential, 
+                                   where = np.less(bot, potential), 
+                                   facecolor = self.potcol)
+        self.bkg_twin.fill_between(redzone,  np.maximum(potential,bot), top,
+                                   facecolor = self.zonecol_red)
         
+    def measure_arrow(self):
+        """
+        Draws the annotation (line) on the measured mu0. Two annotations: line
+        from bottom to the probilibity we got, and another from there to the 
+        max probability.
+        """
+        #Clears before running
+        self.b_arrow.remove()
+        self.u_arrow.remove()
+    
+        prob = self.psi2 #%·Å^-1
+        m_prob = prob[int((self.mu0 - self.a)/self.deltax)]
+        max_prob = np.max(prob)
+       
+        self.b_arrow = self.psi_twin.arrow(self.mu0, 0, 0, m_prob,
+                                           color = self.b_arrow_color, 
+                                           width = 0.25, head_width = 0.001, 
+                                           head_length = 0.001)
+        
+        self.u_arrow = self.psi_twin.arrow(self.mu0, m_prob, 
+                                           0, max_prob - m_prob,
+                                           color = self.u_arrow_color, 
+                                           width = 0.25, head_width = 0.001, 
+                                           head_length = 0.001)
+        
+    def update_labels(self):
+        """
+        Updates probability, energy and game labels.
+        """
+        prob = self.deltax*self.psi2 #Get instant probability
+        self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' \
+                           'Prob.:          ' + '%.2f' \
+            %(prob[int((self.mu0 - self.a)/self.deltax)] * 100.)\
+            + '\n' + \
+                           'Max. prob.: ' + '%.2f' \
+            %(np.max(prob) * 100.)
+        self.label2.text = '<E> =  \n' + '%.3f' % self.energy
+        #GAME
+        self.label_lvl.text = 'Level ' + str(self.lvl)
+        
+    ###########################################################################
+    #                              GAME FUNCTIONS                             #
+    ###########################################################################
+    """
+    - lives_sources
+    - _keyboard_closed
+    - request_KB
+    - _on_keyboard_down 
+    """
+
+    def lives_sources(self):
+        """
+        Replaces every live image source: having N lives, replaces live1 to
+        liveN with 'heart_img.jpg', and live(N+1) to live(max_lives) with 
+        'skull_img.jpg'. So, when changing the amount of lives, this has to be
+        called.
+        """
+        for live_spot in range(1, self.max_lives+1):
+            live_name = 'live' + str(live_spot)
+            img = self.ids[live_name] #self.ids is a dict of all id(s) from kv
+            if live_spot <= self.lives: #Heart
+                img.source = self.heart_img
+            else:
+                img.source = self.skull_img
+ 
+    def _keyboard_closed(self):
+        """
+        Actions taken when keyboard is released/closed. Unbinding and 
+        'removing' the _keyboard.
+        """
+        print('keyboard released')
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        #Is happening that clicking on the box (outside any button) relases the 
+        #keyboard. This can be 'fixed' adding a button that requests the 
+        #keyboard again.
+        self._keyboard = None
+        
+    def request_KB(self):
+        """
+        Requesting and binding keyboard again, only if it has been released.
+        """
+        if self._keyboard == None: #It has been released
+            self._keyboard = Window.request_keyboard(self._keyboard_closed, 
+                                                     self)
+            self._keyboard.bind(on_key_down=self._on_keyboard_down)
+        else:
+            pass
+            
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        """
+        Bind to the event on_key_down, whenever keyboard is used this function
+        will be called. So, it contains every function related to the keyboard.
+        """
+        #We still want the escape to close the window, so diong the following,
+        #pressing twice escape will close it.
+        if keycode[1] == 'spacebar':
+             self.measure()
+        return 
         
 class QMeasuresApp(App):
     """
@@ -924,8 +927,6 @@ class QMeasuresApp(App):
     def build(self):
         self.title = 'Quantic Measures'
         return QMeasures()
-
-
 
 if __name__ == '__main__':
     QMeasuresApp().run()
