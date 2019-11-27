@@ -109,11 +109,6 @@ class main(BoxLayout):
         self.background()
         self.update_texture()
 
-        '''
-        with self.statuslabel.canvas:
-            Color(1,0,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-        '''
         
     def reset_pot_list(self):
         self.pot.clear()
@@ -160,12 +155,7 @@ class main(BoxLayout):
             
         self.background_main()
         self.update_texture_main()
-        
-        '''
-        with self.statuslabel.canvas:
-            Color = (1,0,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-        '''   
+
     def reset_wave_list(self):
         self.particlestrings = []
         self.particlesave = []
@@ -173,12 +163,7 @@ class main(BoxLayout):
         self.init_conds = []
         self.wavebox.canvas.clear()
         self.wav.clear()
-      #  self.background()
-        ''' 
-        with self.statuslabel.canvas:
-            Color(1,0,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-        '''    
+
     
     def demo1(self):
         ' Demo1 = harm osci ground eigenstate not centered '
@@ -254,21 +239,17 @@ class main(BoxLayout):
         self.demolabel = 'smaller box'
         self.T = 630
         
-        x0 = -0.75
+        x0 = 0.
         y0 = 0.
         sigma = 0.25
         px0 = 0.
         py0 = 0.
         
-        V0pot = 2.
-        R = 0.5
-        a = 0.1
-        x0pot = 0.
-        y0pot = 0.
+        V0pot = 100.
         
         #Add potential
         
-        self.pot.add_function(potentials.woods_box,[V0pot,R,a,x0pot,y0pot])
+        self.pot.add_function(potentials.box,[V0pot,x0,y0])
         
         self.background()
         self.update_texture()
@@ -287,11 +268,11 @@ class main(BoxLayout):
 
         self.probability = probevol
         
-    
-    def demo4(self):
-        'Demo4 = double barrier / double well'
-        self.demo = 4
-        self.demolabel = 'double well in x'
+        
+    def demo31(self):
+        'Demo3.1 = box'
+        self.demo = 3
+        self.demolabel = 'smaller box'
         self.T = 630
         
         x0 = 0.
@@ -300,12 +281,11 @@ class main(BoxLayout):
         px0 = 0.
         py0 = 0.
         
-        V0pot = 10.
-        x0pot = 0.
+        V0pot = 10**5.
         
         #Add potential
         
-        self.pot.add_function(potentials.barrier_x,[V0pot,x0pot])
+        self.pot.add_function(potentials.box,[V0pot,x0,y0])
         
         self.background()
         self.update_texture()
@@ -319,7 +299,113 @@ class main(BoxLayout):
         
         #Update time evolution from file
     
+        file = open('Demo3.1','rb')
+        probevol = pkl.load(file)
+
+        self.probability = probevol
+        
+    
+    def demo4(self):
+        'Demo4 = double barrier / double well'
+        self.demo = 4
+        self.demolabel = 'double well in x'
+        self.T = 630
+        
+        x0 = 0.
+        y0 = 0.
+        w = 5.
+
+        wx = 5.
+        wy = 2.
+
+        #Add potential
+        
+        self.pot.add_function(potentials.osc_nosym,[x0,y0,wx,wy])
+        
+        self.background()
+        self.update_texture()
+        
+        #Add wave function
+        
+        self.wav.add_function(wavef.InitWavef.OsciEigen,[x0,y0,w,0,0])
+            
+        self.background_main()
+        self.update_texture_main()
+        
+        #Update time evolution from file
+    
         file = open('Demo4','rb')
+        probevol = pkl.load(file)
+
+        self.probability = probevol
+        
+    
+    def demo5(self):
+        'Demo5 = single slit'
+        self.demo = 4
+        self.demolabel = 'single slit'
+        self.T = 400
+        
+        x0 = -1.
+        y0 = 0.
+        sigma = 0.25
+        px0 = 1.
+        py0 = 0.
+        
+        V0pot = 1000.
+
+        #Add potential
+        
+        self.pot.add_function(potentials.singleslit,[V0pot,x0,y0])
+        
+        self.background()
+        self.update_texture()
+        
+        #Add wave function
+        
+        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,sigma,px0,py0])
+            
+        self.background_main()
+        self.update_texture_main()
+        
+        #Update time evolution from file
+    
+        file = open('Demo5','rb')
+        probevol = pkl.load(file)
+
+        self.probability = probevol
+
+    def demo51(self):
+        'Demo5.1 = single slit'
+        self.demo = 4
+        self.demolabel = 'single slit'
+        self.T = 400
+        
+        x0 = -1.
+        y0 = 0.
+        sigma = 0.25
+        px0 = 1.
+        py0 = 0.
+        
+        V0pot = 1000.
+
+        #Add potential
+        
+        self.pot.add_function(potentials.doubleslit,[V0pot,x0,y0])
+        
+        self.background()
+        self.update_texture()
+        
+        #Add wave function
+        
+        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,sigma,px0,py0])
+            
+        self.background_main()
+        self.update_texture_main()
+        
+        #Update time evolution from file
+    
+        file = open('Demo5.1','rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
@@ -365,16 +451,8 @@ class main(BoxLayout):
             self.timer.cancel()
         else:
             pass
-    '''        
-    def change_speed(self):
-        sl = [1,2,5,10]
-        if(self.speedindex == len(sl)-1):
-            self.speedindex = 0
-        else:
-            self.speedindex += 1
-        self.speed = sl[self.speedindex]
-        self.speedbutton.text = str(self.speed)+'x'
-    '''
+
+
     def stop(self):
         self.pause()
         self.time = 0
@@ -383,27 +461,6 @@ class main(BoxLayout):
         self.reset_wave_list()
         self.init_conds = []
       
-    
- #   def save(self):
- #       savedata = np.array([self.pot.functions,self.pot.dfunctionsx,self.pot.dfunctionsy,self.potentialsave,self.particles,self.init_conds,self.particlesave])
- #       with open('save.dat','wb') as file:
- #           pickle.dump(savedata,file)
- #       
- #   def load(self):
- #       with open('save.dat','rb') as file:
- #           savedata = pickle.load(file)
- #       
- #       self.pot.functions = savedata[0]
- #       self.pot.dfunctionsx = savedata[1]
- #       self.pot.dfunctionsy = savedata[2]
- #       self.potentials = savedata[3]
- #       self.particles = savedata[4]
- #       self.init_conds = savedata[5]
- #       self.particlestrings = savedata[6]
- #       
- #       self.background()
- #       self.update_texture()
- 
     ''' El tiempo de la animacion!!!!!! '''
  
     def animate(self,interval):
