@@ -15,6 +15,18 @@ def osc(r,param):
     
     return 0.5*m*w**2*(xx**2+yy**2) #MATRIX
 
+def osc_nosym(r,param):
+    x0 = param[0]
+    y0 = param[1]
+    wx = param[2]
+    wy = param[3]
+    m=1.
+    
+    xx=r[0]-x0 #ROW
+    yy=r[1]-y0 #COLUMN
+    
+    return 0.5*m*(wx**2*xx**2+wy**2*yy**2) #MATRIX
+
 #############################
     
 def gauss(r,param):
@@ -30,22 +42,30 @@ def gauss(r,param):
 
 #############################
     
-def woods_box(r,param):
+def box(r,param): #Barrier in a box
     V0 = param[0]
-    R = param[1]
-    a = param [2]
-    x0 = param[3]
-    y0 = param[4]
+    x0 = param[1]
+    y0 = param[2]
         
     xx = r[0] - x0 #ROW
     yy = r[1] - y0 #COLUMN
     
-   # up = 0. #-1.*V0/(1.+np.exp((yy-R)/a))*xx/xx
-   # down = 0. #+1.*V0/(1.+np.exp((yy-R)/a))*xx/xx
-   # left = 0. #-1.*V0/(1.+np.exp((-1*xx-R)/a))
-    right = -1.*V0/(1.+np.exp((xx-R)/a))
+    n = 100
     
-    return right+(yy-yy)
+    pot = np.zeros((n,n))
+    
+    for i in range (28,72):
+        pot[28,i] = V0
+        pot[70,i] = V0
+        pot[i,28] = V0
+        pot[i,70] = V0
+        
+        pot[29,i] = V0
+        pot[71,i] = V0
+        pot[i,29] = V0
+        pot[i,71] = V0
+        
+    return  pot
 
 #############################
     
@@ -57,3 +77,48 @@ def barrier_x(r,param):
     yy = r[1]  #COLUMN
     
     return V0*xx**2*yy/yy
+
+#############################
+
+def singleslit(r,param):
+    V0 = param[0]
+    x0 = param[1]
+    y0 = param[2]
+        
+    xx = r[0] - x0 #ROW
+    yy = r[1] - y0 #COLUMN
+    
+    n = 100
+    
+    pot = np.zeros((n,n), dtype = 'float')
+    
+    for i in range (0,39):
+        pot[i,65] = V0
+        pot[i,66] = V0  
+    for i in range (60,n):
+        pot[i,65] = V0
+        pot[i,66] = V0
+    
+    return pot
+
+
+def doubleslit(r,param):
+    V0 = param[0]
+    x0 = param[1]
+    y0 = param[2]
+        
+    xx = r[0] - x0 #ROW
+    yy = r[1] - y0 #COLUMN
+    
+    n = 100
+    
+    pot = np.zeros((n,n))
+    
+    for i in range (0,41):
+        pot[i,70] = V0
+    for i in range (45,56):
+         pot[i,70] = V0
+    for i in range (60,n):
+        pot[i,70] = V0
+    
+    return pot

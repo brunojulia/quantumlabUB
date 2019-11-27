@@ -5,7 +5,7 @@
 
 	plotbox: plot_box.__self__
 	wavebox: wave_box.__self__
-	demolabel: demo_label.__self__
+	#demolabel: demo_label.__self__
 	#speedbutton: speed_button.__self__
 	#statuslabel: status_label.__self__
 	#menu: menu.__self__
@@ -24,8 +24,9 @@
 	BoxLayout:
 		orientation: 'vertical'
 		size_hint: (0.25, 1)
+		
 		BoxLayout:
-			size_hint: (1, 0.2)
+			size_hint: (1, 0.25)
 			orientation: 'horizontal'
 			Button:
 				text: 'Play'
@@ -34,27 +35,9 @@
 				text: 'Pause'
 				on_press: root.pause()
 			Button:
-				text: 'Stop'
+				text: 'Reset'
 				on_press: root.stop()
-			#Button:
-			#	id: speed_button
-			#	on_press: root.change_speed()
-			#Label:
-			#	id: status_label
-		#BoxLayout:
-		#	size_hint: (1, 0.2)
-		#	orientation: 'horizontal'
-		#	Button:
-		#		text: 'Compute'
-		#		on_press: root.compute()
-		#	Label:
-		#		id: status_label
-		#	Button:
-		#		text: 'Save'
-		#		on_press: root.save()
-		#	Button:
-		#		text: 'Load'
-		#		on_press: root.load()
+			
 		
 		BoxLayout:
 			size_hint: (1, 0.1)
@@ -63,58 +46,77 @@
 				text: 'Demos'
 		
 		BoxLayout:
-			size_hint: (1, 0.1)
+			size_hint: (1, 0.15)
 			orientation: 'horizontal'
 			Button:
 				text: 'Demo1'
 				on_press: root.demo1()
-		#	Label:
-		#		id: status_label
-		#	Button:
-		#		text: 'Save'
-		#		on_press: root.save()
-		#	Button:
-		#		text: 'Load'
-		#		on_press: root.load()
 		
 		BoxLayout:
-			size_hint: (1, 0.1)
+			size_hint: (1, 0.15)
 			orientation: 'horizontal'
 			Button:
 				text: 'Demo2'
 				on_press: root.demo2()
 				
 		BoxLayout:
-			size_hint: (1, 0.1)
+			size_hint: (1, 0.15)
 			orientation: 'horizontal'
 			Button:
-				text: 'Demo3'
+				text: 'Demo3.1'
 				on_press: root.demo3()
+			Button:
+				text: 'Demo3.2'
+				on_press: root.demo31()
 		BoxLayout:
-			size_hint: (1, 0.1)
+			size_hint: (1, 0.15)
 			orientation: 'horizontal'
 			Button:
 				text: 'Demo4'
 				on_press: root.demo4()
-		
 		BoxLayout:
-			size_hint: (1, 0.5)
+			size_hint: (1, 0.15)
 			orientation: 'horizontal'
 			Button:
-				text: 'Energy and norm evolution'
-				on_press: root.pop()
-		BoxLayout:
-			size_hint: (1, 0.5)
-			orientation: 'horizontal'
-			Label:
-				id: demo_label  
-			
+				text: 'Demo5.1'
+				on_press: root.demo5()
+			Button:
+				text: 'Demo5.2'
+				on_press: root.demo51()
+		
 		BoxLayout:
 			size_hint: (1, 0.1)
+			orientation: 'horizontal'
+			Label:
+				text: 'Data'
+		
+		BoxLayout:
+			size_hint: (1, 0.3)
+			orientation: 'horizontal'
+			Button:
+				text: 'System'
+				on_press: root.popexp()
+		
+		BoxLayout:
+			size_hint: (1, 0.3)
+			orientation: 'horizontal'
+			Button:
+				text: 'Graphics'
+				on_press: root.pop()
+
+		BoxLayout:
+			size_hint: (1, 0.15)
 			orientation: 'horizontal'
 			Label:
 				text: 'Potential'
 		
 		BoxLayout:
+			canvas.before:
+				Color:
+					rgba: .5, .5, .5, 1
+				Rectangle:
+					pos: self.pos
+					size: self.size
+					
 			id: plot_box
 			size_hint: (1, 1)
