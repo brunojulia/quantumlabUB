@@ -1,8 +1,8 @@
 <QMeasures>:
 
     box1: box1_id
-    label1: label1_id
-    label2: label2_id
+    #label1: label1_id
+    skip_btn: skip_id
     label_vel: change_vel_id
     label_pause: pause_id
     label_lvl: label_lvl_id
@@ -10,6 +10,7 @@
     measure_btn: measure_btn_id
     restart_btn: restart_btn_id
     pause_btn: pause_id
+    dummy_btn: dummy_id
 
     BoxLayout:
         orientation: 'vertical'
@@ -118,10 +119,14 @@
                 size_hint_x: 0.1
                 on_press: root.request_KB()
                                 
-            Label:
-                id: label2_id
+            Button:
+                id: skip_id
+                text: 'Skip Level'
                 size_hint_x: 0.1
+                on_press: root.skip_lvl()
                 
-            Label:
-                id: label1_id
-                size_hint_x: 0.2  
+            Button:
+                id: dummy_id
+                text: 'Helping:\n    Off'
+                size_hint_x: 0.2 
+                on_press: root.dummy_mode()

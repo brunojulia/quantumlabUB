@@ -122,12 +122,12 @@ class QMeasures(BoxLayout):
             #SOLVING 2ND PART
         
         #PSI INITIAL SETTINGS
+        #After every measure
         self.p0 = 0.    
         self.sigma0 = self.dirac_sigma
-        self.init_mu0 = 2
-        self.mu0 = self.init_mu0
-#        self.psi_init()  
-        self.shift_psi(self.mu0) #Starting with one of the eigenvectors
+        #This first one (even after restarting)
+        self.lvl = 1 #psi_init is going to use it
+        self.psi_init(apply_cond = True)  
         
         #COMPONENTS
         self.comp()
@@ -197,7 +197,7 @@ class QMeasures(BoxLayout):
                                   bottom = False, top = True)
         self.bkg_twin.tick_params(colors='white')
         self.bkg_twin.set_facecolor('black')
-        self.fill_bkg(self.psi)
+        self.fill_bkg()
         
         #PSI PLOT
         self.psi_twin = self.bkg_twin.twinx()
@@ -256,6 +256,7 @@ class QMeasures(BoxLayout):
         self.lives = self.max_lives 
         self.lives_sources() 
         self.lvl = 1
+        self.dummy = False
         
         #KEYBOARD
 #       request_keyboard returns an instance that represents the events on 
@@ -276,15 +277,15 @@ class QMeasures(BoxLayout):
         #TIME
         self.plt_time = 0.
         self.plt_dt = 1./30.
-        self.plt_vel_factor = 18 #Factor in dt
+        self.plt_vel_factor = 16 #Factor in dt
         self.pause_state = True #Begins paused
                                
         #LABELS
         #(this variable comes from the kivy file)
-        self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' + \
-            'Prob.:             ' + '-' + '\n' + \
-            'Max. prob.:    ' + '-'
-        self.label2.text = '<E> =  \n' + '%.3f' % self.energy
+#        self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' + \
+#            'Prob.:             ' + '-' + '\n' + \
+#            'Max. prob.:    ' + '-'
+#        self.label2.text = '<E> =  \n' + '%.3f' % self.energy
         self.label_vel.text = 'Velocity \n    ' + str(self.plt_vel_factor) +'X'
                           
         
@@ -303,6 +304,7 @@ class QMeasures(BoxLayout):
     - plotpsiev
     - measure
     - restart
+    - skip_lvl
     - change_vel
     - pause
     """
@@ -348,7 +350,7 @@ class QMeasures(BoxLayout):
             self.u_arrow.set_alpha(np.exp(-t/10))
             
             #BKG
-            self.fill_bkg(self.psi)
+            self.fill_bkg()
             
             #VISUAL PLOT
             self.visu_im.remove()
@@ -406,9 +408,9 @@ class QMeasures(BoxLayout):
         """
         prob = self.deltax*self.psi2 #Get instant probability
         self.mu0 = np.random.choice(self.mesh, p=prob) #Pick new random mu0
-              
+        if self.dummy:
+            self.mu0 = self.mesh[np.argmax(prob)]
         self.measure_arrow()
-              
         self.plt_time = 0. #Reset time 
         self.sigma0 = self.dirac_sigma #New sigma
         
@@ -421,8 +423,7 @@ class QMeasures(BoxLayout):
             self.psi_twin.collections.clear() 
             self.psi_twin.fill_between(self.mesh, self.psi2,
                                        facecolor = 'black')
-            
-            if self.lives <= 0:
+            if self.lives <= 0: #GAME OVER
                 self.pause_state = True
                 self.GMO_img = self.pot_twin.imshow(self.gameover_imgdata, 
                                   aspect = 'auto', extent = [-7.5, 7.5, 0, 40])
@@ -431,7 +432,7 @@ class QMeasures(BoxLayout):
                 self.restart_btn.disabled = False
                 self._keyboard.release()
     
-            self.fill_bkg(self.psi)
+            self.fill_bkg()
             
             #VISUAL PLOT
             self.visu_im.remove()
@@ -443,33 +444,18 @@ class QMeasures(BoxLayout):
             
         else: #IN
             self.lvl += 1 #Read new lvl
+            self.label_lvl.text = 'Level ' + str(self.lvl)
             self.read_settigns()
             self.pot_data.set_data(self.mesh, self.potential)
             #Eigenparam
             self.eigenparam()
-            #New psi
-            
-            if self.lvl == 7:
-                #Starting double wood-saxon in the ledt
-                self.mu0 = -4
-                self.p0 = 0
-            if self.lvl == 8:
-                #Starting double well, we put psi in its left min.
-                self.mu0 = self.mesh[np.argmin(self.potential)]
-            if self.lvl == 10:
-                #Starting at the middle maximum
-                self.mu0 = -2
-            if self.lvl == 11:
-                self.mu0 = -6
-                
-                
-            self.psi_init()
+            self.psi_init(apply_cond=True)
             self.comp()
             self.psi_data.set_data(self.mesh, self.psi2)
             self.psi_twin.collections.clear()
             self.psi_twin.fill_between(self.mesh, self.psi2,
                                        facecolor = 'black')
-            self.fill_bkg(self.psi)
+            self.fill_bkg()
             #VISUAL PLOT
             self.visu_im.remove()
             step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
@@ -478,11 +464,46 @@ class QMeasures(BoxLayout):
                  cmap = self.cmap_name)
             
         self.energy = np.sum(np.abs(self.compo)**2 * self.evals)
-
-        
         self.E_data.set_data(self.mesh, self.energy)
-                
-        self.update_labels()
+#        self.update_labels()
+        
+    def skip_lvl(self):
+        """
+        Skips the current level. Does exactly what measure does, but always
+        passes the level.
+        """            
+        prob = self.deltax*self.psi2 #Get instant probability
+        self.mu0 = np.random.choice(self.mesh, p=prob) #Pick new random mu0
+        if self.dummy:
+            self.mu0 = self.mesh[np.argmax(prob)]
+        self.b_arrow.remove()
+        self.u_arrow.remove()
+        self.b_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
+        self.u_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
+        self.plt_time = 0. #Reset time 
+        self.sigma0 = self.dirac_sigma #New sigma
+        self.lvl += 1 #Read new lvl
+        self.label_lvl.text = 'Level ' + str(self.lvl)
+        self.read_settigns()
+        self.pot_data.set_data(self.mesh, self.potential)
+        #Eigenparam
+        self.eigenparam()
+        self.psi_init(apply_cond=True)
+        self.comp()
+        self.psi_data.set_data(self.mesh, self.psi2)
+        self.psi_twin.collections.clear()
+        self.psi_twin.fill_between(self.mesh, self.psi2,
+                                   facecolor = 'black')
+        self.fill_bkg()
+        #VISUAL PLOT
+        self.visu_im.remove()
+        step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
+        self.visu_im = self.visuax.imshow([self.psi2[::step]], 
+             aspect='auto', interpolation = self.inter_visu, 
+             cmap = self.cmap_name)
+        self.energy = np.sum(np.abs(self.compo)**2 * self.evals)
+        self.E_data.set_data(self.mesh, self.energy)
+#        self.update_labels()
 
     #RESTART
     def restart(self):
@@ -515,28 +536,27 @@ class QMeasures(BoxLayout):
         self.read_settigns()
         self.pot_data.set_data(self.mesh, self.potential)
         self.eigenparam()
-        self.mu0 = self.init_mu0
-        self.psi_init()
+        self.psi_init(apply_cond=True)
         self.comp()
         self.psi_data.set_data(self.mesh, self.psi2)
         self.psi_twin.collections.clear()
         self.psi_twin.fill_between(self.mesh, self.psi2,
                                        facecolor = 'black')
         self.redzone = np.array([])
-        self.fill_bkg(self.psi)
+        self.fill_bkg()
         self.visu_im.remove()
         step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
         self.visu_im = self.visuax.imshow([self.psi2[::step]], 
              aspect='auto', interpolation = self.inter_visu, 
              cmap = self.cmap_name)
-        
+     
         self.measure_btn.disabled = False
         self.pause_btn.disabled = False
         self.request_KB()
         self.restart_btn.disabled = True
         self.energy = np.sum(np.abs(self.compo)**2 * self.evals)
         self.E_data.set_data(self.mesh, self.energy)
-        self.update_labels()
+#        self.update_labels()
         self.b_arrow.remove()
         self.u_arrow.remove()
         self.b_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
@@ -546,8 +566,8 @@ class QMeasures(BoxLayout):
         """
         Changes the factor in the plot time diferential.
         """
-        self.plt_vel_factor += 2
-        if self.plt_vel_factor > 10:
+        self.plt_vel_factor *= 2
+        if self.plt_vel_factor > 32:
             self.plt_vel_factor = 1
         #Label in kivy file
         self.label_vel.text = 'Velocity \n    ' + str(self.plt_vel_factor) +'X'
@@ -555,10 +575,8 @@ class QMeasures(BoxLayout):
     def pause(self):
         """
         Changes the pause state from true to false and viceversa.
-        """
-        
-        self.measure_btn.unbind(on_press = self.measure)
-        
+        """    
+#        self.measure_btn.unbind(on_press = self.measure)        
         if self.pause_state == True: #Unpause
             self.pause_state = False
             self.label_pause.text = 'Pause'
@@ -630,55 +648,42 @@ class QMeasures(BoxLayout):
         First element chooses potential:
             
             - If 0: HARMONIC
-            Line: 0, dx, k, **redzone
+            Line: 0, mu0, dx, k, **redzone 
             
             - If 1: DOUBLE WELL (20*[HARMONIC + CG*GAUSSIAN])
-            Line: 1, dx, k, mu, sigma, CG, **redzone
+            Line: 1, mu0, dx, k, mu, sigma, CG, **redzone
             
             - If 2: TRIPLE WELL (20*[HARMONIC + CG1*GAUSSIAN + CG2*GAUSSIAN2])
-            Line: 2, dx, k, mu1, sigma1, CG1, mu2, sigma2, CG2, **redzone
+            Line: 2, mu0, dx, k, mu1, sigma1, CG1, mu2, sigma2, CG2, **redzone
             
             - If 3 WOOD-SAXON
-            Line: 3, H, R, 1
+            Line: 3, mu0, H, R, a, **redzone
             
             - If 4: DOUBLE WOOD-SAXON
-            Line: 4, H1, R1, a1, H2, R2, a2, **redzone
+            Line: 4, mu0, H1, R1, a1, H2, R2, a2, **redzone
             
+        Where mu0 is the position where to start the new psi. If no position 
+        wants to be specified, then mu0 = 100 (checked in psi_init)
         Number of arguments have to be passed to the realted variable.
         """
         self.lvl_set = np.array(eval(self.settings.readline().strip()))
-        
-        if self.lvl_set[0] == 0: #HARMONIC
-            dx = self.lvl_set[1]
-            k = self.lvl_set[2]
-            
+        #HARMONIC
+        if self.lvl_set[0] == 0: 
+            dx, k = self.lvl_set[2:3+1]
             self.potential = 20*0.5*k*(self.mesh - dx)**2
-            self.fill_start_i = 3
-            
-        elif self.lvl_set[0] == 1: #DOUBLE WELL
-            dx = self.lvl_set[1]
-            k = self.lvl_set[2]
-            mu = self.lvl_set[3]
-            sigma = self.lvl_set[4]
-            CG = self.lvl_set[5]
-            
+            self.fill_start_i = 4
+         #DOUBLE WELL    
+        elif self.lvl_set[0] == 1:
+            dx, k, mu, sigma, CG = self.lvl_set[2:6+1]       
             self.potential = 20*(\
                     0.5*k*(self.mesh - dx)**2
                     +\
                     CG/np.sqrt(2*np.pi*sigma**2)*\
                     np.exp(-(self.mesh-mu)**2/(2.*sigma**2)))
-            self.fill_start_i = 6
-            
-        elif self.lvl_set[0] == 2: #TRIPLE WELL
-            dx = self.lvl_set[1]
-            k = self.lvl_set[2]
-            mu1 = self.lvl_set[3]
-            sigma1 = self.lvl_set[4]
-            CG1 = self.lvl_set[5]
-            mu2 = self.lvl_set[6]
-            sigma2 = self.lvl_set[7]
-            CG2 = self.lvl_set[8]
-            
+            self.fill_start_i = 7
+        #TRIPLE WELL 
+        elif self.lvl_set[0] == 2: 
+            dx, k, mu1, sigma1, CG1, mu2, sigma2, CG2 = self.lvl_set[2:9+1]          
             self.potential = 20*(\
                     0.5*k*(self.mesh - dx)**2
                     +\
@@ -687,37 +692,45 @@ class QMeasures(BoxLayout):
                     +\
                     CG2/np.sqrt(2*np.pi*sigma2**2)*\
                     np.exp(-(self.mesh-mu2)**2/(2.*sigma2**2)))
-            self.fill_start_i = 9
-        
-        elif self.lvl_set[0] == 3: #WOOD-SAXON
-            H = self.lvl_set[1]
-            R = self.lvl_set[2]
-            a = self.lvl_set[3]
-            
+            self.fill_start_i = 10
+        #WOOD-SAXON
+        elif self.lvl_set[0] == 3: 
+            H, R, a = self.lvl_set[2:4+1]           
             self.potential = -H/(1+np.exp((abs(self.mesh)-R)/a)) + H
-            self.fill_start_i = 4
-            
-        elif self.lvl_set[0] == 4: #DOUBLE WOOD-SAXON
-            H1 = self.lvl_set[1]
-            R1 = self.lvl_set[2]
-            a1 = self.lvl_set[3]
-            H2 = self.lvl_set[4]
-            R2 = self.lvl_set[5]
-            a2 = self.lvl_set[6]
+            self.fill_start_i = 5
+        #DOUBLE WOOD-SAXON    
+        elif self.lvl_set[0] == 4: 
+            H1, R1, a1, H2, R2, a2 = self.lvl_set[2:7+1]            
             WS1 = - H1/(1 + np.exp((abs(self.mesh)-R1)/a1)) + H1
-            WS2 = H2/(1 + np.exp((abs(self.mesh)-R2)/a2))
-            
+            WS2 = H2/(1 + np.exp((abs(self.mesh)-R2)/a2))           
             self.potential = WS1 + WS2
-            self.fill_start_i = 7
+            self.fill_start_i = 8
             
         else:
             print('ERROR: Bad code word for potential (1st element in line).')
     
-    def psi_init(self):
+    def psi_init(self, apply_cond = False):
         """
         Creates the initial wave function, a gaussian packet in general. The 
-        output's shape is the same as mesh.
+        output's shape is the same as mesh. If apply_cond is True, some 
+        specific conditions are checked and applied. Usually, it will be True
+        after starting a new level for the first time.
         """                          
+        if apply_cond:
+            #Conditions on the starting postiion
+            new_mu0 = self.lvl_set[1]
+            if new_mu0 != 100:
+                self.mu0 = new_mu0
+                print('New mu0: ', new_mu0)
+            #Other conditions
+            if self.lvl == 10:
+                #Starting at the middle maximum and paused
+                self.pause_state = True
+            if self.lvl == 11 or self.lvl == 16:
+                #Starting with one of the eigenvectors shifted
+                self.shift_psi(self.mu0) 
+                return
+    
         #First we generate the shape of a gaussian, no need for norm. constants
         #We then normalize using the integration over the array.
         self.psi = np.sqrt(\
@@ -726,7 +739,6 @@ class QMeasures(BoxLayout):
         prob_psi = np.abs(self.psi)**2
         self.psi *= 1. / np.sqrt(self.deltax*\
                       (np.sum(prob_psi) - prob_psi[0]/2. - prob_psi[-1]/2.))
-        
         self.psi2 = np.abs(self.psi)**2
         
     def shift_psi(self, x):
@@ -763,7 +775,7 @@ class QMeasures(BoxLayout):
     - update_labels
     """
     
-    def fill_bkg(self, curve):
+    def fill_bkg(self):
         """
         Fills background in bkg axis, bkg_twin, with red and green zones of the
         current self.lvl_set. It fills above self.psi2. Keeps track of 
@@ -844,20 +856,20 @@ class QMeasures(BoxLayout):
                                            width = 0.25, head_width = 0.001, 
                                            head_length = 0.001)
         
-    def update_labels(self):
+#    def update_labels(self):
         """
         Updates probability, energy and game labels.
         """
-        prob = self.deltax*self.psi2 #Get instant probability
-        self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' \
-                           'Prob.:          ' + '%.2f' \
-            %(prob[int((self.mu0 - self.a)/self.deltax)] * 100.)\
-            + '\n' + \
-                           'Max. prob.: ' + '%.2f' \
-            %(np.max(prob) * 100.)
-        self.label2.text = '<E> =  \n' + '%.3f' % self.energy
+#        prob = self.deltax*self.psi2 #Get instant probability
+#        self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' \
+#                           'Prob.:          ' + '%.2f' \
+#            %(prob[int((self.mu0 - self.a)/self.deltax)] * 100.)\
+#            + '\n' + \
+#                           'Max. prob.: ' + '%.2f' \
+#            %(np.max(prob) * 100.)
+#        self.label2.text = '<E> =  \n' + '%.3f' % self.energy
         #GAME
-        self.label_lvl.text = 'Level ' + str(self.lvl)
+#        self.label_lvl.text = 'Level ' + str(self.lvl)
         
     ###########################################################################
     #                              GAME FUNCTIONS                             #
@@ -867,6 +879,7 @@ class QMeasures(BoxLayout):
     - _keyboard_closed
     - request_KB
     - _on_keyboard_down 
+    - dummy_mode
     """
 
     def lives_sources(self):
@@ -916,7 +929,19 @@ class QMeasures(BoxLayout):
         #pressing twice escape will close it.
         if keycode[1] == 'spacebar':
              self.measure()
-        return 
+        return
+    
+    def dummy_mode(self):
+        """
+        Changes the game mode to picking the most probable value for x instead
+        of randomly. Changes the controlling variable and updates button label.
+        """
+        if self.dummy: # Using dummy. Change mode
+            self.dummy = False
+            self.dummy_btn.text = 'Helping:\n    Off'
+        else: # Not using dummy. Change mode
+            self.dummy = True
+            self.dummy_btn.text = 'Helping:\n    On'
         
 class QMeasuresApp(App):
     """
