@@ -123,19 +123,16 @@ class QMeasures(BoxLayout):
         
         #PSI INITIAL SETTINGS
         #After every measure
-        self.p0 = 0.    
+#        self.p0 = 0.    
         self.sigma0 = self.dirac_sigma
         #This first one (even after restarting)
         self.lvl = 1 #psi_init is going to use it
         self.psi_init(apply_cond = True)  
         
-        #COMPONENTS
+        #COMPONENTS & ENERGY
         self.comp()
-        
-        #ENERGY
-        self.energy = np.sum(np.abs(self.compo)**2 * self.evals)        
-        
-        
+        self.energy = np.sum(np.abs(self.compo)**2 * self.evals)                
+
         #============================ PLOTTING ================================  
         """
         Includes the creation of all plotted objects (legend, axis, ...)
@@ -281,14 +278,8 @@ class QMeasures(BoxLayout):
         self.pause_state = True #Begins paused
                                
         #LABELS
-        #(this variable comes from the kivy file)
-#        self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' + \
-#            'Prob.:             ' + '-' + '\n' + \
-#            'Max. prob.:    ' + '-'
-#        self.label2.text = '<E> =  \n' + '%.3f' % self.energy
         self.label_vel.text = 'Velocity \n    ' + str(self.plt_vel_factor) +'X'
                           
-        
         #============================== CLOCK ================================= 
         """
         Here all animation will be happening. The plotting function definied in
@@ -323,20 +314,18 @@ class QMeasures(BoxLayout):
             self.plt_time += self.plt_vel_factor*self.plt_dt #Time step          
             t = self.plt_time
             
-            #COMPUTE PSIEV(t).
-            #We do it with two steps (given t).
-            #_1_. 
+            #COMPUTE PSIEV(t). We do it with two steps (given t).
+                #_1_. 
             #Column vector containing the product between component and 
             #exponential factor. 1st build array ary and then col. matrix 'mtx'
             ary_compexp = self.compo * \
                         np.exp(np.complex(0.,-1.)*self.evals*t/(50*self.hbar))
             mtx_compexp = np.matrix(np.reshape(ary_compexp, (self.N + 1,1)))
-            #_2_. 
+                #_2_. 
             #Psi(t)
             col_psi = self.evect * mtx_compexp #Matrix product
             
-            #UPDATE DATA. 
-            #Since col_psi is a column vector (N+1,1) and we 
+            #UPDATE DATA. Since col_psi is a column vector (N+1,1) and we 
             #need to pass a list, we reshape and make it an array.
             self.psi = np.array(np.reshape(col_psi, self.N + 1))[0]
             self.psi2 = np.abs(self.psi)**2
@@ -358,7 +347,6 @@ class QMeasures(BoxLayout):
             self.visu_im = self.visuax.imshow([self.psi2[::step]], 
                  aspect='auto', interpolation = self.inter_visu, 
                  cmap = self.cmap_name)
-            
             
         #DRAW 
         #(keeps drawing even if therE hasn't been an update)
@@ -407,9 +395,11 @@ class QMeasures(BoxLayout):
             - Update labels
         """
         prob = self.deltax*self.psi2 #Get instant probability
+        prob /= sum(prob)
         self.mu0 = np.random.choice(self.mesh, p=prob) #Pick new random mu0
         if self.dummy:
             self.mu0 = self.mesh[np.argmax(prob)]
+            
         self.measure_arrow()
         self.plt_time = 0. #Reset time 
         self.sigma0 = self.dirac_sigma #New sigma
@@ -465,7 +455,6 @@ class QMeasures(BoxLayout):
             
         self.energy = np.sum(np.abs(self.compo)**2 * self.evals)
         self.E_data.set_data(self.mesh, self.energy)
-#        self.update_labels()
         
     def skip_lvl(self):
         """
@@ -482,7 +471,7 @@ class QMeasures(BoxLayout):
         self.u_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
         self.plt_time = 0. #Reset time 
         self.sigma0 = self.dirac_sigma #New sigma
-        self.lvl += 1 #Read new lvl
+        self.lvl += 1
         self.label_lvl.text = 'Level ' + str(self.lvl)
         self.read_settigns()
         self.pot_data.set_data(self.mesh, self.potential)
@@ -501,9 +490,9 @@ class QMeasures(BoxLayout):
         self.visu_im = self.visuax.imshow([self.psi2[::step]], 
              aspect='auto', interpolation = self.inter_visu, 
              cmap = self.cmap_name)
+        #ENERGY
         self.energy = np.sum(np.abs(self.compo)**2 * self.evals)
         self.E_data.set_data(self.mesh, self.energy)
-#        self.update_labels()
 
     #RESTART
     def restart(self):
@@ -556,7 +545,6 @@ class QMeasures(BoxLayout):
         self.restart_btn.disabled = True
         self.energy = np.sum(np.abs(self.compo)**2 * self.evals)
         self.E_data.set_data(self.mesh, self.energy)
-#        self.update_labels()
         self.b_arrow.remove()
         self.u_arrow.remove()
         self.b_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
@@ -726,16 +714,18 @@ class QMeasures(BoxLayout):
             if self.lvl == 10:
                 #Starting at the middle maximum and paused
                 self.pause_state = True
-            if self.lvl == 11 or self.lvl == 16:
-                #Starting with one of the eigenvectors shifted
-                self.shift_psi(self.mu0) 
-                return
+            if self.lvl == 21:
+                #Speeding up
+                self.plt_vel_factor *= 1.5
+                self.label_vel.text = 'Velocity \n    ' + \
+                                    str(int(self.plt_vel_factor)) +'X'
+                
     
         #First we generate the shape of a gaussian, no need for norm. constants
         #We then normalize using the integration over the array.
         self.psi = np.sqrt(\
-                         np.exp(-(self.mesh-self.mu0)**2/(2.*self.sigma0**2)))\
-                                  *np.exp(np.complex(0.,-1.)*self.p0*self.mesh)
+                         np.exp(-(self.mesh-self.mu0)**2/(2.*self.sigma0**2)))#\
+#                                  *np.exp(np.complex(0.,-1.)*self.p0*self.mesh)
         prob_psi = np.abs(self.psi)**2
         self.psi *= 1. / np.sqrt(self.deltax*\
                       (np.sum(prob_psi) - prob_psi[0]/2. - prob_psi[-1]/2.))
@@ -765,6 +755,10 @@ class QMeasures(BoxLayout):
             app = np.append(np.zeros(n), eigen)
             self.psi = app[:self.N + 1]
             self.psi2 = np.abs(self.psi)**2
+            
+        self.psi *= 1. / np.sqrt(self.deltax*\
+                      (np.sum(self.psi2) - self.psi2[0]/2. - self.psi2[-1]/2.))
+        self.psi2 = np.abs(self.psi)**2
        
     ###########################################################################
     #                             PLOTTING FUNCTIONS                          #
@@ -772,7 +766,6 @@ class QMeasures(BoxLayout):
     """
     - fill_bkg
     - measure_arrow
-    - update_labels
     """
     
     def fill_bkg(self):
@@ -856,21 +849,6 @@ class QMeasures(BoxLayout):
                                            width = 0.25, head_width = 0.001, 
                                            head_length = 0.001)
         
-#    def update_labels(self):
-        """
-        Updates probability, energy and game labels.
-        """
-#        prob = self.deltax*self.psi2 #Get instant probability
-#        self.label1.text = 'New mu0:   ' + '%.1f' % self.mu0 + '\n' \
-#                           'Prob.:          ' + '%.2f' \
-#            %(prob[int((self.mu0 - self.a)/self.deltax)] * 100.)\
-#            + '\n' + \
-#                           'Max. prob.: ' + '%.2f' \
-#            %(np.max(prob) * 100.)
-#        self.label2.text = '<E> =  \n' + '%.3f' % self.energy
-        #GAME
-#        self.label_lvl.text = 'Level ' + str(self.lvl)
-        
     ###########################################################################
     #                              GAME FUNCTIONS                             #
     ###########################################################################
@@ -942,6 +920,18 @@ class QMeasures(BoxLayout):
         else: # Not using dummy. Change mode
             self.dummy = True
             self.dummy_btn.text = 'Helping:\n    On'
+            
+#    def axis_off(self):
+#        """
+#        Turns off or on the axis.
+#        """
+#        self.bkg_twin.axis('off')
+#        self.bkg_twin.set_title(' ')
+#        self.psi_twin.axis('off')        
+#        self.pot_twin.axis('off')
+    
+    
+
         
 class QMeasuresApp(App):
     """
