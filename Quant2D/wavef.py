@@ -204,16 +204,18 @@ class InitWavef():
         return c_ab*cte*np.exp(-(zetx**2+zety**2)/2)*Hx*Hy
     
     def Gauss(r,param):
+        'Ground eigenstate of harmonic oscilator with momentum'
         x0 = param[0]
         y0 = param[1]
-        sig = param[2]
+        w = param[2]
         px0 = param[3]
         py0 = param[4]
+        
+        no_momentum_ga = InitWavef.OsciEigen(r,[x0,y0,w,0,0])
         
         xx = r[0] - x0  #ROW
         yy = r[1] - y0  #COLUMN
         
-        static_ga = 1./(sig*np.sqrt(2.*np.pi))*np.exp(-(xx**2 + yy**2)/(2*sig**2))
-        momentum_ga = static_ga*np.exp(1j*(px0*xx + py0*yy))
+        momentum_ga = no_momentum_ga*np.exp(1j*(px0*xx + py0*yy))
         
         return momentum_ga

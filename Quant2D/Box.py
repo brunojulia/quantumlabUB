@@ -167,6 +167,14 @@ class main(BoxLayout):
     
     def demo1(self):
         ' Demo1 = harm osci ground eigenstate not centered '
+        #Reset
+        self.stop()
+        self.background()
+        self.update_texture()
+        self.background_main()
+        self.update_texture_main()
+        
+        #New demo
         self.demo = 1
         self.demolabel = 'harmonic oscillatior ground eigenstate not centered'
         self.T = 630
@@ -202,6 +210,14 @@ class main(BoxLayout):
     
     def demo2(self):
         'Demo2 = harm osci ground estate pulsating'
+         #Reset
+        self.stop()
+        self.background()
+        self.update_texture()
+        self.background_main()
+        self.update_texture_main()
+        
+        #New demo
         self.demo = 2
         self.demolabel = 'harmonic oscillatior ground eigenstate with different frequency from the potential'
         self.T = 840
@@ -235,15 +251,21 @@ class main(BoxLayout):
     
     def demo3(self):
         'Demo3 = box'
+        #Reset
+        self.stop()
+        self.background()
+        self.update_texture()
+        self.background_main()
+        self.update_texture_main()
+        
+        #New demo
         self.demo = 3
         self.demolabel = 'smaller box'
-        self.T = 630
+        self.T = 1200
         
         x0 = 0.
         y0 = 0.
-        sigma = 0.25
-        px0 = 0.
-        py0 = 0.
+        w = 5.
         
         V0pot = 100.
         
@@ -256,7 +278,7 @@ class main(BoxLayout):
         
         #Add wave function
         
-        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,sigma,px0,py0])
+        self.wav.add_function(wavef.InitWavef.OsciEigen,[x0,y0,w,0,0])
             
         self.background_main()
         self.update_texture_main()
@@ -271,15 +293,21 @@ class main(BoxLayout):
         
     def demo31(self):
         'Demo3.1 = box'
-        self.demo = 3
+         #Reset
+        self.stop()
+        self.background()
+        self.update_texture()
+        self.background_main()
+        self.update_texture_main()
+        
+        #New demo
+        self.demo = 31
         self.demolabel = 'smaller box'
-        self.T = 630
+        self.T = 1200
         
         x0 = 0.
         y0 = 0.
-        sigma = 0.25
-        px0 = 0.
-        py0 = 0.
+        w = 5.
         
         V0pot = 10**5.
         
@@ -292,7 +320,7 @@ class main(BoxLayout):
         
         #Add wave function
         
-        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,sigma,px0,py0])
+        self.wav.add_function(wavef.InitWavef.OsciEigen,[x0,y0,w,0,0])
             
         self.background_main()
         self.update_texture_main()
@@ -307,6 +335,14 @@ class main(BoxLayout):
     
     def demo4(self):
         'Demo4 = double barrier / double well'
+         #Reset
+        self.stop()
+        self.background()
+        self.update_texture()
+        self.background_main()
+        self.update_texture_main()
+        
+        #New demo
         self.demo = 4
         self.demolabel = 'double well in x'
         self.T = 630
@@ -342,14 +378,22 @@ class main(BoxLayout):
     
     def demo5(self):
         'Demo5 = single slit'
-        self.demo = 4
+         #Reset
+        self.stop()
+        self.background()
+        self.update_texture()
+        self.background_main()
+        self.update_texture_main()
+        
+        #New demo
+        self.demo = 5
         self.demolabel = 'single slit'
-        self.T = 400
+        self.T = 600
         
         x0 = -1.
         y0 = 0.
-        sigma = 0.25
-        px0 = 1.
+        w = 6
+        px0 = 6.
         py0 = 0.
         
         V0pot = 1000.
@@ -363,7 +407,7 @@ class main(BoxLayout):
         
         #Add wave function
         
-        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,sigma,px0,py0])
+        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,w,px0,py0])
             
         self.background_main()
         self.update_texture_main()
@@ -377,14 +421,22 @@ class main(BoxLayout):
 
     def demo51(self):
         'Demo5.1 = single slit'
-        self.demo = 4
+         #Reset
+        self.stop()
+        self.background()
+        self.update_texture()
+        self.background_main()
+        self.update_texture_main()
+        
+        #New demo
+        self.demo = 51
         self.demolabel = 'single slit'
-        self.T = 400
+        self.T = 600
         
         x0 = -1.
         y0 = 0.
-        sigma = 0.25
-        px0 = 1.
+        w = 6.
+        px0 = 6.
         py0 = 0.
         
         V0pot = 1000.
@@ -398,7 +450,7 @@ class main(BoxLayout):
         
         #Add wave function
         
-        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,sigma,px0,py0])
+        self.wav.add_function(wavef.InitWavef.Gauss,[x0,y0,w,px0,py0])
             
         self.background_main()
         self.update_texture_main()
@@ -411,35 +463,40 @@ class main(BoxLayout):
         self.probability = probevol
         
     def pop(self):
+        a = 750
+        b = 500
+        
         if (self.demo == 1):
             pop = Popup(title='Energy', content=Image(source='Energy1.png'),
-                    size_hint=(None, None), size=(700, 1000))
+                    size_hint=(None, None), size=(a,b))
         elif (self.demo == 2):
             pop = Popup(title='Energy', content=Image(source='Energy2.png'),
-                    size_hint=(None, None), size=(700, 1000))
+                    size_hint=(None, None), size=(a,b))
         elif (self.demo == 3):
             pop = Popup(title='Energy', content=Image(source='Energy3.png'),
-                    size_hint=(None, None), size=(700, 1000))
+                    size_hint=(None, None), size=(a,b))
+        elif (self.demo == 31):
+            pop = Popup(title='Energy', content=Image(source='Energy31.png'),
+                    size_hint=(None, None), size=(a,b))
         elif (self.demo == 4):
             pop = Popup(title='Energy', content=Image(source='Energy4.png'),
-                    size_hint=(None, None), size=(700, 1000))
+                    size_hint=(None, None), size=(a,b))
+        elif (self.demo == 5):
+            pop = Popup(title='Energy', content=Image(source='Energy5.png'),
+                    size_hint=(None, None), size=(a,b))
+        elif (self.demo == 51):
+            pop = Popup(title='Energy', content=Image(source='Energy51.png'),
+                    size_hint=(None, None), size=(a,b))
         
         pop.open()
-
-    def compute(self):        
-        self.initwave = wavef.Wave(self.pot.val(self.xx,self.yy),self.wav.val(self.xx,self.yy),self.dt,self.T)
-        self.probability = self.initwave.ProbEvolution() #wavef.Wave.ProbEvolution(self.pot.val,self.wav.val)
-            
-        with self.statuslabel.canvas:
-            Color(0,1,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
         
-        norm0 = wavef.Wave.Norm(self,self.probability[0,:,:])
-        norm1 = wavef.Wave.Norm(self,self.probability[self.T-1,:,:])
         
-        print('Norma t_ini: ', norm0)
-        print('Norma t_final: ', norm1)
+    def popexp(self):
+        if (self.demo == 1):
+            popexp = Popup(title='Demo 1', content=Label(text='Hello world'),
+                    size_hint=(None, None), size=(700, 1000))
         
+        popexp.open()
         
             
     def play(self):

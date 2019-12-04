@@ -54,17 +54,17 @@ def box(r,param): #Barrier in a box
     
     pot = np.zeros((n,n))
     
-    for i in range (28,72):
-        pot[28,i] = V0
-        pot[70,i] = V0
-        pot[i,28] = V0
-        pot[i,70] = V0
-        
-        pot[29,i] = V0
-        pot[71,i] = V0
-        pot[i,29] = V0
-        pot[i,71] = V0
-        
+    for i in range (24,76):
+        pot[24,i] = V0
+        pot[75,i] = V0
+        pot[i,24] = V0
+        pot[i,75] = V0
+        '''
+        pot[25,i] = V0
+        pot[76,i] = V0
+        pot[i,25] = V0
+        pot[i,76] = V0
+        '''
     return  pot
 
 #############################
@@ -92,13 +92,13 @@ def singleslit(r,param):
     
     pot = np.zeros((n,n), dtype = 'float')
     
-    for i in range (0,39):
+    for i in range (0,40):
         pot[i,65] = V0
-        pot[i,66] = V0  
+        pot[i,66] = V0
     for i in range (60,n):
         pot[i,65] = V0
         pot[i,66] = V0
-    
+        
     return pot
 
 
@@ -114,11 +114,14 @@ def doubleslit(r,param):
     
     pot = np.zeros((n,n))
     
-    for i in range (0,41):
+    for i in range (0,40):
         pot[i,70] = V0
-    for i in range (45,56):
-         pot[i,70] = V0
+        pot[i,71] = V0
+    for i in range (44,56):
+        pot[i,70] = V0
+        pot[i,71] = V0
     for i in range (60,n):
         pot[i,70] = V0
+        pot[i,71] = V0
     
     return pot
