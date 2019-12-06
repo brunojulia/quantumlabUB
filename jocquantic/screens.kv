@@ -1,5 +1,36 @@
-<QMeasures>:
+<MyScreenManager>:
+    StartingScreen:
+    GamingScreen:
+    IllustratingScreen:
 
+<StartingScreen>:
+    name: 'starting'
+    
+    BoxLayout:
+        orientation: 'vertical'
+        
+        Button:
+            size_hint_y: 1
+            id: s_to_g
+            text: 'Go to gaming'
+            on_release: 
+                print('s to g')
+                app.root.transition.direction = 'up'
+                app.root.current = 'gaming'
+                
+        Button:
+            size_hint_y: 1
+            text: 'Gaming Init'
+            on_press: root.gaming_gprint()
+            
+        Button:
+            size_hint_y: 1
+            text: 'Illustrating Iprint'
+            on_press: root.illustrating_iprint()
+    
+<GamingScreen>: 
+    name: 'gaming'
+    
     box1: box1_id
     skip_btn: skip_id
     label_vel: change_vel_id
@@ -9,18 +40,18 @@
     restart_btn: restart_btn_id
     pause_btn: pause_id
     dummy_btn: dummy_id
-
+    g_to_s: g_to_s_id
+    g_to_i: g_to_i_id
+    g_print: g_print_id
+    
+   
     BoxLayout:
         orientation: 'vertical'
-        
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint_y: 0.5
             
-            Label:
-                id: label_lvl_id
-                text: 'Level 1'
-                size_hint_x: 1
+        Label:
+            id: label_lvl_id
+            text: 'Level 1'
+            size_hint_y: 0.5
                 
         BoxLayout:
             orientation: 'horizontal'
@@ -129,3 +160,56 @@
                 text: 'Axis Switch'
                 size_hint_x: 0.1 
                 on_press: root.axis_off()
+   
+            Button:
+                id: g_to_i_id
+                size_hint_x: 1
+                text: 'Go to illustrating'
+                on_release:
+                    print('g to i')
+                    app.root.transition.direction = 'left'    
+                    app.root.current = 'illustrating'
+                size_hint_x: 0.05
+                    
+            Button:
+                id: g_to_s_id
+                size_hint_x: 1
+                text: 'Go to start'
+                on_release:
+                    print('g to s' )
+                    app.root.transition.direction = 'down' 
+                    app.root.current = 'starting'
+                size_hint_x: 0.05
+            
+            Button:
+                id: g_print_id
+                on_press: root.gprint()
+                size_hint_x: 0.05
+            
+<IllustratingScreen>:
+    name: 'illustrating'
+
+    BoxLayout:
+        orientation: 'horizontal'
+        
+        Button:
+            id: i_to_g
+            size_hint_x: 1
+            text: 'Go to gaming'
+            on_release:
+                print('i to g')
+                app.root.transition.direction = 'right' 
+                app.root.current = 'gaming'
+            
+        Button:
+            id: i_to_s
+            size_hint_x: 1
+            text: 'Go to start'
+            on_release:
+                print('i to s') 
+                app.root.transition.direction = 'down'
+                app.root.current = 'starting'
+    
+    
+    
+    

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Sat Apr 27 17:29:25 2019
-Manu Canals
+Created on Thu Dec  5 20:13:52 2019
+
+@author: Manu Canals
 """
 ###############################################################################
 #                               IMPORTS                                       #
@@ -35,65 +36,47 @@ from kivy.core.window import Window #Window manegement
 ###############################################################################
 #                             MAIN CLASS                                      #
 ###############################################################################
-"""
 
-The way the app is made (with Kivy) is the following. When the file is executed
-Kivy's run() function is called from QMeasuresApp class (see the 'if' at 
-the end). QMeasuresApp class inherits Kivy's app properties from App. 
-This class has acces to  everything in QMeasures class as well, so every 
-tool (functions, plot, animations ...) are defined there.
+class StartingScreen(Screen):
+    print('Start runing')
+    
+    def __init__ (self, **kwargs):
+        super(StartingScreen, self).__init__(**kwargs)
+        print('hey start')
+    
+    def sprint(self):
+        print('start sup')
+    
+    def gaming_gprint(self):
+        gscreen = self.manager.get_screen('gaming')
+        gscreen.gpseudo_init()
+    
+    def illustrating_iprint(self):
+        iscreen = self.manager.get_screen('illustrating')
+        iscreen.iprint()
 
-"""
 
-class QMeasures(Screen):
-    """
-    Main class. The one passed to the executable class. It has acces to  
-    differents parts of the app layout (since it inherits from BoxLayout).
+
+class GamingScreen(Screen):
+    print('Game runing')
     
-    This class consists of three main blocks:
-        
-        - COMPUTATION of a wave function's evolution on different potentials
-        - PLOTTING of this evolution
-        - GAME. A game is build on top of this problem.
-    
-    All functions will be organised with this structure in mind. Nevertheless,
-    the core of this class are animation and events flow, managed only
-    by a few functions – they actually use the functions from the main blocks.
-    
-    The animation (events flow) will simply consist of:
-        
-        - A repeatedly called function (called by Kivy's Clock) that computes
-        and plots the evolution of the wave function: PLOTPSIEV.
-        - A function called by the player that takes a measure of the position
-        of the instantaneous wave function, and carries on all its 
-        consequences: MEASURE
-        - A function that allows the player to start again after the game is 
-        over: RESTART
-        - And finally a couple of functions that allow pausing the game and 
-        controlling its velocity: PAUSE & CHANGE_VEL
-        
-    These are the time FLOWING functions.
-    
-    Before starting the calls of plotpsiev, with Clock: 
-        
-        - The evolution problem has to be solved 
-        - The plots have to be initialized 
-        - The game has to be set to the beggining
-        - Clock's call
-        
-    So in init, all of this is done before calling Clock.
-    """
-    def __init__(self, **kwargs):
-        super(QMeasures, self).__init__(**kwargs) #Runs also the superclass
+    def  __init__(self, **kwargs):
+        print('hey game')
+        print(self.ids)
+        super(GamingScreen, self).__init__(**kwargs)#Runs also the superclass
                                                 #BoxLayout's __init__ function
-                                                
+       
+
+    def gpseudo_init(self):
+
+                                         
         #======================== EVOLUTION PROBLEM ===========================   
         """                       
         Solving this problems has two parts: finding the EIGENBASIS and 
         eigenvalues of the given hamiltonian (with a given potential), and
         find the COMPONENTS of the intial psi in this basis.
         """
-        
+        print('doing pseudo init')
             #SOLVING 1ST PART
                                              
         #UNITS
@@ -341,6 +324,7 @@ class QMeasures(Screen):
         #DRAW 
         #(keeps drawing even if there hasn't been an update)
         self.main_canvas.draw()
+        print(dt)
         
     def measure(self):
         """
@@ -913,15 +897,46 @@ class QMeasures(Screen):
             self.pot_twin.axis('on')
             self.axis_on = True
         
-class QMeasuresApp(App):
-    """
-    This class is the one executed when executing the file. Includes the main 
-    class with the app's content. Due to kivy's syntax, the part before App in
-    this class name must be also the name of the files .py and .kv 
-    """
+        
+        
+        
+#        Clock.schedule_interval(self.looping, 1/15)
+#        print('is it')
+    
+    def gprint(self):
+        print(self.box1)
+        print(self.g_to_s.text)
+        print('game sup')
+        
+#    def looping(self, dt):
+#        print(dt)
+
+class IllustratingScreen(Screen):
+    print('Illu runing')
+ 
+    def  __init__(self, **kwargs):
+        print('hey illu')
+        super(IllustratingScreen, self).__init__(**kwargs)
+        
+    def iprint(self):
+        print('illu sup')
+
+class MyScreenManager(ScreenManager):
+    print('Manager runing')
+    
+    def  __init__(self, **kwargs):
+        print('hey mana')
+        super(MyScreenManager, self).__init__(**kwargs)
+    
+    def mprint(self): #I dont know how to even call it xd
+        print('mana sup')
+        
+
+class ScreensApp(App):
+    
     def build(self):
-        self.title = 'Quantic Measures'
-        return QMeasures()
+        return MyScreenManager()
 
 if __name__ == '__main__':
-    QMeasuresApp().run()
+    ScreensApp().run()
+
