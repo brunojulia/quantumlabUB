@@ -129,10 +129,10 @@ class Wave():
                 Bproduct=np.dot(B,psiy)
                 #Tridiagonal
                 psiy=self.tridiag(Ainf,Adiag+1j*dt*\
-                             V[:,j]/(4.*hbar),Asup,Bproduct)
-                
+                             V[i,:]/(4.*hbar),Asup,Bproduct)
                 #Change the old for the new values of psi
                 psi[i,:]=psiy[:]
+                
                 
             if (t == int(ntime/4.)):
                 print('25%')
@@ -202,3 +202,20 @@ class InitWavef():
         cte=(m*w/(np.pi*hbar))**0.5
         
         return c_ab*cte*np.exp(-(zetx**2+zety**2)/2)*Hx*Hy
+    
+    def Gauss(r,param):
+        'Ground eigenstate of harmonic oscilator with momentum'
+        x0 = param[0]
+        y0 = param[1]
+        w = param[2]
+        px0 = param[3]
+        py0 = param[4]
+        
+        no_momentum_ga = InitWavef.OsciEigen(r,[x0,y0,w,0,0])
+        
+        xx = r[0] - x0  #ROW
+        yy = r[1] - y0  #COLUMN
+        
+        momentum_ga = no_momentum_ga*np.exp(1j*(px0*xx + py0*yy))
+        
+        return momentum_ga
