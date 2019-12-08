@@ -1,3 +1,5 @@
+#:import Factory kivy.factory.Factory
+
 <MyScreenManager>:
     StartingScreen:
     GamingScreen:
@@ -6,28 +8,52 @@
 <StartingScreen>:
     name: 'starting'
     
+    
     BoxLayout:
         orientation: 'vertical'
+        padding: [root.width/3,root.height/10,root.width/3,root.height/10]
+        spacing: root.height/50
+        
+        Image:
+            id: QM_image_id
+            source: 'Images/quanticmeasures-pixel.jpg'
+            allow_stretch: True
         
         Button:
             size_hint_y: 1
             id: s_to_g
-            text: 'Go to gaming'
-            on_release: 
+            text: 'Play'
+            padding_x: root.width*5/12
+            on_press: 
                 print('s to g')
-                app.root.transition.direction = 'up'
-                app.root.current = 'gaming'
+                root.transition_SG()
+    
+        Button:
+            size_hint_y: 1
+            id: s_to_g
+            text: 'Illus.'
+            on_press: 
+                print('s to i')    
+                root.transition_SI() 
                 
         Button:
-            size_hint_y: 1
-            text: 'Gaming Init'
-            on_press: root.gaming_gprint()
+            id: info_id
+            text: 'Info'
+            on_release: Factory.InfoPopup().open()
+                
+        Image:
+            id: UB_logo_id
+            source: 'Images/logo_ub-transparente.jpg'
+            size_hint_x: 0.6
+            pos_hint: {'center_x': 0.5, 'center_y': 0.75}
+            allow_stretch: True
             
-        Button:
-            size_hint_y: 1
-            text: 'Illustrating Iprint'
-            on_press: root.illustrating_iprint()
-    
+<InfoPopup>:
+    size_hint: 0.75, 0.75
+
+    Label:
+        text: 'Sssssup'
+            
 <GamingScreen>: 
     name: 'gaming'
     
@@ -42,7 +68,6 @@
     dummy_btn: dummy_id
     g_to_s: g_to_s_id
     g_to_i: g_to_i_id
-    g_print: g_print_id
     
    
     BoxLayout:
@@ -165,51 +190,170 @@
                 id: g_to_i_id
                 size_hint_x: 1
                 text: 'Go to illustrating'
+                size_hint_x: 0.1
                 on_release:
                     print('g to i')
-                    app.root.transition.direction = 'left'    
-                    app.root.current = 'illustrating'
-                size_hint_x: 0.05
+                    root.transition_GI()
                     
             Button:
                 id: g_to_s_id
                 size_hint_x: 1
                 text: 'Go to start'
+                size_hint_x: 0.1
                 on_release:
                     print('g to s' )
-                    app.root.transition.direction = 'down' 
-                    app.root.current = 'starting'
-                size_hint_x: 0.05
-            
-            Button:
-                id: g_print_id
-                on_press: root.gprint()
-                size_hint_x: 0.05
+                    root.transition_GS()
             
 <IllustratingScreen>:
     name: 'illustrating'
 
-    BoxLayout:
-        orientation: 'horizontal'
-        
-        Button:
-            id: i_to_g
-            size_hint_x: 1
-            text: 'Go to gaming'
-            on_release:
-                print('i to g')
-                app.root.transition.direction = 'right' 
-                app.root.current = 'gaming'
-            
-        Button:
-            id: i_to_s
-            size_hint_x: 1
-            text: 'Go to start'
-            on_release:
-                print('i to s') 
-                app.root.transition.direction = 'down'
-                app.root.current = 'starting'
+    box1: box1_id
+    skip_btn: skip_id
+    label_vel: change_vel_id
+    label_pause: pause_id
+    label_lvl: label_lvl_id
+    measure_btn: measure_btn_id
+    restart_btn: restart_btn_id
+    pause_btn: pause_id
+    dummy_btn: dummy_id
+    i_to_s: i_to_s_id
+    i_to_g: i_to_g_id
     
+   
+    BoxLayout:
+        orientation: 'vertical'
+            
+        Label:
+            id: label_lvl_id
+            text: 'Level 1'
+            size_hint_y: 0.5
+                
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.5
+            
+            BoxLayout:
+                size_hint_x: 1
+            
+            Image:
+                id: live1
+                allow_stretch: True
+                
+            Image:
+                id: live2
+                allow_stretch: True
+                
+            Image:
+                id: live3
+                allow_stretch: True
+                
+            Image:
+                id: live4
+                allow_stretch: True
+            
+            Image:
+                id: live5
+                allow_stretch: True
+                
+            Image:
+                id: live6
+                allow_stretch: True
+                
+            Image:
+                id: live7
+                allow_stretch: True
+                
+            Image:
+                id: live8
+                allow_stretch: True
+                
+            Image:
+                id: live9
+                allow_stretch: True
+                
+            Image:
+                id: live10
+                allow_stretch: True
+                
+            BoxLayout:
+                size_hint_x: 1
+            
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_y: 8
+            id: box1_id
+            
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 1
+            
+            Button: 
+                id: change_vel_id
+                text: 'Velocity \n     1X'
+                size_hint_x: 0.15
+                on_press: root.change_vel()
+                
+            Button:
+                id: pause_id
+                text: 'Play'
+                size_hint_x: 0.15
+                on_press: root.pause() 
+                 
+            Button:
+                id: measure_btn_id
+                text: 'Measure'
+                size_hint_x: 0.15
+                on_press: root.measure()
+                
+            Button:
+                id: restart_btn_id
+                text: 'Restart'
+                disabled: True
+                size_hint_x: 0.15
+                on_press: root.restart()
+                
+            Button:
+                id: keyboard_btn_id
+                text: 'KB'
+                size_hint_x: 0.1
+                on_press: root.request_KB()
+                                
+            Button:
+                id: skip_id
+                text: 'Skip Level'
+                size_hint_x: 0.1
+                on_press: root.skip_lvl()
+                
+            Button:
+                id: dummy_id
+                text: 'Helping:\n    Off'
+                size_hint_x: 0.1 
+                on_press: root.dummy_mode()
+                
+            Button:
+                id: axis_id
+                text: 'Axis Switch'
+                size_hint_x: 0.1 
+                on_press: root.axis_off()
+
+            Button:
+                id: i_to_g_id
+                size_hint_x: 1
+                text: 'Go to gaming'
+                size_hint_x: 0.1
+                on_release:
+                    print('i to g')
+                    root.transition_IG()
+                
+            Button:
+                id: i_to_s_id
+                size_hint_x: 1
+                text: 'Go to start'
+                size_hint_x: 0.1
+                on_release:
+                    print('i to s') 
+                    root.transition_IS()
+        
     
     
     
