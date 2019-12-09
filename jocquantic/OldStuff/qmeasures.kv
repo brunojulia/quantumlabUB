@@ -1,12 +1,10 @@
 <QMeasures>:
 
     box1: box1_id
-    #label1: label1_id
     skip_btn: skip_id
     label_vel: change_vel_id
     label_pause: pause_id
     label_lvl: label_lvl_id
-   #label_points: label_points_id
     measure_btn: measure_btn_id
     restart_btn: restart_btn_id
     pause_btn: pause_id
@@ -23,11 +21,6 @@
                 id: label_lvl_id
                 text: 'Level 1'
                 size_hint_x: 1
-                
-       #     Label:
-        #        id: label_points_id
-         #       text: '0 points'
-          #      size_hint_x: 1
                 
         BoxLayout:
             orientation: 'horizontal'
@@ -128,5 +121,11 @@
             Button:
                 id: dummy_id
                 text: 'Helping:\n    Off'
-                size_hint_x: 0.2 
+                size_hint_x: 0.1 
                 on_press: root.dummy_mode()
+                
+            Button:
+                id: axis_id
+                text: 'Axis Switch'
+                size_hint_x: 0.1 
+                on_press: root.axis_off()

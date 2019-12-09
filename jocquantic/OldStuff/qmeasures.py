@@ -15,6 +15,8 @@ from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg #Canvas
                                     #object in Kivy (a Figure should be given)
 from kivy.clock import Clock #Tools to manage events in Kivy (used to animate)
 
+from kivy.uix.screenmanager import ScreenManager, Screen
+
 #OTHER GENERAL IMPORTS
 import numpy as np
 #from matplotlib.figure import Figure #This figure is the tipical one from 
@@ -26,6 +28,7 @@ import os #Getting paths
 from scipy import linalg as spLA #Its attribute eigh_tridiagonal diagonalizes H
 from matplotlib import gridspec
 
+
 from kivy.core.window import Window #Window manegement
 #Window.fullscreen = 'auto'
 
@@ -33,7 +36,6 @@ from kivy.core.window import Window #Window manegement
 #                             MAIN CLASS                                      #
 ###############################################################################
 """
-
 The way the app is made (with Kivy) is the following. When the file is executed
 Kivy's run() function is called from QMeasuresApp class (see the 'if' at 
 the end). QMeasuresApp class inherits Kivy's app properties from App. 
@@ -42,7 +44,7 @@ tool (functions, plot, animations ...) are defined there.
 
 """
 
-class QMeasures(BoxLayout):
+class QMeasures(Screen):
     """
     Main class. The one passed to the executable class. It has acces to  
     differents parts of the app layout (since it inherits from BoxLayout).
@@ -173,6 +175,8 @@ class QMeasures(BoxLayout):
         self.dcoord_factor = Dpot / Dpsi
         
         #FIGURE
+        self.axis_on = True
+#        plt.show(block=False)
         self.main_fig = plt.figure()
         self.main_fig.patch.set_facecolor('black') 
         self.main_canvas = FigureCanvasKivyAgg(self.main_fig) #Passed to kv
@@ -195,20 +199,9 @@ class QMeasures(BoxLayout):
         self.bkg_twin.tick_params(colors='white')
         self.bkg_twin.set_facecolor('black')
         self.fill_bkg()
-        
-        #PSI PLOT
-        self.psi_twin = self.bkg_twin.twinx()
-        self.psi_twin.axis([self.a, self.b, self.psi_blim, self.psi_tlim])
-        self.psi_twin.axis('off') #bkg axis already taken care of.
-        self.psi_twin.set_facecolor('black')
-        self.psi_twin.fill_between(self.mesh, self.psi2,
-                                       facecolor = 'black')
-        self.psi_data, = self.psi_twin.plot(self.mesh, self.psi2,
-                                            alpha = 0.0)
-        
         #Arrows (first drawn transparent just to create the instance)
-        self.b_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
-        self.u_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
+        self.b_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
+        self.u_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
         
         #POTENTIAL
         self.pot_twin = self.bkg_twin.twinx()
@@ -234,12 +227,12 @@ class QMeasures(BoxLayout):
         self.visu_im = self.visuax.imshow([self.psi2[::step]], 
                  aspect='auto', interpolation = self.inter_visu, 
                  cmap = self.cmap_name)
-         
+        
         #FIRST DRAW
         #This 'tight' needs to be at the end so it considers all objects drawn
         self.main_fig.tight_layout() #Fills all available space
-        self.main_canvas.draw_idle()
-
+        self.main_canvas.draw()
+        
         #============================== GAME ================================== 
         
         #IMAGES
@@ -283,10 +276,12 @@ class QMeasures(BoxLayout):
         #============================== CLOCK ================================= 
         """
         Here all animation will be happening. The plotting function definied in
-        the proper section will be called several times per second.
+        the proper section will be called several times per second. The given 
+        frame rate is going to be delayed (or not) depending on how many things
+        happen in one frame. 
         """
         #'THE' CORE
-        Clock.schedule_interval(self.plotpsiev, 1/30.)
+        Clock.schedule_interval(self.plotpsiev, 1/30)
 
     ###########################################################################
     #                            'FLOW' FUNCTIONS                             #
@@ -329,17 +324,11 @@ class QMeasures(BoxLayout):
             #need to pass a list, we reshape and make it an array.
             self.psi = np.array(np.reshape(col_psi, self.N + 1))[0]
             self.psi2 = np.abs(self.psi)**2
-            self.psi_data.set_data(self.mesh, self.psi2)
-            
-            #PSI
-            self.psi_twin.collections.clear()
-            self.psi_twin.fill_between(self.mesh, self.psi2,
-                                       facecolor = 'black')
-            self.b_arrow.set_alpha(np.exp(-t/10))
-            self.u_arrow.set_alpha(np.exp(-t/10))
-            
+        
             #BKG
             self.fill_bkg()
+            self.b_arrow.set_alpha(np.exp(-t/10))
+            self.u_arrow.set_alpha(np.exp(-t/10))
             
             #VISUAL PLOT
             self.visu_im.remove()
@@ -349,7 +338,7 @@ class QMeasures(BoxLayout):
                  cmap = self.cmap_name)
             
         #DRAW 
-        #(keeps drawing even if therE hasn't been an update)
+        #(keeps drawing even if there hasn't been an update)
         self.main_canvas.draw()
         
     def measure(self):
@@ -409,28 +398,22 @@ class QMeasures(BoxLayout):
             self.lives_sources()
             self.psi_init() 
             self.comp()
-            self.psi_data.set_data(self.mesh, self.psi2)
-            self.psi_twin.collections.clear() 
-            self.psi_twin.fill_between(self.mesh, self.psi2,
-                                       facecolor = 'black')
             if self.lives <= 0: #GAME OVER
                 self.pause_state = True
+                self.pause_btn.text = 'Play'
                 self.GMO_img = self.pot_twin.imshow(self.gameover_imgdata, 
                                   aspect = 'auto', extent = [-7.5, 7.5, 0, 40])
                 self.measure_btn.disabled = True
                 self.pause_btn.disabled = True
                 self.restart_btn.disabled = False
                 self._keyboard.release()
-    
             self.fill_bkg()
-            
             #VISUAL PLOT
             self.visu_im.remove()
             step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
             self.visu_im = self.visuax.imshow([self.psi2[::step]], 
                  aspect='auto', interpolation = self.inter_visu, 
                  cmap = self.cmap_name)
-            
             
         else: #IN
             self.lvl += 1 #Read new lvl
@@ -441,10 +424,6 @@ class QMeasures(BoxLayout):
             self.eigenparam()
             self.psi_init(apply_cond=True)
             self.comp()
-            self.psi_data.set_data(self.mesh, self.psi2)
-            self.psi_twin.collections.clear()
-            self.psi_twin.fill_between(self.mesh, self.psi2,
-                                       facecolor = 'black')
             self.fill_bkg()
             #VISUAL PLOT
             self.visu_im.remove()
@@ -467,8 +446,8 @@ class QMeasures(BoxLayout):
             self.mu0 = self.mesh[np.argmax(prob)]
         self.b_arrow.remove()
         self.u_arrow.remove()
-        self.b_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
-        self.u_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
+        self.b_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
+        self.u_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
         self.plt_time = 0. #Reset time 
         self.sigma0 = self.dirac_sigma #New sigma
         self.lvl += 1
@@ -479,10 +458,6 @@ class QMeasures(BoxLayout):
         self.eigenparam()
         self.psi_init(apply_cond=True)
         self.comp()
-        self.psi_data.set_data(self.mesh, self.psi2)
-        self.psi_twin.collections.clear()
-        self.psi_twin.fill_between(self.mesh, self.psi2,
-                                   facecolor = 'black')
         self.fill_bkg()
         #VISUAL PLOT
         self.visu_im.remove()
@@ -520,6 +495,7 @@ class QMeasures(BoxLayout):
         self.lives = self.max_lives
         self.lives_sources()
         self.pause_state = True
+        self.pause_btn.text = 'Play'
         self.settings.close() #We close and open again to start reading again
         self.settings = open('lvl_settings.txt','r')
         self.read_settigns()
@@ -527,10 +503,6 @@ class QMeasures(BoxLayout):
         self.eigenparam()
         self.psi_init(apply_cond=True)
         self.comp()
-        self.psi_data.set_data(self.mesh, self.psi2)
-        self.psi_twin.collections.clear()
-        self.psi_twin.fill_between(self.mesh, self.psi2,
-                                       facecolor = 'black')
         self.redzone = np.array([])
         self.fill_bkg()
         self.visu_im.remove()
@@ -547,8 +519,8 @@ class QMeasures(BoxLayout):
         self.E_data.set_data(self.mesh, self.energy)
         self.b_arrow.remove()
         self.u_arrow.remove()
-        self.b_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
-        self.u_arrow = self.psi_twin.arrow(0,0,0,0, alpha = 0)
+        self.b_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
+        self.u_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
         
     def change_vel(self):
         """
@@ -567,10 +539,10 @@ class QMeasures(BoxLayout):
 #        self.measure_btn.unbind(on_press = self.measure)        
         if self.pause_state == True: #Unpause
             self.pause_state = False
-            self.label_pause.text = 'Pause'
+            self.pause_btn.text = 'Pause'
         else:
             self.pause_state = True #Pause
-            self.label_pause.text = 'Play'
+            self.pause_btn.text = 'Play'
         
         
     ###########################################################################
@@ -714,7 +686,8 @@ class QMeasures(BoxLayout):
             if self.lvl == 10:
                 #Starting at the middle maximum and paused
                 self.pause_state = True
-            if self.lvl == 21:
+                self.pause_btn.text = 'Play'
+            if self.lvl == 22:
                 #Speeding up
                 self.plt_vel_factor *= 1.5
                 self.label_vel.text = 'Velocity \n    ' + \
@@ -787,16 +760,16 @@ class QMeasures(BoxLayout):
             nxt_index = int((self.lvl_set[-1]- self.a)//self.deltax)
         
             #Red
-            bot = (self.psi2)[prev_index:index+1]
+            bot = (self.psi2)[prev_index:index+1] #Psi line
             top = np.zeros_like(bot) + 2.
             redzone = self.mesh[prev_index:index+1] #+1 due to slice
             potential = self.potential[prev_index:index+1]/self.dcoord_factor
             self.redzone = np.append(self.redzone, redzone)
-            self.bkg_twin.fill_between(redzone, bot, potential, 
+            self.bkg_twin.fill_between(redzone, bot, potential,
                                        where = np.less(bot, potential), 
-                                       facecolor = self.potcol)
+                                       facecolor = self.potcol) #Potential
             self.bkg_twin.fill_between(redzone, np.maximum(potential,bot), top,
-                                       facecolor = self.zonecol_red)
+                                       facecolor = self.zonecol_red) #Red
 
             #Green
             bot = (self.psi2)[index-1:nxt_index+2]
@@ -805,10 +778,10 @@ class QMeasures(BoxLayout):
             potential = self.potential[index-1:nxt_index+2]/self.dcoord_factor
             self.bkg_twin.fill_between(greenzone, bot, potential, 
                                        where = np.less(bot, potential), 
-                                       facecolor = self.potcol)
+                                       facecolor = self.potcol) #Potential
             self.bkg_twin.fill_between(greenzone, np.maximum(potential, bot),
                                        top, facecolor = self.zonecol_green)
-            
+                                                                        #Green
             #Looping by giving the new prev position
             prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)]  
             
@@ -820,9 +793,9 @@ class QMeasures(BoxLayout):
         self.redzone = np.append(self.redzone, redzone)
         self.bkg_twin.fill_between(redzone, bot, potential, 
                                    where = np.less(bot, potential), 
-                                   facecolor = self.potcol)
+                                   facecolor = self.potcol) #Potential
         self.bkg_twin.fill_between(redzone,  np.maximum(potential,bot), top,
-                                   facecolor = self.zonecol_red)
+                                   facecolor = self.zonecol_red) #Red
         
     def measure_arrow(self):
         """
@@ -837,13 +810,13 @@ class QMeasures(BoxLayout):
         prob = self.psi2 #%·Å^-1
         m_prob = prob[int((self.mu0 - self.a)/self.deltax)]
         max_prob = np.max(prob)
-       
-        self.b_arrow = self.psi_twin.arrow(self.mu0, 0, 0, m_prob,
+        
+        self.b_arrow = self.bkg_twin.arrow(self.mu0, 0, 0, m_prob,
                                            color = self.b_arrow_color, 
                                            width = 0.25, head_width = 0.001, 
                                            head_length = 0.001)
         
-        self.u_arrow = self.psi_twin.arrow(self.mu0, m_prob, 
+        self.u_arrow = self.bkg_twin.arrow(self.mu0, m_prob, 
                                            0, max_prob - m_prob,
                                            color = self.u_arrow_color, 
                                            width = 0.25, head_width = 0.001, 
@@ -921,17 +894,23 @@ class QMeasures(BoxLayout):
             self.dummy = True
             self.dummy_btn.text = 'Helping:\n    On'
             
-#    def axis_off(self):
-#        """
-#        Turns off or on the axis.
-#        """
-#        self.bkg_twin.axis('off')
-#        self.bkg_twin.set_title(' ')
-#        self.psi_twin.axis('off')        
-#        self.pot_twin.axis('off')
-    
-    
-
+    def axis_off(self):
+        """
+        Turns off or on the axis.
+        """
+        if self.axis_on: #They are on, switching them off
+            self.bkg_twin.axis('off') #Difference in dt when on or off: 0.02
+            self.bkg_twin.set_title(' ')      
+            self.pot_twin.axis('off') #Difference in dt when on or off: 0.01
+            self.axis_on = False
+        else:
+            self.bkg_twin.axis('on')    
+            figheight = self.main_fig.get_figheight() #In inches (100p = 1inch)
+            self.bkg_twin.set_title('x [' +  self.unit_long +']', 
+                                    color = 'white', pad=0.05*figheight*100, 
+                                    fontsize=10) #pad in p     
+            self.pot_twin.axis('on')
+            self.axis_on = True
         
 class QMeasuresApp(App):
     """
