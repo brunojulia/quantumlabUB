@@ -18,7 +18,7 @@ from kivy.clock import Clock #Tools to manage events in Kivy (used to animate)
 
 from kivy.uix.screenmanager import ScreenManager, Screen 
 from kivy.uix.screenmanager import FadeTransition, SlideTransition   
-from  kivy.uix.popup import Popup  
+from  kivy.uix.popup import Popup
 #OTHER GENERAL IMPORTS
 import numpy as np
 #from matplotlib.figure import Figure #This figure is the tipical one from 
@@ -83,7 +83,7 @@ class GamingScreen(Screen):
         - A repeatedly called function (called by Kivy's Clock) that computes
         and plots the evolution of the wave function: PLOTPSIEV.
         - A function called by the player that takes a measure of the position
-        of the instantaneous wave function, and carries on all its 
+        of the instantaneous wa ve function, and carries on all its 
         consequences: MEASURE
         - A function that allows the player to start again after the game is 
         over: RESTART
@@ -135,8 +135,13 @@ class GamingScreen(Screen):
         self.mesh = np.linspace(self.a, self.b, self.N + 1)
         
         #POTENTIAL INITAIL SETTINGS
-        self.settings = open('gaming_lvl_settings.txt','r')
-        self.read_settigns()
+#        self.settings = open('gaming_lvl_settings.txt','r')
+#        self.read_settigns()
+        
+        self.init_zones_width = 4
+        self.zones_width = self.init_zones_width
+        self.mu0 = 1 #Generating the lvl its going to be used
+        self.generate_lvl_settings()
         
         #EIGENBASIS
         self.eigenparam()
@@ -145,15 +150,20 @@ class GamingScreen(Screen):
         
         #PSI INITIAL SETTINGS
         #After every measure
-#        self.p0 = 0.    
+        #self.p0 = 0.    
         self.sigma0 = self.dirac_sigma
         #This first one (even after restarting)
         self.lvl = 1 #psi_init is going to use it
-        self.psi_init(apply_cond = True)  
+#        self.psi_init(apply_cond = True)  
+        
+        self.psi_init(apply_cond = False)
         
         #COMPONENTS & ENERGY
         self.comp()
-        self.energy = np.sum(np.abs(self.compo)**2 * self.evals)                
+        self.energy = np.sum(np.abs(self.compo)**2 * self.evals)  
+            
+        self.energy_av = []
+        self.energy_av.append(self.energy)      
 
         #============================ PLOTTING ================================  
         """
@@ -200,8 +210,12 @@ class GamingScreen(Screen):
         self.main_fig.patch.set_facecolor('black') 
         self.main_canvas = FigureCanvasKivyAgg(self.main_fig) #Passed to kv
         self.box1.add_widget(self.main_canvas)
-        self.gs = gridspec.GridSpec(2, 1, height_ratios=[7, 1], 
+#        self.gs = gridspec.GridSpec(2, 1, height_ratios=[7, 1], 
+#                          hspace=0.1, bottom = 0.05, top = 0.90) #Subplots grid
+        
+        self.gs = gridspec.GridSpec(3, 1, height_ratios=[7, 1, 1], 
                           hspace=0.1, bottom = 0.05, top = 0.90) #Subplots grid
+        
         
         #BACKGROUND
         #Their axes are going to be as psi's, since their default position 
@@ -218,6 +232,8 @@ class GamingScreen(Screen):
         self.bkg_twin.tick_params(colors='white')
         self.bkg_twin.set_facecolor('black')
         self.fill_bkg()
+        
+        
         #Arrows (first drawn transparent just to create the instance)
         self.b_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
         self.u_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
@@ -237,8 +253,17 @@ class GamingScreen(Screen):
                                          color = self.energycol, ls = '--',
                                          lw = 2)
         
+        #ZONES
+        self.zones = plt.subplot(self.gs[1])
+        self.zones.axis([self.a, self.b, 0, 1])
+        self.zones.axis('off')
+        self.fill_zones()
+        
         #VISUAL
-        self.visuax = plt.subplot(self.gs[1])
+#        self.visuax = plt.subplot(self.gs[1])
+        
+        self.visuax = plt.subplot(self.gs[2])
+        
         self.num_visu = len(self.mesh) #Can't be greater than the # of indices
         self.inter_visu = 'gaussian'
         self.visuax.axis('off')
@@ -262,36 +287,47 @@ class GamingScreen(Screen):
         
         #IMAGES
         self.gameover_imgdata = mpimg.imread('Images/gameover_img.jpg')
+        
         self.heart_img = 'Images/heart_img.jpg'
+        
         self.skull_img = 'Images/skull_img.jpg'        
+        self.skull_imgdata = mpimg.imread('Images/skull_img.jpg')
+        self.init_alpha = 0.7 #Initial skull alpha
+        self.skull_fading = None #Skull_fading can be either None or an 
+        #instance of imshow. If None: no set_alpha will occur, else, setting
+        #alpha and removes will be done. 
+        self.lvlup_imgdata = mpimg.imread('Images/arrow_up.png')
+        self.lvlup_fading = None
         
         #GAME VARIABLES
-        self.max_lives = 10 #If changed, kv's file needs to be changed as well
+        self.max_lives = 10 #If changed, kv file needs to be changed as well
         self.lives = self.max_lives 
         self.lives_sources() 
         self.lvl = 1
         self.dummy = False
+        self.zones
         
         #KEYBOARD
-#       request_keyboard returns an instance that represents the events on 
-#       the keyboard. It can give two events (witch we can bind to functions).
-#       Furthermore, each event comes with some input arguments:
-#       on_key_down    --      keycode, text, modifiers
-#       on_key_up      --      keycode
-#       Using the functions bind and unbind on this instance we can bind or 
-#       unbind the instance event with a callback/function AND passing the
-#       above arguments into the function.
-#       When using request_keyboard a callback/function must be given. It is 
-#       going to be called when releasing/closing the keyboard (shutting the 
-#       app, or reasigning the keyboard with another request_keyboard). It 
-#       usualy unbinds everything bound.
+        #request_keyboard returns an instance that represents the events on 
+        #the keyboard. It can give two events (witch we can bind to functions).
+        #Furthermore, each event comes with some input arguments:
+        #on_key_down    --      keycode, text, modifiers
+        #on_key_up      --      keycode
+        #Using the functions bind and unbind on this instance we can bind or 
+        #unbind the instance event with a callback/function AND passing the
+        #above arguments into the function.
+        #When using request_keyboard a callback/function must be given. It is 
+        #going to be called when releasing/closing the keyboard (shutting the 
+        #app, or reasigning the keyboard with another request_keyboard). It 
+        #usualy unbinds everything bound.
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down = self._on_keyboard_down)
    
         #TIME
         self.plt_time = 0.
         self.plt_dt = 1./30.
-        self.plt_vel_factor = 16 #Factor in dt
+        self.init_vel = 8
+        self.plt_vel_factor = 8 #Factor in dt
         self.pause_state = True #Begins paused
                                
         #LABELS
@@ -309,6 +345,8 @@ class GamingScreen(Screen):
     """
     #'THE' CORE'
     def g_schedule_fired(self):
+#        self.frame_count = 0
+#        self.av_dt = 0.0
         self.schedule = Clock.schedule_interval(self.plotpsiev, 1/30)
         
     def g_schedule_cancel(self):
@@ -358,9 +396,16 @@ class GamingScreen(Screen):
         
             #BKG
             self.fill_bkg()
-            self.b_arrow.set_alpha(np.exp(-t/10))
-            self.u_arrow.set_alpha(np.exp(-t/10))
+            self.b_arrow.set_alpha(0.5*np.exp(-t/10))
+            self.u_arrow.set_alpha(0.5*np.exp(-t/10))
             
+            curr_alpha = self.init_alpha*np.exp(-t/2)
+                
+            if self.skull_fading != None:
+                self.skull_fading.set_alpha(curr_alpha)
+            if self.lvlup_fading != None:
+                self.lvlup_fading.set_alpha(curr_alpha)
+                
             #VISUAL PLOT
             self.visu_im.remove()
             step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
@@ -371,6 +416,13 @@ class GamingScreen(Screen):
         #DRAW 
         #(keeps drawing even if there hasn't been an update)
         self.main_canvas.draw()
+        
+        #average dt
+#        ddt = dt #Measure here the dt (so we dont cound the averaging time)
+#        self.frame_count += 1
+#        self.av_dt = ddt/self.frame_count + self.av_dt*(self.frame_count-1)/self.frame_count
+#        print(self.av_dt, dt)
+        
         
     def measure(self):
         """
@@ -420,15 +472,20 @@ class GamingScreen(Screen):
         if self.dummy:
             self.mu0 = self.mesh[np.argmax(prob)]
         self.measure_arrow()
+        
         self.plt_time = 0. #Reset time 
         self.sigma0 = self.dirac_sigma #New sigma
 
         if self.mu0 in self.redzone: #OUT
+            passed = False
             self.lives -= 1
             self.lives_sources()
             self.psi_init() 
             self.comp()
             if self.lives <= 0: #GAME OVER
+                if self.skull_fading != None: #When gaming over, remove skull
+                    self.skull_fading.remove()
+                    self.skull_fading = None
                 self.pause_state = True
                 self.pause_btn.text = 'Play'
                 self.GMO_img = self.pot_twin.imshow(self.gameover_imgdata, 
@@ -437,6 +494,19 @@ class GamingScreen(Screen):
                 self.pause_btn.disabled = True
                 self.restart_btn.disabled = False
                 self._keyboard.release()
+                print('E av: ', sum(self.energy_av)/len(self.energy_av), 'Lvl: ', self.lvl)
+            else: #Skull pops when measure miss
+                if self.skull_fading != None: #Previously exists an skull
+                    self.skull_fading.remove()
+                self.skull_fading = self.pot_twin.imshow(self.skull_imgdata,
+                                                         aspect = 'auto',
+                                                         extent = [-2.5, 2.5, 10, 40],
+                                                         alpha = self.init_alpha)
+                
+            if self.lvlup_fading != None: #If missed, remove prev lvlup
+                self.lvlup_fading.remove()
+                self.lvlup_fading = None
+                
             self.fill_bkg()
             #VISUAL PLOT
             self.visu_im.remove()
@@ -446,24 +516,40 @@ class GamingScreen(Screen):
                  cmap = self.cmap_name)
             
         else: #IN
+            passed = True
             self.lvl += 1 #Read new lvl
             self.label_lvl.text = 'Level ' + str(self.lvl)
-            self.read_settigns()
+            self.lvl_up()
+#            self.read_settigns()
+            self.generate_lvl_settings()
             self.pot_data.set_data(self.mesh, self.potential)
             #Eigenparam
             self.eigenparam()
-            self.psi_init(apply_cond=True)
+#            self.psi_init(apply_cond = True)
+            self.psi_init(apply_cond = False)
             self.comp()
             self.fill_bkg()
+            self.fill_zones()
+            if self.lvlup_fading != None: #Prev exist an skull
+                self.lvlup_fading.remove()
+            self.lvlup_fading = self.pot_twin.imshow(self.lvlup_imgdata,
+                                                     aspect = 'auto',
+                                                     extent = [-2.5, 2.5, 11, 39],
+                                                     alpha = self.init_alpha)
+            if self.skull_fading != None: #If lvl passed, remove prev skull
+                self.skull_fading.remove()
+                self.skull_fading = None
             #VISUAL PLOT
             self.visu_im.remove()
             step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
             self.visu_im = self.visuax.imshow([self.psi2[::step]], 
                  aspect='auto', interpolation = self.inter_visu, 
                  cmap = self.cmap_name)
-            
+        
         self.energy = np.sum(np.abs(self.compo)**2 * self.evals)
         self.E_data.set_data(self.mesh, self.energy)
+        if passed:
+            self.energy_av.append(self.energy)
         
     def skip_lvl(self):
         """
@@ -471,6 +557,7 @@ class GamingScreen(Screen):
         passes the level.
         """            
         prob = self.deltax*self.psi2 #Get instant probability
+        prob /= sum(prob)
         self.mu0 = np.random.choice(self.mesh, p=prob) #Pick new random mu0
         if self.dummy:
             self.mu0 = self.mesh[np.argmax(prob)]
@@ -478,17 +565,27 @@ class GamingScreen(Screen):
         self.u_arrow.remove()
         self.b_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
         self.u_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
+        if self.skull_fading != None:
+            self.skull_fading.remove()
+            self.skull_fading = None
+        if self.lvlup_fading != None:
+            self.lvlup_fading.remove()
+            self.lvlup_fading = None
         self.plt_time = 0. #Reset time 
         self.sigma0 = self.dirac_sigma #New sigma
         self.lvl += 1
         self.label_lvl.text = 'Level ' + str(self.lvl)
-        self.read_settigns()
+        self.lvl_up()
+#        self.read_settigns()
+        self.generate_lvl_settings()
         self.pot_data.set_data(self.mesh, self.potential)
         #Eigenparam
         self.eigenparam()
-        self.psi_init(apply_cond=True)
+#        self.psi_init(apply_cond=True)
+        self.psi_init(apply_cond=False)        
         self.comp()
         self.fill_bkg()
+        self.fill_zones()
         #VISUAL PLOT
         self.visu_im.remove()
         step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
@@ -522,19 +619,24 @@ class GamingScreen(Screen):
         """
         self.GMO_img.remove()
         self.lvl = 1
+        self.label_lvl.text = 'Level ' + str(self.lvl)
         self.lives = self.max_lives
         self.lives_sources()
         self.pause_state = True
         self.pause_btn.text = 'Play'
-        self.settings.close() #We close and open again to start reading again
-        self.settings = open('gaming_lvl_settings.txt','r')
-        self.read_settigns()
+#        self.settings.close() #We close and open again to start reading again
+#        self.settings = open('gaming_lvl_settings.txt','r')
+#        self.read_settigns()
+        self.zones_width = self.init_zones_width
+        self.plt_vel_factor = self.init_vel
+        self.generate_lvl_settings()
         self.pot_data.set_data(self.mesh, self.potential)
         self.eigenparam()
-        self.psi_init(apply_cond=True)
+#        self.psi_init(apply_cond=True)
+        self.psi_init(apply_cond=False)
         self.comp()
-        self.redzone = np.array([])
         self.fill_bkg()
+        self.fill_zones()
         self.visu_im.remove()
         step = int(len(self.psi)/self.num_visu) #Same as in the 1st plot
         self.visu_im = self.visuax.imshow([self.psi2[::step]], 
@@ -565,12 +667,14 @@ class GamingScreen(Screen):
     def pause(self):
         """
         Changes the pause state from true to false and viceversa.
-        """       
-        if self.pause_state == True: #Unpause
+        """    
+        self.av_dt = 0
+        self.frame_count = 0
+        if self.pause_state == True: #Unpausing
             self.pause_state = False
             self.pause_btn.text = 'Pause'
         else:
-            self.pause_state = True #Pause
+            self.pause_state = True #Pausing
             self.pause_btn.text = 'Play'
         
     ###########################################################################
@@ -658,7 +762,7 @@ class GamingScreen(Screen):
         #HARMONIC
         if self.lvl_set[0] == 0: 
             dx, k = self.lvl_set[2:3+1]
-            self.potential = 20*0.5*k*(self.mesh - dx)**2
+            self.potential = 0.5*k*(self.mesh - dx)**2
             self.fill_start_i = 4
          #DOUBLE WELL    
         elif self.lvl_set[0] == 1:
@@ -722,7 +826,7 @@ class GamingScreen(Screen):
         #We then normalize using the integration over the array.
         self.psi = np.sqrt(\
                         np.exp(-(self.mesh-self.mu0)**2/(2.*self.sigma0**2)))#\
-#                                 *np.exp(np.complex(0.,-1.)*self.p0*self.mesh)
+                                #*np.exp(np.complex(0.,-1.)*self.p0*self.mesh)
         prob_psi = np.abs(self.psi)**2
         self.psi *= 1. / np.sqrt(self.deltax*\
                       (np.sum(prob_psi) - prob_psi[0]/2. - prob_psi[-1]/2.))
@@ -767,7 +871,7 @@ class GamingScreen(Screen):
     - fake_axis
     """
     
-    def fill_bkg(self):
+    def fill_bkg3(self):
         """
         Fills background in bkg axis, bkg_twin, with red and green zones of the
         current self.lvl_set. It fills above self.psi2. Keeps track of 
@@ -822,6 +926,135 @@ class GamingScreen(Screen):
                                    facecolor = self.potcol) #Potential
         self.bkg_twin.fill_between(redzone,  np.maximum(potential,bot), top,
                                    facecolor = self.zonecol_red) #Red
+        
+        
+    def fill_bkg2(self):
+        """
+        Fill only pot and top part gray.
+        """
+        self.bkg_twin.collections.clear()
+        #Pot
+        potential = self.potential/self.dcoord_factor
+        self.bkg_twin.fill_between(self.mesh, self.psi2, potential,
+                                   where = np.less(self.psi2, potential),
+                                   facecolor = self.potcol)
+        #Top part
+        self.bkg_twin.fill_between(self.mesh, 
+                                   np.maximum(potential, self.psi2),
+                                   self.psi_tlim, facecolor = 'gray')
+        
+    def fill_bkg(self):
+        """
+        Creates zones from one central given position and width.
+        """
+        self.bkg_twin.collections.clear() #Clear before so we don't draw on top
+        self.redzone = np.array([])
+        
+        left = self.zones_center - self.zones_width/2.
+        right = self.zones_center + self.zones_width/2.
+        left_index = int((left - self.a)//self.deltax)
+        right_index = int((right - self.a)//self.deltax)
+        
+        #Left red
+        bot = (self.psi2)[:left_index+1] #Psi line
+        top = np.zeros_like(bot) + 2.
+        redzone = self.mesh[:left_index+1] #+1 due to slice
+        potential = self.potential[:left_index+1]/self.dcoord_factor
+        self.redzone = np.append(self.redzone, redzone)
+        self.bkg_twin.fill_between(redzone, bot, potential,
+                                   where = np.less(bot, potential), 
+                                   facecolor = self.potcol) #Potential
+        self.bkg_twin.fill_between(redzone, np.maximum(potential,bot), top,
+                                   facecolor = self.zonecol_red) #Red
+        #Green
+        bot = (self.psi2)[left_index-1:right_index+2]
+        top = np.zeros_like(bot) + 2.
+        greenzone = self.mesh[left_index-1:right_index+2] #(")
+        potential=self.potential[left_index-1:right_index+2]/self.dcoord_factor
+        self.bkg_twin.fill_between(greenzone, bot, potential, 
+                                   where = np.less(bot, potential), 
+                                   facecolor = self.potcol) #Potential
+        self.bkg_twin.fill_between(greenzone, np.maximum(potential, bot),
+                                   top, facecolor = self.zonecol_green) #Green
+        
+        #Right red 
+        bot = (self.psi2)[right_index:] #Psi line
+        top = np.zeros_like(bot) + 2.
+        redzone = self.mesh[right_index:] #+1 due to slice
+        potential = self.potential[right_index:]/self.dcoord_factor
+        self.redzone = np.append(self.redzone, redzone)
+        self.bkg_twin.fill_between(redzone, bot, potential,
+                                   where = np.less(bot, potential), 
+                                   facecolor = self.potcol) #Potential
+        self.bkg_twin.fill_between(redzone, np.maximum(potential,bot), top,
+                                   facecolor = self.zonecol_red) #Red
+        
+        
+    def fill_zones2(self):
+        """
+        
+        """
+        self.zones.collections.clear() #Clear before so we don't draw on top
+        self.redzone = np.array([])
+        prev = self.a
+        a = 1
+    
+        for i in range(self.fill_start_i, len(self.lvl_set)-1, 2):
+            #Index
+            prev_index = int((prev - self.a)//self.deltax)
+            index = int((self.lvl_set[i]-self.a)//self.deltax)
+            nxt_index = int((self.lvl_set[-1]- self.a)//self.deltax)
+            #Red
+            redzone = self.mesh[prev_index:index+1] #+1 due to slice
+            self.redzone = np.append(self.redzone, redzone)
+            bot = np.zeros_like(redzone)
+            self.zones.fill_between(redzone, bot, bot + 1, 
+                                    facecolor = self.zonecol_red, alpha = a)
+            #Green                                                            
+            greenzone = self.mesh[index-1:nxt_index+2] 
+            bot = np.zeros_like(greenzone)
+            self.zones.fill_between(greenzone, bot, bot + 1,
+                                    facecolor = self.zonecol_green, alpha = a) 
+            #Looping by giving the new prev position
+            prev = self.mesh[int((self.lvl_set[i+1]-self.a)//self.deltax)] 
+        #Last zone red
+        redzone = self.mesh[nxt_index:]
+        bot = np.zeros_like(redzone)
+        self.redzone = np.append(self.redzone, redzone)
+        self.zones.fill_between(redzone, bot, bot + 1,
+                                facecolor = self.zonecol_red, alpha = a)
+        
+        
+    def fill_zones(self):
+        """
+        Fill zones from center position.
+        """
+        self.zones.collections.clear() #Clear before so we don't draw on top
+        self.redzone = np.array([])
+        a = 1
+        
+        left = self.zones_center - self.zones_width/2.
+        right = self.zones_center + self.zones_width/2.
+        left_index = int((left - self.a)//self.deltax)
+        right_index = int((right - self.a)//self.deltax)
+        #First red
+        redzone = self.mesh[:left_index+1] #+1 due to slice
+        self.redzone = np.append(self.redzone, redzone)
+        bot = np.zeros_like(redzone)
+        self.zones.fill_between(redzone, bot, bot + 1, 
+                                facecolor = self.zonecol_red, alpha = a)
+        #Green                                                            
+        greenzone = self.mesh[left_index-1:right_index+2] 
+        bot = np.zeros_like(greenzone)
+        self.zones.fill_between(greenzone, bot, bot + 1,
+                                facecolor = self.zonecol_green, alpha = a) 
+        
+        #Second red
+        redzone = self.mesh[right_index:] #+1 due to slice
+        self.redzone = np.append(self.redzone, redzone)
+        bot = np.zeros_like(redzone)
+        self.zones.fill_between(redzone, bot, bot + 1, 
+                                facecolor = self.zonecol_red, alpha = a)
         
     def measure_arrow(self):
         """
@@ -1022,6 +1255,72 @@ class GamingScreen(Screen):
         self.manager.transition = SlideTransition()
         self.manager.transition.direction = 'left'
         self.manager.current = 'illustrating'
+        
+    def generate_lvl_settings(self):
+        """
+        Generate random plausible levels. This functions is going to 
+        be called when passing a level. It will generate the harmonic potential
+        and the redzones.
+        Some parameteres will be randomly picked from a given values interval:
+            - harm dx
+            - harm k
+            - redzone central position
+        Complementing this, redzone WIDTH will be decreasing as lvl pass and 
+        SPEED will increase in the same way.
+        To later use fill_zones and fill_bkg we should return an array for them
+        to use.
+        """
+        #POTENTIAL: k, dx
+        #k. Its interval is almost arbitrary
+        interv_k = np.linspace(3, 8, 31, endpoint = True) 
+        k = np.random.choice(interv_k) #unifrom
+        #dx. Its interval is such that, being the new measure mu0: 
+            #1. Along all dx, the potential at the walls is greater than wall_E
+            #2. The harmonic energy along all dx interval doesnt gives the 
+                #position mu0 more energy than max_E        
+        wall_E = 90.0 #The lower, the closer to the wall
+        wall_dist = np.sqrt(2*wall_E/k)
+        max_E = 90.0 #The higher, the faster it gets & the closer to wall_E 
+        #(can get even higher) the more probable it hist the wall. You can see
+        #its effect on how far the new wells appear from mu0.
+        s = np.sqrt(2*max_E/k)
+        left_dx = self.mu0 - s
+        right_dx = self.mu0 + s
+        if abs(self.a - left_dx) < wall_dist: #Building final interval
+            left_dx = self.a + wall_dist
+        if abs(self.b - right_dx) < wall_dist:
+            right_dx = self.b - wall_dist
+        inter_dx = np.arange(left_dx, right_dx, self.deltax)
+        prob = (inter_dx - self.mu0)**2
+        prob /= sum(prob)
+        dx = np.random.choice(inter_dx, p = prob)
+        self.potential = 0.5*k*(self.mesh - dx)**2
+        
+        #REDZONES: central pos, extrem values
+        #Central pos. We have to be carefull that doesnt appears in a high 
+        #energy region, since the particle would never get there. So we give
+        #a low E value and the central pos interval will on positions where
+        #low energy is enough to get there.
+        low_E = 15.0 #The higher, the unlckier you're gonna get
+        s = np.sqrt(low_E*2/k)
+        inter_c = np.arange(dx - s, dx + s, self.deltax)
+        self.zones_center = np.random.choice(inter_c)
+        
+    def lvl_up(self):
+        """
+        
+        """
+        #New width
+        final_factor = 0.5 #Parameters to get to final factor around lvl 30
+        R = 17
+        a = 4
+        decreas_factor=(1-final_factor)/(1+np.exp((self.lvl-R)/a))+final_factor
+        self.zones_width = self.init_zones_width*decreas_factor
+        #New speed
+        self.plt_vel_factor = self.init_vel + self.lvl**2/30
+        self.label_vel.text = 'Velocity \n    ' + \
+                                            str(int(self.plt_vel_factor)) +'X'
+        
         
 class IllustratingScreen(Screen):
     """
@@ -1226,9 +1525,9 @@ class IllustratingScreen(Screen):
         self.skull_img = 'Images/skull_img.jpg'        
         
         #GAME VARIABLES
-        self.max_lives = 10 #If changed, kv's file needs to be changed as well
-        self.lives = self.max_lives 
-        self.lives_sources() 
+#        self.max_lives = 10 #If changed, kv's file needs to be changed as well
+#        self.lives = self.max_lives 
+#        self.lives_sources() 
         self.lvl = 1
         self.dummy = False
         
@@ -1386,19 +1685,19 @@ class IllustratingScreen(Screen):
         self.sigma0 = self.dirac_sigma #New sigma
         
         if self.mu0 in self.redzone: #OUT
-            self.lives -= 1
-            self.lives_sources()
+#            self.lives -= 1
+#            self.lives_sources()
             self.psi_init() 
             self.comp()
-            if self.lives <= 0: #GAME OVER
-                self.pause_state = True
-                self.pause_btn.text = 'Play'
-                self.GMO_img = self.pot_twin.imshow(self.gameover_imgdata, 
-                                  aspect = 'auto', extent = [-7.5, 7.5, 0, 40])
-                self.measure_btn.disabled = True
-                self.pause_btn.disabled = True
-                self.restart_btn.disabled = False
-                self._keyboard.release()
+#            if self.lives <= 0: #GAME OVER
+#                self.pause_state = True
+#                self.pause_btn.text = 'Play'
+#                self.GMO_img = self.pot_twin.imshow(self.gameover_imgdata, 
+#                                  aspect = 'auto', extent = [-7.5, 7.5, 0, 40])
+#                self.measure_btn.disabled = True
+#                self.pause_btn.disabled = True
+#                self.restart_btn.disabled = False
+#                self._keyboard.release()
             self.fill_bkg()
             #VISUAL PLOT
             self.visu_im.remove()
@@ -1433,6 +1732,7 @@ class IllustratingScreen(Screen):
         passes the level.
         """            
         prob = self.deltax*self.psi2 #Get instant probability
+        prob /= sum(prob)
         self.mu0 = np.random.choice(self.mesh, p=prob) #Pick new random mu0
         if self.dummy:
             self.mu0 = self.mesh[np.argmax(prob)]
@@ -1484,8 +1784,8 @@ class IllustratingScreen(Screen):
         """
         self.GMO_img.remove()
         self.lvl = 1
-        self.lives = self.max_lives
-        self.lives_sources()
+#        self.lives = self.max_lives
+#        self.lives_sources()
         self.pause_state = True
         self.pause_btn.text = 'Play'
         self.settings.close() #We close and open again to start reading again
@@ -1909,21 +2209,21 @@ class IllustratingScreen(Screen):
     - transitino_IG
     """
 
-    def lives_sources(self):
-        """
-        Replaces every live image source: having N lives, replaces live1 to
-        liveN with 'heart_img.jpg', and live(N+1) to live(max_lives) with 
-        'skull_img.jpg'. So, when changing the amount of lives, this has to be
-        called.
-        """
-        for live_spot in range(1, self.max_lives+1):
-            live_name = 'live' + str(live_spot)
-            img = self.ids[live_name] #self.ids is a dict of all id(s) from kv
-            if live_spot <= self.lives: #Heart
-                img.source = self.heart_img
-            else:
-                img.source = self.skull_img
- 
+#    def lives_sources(self):
+#        """
+#        Replaces every live image source: having N lives, replaces live1 to
+#        liveN with 'heart_img.jpg', and live(N+1) to live(max_lives) with 
+#        'skull_img.jpg'. So, when changing the amount of lives, this has to be
+#        called.
+#        """
+#        for live_spot in range(1, self.max_lives+1):
+#            live_name = 'live' + str(live_spot)
+#            img = self.ids[live_name] #self.ids is a dict of all id(s) from kv
+#            if live_spot <= self.lives: #Heart
+#                img.source = self.heart_img
+#            else:
+#                img.source = self.skull_img
+# 
     def _keyboard_closed(self):
         """
         Actions taken when keyboard is released/closed. Unbinding and 
