@@ -24,17 +24,13 @@
             id: s_to_g
             text: 'Play'
             padding_x: root.width*5/12
-            on_press: 
-                print('s to g')
-                root.transition_SG()
+            on_press: root.transition_SG()
     
         Button:
             size_hint_y: 1
             id: s_to_g
             text: 'Illus.'
-            on_press: 
-                print('s to i')    
-                root.transition_SI() 
+            on_press: root.transition_SI() 
                 
         Button:
             id: info_id
@@ -144,10 +140,10 @@
             orientation: 'horizontal'
             size_hint_y: 1
             
-            Button: 
+            Label: 
                 id: change_vel_id
                 size_hint_x: 0.15
-                on_press: root.change_vel()
+                #on_press: root.change_vel()
                 
             Button:
                 id: pause_id
@@ -167,16 +163,10 @@
                 disabled: True
                 size_hint_x: 0.15
                 on_press: root.restart()
-                
-            Button:
-                id: keyboard_btn_id
-                text: 'KB'
-                size_hint_x: 0.1
-                on_press: root.request_KB()
                                 
             Button:
                 id: skip_id
-                text: 'Skip Level'
+                text: '    JOKER    \n remaining: 3'
                 size_hint_x: 0.1
                 on_press: root.skip_lvl()
                 
@@ -186,56 +176,49 @@
                 size_hint_x: 0.1 
                 on_press: root.dummy_mode()
                 
-            Button:
-                id: axis_id
-                text: 'Axis Switch'
-                size_hint_x: 0.1 
-                on_press: root.axis_off()
+      #      Button:
+       #         id: axis_id
+        #        text: 'Axis Switch'
+         #       size_hint_x: 0.1 
+          #      on_press: root.axis_off()
    
             Button:
                 id: g_to_i_id
                 size_hint_x: 1
                 text: 'Go to illustrating'
                 size_hint_x: 0.1
-                on_release:
-                    print('g to i')
-                    root.transition_GI()
+                on_release: root.transition_GI()
                     
             Button:
                 id: g_to_s_id
                 size_hint_x: 1
                 text: 'Go to start'
                 size_hint_x: 0.1
-                on_release:
-                    print('g to s' )
-                    root.transition_GS()
+                on_release: root.transition_GS()
+                
             
 <IllustratingScreen>:
     name: 'illustrating'
 
     box1: box1_id
-    skip_btn: skip_id
     label_vel: change_vel_id
     label_pause: pause_id
-    label_lvl: label_lvl_id
     measure_btn: measure_btn_id
-    restart_btn: restart_btn_id
     pause_btn: pause_id
     dummy_btn: dummy_id
     i_to_s: i_to_s_id
     i_to_g: i_to_g_id
+    dropdownbtn: dropdownbtn_id
     
    
     BoxLayout:
         orientation: 'vertical'
-            
-        Label:
-            id: label_lvl_id
-            text: 'Level 1'
-            size_hint_y: 0.5
-                
-        Label:
-            text: 'T    I   T   O   L   +   I   N   F   O'
+                    
+        Button:
+            id: dropdownbtn_id
+            text: root.lvl_titles[0]
+            size_hint_y: 1
+            on_release: root.illu_dropdown.open(self)
             
         BoxLayout:
             orientation: 'vertical'
@@ -265,23 +248,14 @@
                 on_press: root.measure()
                 
             Button:
-                id: restart_btn_id
-                text: 'Restart'
-                disabled: True
-                size_hint_x: 0.15
-                on_press: root.restart()
-                
-            Button:
-                id: keyboard_btn_id
-                text: 'KB'
+                text: '-1'
                 size_hint_x: 0.1
-                on_press: root.request_KB()
+                on_press: root.skip_lvl(-1)
                                 
             Button:
-                id: skip_id
-                text: 'Skip Level'
+                text: '+1'
                 size_hint_x: 0.1
-                on_press: root.skip_lvl()
+                on_press: root.skip_lvl(1)
                 
             Button:
                 id: dummy_id
@@ -289,29 +263,25 @@
                 size_hint_x: 0.1 
                 on_press: root.dummy_mode()
                 
-            Button:
-                id: axis_id
-                text: 'Axis Switch'
-                size_hint_x: 0.1 
-                on_press: root.axis_off()
+    #        Button:
+     #           id: axis_id
+      #          text: 'Axis Switch'
+       #         size_hint_x: 0.1 
+        #        on_press: root.axis_off()
 
             Button:
                 id: i_to_g_id
                 size_hint_x: 1
                 text: 'Go to gaming'
                 size_hint_x: 0.1
-                on_release:
-                    print('i to g')
-                    root.transition_IG()
+                on_release:  root.transition_IG()
                 
             Button:
                 id: i_to_s_id
                 size_hint_x: 1
                 text: 'Go to start'
                 size_hint_x: 0.1
-                on_release:
-                    print('i to s') 
-                    root.transition_IS()
+                on_release: root.transition_IS()
         
     
     
