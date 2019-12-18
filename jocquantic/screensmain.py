@@ -21,6 +21,7 @@ from kivy.uix.screenmanager import FadeTransition, SlideTransition
 from  kivy.uix.popup import Popup
 from kivy.uix.dropdown import DropDown
 from kivy.uix.button import Button
+from kivy.core.text import LabelBase
 #OTHER GENERAL IMPORTS
 import numpy as np
 #from matplotlib.figure import Figure #This figure is the tipical one from 
@@ -39,10 +40,22 @@ from kivy.core.window import Window #Window manegement
 #                             MAIN CLASS                                      #
 ###############################################################################
 
+
+
+LabelBase.register(name = '8_bit_madness', 
+                   fn_regular = 'Files/8_bit_madness-regular.ttf')
+LabelBase.register(name = 'VT323', 
+                   fn_regular = 'Files/VT323-regular.ttf')
+
+
 class StartingScreen(Screen):
     
     def __init__ (self, **kwargs):
         super(StartingScreen, self).__init__(**kwargs)
+        
+        
+    def spseudo_init(self):
+        pass
         
     def transition_SI(self):
         """
@@ -65,9 +78,36 @@ class StartingScreen(Screen):
         self.manager.current = 'gaming'
         
 class InfoPopup(Popup):
+    with open('Files/info_text.txt', 'r') as t:
+            lines = t.readlines()
+    
+    intro_text = lines[0] + '\n' +lines[1] +'\n' + lines[2] + '\n' + lines[3]
+    gamele_text = '\n' + lines[4] + '\n' + lines[5] + '\n' + lines[6] + '\n' +\
+                         lines[7] + '\n' + lines[8] + '\n' + lines[9] + '\n' +\
+                         lines[10] + '\n' + lines[11] + '\n' + lines[12] + \
+                         '\n' + lines[13]
     
     def __init__(self):
         super(Popup, self).__init__()
+        self.intro.text = self.intro_text
+        self.gamele.text = self.gamele_text
+        
+        
+class PhysicsPopup(Popup):
+    with open('Files/physics_text.txt', 'r') as t:
+            lines = t.readlines()
+    
+    text = lines[0] + '\n' +lines[1] +'\n' + lines[2] + '\n' + lines[3] + '\n'\
+         + lines[4] + '\n' +lines[5] +'\n' + lines[6] + '\n' + lines[7] + '\n'\
+         + lines[8]
+    
+    def __init__(self):
+        super(Popup, self).__init__()  
+        self.phypop.text = self.text
+        
+    def phypseudo_init(self):
+        pass
+    
 
 class GamingScreen(Screen):
     """
@@ -185,6 +225,7 @@ class GamingScreen(Screen):
         arrows for visualization of the measure.
         """
         #COLORS
+        
         self.zonecol_red = '#AA3939'
         self.zonecol_green = '#7B9F35'
         self.potcol = '#226666'
@@ -293,15 +334,15 @@ class GamingScreen(Screen):
         #============================== GAME ================================== 
         
         #IMAGES
-        self.gameover_imgdata = mpimg.imread('Images/gameover_img.jpg') #G.OVER
-        self.heart_img = 'Images/heart_img.jpg'                          #HEART
-        self.skull_img = 'Images/skull_img.jpg'                          #SKULL
-        self.skull_imgdata = mpimg.imread('Images/skull_img.jpg')
+        self.gameover_imgdata=mpimg.imread('Images/gameover_img.png',0) #G.OVER
+        self.heart_img = 'Images/heart_img.png'                          #HEART
+        self.skull_img = 'Images/skull_img.png'                          #SKULL
+        self.skull_imgdata = mpimg.imread('Images/skull_img.png', 0)
         self.init_alpha = 0.7 #Initial skull alpha
         self.skull_fading = None #Skull_fading can be either None or an 
         #instance of imshow. If None: no set_alpha will occur, else, setting
         #alpha and removes will be done. 
-        self.lvlup_imgdata = mpimg.imread('Images/arrow_up.png')         #LVLUP
+        self.lvlup_imgdata = mpimg.imread('Images/lvl_up.png')         #LVLUP
         self.lvlup_fading = None
         
         
@@ -312,7 +353,7 @@ class GamingScreen(Screen):
         self.dummy = False
         self.init_jokers = 3
         self.jokers = self.init_jokers
-        self.skip_btn.text = '    JOKER    \n remaining: ' + str(self.jokers)
+#        self.skip_btn.text = '    JOKER    \n remaining: ' + str(self.jokers)
         
         #KEYBOARD
         #request_keyboard returns an instance that represents the events on 
@@ -340,8 +381,8 @@ class GamingScreen(Screen):
                                
         
         #LABELS
-        self.label_vel.text = 'Velocity \n    ' + \
-        str(int(self.plt_vel_factor)) +'X'
+#        self.label_vel.text = 'Velocity \n    ' + \
+#        str(int(self.plt_vel_factor)) +'X'
                           
         
     ###########################################################################
@@ -512,15 +553,18 @@ class GamingScreen(Screen):
                     self.skull_fading.remove()
                     self.skull_fading = None
                 self.pause_state = True
-                self.pause_btn.text = 'Play'
+                self.pause_btn.text = 'PLAY'
                 self.GMO_img = self.pot_twin.imshow(self.gameover_imgdata, 
                                   aspect = 'auto', extent = [-7.5, 7.5, 0, 40])
-                self.measure_btn.disabled = True
+#                self.measure_btn.disabled = True
                 self.pause_btn.disabled = True
-                self.restart_btn.disabled = False
+#                self.restart_btn.disabled = False
                 self._keyboard.release()
                 print('E av: ', sum(self.energy_av)/len(self.energy_av), 
                       'Lvl: ', self.lvl)
+                self.joker1.disabled = True
+                self.joker2.disabled = True
+                self.joker3.disabled = True
                 
                 
             #NEW PSI
@@ -542,7 +586,7 @@ class GamingScreen(Screen):
             #PASS LVL
             passed = True
             self.lvl += 1 #Read new lvl
-            self.label_lvl.text = 'Level ' + str(self.lvl)
+            self.label_lvl.text = 'LEVEL ' + str(self.lvl)
             self.lvl_up() #Width and speed changes
             
     
@@ -559,7 +603,7 @@ class GamingScreen(Screen):
                 self.lvlup_fading.remove()
             self.lvlup_fading = self.pot_twin.imshow(self.lvlup_imgdata,
                                                  aspect = 'auto',
-                                                 extent = [-2.5, 2.5, 11, 39],
+                                                 extent = [-3.5, 3.5, 20, 30],
                                                  alpha = self.init_alpha)
             if self.skull_fading != None: #If lvl passed, remove prev skull
                 self.skull_fading.remove()
@@ -606,7 +650,7 @@ class GamingScreen(Screen):
         
         #PASS LVL        
         self.lvl += 1
-        self.label_lvl.text = 'Level ' + str(self.lvl)
+        self.label_lvl.text = 'LEVEL ' + str(self.lvl)
         self.lvl_up()
         
         
@@ -643,9 +687,9 @@ class GamingScreen(Screen):
         
         #JOKERS
         self.jokers -= 1
-        self.skip_btn.text = '    JOKER    \n remaining: ' + str(self.jokers)
-        if self.jokers <= 0:
-            self.skip_btn.disabled = True
+#        self.skip_btn.text = '    JOKER    \n remaining: ' + str(self.jokers)
+#        if self.jokers <= 0:
+#            self.skip_btn.disabled = True
 
     #RESTART
     def restart(self):
@@ -670,20 +714,20 @@ class GamingScreen(Screen):
         """
         self.GMO_img.remove()
         self.lvl = 1
-        self.label_lvl.text = 'Level ' + str(self.lvl)
+        self.label_lvl.text = 'LEVEL ' + str(self.lvl)
         self.lives = self.max_lives
         self.lives_sources()
         self.pause_state = True
-        self.pause_btn.text = 'Play'
+        self.pause_btn.text = 'PLAY'
 #        self.settings.close() #We close and open again to start reading again
 #        self.settings = open('gaming_lvl_settings.txt','r')
 #        self.read_settigns()
         self.zones_width = self.init_zones_width
         self.plt_vel_factor = self.init_vel
-        self.measure_btn.disabled = False
+#        self.measure_btn.disabled = False
         self.pause_btn.disabled = False
         self.request_KB()
-        self.restart_btn.disabled = True
+#        self.restart_btn.disabled = True
         self.b_arrow.remove()
         self.u_arrow.remove()
         self.b_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
@@ -712,8 +756,11 @@ class GamingScreen(Screen):
         
         #JOKERS
         self.jokers = self.init_jokers
-        self.skip_btn.disabled = False
-        self.skip_btn.text = '    JOKER    \n remaining: ' + str(self.jokers)
+        self.joker1.disabled = False
+        self.joker2.disabled = False
+        self.joker3.disabled = False
+#        self.skip_btn.disabled = False
+#        self.skip_btn.text = '    JOKER    \n remaining: ' + str(self.jokers)
      
     
         
@@ -725,8 +772,8 @@ class GamingScreen(Screen):
         if self.plt_vel_factor > 32:
             self.plt_vel_factor = 1
         #Label in kivy file
-        self.label_vel.text = 'Velocity \n    ' + \
-        str(int(self.plt_vel_factor)) +'X'
+#        self.label_vel.text = 'Velocity \n    ' + \
+#        str(int(self.plt_vel_factor)) +'X'
         
     def pause(self):
         """
@@ -736,10 +783,10 @@ class GamingScreen(Screen):
         self.frame_count = 0
         if self.pause_state == True: #Unpausing
             self.pause_state = False
-            self.pause_btn.text = 'Pause'
+            self.pause_btn.text = 'PAUSE'
         else:
             self.pause_state = True #Pausing
-            self.pause_btn.text = 'Play'
+            self.pause_btn.text = 'PLAY'
         
     ###########################################################################
     #                            COMPUTING FUNCTIONS                          #
@@ -1252,15 +1299,17 @@ class GamingScreen(Screen):
         
     def request_KB(self, *args):
         """
-        Requesting and binding keyboard again, only if it has been released.
+        Requesting and binding keyboard again, only if it has been released. 
+        In gmae over clicking will restart the game
         """
         if self._keyboard == None and self.lives>0: #It has been released and 
                                                     #its not game over
             self._keyboard = Window.request_keyboard(self._keyboard_closed, 
                                                      self)
             self._keyboard.bind(on_key_down=self._on_keyboard_down)
-        else:
-            pass
+        
+        if self.lives <= 0: #In game over, clicking will restart.
+            self.restart()
             
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
         """
@@ -1280,10 +1329,12 @@ class GamingScreen(Screen):
         """
         if self.dummy: # Using dummy. Change mode
             self.dummy = False
-            self.dummy_btn.text = 'Helping:\n    Off'
+            self.dummy_btn.text = 'OFF'
+            self.dummy_btn.background_color = (0, 0, 0, 1)
         else: # Not using dummy. Change mode
             self.dummy = True
-            self.dummy_btn.text = 'Helping:\n    On'
+            self.dummy_btn.text = 'ON'
+            self.dummy_btn.background_color = (0.133, 0.4, 0.4, 1)
         
     def transition_GS(self):
         self.g_schedule_cancel()
@@ -1305,9 +1356,9 @@ class GamingScreen(Screen):
         be called when passing a level. It will generate the harmonic potential
         and the redzones.
         Some parameteres will be randomly picked from a given values interval:
-            - harm dx
-            - harm k
-            - redzone central position
+            - harm k (arbitrary)
+            - harm dx (depends on: wall_E, max_E)(biased pick)
+            - redzone central position (depends on: low_E)
         Complementing this, redzone WIDTH will be decreasing as lvl pass and 
         SPEED will increase in the same way.
         To later use fill_zones and fill_bkg we should return an array for them
@@ -1360,9 +1411,9 @@ class GamingScreen(Screen):
         decreas_factor=(1-final_factor)/(1+np.exp((self.lvl-R)/a))+final_factor
         self.zones_width = self.init_zones_width*decreas_factor
         #New speed
-        self.plt_vel_factor = self.init_vel + self.lvl**2/30
-        self.label_vel.text = 'Velocity \n    ' + \
-                                            str(int(self.plt_vel_factor)) +'X'
+        self.plt_vel_factor = self.init_vel + self.lvl
+#        self.label_vel.text = 'Velocity \n    ' + \
+#                                            str(int(self.plt_vel_factor)) +'X'
 
         
 class IllustratingScreen(Screen):
@@ -1408,7 +1459,7 @@ class IllustratingScreen(Screen):
         super(IllustratingScreen, self).__init__(**kwargs)
         
         #Reading file
-        with open('illustrating_lvl_settings.txt', 'r') as f:
+        with open('Files/illustrating_lvl_settings.txt', 'r') as f:
             
             self.lvl_set = []
             self.lvl_titles = []
@@ -1417,16 +1468,6 @@ class IllustratingScreen(Screen):
                 self.lvl_set.append(t[:-1])
                 self.lvl_titles.append(t[-1])
             self.num_of_lvl = len(self.lvl_titles)
-            
-#        #Create the dropdown, which is going to be opened from the dropdownbtn
-#        #created in the kv file
-#        self.illu_dropdown = DropDown()
-#        for lvl in range(1, self.num_of_lvl + 1):
-#            btn = Button(text = 'Lvl ' + str(lvl), size_hint_y=None, height=44)
-#            btn.bind(on_press = self.goto_lvl(lvl))
-#            self.illu_dropdown.add_widget(btn)
-        
-        
         
     def ipseudo_init(self):
         #======================== EVOLUTION PROBLEM ===========================   
@@ -1600,16 +1641,16 @@ class IllustratingScreen(Screen):
         #============================== GAME ================================== 
         
         #IMAGES
-        self.gameover_imgdata = mpimg.imread('Images/gameover_img.jpg')
-        self.heart_img = 'Images/heart_img.jpg'
-        self.skull_img = 'Images/skull_img.jpg'   
+        self.gameover_imgdata = mpimg.imread('Images/gameover_img.png', 0)
+        self.heart_img = 'Images/heart_img.png'
+        self.skull_img = 'Images/skull_img.png'   
         
         
         #GAME VARIABLES
 #        self.max_lives = 10 #If changed, kv's file needs to be changed as well
 #        self.lives = self.max_lives 
 #        self.lives_sources() 
-        self.dummy = False
+#        self.dummy = False
         
         #KEYBOARD
 #       request_keyboard returns an instance that represents the events on 
@@ -1631,9 +1672,13 @@ class IllustratingScreen(Screen):
         #DROPDOWN
         #Which is going to be opened from the dropdownbtn created in .kv
         self.illu_dropdown = DropDown()
+        self.illu_dropdown.max_height = Window.height/2
         for lvl in range(1, self.num_of_lvl + 1):
             btn = Button(id = str(lvl), text = self.lvl_titles[lvl - 1], 
-                         size_hint_y = None, height=44)
+                         size_hint_y = None, height=44, 
+                         background_color = ( .5,.5, .5, .5),
+                         font_name = '8_bit_madness')
+            btn.font_size = btn.height
             btn.bind(on_press = self.goto_lvl)
             self.illu_dropdown.add_widget(btn)
    
@@ -1646,8 +1691,7 @@ class IllustratingScreen(Screen):
           
                      
         #LABELS
-        self.label_vel.text = 'Velocity \n    ' + \
-        str(int(self.plt_vel_factor)) +'X'
+        self.label_vel.text = 'VELOCITY    ' + str(self.plt_vel_factor) + 'X'
                           
     ###########################################################################
     #                            CLOCK FUNCTIONS                              #
@@ -1769,8 +1813,8 @@ class IllustratingScreen(Screen):
         prob = self.deltax*self.psi2 #Get instant probability
         prob /= sum(prob)
         self.mu0 = np.random.choice(self.mesh, p=prob) #Pick new random mu0
-        if self.dummy:
-            self.mu0 = self.mesh[np.argmax(prob)]
+#        if self.dummy:
+#            self.mu0 = self.mesh[np.argmax(prob)]
             
         self.measure_arrow()
         self.plt_time = 0. #Reset time 
@@ -1802,7 +1846,7 @@ class IllustratingScreen(Screen):
             self.lvl += 1 #Read new lvl
             if self.lvl > self.num_of_lvl:
                 self.lvl = 1
-            self.dropdownbtn.text = self.lvl_titles[self.lvl - 1]
+            self.dropdownlabel.text = self.lvl_titles[self.lvl - 1]
 #            self.read_settigns()
             self.new_potential()
             self.fill_zones()
@@ -1829,8 +1873,10 @@ class IllustratingScreen(Screen):
         prob = self.deltax*self.psi2 #Get instant probability
         prob /= sum(prob)
         self.mu0 = np.random.choice(self.mesh, p=prob) #Pick new random mu0
-        if self.dummy:
-            self.mu0 = self.mesh[np.argmax(prob)]
+#        if self.dummy:
+#            self.mu0 = self.mesh[np.argmax(prob)]
+        self.pause_state = True
+        self.pause_btn.text = 'PLAY'
         self.b_arrow.remove()
         self.u_arrow.remove()
         self.b_arrow = self.bkg_twin.arrow(0,0,0,0, alpha = 0)
@@ -1842,7 +1888,7 @@ class IllustratingScreen(Screen):
             self.lvl = 1
         elif self.lvl < 1:
             self.lvl = self.num_of_lvl
-        self.dropdownbtn.text = self.lvl_titles[self.lvl - 1]
+        self.dropdownlabel.text = self.lvl_titles[self.lvl - 1]
 #        self.read_settigns()
         self.new_potential()
         self.fill_zones()
@@ -1935,10 +1981,10 @@ class IllustratingScreen(Screen):
         """        
         if self.pause_state == True: #Unpause
             self.pause_state = False
-            self.pause_btn.text = 'Pause'
+            self.pause_btn.text = 'PAUSE'
         else:
             self.pause_state = True #Pause
-            self.pause_btn.text = 'Play'
+            self.pause_btn.text = 'PLAY'
         
     ###########################################################################
     #                            COMPUTING FUNCTIONS                          #
@@ -2462,17 +2508,17 @@ class IllustratingScreen(Screen):
              self.measure()
         return
     
-    def dummy_mode(self):
-        """
-        Changes the game mode to picking the most probable value for x instead
-        of randomly. Changes the controlling variable and updates button label.
-        """
-        if self.dummy: # Using dummy. Change mode
-            self.dummy = False
-            self.dummy_btn.text = 'Helping:\n    Off'
-        else: # Not using dummy. Change mode
-            self.dummy = True
-            self.dummy_btn.text = 'Helping:\n    On'
+#    def dummy_mode(self):
+#        """
+#        Changes the game mode to picking the most probable value for x instead
+#        of randomly. Changes the controlling variable and updates button label.
+#        """
+#        if self.dummy: # Using dummy. Change mode
+#            self.dummy = False
+#            self.dummy_btn.text = 'Helping:\n    Off'
+#        else: # Not using dummy. Change mode
+#            self.dummy = True
+#            self.dummy_btn.text = 'Helping:\n    On'
             
     def transition_IS(self):
         self.i_schedule_cancel()
@@ -2491,14 +2537,16 @@ class IllustratingScreen(Screen):
     def goto_lvl(self, btn):
         """
         Called from the dropdown. Initiates the given level. This also means
-        resetting the time.
+        resetting the time. Starts paused.
         """
         self.plt_time = 0.
         self.lvl = eval(btn.id)
+        self.pause_state = True
+        self.pause_btn.text = 'PLAY'
         #To notify the dropdown that something has been selected and close it
         self.illu_dropdown.select('select needs an argument')
         #Update text
-        self.dropdownbtn.text = self.lvl_titles[self.lvl - 1]
+        self.dropdownlabel.text = self.lvl_titles[self.lvl - 1]
         #Initiate the level
         self.new_potential()
         self.fill_zones()
@@ -2521,6 +2569,8 @@ class MyScreenManager(ScreenManager):
         super(MyScreenManager, self).__init__(**kwargs)
         self.get_screen('gaming').gpseudo_init()
         self.get_screen('illustrating').ipseudo_init()
+        self.get_screen('starting').spseudo_init()
+        PhysicsPopup().phypseudo_init()
 
 class ScreensApp(App):
     
