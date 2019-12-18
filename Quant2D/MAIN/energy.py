@@ -30,8 +30,8 @@ def Energy(pot, psi):
     
     for i in range (0,n):
         for j in range (0,n):
-            Ep = Ep + psii[i,j]*Epot[i,j]
-            Ec = Ec + psii[i,j]*Ecin[i,j]
+            Ep = Ep + np.real(psii[i,j]*Epot[i,j])
+            Ec = Ec + np.real(psii[i,j]*Ecin[i,j])
             
     Ep = Ep*pas**2
     Ec = Ec*pas**2
@@ -49,29 +49,45 @@ def Norm(f):
             norm=norm+abs(np.real(np.conjugate(f[i,j])*f[i,j]))
     return norm*pas**2
 
-def XExpected(pot, psi,order):
+def XExpected(psi,order,xx):
     n = len(psi[0,:])
-    pas = 0.05
+    pas = abs(xx[0,1]-xx[0,0])
     r = order
-    xpsi = np.zeros((n,n),dtype=complex)
+    j = int(n/2)
+    
+    XExp = 0.
+    psii = np.conjugate(psi)
     
     for i in range(0,n):
-        x = i*pas-2.5
-        for j in range(0,n):
-            xpsi[i,j] = (x**r)*psi[i,j]
-    
-    psii = np.conjugate(psi)
-    XExp = 0.
-    
-    for i in range (0,n):
-        for j in range (0,n):
-            XExp = XExp + psii[i,j]*xpsi[i,j]
-    
-    return XExp*pas**2
+        x = xx[0,i]
+        XExp = XExp + np.real(psii[j,i]*(x**r)*psi[j,i])
+                   
+    return XExp*pas
 
-def XDeviation(pot, psi):
+def YExpected(psi,order,yy):
+    n = len(psi[0,:])
+    pas = abs(yy[1,0]-yy[0,0])
+    r = order
+    j = int(n/2)
+    
+    YExp = 0.
+    psii = np.conjugate(psi)
+    
+    for i in range(0,n):
+        y = yy[i,0]
+        YExp = YExp + np.real(psii[i,j]*(y**r)*psi[i,j])
+                   
+    return YExp*pas
+
+def XDeviation(psi,xx):
     ''' sigma**2 = <x**2> - <x>**2 '''
-    sigma2 = XExpected(pot,psi,2) - (XExpected(pot, psi,1))**2
+    sigma2 = XExpected(psi,2,xx) - (XExpected(psi,1,xx))**2
+    
+    return np.sqrt(sigma2)
+
+def YDeviation(psi,yy):
+    ''' sigma**2 = <x**2> - <x>**2 '''
+    sigma2 = YExpected(psi,2,yy) - (YExpected(psi,1,yy))**2
     
     return np.sqrt(sigma2)
     
@@ -214,6 +230,7 @@ def EvaluateNorm(wgreatest,pts):
     legend = ax2.legend(loc='lower center')
     
     plt.show()
+    
 
 #------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
@@ -278,4 +295,4 @@ def CalcXExpForTime():
 '''
 #---------------------------------------------------------------------------
 
-CalcEnForTime()
+#CalcEnForTime()

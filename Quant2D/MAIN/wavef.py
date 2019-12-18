@@ -1,5 +1,6 @@
 import numpy as np
-import scipy.special as ss        
+import scipy.special as ss
+import matplotlib.pyplot as plt
 
 class Phi():
     
@@ -79,33 +80,40 @@ class Wave():
         
         L=dx*N/2.
         r=1j*dt/(4.*dx**2)
+        q=1j*dt/(4.*hbar)
         ntime=self.T
         
         x=np.arange(-L,L,dx)
         meshx , meshy = np.meshgrid(x,x,sparse=True)
-            
-      #  potential=Pot(meshx,meshy)
-      #  psi0=PsiIni(meshx,meshy)
         
         #3D array. First index indicates step of time
         psitime = np.zeros([ntime, N, N], dtype = np.complex)
         
         #2D arrays
         psi=self.PsiIni[:,:] + 0j
-      #  print(type(self.pot[:,:]))
         V=self.pot[:,:]
         
         #A diagonals
         Asup, Adiag, Ainf = self.Adiagonals(N,r)
         
-        #Bmatrix
-        B=np.zeros((N,N),dtype=complex)
-        for i in range(0,N):
-            for j in range(0,N):
-                if i==j:
-                    B[i,j]=1.-2.*r-1j*dt*V[i,j]/(4.*hbar)
-                if i==j+1 or i+1==j:
-                    B[i,j]=r
+        #B tensor
+        Bx = np.zeros((N,N,N),dtype=complex)
+        for k in range(0,N):
+            for i in range(0,N):
+                for j in range(0,N):
+                    if i==j:
+                        Bx[k,i,j]=1.-2.*r-q*V[k,j]
+                    if i==j+1 or i+1==j:
+                        Bx[k,i,j]=r
+                        
+        By = np.zeros((N,N,N),dtype=complex)                
+        for k in range(0,N):
+            for i in range(0,N):
+                for j in range(0,N):
+                    if i==j:
+                        By[k,i,j]=1.-2.*r-q*V[i,k]
+                    if i==j+1 or i+1==j:
+                        By[k,i,j]=r
         
         for t in range(0,ntime):
             
@@ -114,10 +122,9 @@ class Wave():
                 #Psix
                 psix=psi[:,j] +0j
                 #Bmatrix*Psi
-                Bproduct=np.dot(B,psix)
+                Bproduct=np.dot(psix,By[j,:,:])
                 #Tridiagonal
-                psix=self.tridiag(Ainf,Adiag+1j*dt*\
-                             V[:,j]/(4.*hbar),Asup,Bproduct)
+                psix=self.tridiag(Ainf,Adiag+1j*dt*V[:,j]/(4.*hbar),Asup,Bproduct)
                 #Change the old for the new values of psi
                 psi[:,j]=psix[:]
                     
@@ -125,14 +132,12 @@ class Wave():
             for i in range(0,N):
                 #Psiy
                 psiy=psi[i,:] +0j
-                #Bmatrix*Psi 
-                Bproduct=np.dot(B,psiy)
+                #Bmatrix*Psi
+                Bproduct=np.dot(Bx[i,:,:],psiy)
                 #Tridiagonal
-                psiy=self.tridiag(Ainf,Adiag+1j*dt*\
-                             V[i,:]/(4.*hbar),Asup,Bproduct)
+                psiy=self.tridiag(Ainf,Adiag+1j*dt*V[i,:]/(4.*hbar),Asup,Bproduct)
                 #Change the old for the new values of psi
                 psi[i,:]=psiy[:]
-                
                 
             if (t == int(ntime/4.)):
                 print('25%')

@@ -92,12 +92,12 @@ def singleslit(r,param):
     
     pot = np.zeros((n,n), dtype = 'float')
     
-    for i in range (0,40):
+    for i in range (0,n):
         pot[i,65] = V0
         pot[i,66] = V0
-    for i in range (60,n):
-        pot[i,65] = V0
-        pot[i,66] = V0
+    for i in range (45,56):
+        pot[i,65] = 0.
+        pot[i,66] = 0.
         
     return pot
 
@@ -114,14 +114,15 @@ def doubleslit(r,param):
     
     pot = np.zeros((n,n))
     
-    for i in range (0,40):
-        pot[i,70] = V0
-        pot[i,71] = V0
-    for i in range (44,56):
-        pot[i,70] = V0
-        pot[i,71] = V0
-    for i in range (60,n):
-        pot[i,70] = V0
-        pot[i,71] = V0
+    for i in range (0,n):
+        pot[i,65] = V0
+        pot[i,66] = V0
+    for i in range (40,46):
+        pot[i,65] = 0.
+        pot[i,66] = 0.
+    for i in range (55,61):
+        pot[i,65] = 0.
+        pot[i,66] = 0.
+    
     
     return pot

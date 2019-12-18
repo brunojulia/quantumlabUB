@@ -1,0 +1,14 @@
+>POTENTIAL:
+   Harmonic oscillator type of potential with different frequency in
+   each axis.
+
+
+>INITIAL WAVE FUNCTION:
+   Centered ground eigenstate relative to an harmonic oscillator potential
+   with same frequancy in both axis and equal to the x axis of the 
+   actual potential.
+
+
+>EVOLUTION:
+   The wave function will pulsate with different frequences in each direction
+   and without moving its center.
