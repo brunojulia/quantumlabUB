@@ -1,0 +1,10 @@
+>POTENTIAL:
+   Single slit: vertical barrier with a hole in it.
+
+
+>INITIAL WAVE FUNCTION:
+   Gaussian with momentum towards the barrier.
+
+
+>EVOLUTION:
+   The wave will move in the direction of the barrier and diffract.
