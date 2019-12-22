@@ -7,12 +7,14 @@ import potentials
 
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
-from kivy.properties import ObjectProperty,ListProperty,NumericProperty,StringProperty
+from kivy.properties import ObjectProperty,ListProperty,NumericProperty
 from kivy.graphics.texture import Texture
 from kivy.graphics import Rectangle,Color
 from kivy.clock import Clock
 from kivy.uix.popup import Popup
 from kivy.uix.image import Image
+from kivy.uix.label import Label
+from kivy.core.window import Window
 
 
 class main(BoxLayout):
@@ -39,7 +41,7 @@ class main(BoxLayout):
     
     
     def __init__(self, **kwargs):
-        super(main, self).__init__(**kwargs)
+        super(main, self).__init__(**kwargs)        
         self.pot = wavef.Phi()
         self.wav = wavef.Phi()
         self.demo = 0
@@ -49,9 +51,21 @@ class main(BoxLayout):
         self.time = 0.
         self.T = 630
         self.dt = 0.0025
-        self.speed = 0.3
+        self.speed_ini = 0.3
+        self.speed = self.speed_ini
      #   self.change_speed()
         self.running = False
+        
+        self.esc_popup()
+    
+    def esc_popup(self):
+        self.escpop = Popup(title='', separator_height=0 , content=Label(text='Press Esc to exit'),size_hint=(None, None)\
+                            ,pos_hint={'x': 10.0/Window.width,'y':250.0/Window.height}, size=(500,100),auto_dismiss=False)
+        self.escpop.open()
+        Clock.schedule_once(self.esc_dismiss, 4)
+        
+    def esc_dismiss(self,dt):
+        self.escpop.dismiss()
         
     def set_texture(self):
         self.n = 100
@@ -116,12 +130,6 @@ class main(BoxLayout):
         self.potentialsave =[]
         self.plotbox.canvas.clear()
         self.background()
-        
-        '''
-        with self.statuslabel.canvas:
-            Color(1,0,0)
-            Rectangle(pos=self.statuslabel.pos,size=self.statuslabel.size)
-        '''
     
     def background_main(self):
         self.im = np.zeros((self.n,self.n))
@@ -173,11 +181,12 @@ class main(BoxLayout):
         self.update_texture()
         self.background_main()
         self.update_texture_main()
+        self.speed = self.speed_ini
         
         #New demo
         self.demo = 1
         self.demolabel = 'harmonic oscillatior ground eigenstate not centered'
-        self.T = 630
+        self.T = 1260
         
         x0 = -0.5
         y0 = 0.
@@ -201,8 +210,9 @@ class main(BoxLayout):
         self.update_texture_main()
         
         #Update time evolution from file
-        
-        file = open('Demo1','rb')
+        relpath = '.\\Demos'
+        f = os.path.join(relpath,'Demo1')
+        file = open(f,'rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
@@ -216,11 +226,12 @@ class main(BoxLayout):
         self.update_texture()
         self.background_main()
         self.update_texture_main()
+        self.speed = self.speed_ini
         
         #New demo
         self.demo = 2
         self.demolabel = 'harmonic oscillatior ground eigenstate with different frequency from the potential'
-        self.T = 840
+        self.T = 1260
         
         x0 = 0.
         y0 = 0.
@@ -242,8 +253,9 @@ class main(BoxLayout):
         self.update_texture_main()
         
         #Update time evolution from file
-        
-        file = open('Demo2','rb')
+        relpath = '.\\Demos'
+        f = os.path.join(relpath,'Demo2')
+        file = open(f,'rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
@@ -257,6 +269,7 @@ class main(BoxLayout):
         self.update_texture()
         self.background_main()
         self.update_texture_main()
+        self.speed = self.speed_ini
         
         #New demo
         self.demo = 3
@@ -267,7 +280,7 @@ class main(BoxLayout):
         y0 = 0.
         w = 5.
         
-        V0pot = 100.
+        V0pot = 12.5
         
         #Add potential
         
@@ -284,8 +297,9 @@ class main(BoxLayout):
         self.update_texture_main()
         
         #Update time evolution from file
-    
-        file = open('Demo3','rb')
+        relpath = '.\\Demos'
+        f = os.path.join(relpath,'Demo3')
+        file = open(f,'rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
@@ -299,6 +313,7 @@ class main(BoxLayout):
         self.update_texture()
         self.background_main()
         self.update_texture_main()
+        self.speed = self.speed_ini
         
         #New demo
         self.demo = 31
@@ -309,7 +324,7 @@ class main(BoxLayout):
         y0 = 0.
         w = 5.
         
-        V0pot = 10**5.
+        V0pot = 125.
         
         #Add potential
         
@@ -326,8 +341,9 @@ class main(BoxLayout):
         self.update_texture_main()
         
         #Update time evolution from file
-    
-        file = open('Demo3.1','rb')
+        relpath = '.\\Demos'
+        f = os.path.join(relpath,'Demo3.1')
+        file = open(f,'rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
@@ -341,18 +357,19 @@ class main(BoxLayout):
         self.update_texture()
         self.background_main()
         self.update_texture_main()
+        self.speed = self.speed_ini
         
         #New demo
         self.demo = 4
         self.demolabel = 'double well in x'
-        self.T = 630
+        self.T = 1260
         
         x0 = 0.
         y0 = 0.
         w = 5.
 
         wx = 5.
-        wy = 2.
+        wy = 3.
 
         #Add potential
         
@@ -369,8 +386,9 @@ class main(BoxLayout):
         self.update_texture_main()
         
         #Update time evolution from file
-    
-        file = open('Demo4','rb')
+        relpath = '.\\Demos'
+        f = os.path.join(relpath,'Demo4')
+        file = open(f,'rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
@@ -384,6 +402,7 @@ class main(BoxLayout):
         self.update_texture()
         self.background_main()
         self.update_texture_main()
+        self.speed = self.speed_ini
         
         #New demo
         self.demo = 5
@@ -413,20 +432,22 @@ class main(BoxLayout):
         self.update_texture_main()
         
         #Update time evolution from file
-    
-        file = open('Demo5','rb')
+        relpath = '.\\Demos'
+        f = os.path.join(relpath,'Demo5')
+        file = open(f,'rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
 
     def demo51(self):
-        'Demo5.1 = single slit'
+        'Demo5.1 = double slit'
          #Reset
         self.stop()
         self.background()
         self.update_texture()
         self.background_main()
         self.update_texture_main()
+        self.speed = self.speed_ini
         
         #New demo
         self.demo = 51
@@ -456,56 +477,99 @@ class main(BoxLayout):
         self.update_texture_main()
         
         #Update time evolution from file
-    
-        file = open('Demo5.1','rb')
+        relpath = '.\\Demos'
+        f = os.path.join(relpath,'Demo5.1')
+        file = open(f,'rb')
         probevol = pkl.load(file)
 
         self.probability = probevol
         
     def pop(self):
-        a = 750
+        a = 600
         b = 500
         
+        relpath = '.\\Graphics'
+    
         if (self.demo == 1):
-            pop = Popup(title='Energy', content=Image(source='Energy1.png'),
-                    size_hint=(None, None), size=(a,b))
+            im = os.path.join(relpath,'Energy1.png')
+            t = 'Demo1: Oscillations'
         elif (self.demo == 2):
-            pop = Popup(title='Energy', content=Image(source='Energy2.png'),
-                    size_hint=(None, None), size=(a,b))
+            im = os.path.join(relpath,'Energy2.png')
+            t = 'Demo2: Breathing Mode'
         elif (self.demo == 3):
-            pop = Popup(title='Energy', content=Image(source='Energy3.png'),
-                    size_hint=(None, None), size=(a,b))
+            im = os.path.join(relpath,'Energy3.png')
+            t = 'Demo3.1: Box in a Box'
         elif (self.demo == 31):
-            pop = Popup(title='Energy', content=Image(source='Energy31.png'),
-                    size_hint=(None, None), size=(a,b))
+           im = os.path.join(relpath,'Energy31.png')
+           t = 'Demo3.2: Box in a Box'
         elif (self.demo == 4):
-            pop = Popup(title='Energy', content=Image(source='Energy4.png'),
-                    size_hint=(None, None), size=(a,b))
+            im = os.path.join(relpath,'Energy4.png')
+            t = 'Demo4: Anisotropic Mode'
         elif (self.demo == 5):
-            pop = Popup(title='Energy', content=Image(source='Energy5.png'),
-                    size_hint=(None, None), size=(a,b))
+            im = os.path.join(relpath,'Energy5.png')
+            t = 'Demo5.1: Single Slit'
         elif (self.demo == 51):
-            pop = Popup(title='Energy', content=Image(source='Energy51.png'),
-                    size_hint=(None, None), size=(a,b))
-        
-        pop.open()
+            im = os.path.join(relpath,'Energy51.png')
+            t = 'Demo5.2: Double Slit'
+
+        if (self.demo != 0):
+            pop = Popup(title=t, content=Image(source=im),size_hint=(None, None), size=(a,b))
+            pop.open()
+        else:
+            pass
         
         
     def popexp(self):
-        if (self.demo == 1):
-            popexp = Popup(title='Demo 1', content=Label(text='Hello world'),
-                    size_hint=(None, None), size=(700, 1000))
+        a = 600
+        b = 400
         
-        popexp.open()
+        relpath = '.\\Text'
+        
+        if (self.demo == 1):
+            file = os.path.join(relpath,'Exp1.txt')
+            t = 'Demo1: Oscillations'
+        elif (self.demo == 2):
+            file = os.path.join(relpath,'Exp2.txt')
+            t = 'Demo2: Breathing Mode'
+        elif (self.demo == 3):
+            file = os.path.join(relpath,'Exp3.txt')
+            t = 'Demo3.1: Box in a Box'
+        elif (self.demo == 31):
+           file = os.path.join(relpath,'Exp31.txt')
+           t = 'Demo3.2: Box in a Box'
+        elif (self.demo == 4):
+            file = os.path.join(relpath,'Exp4.txt')
+            t = 'Demo4: Anisotropic Mode'
+        elif (self.demo == 5):
+            file = os.path.join(relpath,'Exp5.txt')
+            t = 'Demo5.1: Single Slit'
+        elif (self.demo == 51):
+            file = os.path.join(relpath,'Exp51.txt')
+            t = 'Demo5.2: Double Slit'
+            
+        
+        if (self.demo != 0):
+            f = open(file,'r')
+            f = f.read()
+            popexp = Popup(title=t, content=Label(text=f),size_hint=(None, None), size=(a,b))
+            popexp.open()
+        else:
+            pass
         
             
     def play(self):
-        self.timer = Clock.schedule_interval(self.animate,0.04) #0.04=interval
-        self.running = True
+        if ((self.running == False) and (self.demo != 0)):
+            self.timer = Clock.schedule_interval(self.animate,0.04) #0.04=interval
+            self.running = True
+        else:
+            pass
     
     def pause(self):
         if(self.running==True):
             self.timer.cancel()
+            self.running = False
+        elif (self.demo == 0):
+            pass
         else:
             pass
 
@@ -517,8 +581,16 @@ class main(BoxLayout):
         self.reset_pot_list()
         self.reset_wave_list()
         self.init_conds = []
-      
-    ''' El tiempo de la animacion!!!!!! '''
+        
+        
+    def change_speed(self):
+        if (self.demo != 0):
+            if (self.speed == self.speed_ini) :
+                self.speed = 2.*self.speed_ini
+            elif (self.speed != self.speed_ini) :
+                self.speed = self.speed_ini
+        else:
+            pass
  
     def animate(self,interval):
         cx = self.wavebox.pos[0]
@@ -556,6 +628,6 @@ class BoxApp(App):
     def build(self):
         return main()
 
-
 if __name__ == '__main__':
+    Window.fullscreen = True
     BoxApp().run()

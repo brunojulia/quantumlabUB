@@ -1,0 +1,16 @@
+>POTENTIAL:
+   Centered square barrier half the size of the screen.
+   The potential value is the same in every edge of the square being
+   fifty times the energy of the wave function and zero in the other 
+   points.
+
+
+>INITIAL WAVE FUNCTION:
+   Centered gaussian that fits into the square of the potential.
+
+
+>EVOLUTION:
+   The wave function will expand until sees the square.
+   The barrier is much higher than the wave function and it can barely
+   escape. The probability of measuring it outside the box is much lower
+   but it is still possible.

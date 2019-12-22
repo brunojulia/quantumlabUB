@@ -1,0 +1,11 @@
+>POTENTIAL:
+   Harmonic oscillator type of potential.
+
+
+>INITIAL WAVE FUNCTION:
+   Centered ground eigenstate relative to an harmonic oscillator potential
+   with bigger frequence than the actual potential.
+
+
+>EVOLUTION:
+   The wave function will pulsate without moving its center.
