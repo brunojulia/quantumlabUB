@@ -2269,7 +2269,6 @@ class IllustratingScreen(Screen):
             top = np.zeros_like(bot) + 2.
             redzone = self.mesh[prev_index:index+1] #+1 due to slice
             potential = self.potential[prev_index:index+1]/self.dcoord_factor
-            self.redzone = np.append(self.redzone, redzone)
             self.bkg_twin.fill_between(redzone, bot, potential,
                                        where = np.less(bot, potential), 
                                        facecolor = self.potcol) #Potential
@@ -2295,7 +2294,6 @@ class IllustratingScreen(Screen):
         top = np.zeros_like(bot) + 2.
         redzone = self.mesh[nxt_index:]
         potential = self.potential[nxt_index:]/self.dcoord_factor
-        self.redzone = np.append(self.redzone, redzone)
         self.bkg_twin.fill_between(redzone, bot, potential, 
                                    where = np.less(bot, potential), 
                                    facecolor = self.potcol) #Potential
