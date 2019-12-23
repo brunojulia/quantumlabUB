@@ -7,7 +7,7 @@ Amb 10 vides inicials, fins a quin nivell podr[font=VT323]à[/font]s arribar?
 [color=226666]-Potencial.[/color] En blau. Potencial en el qual es mou la probabilitat (ja que la probabilitat correspon a una part[font=VT323]í[/font]cula).
 [color=226666]-Zones de color.[/color] En verd i vermell. S[font=VT323]ó[/font]n zones de les posicions, en 1D. Per tant la zona verda, per exemple, podria ser de 2 a 4. Si la nova posici[font=VT323]ó[/font] est[font=VT323]à[/font] a dins, es passa el nivell.
 [color=226666]-Jokers.[/color] Si un nivell no creus que el puguis passar, clica un dels comodins per saltar-lo. Ho pots fer un nombre limitat de cops.
-[color=226666]-Ajuda.[/color] Si est[font=VT323]à[/font] activada, la nova mesura no sera aleatoria i apareixer[font=VT323]à[/font] al m[font=VT323]à[/font]xim de probabilitat (als pics).
+[color=226666]-Ajuda.[/color] Si est[font=VT323]à[/font] activada, la nova mesura no ser[font=VT323]à[/font] aleatoria i sempre apareixer[font=VT323]à[/font] al m[font=VT323]à[/font]xim de probabilitat (als pics).
 [color=226666]-Nova posici[font=VT323]ó[/font][/color] Es marcar[font=VT323]à[/font] amb una barra blanca i lila. El lila marcar[font=VT323]à[/font] sempre quina era l'altura del pic m[font=VT323]é[/font]s alt de probabilitat, i el blanc la probabilitat (altura tamb[font=VT323]é[/font]) que hi havia de la posici[font=VT323]ó[/font] que ha surtit. Per exemple, si ajuda [font=VT323]é[/font]s activada, la barra sempre ser[font=VT323]à[/font] completament blanca.
 [color=226666]-Restart.[/color] Un cop es perd, es pot fer una altra partida clicant a qualsevol lloc de la pantalla.
 [color=FFFFFF][u]DEMOS[/u][/color]
