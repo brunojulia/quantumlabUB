@@ -56,17 +56,17 @@ class main(BoxLayout):
      #   self.change_speed()
         self.running = False
         
-        self.esc_popup()
-    
+     #   self.esc_popup()
+    '''
     def esc_popup(self):
         self.escpop = Popup(title='', separator_height=0 , content=Label(text='Press Esc to exit'),size_hint=(None, None)\
                             ,pos_hint={'x': 10.0/Window.width,'y':250.0/Window.height}, size=(500,100),auto_dismiss=False)
         self.escpop.open()
         Clock.schedule_once(self.esc_dismiss, 4)
-        
+      
     def esc_dismiss(self,dt):
         self.escpop.dismiss()
-        
+    '''    
     def set_texture(self):
         self.n = 100
         self.im = np.zeros((self.n,self.n),dtype=np.uint8)
@@ -211,7 +211,7 @@ class main(BoxLayout):
         
         #Update time evolution from file
         relpath = '.\\Demos'
-        f = os.path.join(relpath,'Demo1')
+        f = os.path.join(relpath,'Demo1.dat')
         file = open(f,'rb')
         probevol = pkl.load(file)
 
@@ -254,7 +254,7 @@ class main(BoxLayout):
         
         #Update time evolution from file
         relpath = '.\\Demos'
-        f = os.path.join(relpath,'Demo2')
+        f = os.path.join(relpath,'Demo2.dat')
         file = open(f,'rb')
         probevol = pkl.load(file)
 
@@ -298,7 +298,7 @@ class main(BoxLayout):
         
         #Update time evolution from file
         relpath = '.\\Demos'
-        f = os.path.join(relpath,'Demo3')
+        f = os.path.join(relpath,'Demo3.dat')
         file = open(f,'rb')
         probevol = pkl.load(file)
 
@@ -342,7 +342,7 @@ class main(BoxLayout):
         
         #Update time evolution from file
         relpath = '.\\Demos'
-        f = os.path.join(relpath,'Demo3.1')
+        f = os.path.join(relpath,'Demo31.dat')
         file = open(f,'rb')
         probevol = pkl.load(file)
 
@@ -387,7 +387,7 @@ class main(BoxLayout):
         
         #Update time evolution from file
         relpath = '.\\Demos'
-        f = os.path.join(relpath,'Demo4')
+        f = os.path.join(relpath,'Demo4.dat')
         file = open(f,'rb')
         probevol = pkl.load(file)
 
@@ -402,14 +402,14 @@ class main(BoxLayout):
         self.update_texture()
         self.background_main()
         self.update_texture_main()
-        self.speed = self.speed_ini
+        self.speed = 0.1
         
         #New demo
         self.demo = 5
         self.demolabel = 'single slit'
-        self.T = 600
+        self.T = 100
         
-        x0 = -1.
+        x0 = -1.5
         y0 = 0.
         w = 6
         px0 = 6.
@@ -433,7 +433,7 @@ class main(BoxLayout):
         
         #Update time evolution from file
         relpath = '.\\Demos'
-        f = os.path.join(relpath,'Demo5')
+        f = os.path.join(relpath,'Demo5.dat')
         file = open(f,'rb')
         probevol = pkl.load(file)
 
@@ -447,14 +447,14 @@ class main(BoxLayout):
         self.update_texture()
         self.background_main()
         self.update_texture_main()
-        self.speed = self.speed_ini
+        self.speed = 0.1
         
         #New demo
         self.demo = 51
         self.demolabel = 'single slit'
-        self.T = 600
+        self.T = 100
         
-        x0 = -1.
+        x0 = -1.5
         y0 = 0.
         w = 6.
         px0 = 6.
@@ -478,7 +478,7 @@ class main(BoxLayout):
         
         #Update time evolution from file
         relpath = '.\\Demos'
-        f = os.path.join(relpath,'Demo5.1')
+        f = os.path.join(relpath,'Demo51.dat')
         file = open(f,'rb')
         probevol = pkl.load(file)
 
@@ -584,7 +584,7 @@ class main(BoxLayout):
         
         
     def change_speed(self):
-        if (self.demo != 0):
+        if (self.demo != 0 or self.demo != 5 or self.demo != 51):
             if (self.speed == self.speed_ini) :
                 self.speed = 2.*self.speed_ini
             elif (self.speed != self.speed_ini) :
@@ -629,5 +629,5 @@ class BoxApp(App):
         return main()
 
 if __name__ == '__main__':
-    Window.fullscreen = True
+    Window.fullscreen = 'auto'
     BoxApp().run()
