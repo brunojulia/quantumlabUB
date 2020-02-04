@@ -258,6 +258,8 @@ class StartingScreen(Screen):
         self.manager.transition = FadeTransition()
         self.manager.current = 'gaming'
         
+        
+        
 class InfoPopup(Popup):
     """Information about the game popup.
     
@@ -278,7 +280,7 @@ class InfoPopup(Popup):
     __init__:
         Initiates the popup.
     """
-    with open('Files/info_text.txt', 'r') as t:
+    with open('Files/info_text.txt', 'r', encoding = 'utf-8') as t:
             lines = t.readlines()
     
     intro_text = lines[0] + '\n' +lines[1] +'\n' + lines[2] + '\n' + lines[3]
@@ -313,7 +315,7 @@ class PhysicsPopup(Popup):
     __init__:
         Initiates the popup.
     """
-    with open('Files/physics_text.txt', 'r') as t:
+    with open('Files/physics_text.txt', 'r', encoding = 'utf-8') as t:
             lines = t.readlines()
     
     text = lines[0] + '\n' +lines[1] +'\n' + lines[2] + '\n' + lines[3] + '\n'\
