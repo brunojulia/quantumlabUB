@@ -11,6 +11,7 @@ Created on %(date)s
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation
+from time import time
 
 def tridiag(a, b, c, d):
     n = len(d)  # número de filas
@@ -86,7 +87,7 @@ def Crannk2D(xa,xb,ya,yb,ta,tb,Nx,Ny,Nt,V,hbar,m,psi):
         psivec[:,:,i+1]=Crannk_step(psivec[:,:,i],avec,bxvec,byvec,cvec,r,Vvec)
         normas[:,:,i+1]=norma(psivec[:,:,i+1])
     
-    return psivec,normas,tvec
+    return psivec,normas,tvec,Vvec
     
     
     
@@ -206,18 +207,53 @@ def dispersiox(xa,xb,Nx,fun):
 
 
 L=3
-tb=20
-Nt=600
-Nx=40
+tb=1.8
 ta=0
 hbar=1
 m=1
-dex=np.real((2*L)/Nx)
-dadesvec=[L,Nx,Nt]
-s2vec=np.array([0.4,0.6,0.8,1,1.2,1.4])
-p0vec=np.array([10,50,100,200,500,1000,10000,1000000])
-devec=np.zeros((Nt+1,6,8))
 
+dxvec=np.array([0.05,0.075,0.10,0.15])
+dtvec=np.array([0.003,0.006,0.01])
+#Generacion rapida de animación
+
+#Nx=40
+#dex=(2*L)/Nx
+#Nt=np.int(tb/0.02)
+#psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,10) for i in range(Nx+1)]
+#                    for j in range(Nx+1)])
+#psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
+#                                         Vfree,hbar,m,psi0)
+#dades=[L,Nx,Nt]
+#np.save('normasprov.npy',normas)
+#np.save('dadesprov.npy',dades)
+#np.save('Vvec.npy',Vvec)
+
+
+for i in range(len(dxvec)):
+    for j in range(len(dtvec)):
+        dex=dxvec[i]
+        dt=dtvec[j]
+        Nx=np.int(2*L/dex)
+        Nt=np.int((tb-ta)/dt)
+        
+        psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,10) for i in range(Nx+1)]
+                    for j in range(Nx+1)])
+        t_ini=time()
+        psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
+                                         Vfree,hbar,m,psi0)
+        t_final=time()
+        tejec=t_final-t_ini
+        devec=np.array([dex,dt,tejec])
+        np.save('normadx{}dt{}.npy'.format(dex,dt),normas)
+        np.save('psivecdx{}dt{}.npy'.format(dex,dt),psivec)
+        np.save('tvecdx{}dt{}.npy'.format(dex,dt),tvec)
+        np.save('Vvecdx{}dt{}.npy'.format(dex,dt),Vvec)
+        np.save('dvecdx{}dt{}.npy'.format(dex,dt),devec)
+
+
+
+#s2vec=np.array([0.4,0.6,0.8,1,1.2,1.4])
+#p0vec=np.array([10,50,100,200,500,1000,10000,1000000])
 #for x in range(0,6):
 #    for y in range(0,8):    
 #        psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,s2vec[x],p0vec[y]) for i in range(Nx+1)]
@@ -230,10 +266,11 @@ devec=np.zeros((Nt+1,6,8))
 #np.save('p0vec.npy',p0vec)
 #np.save('s2vec.npy',s2vec)
 #np.save('tvec.npy',tvec)
-psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,p0vec[1]) for i in range(Nx+1)]
-              for j in range(Nx+1)])
-psivec,normas,tvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,Vfree,hbar,m,psi0)
-np.save('normasl3.npy',normas)
-np.save('psivecl3.npy',psivec)
-np.save('dadesl3.npy',dadesvec)
-np.save('tvecl3.npy',tvec)
+
+#for i in range(0,4):
+#    Nx=np.int(20)+np.int(20)*i
+#    dex=np.real((2*L)/Nx)
+#    psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,p0vec[1]) for i in range(Nx+1)]
+#              for j in range(Nx+1)])
+#    psivec,normas,tvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,Vfree,hbar,m,psi0)
+#    np.save('psivector{}.npy'.format(i),psivec)
