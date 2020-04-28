@@ -9,17 +9,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation
 
+
 #Aquí realitzarem diversos calculs importants o simplement gràficarem alguns
 #resultats
 
 
-dxvec=np.array([0.05,0.075,0.10,0.15])
-dtvec=np.array([0.003,0.006,0.01])
 
 #Funcions que utilitzarem
 
-import numpy as np
-import matplotlib.pyplot as plt
 
 def trapezis(xa,xb,ya,yb,dx,fun):
     Nx=np.int((xb-xa)/dx)
@@ -35,7 +32,7 @@ def trapezis(xa,xb,ya,yb,dx,fun):
 def Ham(psi,hbar,m,dx,Vvec):
 #Matriu que ens calcula la energia total.
     Ec=np.zeros((np.shape(psi)),dtype=complex)
-    Ep=np.zeros((np.shape(psi)),dtype=complex)
+    Ep=np.zeros((np.shape(psi)))
     Nx=np.int(len(psi[0,:]))-1
     s=(1/2.)*(1./dx**2)
     
@@ -44,8 +41,8 @@ def Ham(psi,hbar,m,dx,Vvec):
             Ec[i,j]=-s*(psi[i+1,j]+psi[i-1,j]+psi[i,j-1]
                 +psi[i,j+1]-4*psi[i,j])
             Ec[i,j]=np.real(Ec[i,j]*np.conj(psi[i,j]))
-            Ep[i,j]=psi[i,j]*Vvec[i,j]
-            Ep[i,j]=np.real(Ep[i,j]*np.conj(psi[i,j]))
+            Ep[i,j]=psi[i,j]*np.conj(psi[i,j])*Vvec[i,j]
+            
         
 #Derivades del contorn-
 #    for i in range(0,Nx):
@@ -92,46 +89,30 @@ def dispersioy(xa,xb,dx,fun):
 
 
 
-#%% Temps de càlcul
 
-#El temps de càlcul ve donat pel discretit
-#zat utilitzat. 
-tcalcul=np.zeros((len(dtvec),len(dxvec)))
-for i in range(len(dtvec)):
-    for j in range(len(dxvec)):
-        dades=np.load('dvecdx{}dt{}.npy'.format(dxvec[j],dtvec[i]))
-        tcalcul[i,j]=dades[2]
-
-fig=plt.figure(figsize=[10,8])
-ax=plt.subplot(111)
-plt.suptitle('Temps de càlcul (dx,dt)')
-
-for i in range(len(dtvec)):
-    plt.plot(dxvec,tcalcul[i,:],'.',label='dt={}'.format(dtvec[i]))
-    
-plt.ylabel('temps de càclul(s)')
-plt.xlabel('dx')
-plt.legend()
-plt.savefig('Temps de càlcul')
-plt.show()
 
 
 #%%Energia i norma càlcul
 
 def Hamt(dx,hbar,m,Vvec,psi):
     #Torna la energia en funció del temps
-    Ht=np.zeros((len(psi[1,1,:])))
+    Nt=len(psi[1,1,:])
+    Htc=np.zeros(Nt)
+    Htp=np.zeros(Nt)
     Nx=len(psi[0,:,1])-1
 
-    for j in range(len(psi[1,1,:])):
-        a,b=Ham(psi[:,:,j],hbar,m,dx,Vvec)
-        suma=np.complex128(0.)
-        for n in range(0,Nx+1):
-            for k in range(0,Nx+1):
-                        suma=suma+a[n,k]
-        Ht[j]=suma*dx**2
+    for j in range(Nt):
+        Ec,Ep=Ham(psi[:,:,j],hbar,m,dx,Vvec)
+        sumac=0.
+        sumap=0.
+        for n in range(Nx+1):
+            for k in range(Nx+1):
+                        sumac=sumac+Ec[n,k]
+                        sumap=sumap+Ep[n,k]
+        Htc[j]=sumac*dx**2
+        Htp[j]=sumap*dx**2
 
-    return Ht
+    return Htc,Htp
 
 def normavec(norma,dx,L):
     #Calcula la norma a cada temps
@@ -164,30 +145,65 @@ def dispersioyvec(xa,xb,dx,normas):
     
     return dispersioyvec,yespvec
          
+#%%
 
-L=3.
-for i in range(len(dtvec)):
-    for j in range(len(dxvec)):
+if __name__=="__main__":
+        #%% Temps de càlcul
+    
+
+    dxvec=np.array([0.03])
+    dtvec=np.array([0.01])
+    #El temps de càlcul ve donat pel discretit
+    #zat utilitzat. 
+    tcalcul=np.zeros((len(dxvec),len(dtvec)))
+    for i in range(len(dxvec)):
+        for j in range(len(dtvec)):
+            dades=np.load('dvecdx{}dt{}.npy'.format(dxvec[i],dtvec[j]))
+            tcalcul[i,j]=dades[2]
+    
+    fig=plt.figure(figsize=[10,8])
+    ax=plt.subplot(111)
+    plt.suptitle('Temps de càlcul (dx,dt)')
+    
+    for i in range(len(dxvec)):
+        plt.plot(dtvec,tcalcul[i,:],'.',label='dx={}'.format(dxvec[i]))
         
-        Vvec=np.load('Vvecdx{}dt{}.npy'.format(dxvec[j],dtvec[i]))
-        normas=np.load('normadx{}dt{}.npy'.format(dxvec[j],dtvec[i]))
-        psivec=np.load('psivecdx{}dt{}.npy'.format(dxvec[j],dtvec[i]))
+    plt.ylabel('temps de càclul(s)')
+    plt.xlabel('dt')
+    plt.legend()
+    plt.savefig('Temps de càlcul')
+    plt.show()
+    L=3.
+#%%
+    dxvec=np.array([0.03])
+    dtvec=np.array([0.01]) 
+    for i in range(len(dtvec)):
+            for j in range(len(dxvec)):
         
-        dx=dxvec[j]
-        #Calcul de la energia        
-#        Ec=Hamt(dx,1.,1.,Vvec,psivec)
-#        np.save('Ecdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),Ec)
-        #Calcul de la norma
-#        normavect=normavec(normas,dx,L)
-#        np.save('normatotdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),normavect)
-        #Calcul de la dispersió i el valor esperat
-#        dispersioxvect,xespvect=dispersioxvec(-L,L,dx,normas)
-#        np.save('dispersioxdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),dispersioxvect)
-#        np.save('xespxdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),xespvect)
-        #Ara també en y
-        dispersioyvect,yespvect=dispersioyvec(-L,L,dx,normas)
-        np.save('dispersioydx{}dt{}.npy'.format(dxvec[j],dtvec[i]),dispersioyvect)
-        np.save('yespydx{}dt{}.npy'.format(dxvec[j],dtvec[i]),yespvect)
+  
+                Vvec=np.load('Vvecharmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]))
+                normas=np.load('normaharmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]))
+                psivec=np.load('psiharmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]))
+                
+                dx=dxvec[j]
+                    #Calcul de la energia        
+                Ec,Ep=Hamt(dx,1.,1.,Vvec,psivec)
+                np.save('Echarmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),Ec)
+                np.save('Epharmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),Ep)
+                #Calcul de la norma
+                normavect=normavec(normas,dx,L)
+                np.save('normatotharmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),normavect)
+                #Calcul de la dispersió i el valor esperat
+                dispersioxvect,xespvect=dispersioxvec(-L,L,dx,normas)
+                np.save('dispersioxharmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),dispersioxvect)
+                np.save('xespxharmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),xespvect)
+                #Ara també en y
+                #%%
+                normas=np.load('normaharmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]))
+                dispersioyvect,yespvect=dispersioyvec(-L,L,dx,normas)
+                np.save('dispersioyharmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),dispersioyvect)
+                np.save('yespyharmdx{}dt{}.npy'.format(dxvec[j],dtvec[i]),yespvect)
+    
 
 
 

@@ -1,0 +1,16 @@
+\contentsline {section}{\numberline {1}Progrmació Crank-Nicolson}{1}%
+\contentsline {subsection}{\numberline {1.1}Crank-Nicolson en 1D}{2}%
+\contentsline {subsection}{\numberline {1.2}Crank-Nicolson en 2D: ADI}{3}%
+\contentsline {section}{\numberline {2}Convergència en l'aplicació del mètode}{4}%
+\contentsline {subsection}{\numberline {2.1}Elecció d'un paquet i un discretitzat}{4}%
+\contentsline {subsubsection}{\numberline {2.1.1}Càclul de la energia}{4}%
+\contentsline {subsection}{\numberline {2.2}Evolució d'un paquet gaussià}{8}%
+\contentsline {subsubsection}{\numberline {2.2.1}Conservació de la energia}{8}%
+\contentsline {subsubsection}{\numberline {2.2.2}Evolució del valor esperat}{9}%
+\contentsline {subsubsection}{\numberline {2.2.3}Evolució de la dispersió en x}{11}%
+\contentsline {subsubsection}{\numberline {2.2.4}Conservació de la norma}{13}%
+\contentsline {subsection}{\numberline {2.3}Oscilador harmònic}{13}%
+\contentsline {subsubsection}{\numberline {2.3.1}Descripció física}{14}%
+\contentsline {subsubsection}{\numberline {2.3.2}Aplicació}{14}%
+\contentsline {subsubsection}{\numberline {2.3.3}Paquet sense evolució}{15}%
+\contentsline {subsubsection}{\numberline {2.3.4}Evolució de l'estat}{16}%

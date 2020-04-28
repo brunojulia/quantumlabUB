@@ -1,0 +1,377 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7400 64-bit) (preloaded format=pdflatex 2020.4.24)  28 APR 2020 17:40
+entering extended mode
+**./memoria.tex
+(memoria.tex
+LaTeX2e <2020-02-02> patch level 5
+L3 programming layer <2020-04-06>
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\article.cls"
+Document Class: article 2019/12/20 v1.4l Standard LaTeX document class
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/base\size10.clo"
+File: size10.clo 2019/12/20 v1.4l Standard LaTeX file (size option)
+)
+\c@part=\count167
+\c@section=\count168
+\c@subsection=\count169
+\c@subsubsection=\count170
+\c@paragraph=\count171
+\c@subparagraph=\count172
+\c@figure=\count173
+\c@table=\count174
+\abovecaptionskip=\skip47
+\belowcaptionskip=\skip48
+\bibindent=\dimen134
+)
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\graphicx
+.sty"
+Package: graphicx 2019/11/30 v1.2a Enhanced LaTeX Graphics (DPC,SPQR)
+
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\keyval.s
+ty"
+Package: keyval 2014/10/28 v1.15 key=value parser (DPC)
+\KV@toks@=\toks15
+)
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\graphics
+.sty"
+Package: graphics 2019/11/30 v1.4a Standard LaTeX Graphics (DPC,SPQR)
+
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics\trig.sty
+"
+Package: trig 2016/01/03 v1.10 sin cos tan (DPC)
+)
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-cfg\grap
+hics.cfg"
+File: graphics.cfg 2016/06/04 v1.11 sample graphics configuration
+)
+Package graphics Info: Driver file: pdftex.def on input line 105.
+
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/graphics-def\pdft
+ex.def"
+File: pdftex.def 2018/01/08 v1.0l Graphics/color driver for pdftex
+))
+\Gin@req@height=\dimen135
+\Gin@req@width=\dimen136
+)
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/float\float.sty"
+Package: float 2001/11/08 v1.3d Float enhancements (AL)
+\c@float@type=\count175
+\float@exts=\toks16
+\float@box=\box45
+\@float@everytoks=\toks17
+\@floatcapt=\box46
+)
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsmath.s
+ty"
+Package: amsmath 2020/01/20 v2.17e AMS math features
+\@mathmargin=\skip49
+
+For additional information on amsmath, use the `?' option.
+
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amstext.s
+ty"
+Package: amstext 2000/06/29 v2.01 AMS text
+
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsgen.st
+y"
+File: amsgen.sty 1999/11/30 v2.0 generic functions
+\@emptytoks=\toks18
+\ex@=\dimen137
+))
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsbsy.st
+y"
+Package: amsbsy 1999/11/29 v1.2d Bold Symbols
+\pmbraise@=\dimen138
+)
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/amsmath\amsopn.st
+y"
+Package: amsopn 2016/03/08 v2.02 operator names
+)
+\inf@bad=\count176
+LaTeX Info: Redefining \frac on input line 227.
+\uproot@=\count177
+\leftroot@=\count178
+LaTeX Info: Redefining \overline on input line 389.
+\classnum@=\count179
+\DOTSCASE@=\count180
+LaTeX Info: Redefining \ldots on input line 486.
+LaTeX Info: Redefining \dots on input line 489.
+LaTeX Info: Redefining \cdots on input line 610.
+\Mathstrutbox@=\box47
+\strutbox@=\box48
+\big@size=\dimen139
+LaTeX Font Info:    Redeclaring font encoding OML on input line 733.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 734.
+\macc@depth=\count181
+\c@MaxMatrixCols=\count182
+\dotsspace@=\muskip16
+\c@parentequation=\count183
+\dspbrk@lvl=\count184
+\tag@help=\toks19
+\row@=\count185
+\column@=\count186
+\maxfields@=\count187
+\andhelp@=\toks20
+\eqnshift@=\dimen140
+\alignsep@=\dimen141
+\tagshift@=\dimen142
+\tagwidth@=\dimen143
+\totwidth@=\dimen144
+\lineht@=\dimen145
+\@envbody=\toks21
+\multlinegap=\skip50
+\multlinetaggap=\skip51
+\mathdisplay@stack=\toks22
+LaTeX Info: Redefining \[ on input line 2859.
+LaTeX Info: Redefining \] on input line 2860.
+)
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/l3backend\l3backe
+nd-pdfmode.def"
+File: l3backend-pdfmode.def 2020-03-12 L3 backend support: PDF mode
+\l__kernel_color_stack_int=\count188
+\l__pdf_internal_box=\box49
+) (memoria.aux)
+\openout1 = `memoria.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 5.
+LaTeX Font Info:    ... okay on input line 5.
+
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/context/base/mkii\supp-
+pdf.mkii"
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count189
+\scratchdimen=\dimen146
+\scratchbox=\box50
+\nofMPsegments=\count190
+\nofMParguments=\count191
+\everyMPshowfont=\toks23
+\MPscratchCnt=\count192
+\MPscratchDim=\dimen147
+\MPnumerator=\count193
+\makeMPintoPDFobject=\count194
+\everyMPtoPDFconversion=\toks24
+)
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/epstopdf-pkg\epst
+opdf-base.sty"
+Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
+
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/generic/infwarerr\infwa
+rerr.sty"
+Package: infwarerr 2019/12/03 v1.5 Providing info/warning/error messages (HO)
+)
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/grfext\grfext.sty
+"
+Package: grfext 2019/12/03 v1.3 Manage graphics extensions (HO)
+
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/generic/kvdefinekeys\kv
+definekeys.sty"
+Package: kvdefinekeys 2019-12-19 v1.6 Define keys (HO)
+))
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/kvoptions\kvoptio
+ns.sty"
+Package: kvoptions 2019/11/29 v3.13 Key value format for package options (HO)
+
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/generic/ltxcmds\ltxcmds
+.sty"
+Package: ltxcmds 2019/12/15 v1.24 LaTeX kernel commands for general use (HO)
+)
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/generic/kvsetkeys\kvset
+keys.sty"
+Package: kvsetkeys 2019/12/15 v1.18 Key value parser (HO)
+))
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/latex/pdftexcmds\pdftex
+cmds.sty"
+Package: pdftexcmds 2019/11/24 v0.31 Utility functions of pdfTeX for LuaTeX (HO
+)
+
+("C:\Users\Adrian\AppData\Local\Programs\MiKTeX 2.9\tex/generic/iftex\iftex.sty
+"
+Package: iftex 2020/03/06 v1.0d TeX engine tests
+)
+Package pdftexcmds Info: \pdf@primitive is available.
+Package pdftexcmds Info: \pdf@ifprimitive is available.
+Package pdftexcmds Info: \pdfdraftmode found.
+)
+Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
+85.
+Package grfext Info: Graphics extension search list:
+(grfext)             [.pdf,.png,.jpg,.mps,.jpeg,.jbig2,.jb2,.PDF,.PNG,.JPG,.JPE
+G,.JBIG2,.JB2,.eps]
+(grfext)             \AppendGraphicsExtensions on input line 504.
+) (memoria.toc)
+\tf@toc=\write3
+\openout3 = `memoria.toc'.
+
+ [1
+
+{C:/Users/Adrian/AppData/Local/MiKTeX/2.9/pdftex/config/pdftex.map}] [2] [3] [4
+]
+<problemaenergia4.jpg, id=29, 462.528pt x 346.896pt>
+File: problemaenergia4.jpg Graphic file (type jpg)
+<use problemaenergia4.jpg>
+Package pdftex.def Info: problemaenergia4.jpg  used on input line 150.
+(pdftex.def)             Requested size: 345.0178pt x 199.16722pt.
+<problemaenergia5.jpg, id=30, 462.528pt x 346.896pt>
+File: problemaenergia5.jpg Graphic file (type jpg)
+<use problemaenergia5.jpg>
+Package pdftex.def Info: problemaenergia5.jpg  used on input line 154.
+(pdftex.def)             Requested size: 345.0178pt x 199.16722pt.
+ [5]
+<problemaenergia6.jpg, id=35, 722.7pt x 578.16pt>
+File: problemaenergia6.jpg Graphic file (type jpg)
+<use problemaenergia6.jpg>
+Package pdftex.def Info: problemaenergia6.jpg  used on input line 158.
+(pdftex.def)             Requested size: 344.99533pt x 426.79071pt.
+ [6 <./problemaenergia4.jpg> <./problemaenergia5.jpg>] [7 <./problemaenergia6.j
+pg>]
+<Ep05.png, id=43, 722.7pt x 578.16pt>
+File: Ep05.png Graphic file (type png)
+<use Ep05.png>
+Package pdftex.def Info: Ep05.png  used on input line 185.
+(pdftex.def)             Requested size: 344.99533pt x 199.16547pt.
+<Ep010.png, id=45, 722.7pt x 578.16pt>
+File: Ep010.png Graphic file (type png)
+<use Ep010.png>
+Package pdftex.def Info: Ep010.png  used on input line 189.
+(pdftex.def)             Requested size: 344.99533pt x 199.16547pt.
+ [8 <./Ep05.png>]
+Overfull \hbox (1.1395pt too wide) in paragraph at lines 197--198
+\OT1/cmr/m/n/10 quantiques d'un sis-tema har-ian d'evolucionar segons evolu-ci
+onaran les classiques.
+ []
+
+<xespxmalament.png, id=50, 722.7pt x 578.16pt>
+File: xespxmalament.png Graphic file (type png)
+<use xespxmalament.png>
+Package pdftex.def Info: xespxmalament.png  used on input line 206.
+(pdftex.def)             Requested size: 344.99533pt x 199.16547pt.
+[9 <./Ep010.png>]
+Overfull \hbox (1.38943pt too wide) in paragraph at lines 210--211
+[]\OT1/cmr/m/n/10 El prob-lema que gen-er-ava aquest de-sajus-ta-ment era bas-t
+ant greu i solucionar-
+ []
+
+<xespxp05dt0.png, id=55, 722.7pt x 578.16pt>
+File: xespxp05dt0.png Graphic file (type png)
+<use xespxp05dt0.png>
+Package pdftex.def Info: xespxp05dt0.png  used on input line 215.
+(pdftex.def)             Requested size: 344.99533pt x 199.16547pt.
+<xespxp010dt0.png, id=56, 722.7pt x 578.16pt>
+File: xespxp010dt0.png Graphic file (type png)
+<use xespxp010dt0.png>
+Package pdftex.def Info: xespxp010dt0.png  used on input line 219.
+(pdftex.def)             Requested size: 344.99533pt x 199.16547pt.
+[10 <./xespxmalament.png> <./xespxp05dt0.png>]
+Overfull \hbox (4.30617pt too wide) in paragraph at lines 227--228
+\OT1/cmr/m/n/10 Per un pa-quet gaus-sia que evolu-ciona lli-u-ra-ment, po-dem d
+e-scriure la seva evolucio
+ []
+
+<dispersioxpo5.png, id=62, 722.7pt x 578.16pt>
+File: dispersioxpo5.png Graphic file (type png)
+<use dispersioxpo5.png>
+Package pdftex.def Info: dispersioxpo5.png  used on input line 236.
+(pdftex.def)             Requested size: 344.99533pt x 199.16547pt.
+<dispersioypo05.png, id=63, 722.7pt x 578.16pt>
+File: dispersioypo05.png Graphic file (type png)
+<use dispersioypo05.png>
+Package pdftex.def Info: dispersioypo05.png  used on input line 240.
+(pdftex.def)             Requested size: 344.99533pt x 199.16547pt.
+[11 <./xespxp010dt0.png>] [12 <./dispersioxpo5.png> <./dispersioypo05.png>]
+<normadiscretizatp05.png, id=73, 722.7pt x 578.16pt>
+File: normadiscretizatp05.png Graphic file (type png)
+<use normadiscretizatp05.png>
+Package pdftex.def Info: normadiscretizatp05.png  used on input line 250.
+(pdftex.def)             Requested size: 344.99533pt x 199.16547pt.
+
+Overfull \hbox (3.41724pt too wide) in paragraph at lines 254--255
+\OT1/cmr/m/n/10 Un al-tre man-era de veure si el metode fun-ciona es a par-tir
+ de l'oscilador harmonic.
+ []
+
+[13 <./normadiscretizatp05.png>] [14]
+<Epotharm.png, id=82, 722.7pt x 578.16pt>
+File: Epotharm.png Graphic file (type png)
+<use Epotharm.png>
+Package pdftex.def Info: Epotharm.png  used on input line 325.
+(pdftex.def)             Requested size: 345.0pt x 275.99626pt.
+<Ecinharm.png, id=83, 722.7pt x 578.16pt>
+File: Ecinharm.png Graphic file (type png)
+<use Ecinharm.png>
+Package pdftex.def Info: Ecinharm.png  used on input line 328.
+(pdftex.def)             Requested size: 345.0pt x 275.99626pt.
+ [15 <./Epotharm.png>] [16 <./Ecinharm.png>]
+<energiaharmdiscretitzat.png, id=93, 722.7pt x 578.16pt>
+File: energiaharmdiscretitzat.png Graphic file (type png)
+<use energiaharmdiscretitzat.png>
+Package pdftex.def Info: energiaharmdiscretitzat.png  used on input line 347.
+(pdftex.def)             Requested size: 345.0pt x 275.99626pt.
+<energiaharmdiscretitzatpot.png, id=94, 722.7pt x 578.16pt>
+File: energiaharmdiscretitzatpot.png Graphic file (type png)
+<use energiaharmdiscretitzatpot.png>
+Package pdftex.def Info: energiaharmdiscretitzatpot.png  used on input line 354
+.
+(pdftex.def)             Requested size: 345.0pt x 275.99626pt.
+ [17 <./energiaharmdiscretitzat.png>]
+<Eharm2.png, id=99, 722.7pt x 578.16pt>
+File: Eharm2.png Graphic file (type png)
+<use Eharm2.png>
+Package pdftex.def Info: Eharm2.png  used on input line 363.
+(pdftex.def)             Requested size: 344.99533pt x 227.61641pt.
+<Eharmpot3.png, id=100, 722.7pt x 578.16pt>
+File: Eharmpot3.png Graphic file (type png)
+<use Eharmpot3.png>
+Package pdftex.def Info: Eharmpot3.png  used on input line 367.
+(pdftex.def)             Requested size: 344.99533pt x 227.61641pt.
+ [18 <./energiaharmdiscretitzatpot.png>]
+<Eharmpot4.png, id=105, 722.7pt x 578.16pt>
+File: Eharmpot4.png Graphic file (type png)
+<use Eharmpot4.png>
+Package pdftex.def Info: Eharmpot4.png  used on input line 371.
+(pdftex.def)             Requested size: 344.99533pt x 227.61641pt.
+[19 <./Eharm2.png> <./Eharmpot3.png>] [20 <./Eharmpot4.png>] (memoria.aux) ) 
+Here is how much of TeX's memory you used:
+ 2449 strings out of 480930
+ 36552 string characters out of 2899292
+ 278487 words of memory out of 3000000
+ 18279 multiletter control sequences out of 15000+200000
+ 539009 words of font info for 47 fonts, out of 3000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 34i,9n,29p,778b,223s stack positions out of 5000i,500n,10000p,200000b,50000s
+ <C
+:\Users\Adrian\AppData\Local\MiKTeX\2.9\fonts/pk/ljfour/jknappen/ec/dpi600\tcrm
+1000.pk><C:/Users/Adrian/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/a
+msfonts/cm/cmbx10.pfb><C:/Users/Adrian/AppData/Local/Programs/MiKTeX 2.9/fonts/
+type1/public/amsfonts/cm/cmbx12.pfb><C:/Users/Adrian/AppData/Local/Programs/MiK
+TeX 2.9/fonts/type1/public/amsfonts/cm/cmbx9.pfb><C:/Users/Adrian/AppData/Local
+/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/Adrian
+/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi10.pfb><C
+:/Users/Adrian/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm
+/cmmi5.pfb><C:/Users/Adrian/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/publi
+c/amsfonts/cm/cmmi7.pfb><C:/Users/Adrian/AppData/Local/Programs/MiKTeX 2.9/font
+s/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/Adrian/AppData/Local/Programs/Mi
+KTeX 2.9/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/Users/Adrian/AppData/Loca
+l/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr17.pfb><C:/Users/Adrian
+/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr5.pfb><C:/
+Users/Adrian/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/c
+mr7.pfb><C:/Users/Adrian/AppData/Local/Programs/MiKTeX 2.9/fonts/type1/public/a
+msfonts/cm/cmr9.pfb><C:/Users/Adrian/AppData/Local/Programs/MiKTeX 2.9/fonts/ty
+pe1/public/amsfonts/cm/cmsy10.pfb><C:/Users/Adrian/AppData/Local/Programs/MiKTe
+X 2.9/fonts/type1/public/amsfonts/cm/cmsy7.pfb><C:/Users/Adrian/AppData/Local/P
+rograms/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmti10.pfb>
+Output written on memoria.pdf (20 pages, 780879 bytes).
+PDF statistics:
+ 170 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 91 words of extra memory for PDF output out of 10000 (max. 10000000)
+
