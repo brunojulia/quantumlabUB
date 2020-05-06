@@ -1,0 +1,19 @@
+#:kivy 1.11.1
+
+<MyScreenManager>:
+    PaquetScreen:
+
+<PaquetScreen>:
+    name: 'paquet'
+    box1: box1_id
+    box2: box2_id
+    
+    BoxLayout:
+        id:box1_id
+        orientation:'vertical'
+    
+        BoxLayout:
+            id:box2_id
+            size_hint:1,None
+            orientation:'horizontal'
+            height:50
