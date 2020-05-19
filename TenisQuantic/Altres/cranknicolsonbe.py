@@ -9,10 +9,10 @@ Created on %(date)s
 #range(n) n element pero comencem a contar desde 0
 
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation
 from time import time
+from numba import jit
 
+@jit
 def tridiag(a, b, c, d):
     n = len(d)  # número de filas
 
@@ -38,6 +38,7 @@ def tridiag(a, b, c, d):
     return x
 
 #Pas de CrannkNicolson
+@jit
 def Crannk_step(psi,avec,bxvec,byvec,cvec,r,V):
     """Realitza un pas de Crank-Nicolson per un dt."""
     
@@ -59,7 +60,7 @@ def Crannk_step(psi,avec,bxvec,byvec,cvec,r,V):
 
 
     
-
+#@jit
 def Crannk2D(xa,xb,ya,yb,ta,tb,Nx,Ny,Nt,V,hbar,m,psi):
     "Crank-Nicolson 2D"
     
@@ -106,9 +107,9 @@ def Crannk2D(xa,xb,ya,yb,ta,tb,Nx,Ny,Nt,V,hbar,m,psi):
     
     
     
-def psi0f(x,y,s2,p0):
+def psi0f(x,y,s2,p0x,p0y,*largs):
     n=1./((2*np.pi*s2)**(1/2))
-    a= n*np.exp(-((x)**2+(y)**2)/(4*s2))*np.exp(1j*p0*x)
+    a= n*np.exp(-((x)**2+(y)**2)/(4*s2))*np.exp(1j*p0x*x+1j*p0y*y)
     return a
 
 
@@ -128,26 +129,26 @@ def Vbarrera(x,y,t):
         V=0.
     return V
         
-    
+@jit
 def bx(n,r,V):
     Hamp=np.zeros((Nx+1),dtype=np.complex128)
     Hamp=1j*((dt/4.)*V[n,:]+r*2)+1.
 
     return Hamp
-
+@jit
 def by(n,r,V):
     Hamp=np.zeros((Nx+1),dtype=np.complex128)
     Hamp=1j*((dt/4.)*V[:,n]+r*2)+1.
 
     return Hamp
-
+@jit
 def ac(r,V):
     a=np.full(Nx+1,-1j*r,dtype=np.complex128)
     a[0]=0.
     c=np.full(Nx+1,-1j*r,dtype=np.complex128)
     c[Nx]=0.
     return a,c
-
+@jit
 def dvecx(psi,n,r,V):
     #Aquí li assignarem un vector de la matriu psi, de fet, el psi[:,n],
     #el vector columna(variant x, deixant y invariant). n indicara de quina
@@ -164,6 +165,7 @@ def dvecx(psi,n,r,V):
    #Tot seguït, multipliquem els psi
     return Hamm
 
+@jit
 def dvecy(psi,n,r,V):
      #Aquí li assignarem un vector de la matriu psi, de fet, el psi[n,:],
     #el vector fila(variant y, deixant x invariant). n indicara de quina
@@ -183,7 +185,7 @@ def dvecy(psi,n,r,V):
 
 
 
-
+@jit
 def norma(psi):
     return np.array([[np.real((psi[i,j])*np.conj(psi[i,j])) for j in range(Nx+1)] 
              for i in range(Nx+1)])
@@ -229,105 +231,106 @@ def Vharm(x,y,xb,yb):
         w=2
         m=1.
         V=0.5*(w**2)*(x**2+y**2)
+        V=0.
 
    return V
     
 
+if __name__=='__main__':
 
-
-L=3.
-tb=5
-ta=0
-hbar=1.
-m=1.
-
-dxvec=np.array([0.03])
-dtvec=np.array([0.01])
-#Generacion rapida de animación
-
-#Nx=40
-#dex=(2*L)/Nx
-#Nt=np.int(tb/0.02)
-#psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,10) for i in range(Nx+1)]
-#                    for j in range(Nx+1)])
-#psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
-#                                         Vfree,hbar,m,psi0)
-#dades=[L,Nx,Nt]
-#np.save('normasprov.npy',normas)
-#np.save('dadesprov.npy',dades)
-#np.save('Vvec.npy',Vvec)
-
-
-#for i in range(len(dxvec)):
-#    for j in range(len(dtvec)):
-#        dex=dxvec[i]
-#        dt=dtvec[j]
-#        Nx=np.int(2*L/dex)
-#        Nt=np.int((tb-ta)/dt)
-#       
-#        psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,10) for i in range(Nx+1)]
-#                    for j in range(Nx+1)])
-#        t_ini=time()
-#        psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
-#                                         Vfree,hbar,m,psi0)
-##        t_final=time()
-#        tejec=t_final-t_ini
-#        devec=np.array([dex,dt,tejec])
-#        np.save('normadx{}dt{}.npy'.format(dex,dt),normas)
-#        np.save('psivecdx{}dt{}.npy'.format(dex,dt),psivec)
-#        np.save('tvecdx{}dt{}.npy'.format(dex,dt),tvec)
-#        np.save('Vvecdx{}dt{}.npy'.format(dex,dt),Vvec)
-#        np.save('dvecdx{}dt{}.npy'.format(dex,dt),devec)
-
-dex=dxvec[0]
-dt=dtvec[0]
-Nx=np.int(2*L/dex)
-Nt=np.int((tb-ta)/dt)
-xb=L
-yb=L
-psi0=np.array([[psi0harm(-L+i*dex,-L+j*dex,2.,1.,1.) for i in range(Nx+1)]
-                    for j in range(Nx+1)],dtype=np.complex128)
-Vvece=np.array([[Vharm(-L+i*dex,-L+j*dex,xb,yb) for i in range(Nx+1)]
-        for j in range(Nx+1)])
-r=dt/(4*dex**2)
-dxvector=dvecx(psi0,2,r,Vvece)   
-
+    L=3.
+    tb=0.5
+    ta=0
+    hbar=1.
+    m=1.
     
-t_ini=time()
-psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
-                                         Vharm,hbar,m,psi0)
-t_final=time()
-tejec=t_final-t_ini
-devec=np.array([dex,dt,tejec])
-np.save('normaharmdx{}dt{}.npy'.format(dex,dt),normas)
-np.save('psiharmdx{}dt{}.npy'.format(dex,dt),psivec)
-np.save('tvecharmdx{}dt{}.npy'.format(dex,dt),tvec)
-np.save('Vvecharmdx{}dt{}.npy'.format(dex,dt),Vvec)
-np.save('dvecharmdx{}dt{}.npy'.format(dex,dt),devec)
-
-print(trapezis(-L,L,-L,L,dex,normas[:,:,0]))
-print(trapezis(-L,L,-L,L,dex,normas[:,:,1]))
-
-#s2vec=np.array([0.4,0.6,0.8,1,1.2,1.4])
-#p0vec=np.array([10,50,100,200,500,1000,10000,1000000])
-#for x in range(0,6):
-#    for y in range(0,8):    
-#        psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,s2vec[x],p0vec[y]) for i in range(Nx+1)]
-#              for j in range(Nx+1)])
-#        psivec,normas,tvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,Vfree,hbar,m,psi0)
-#        for i in range(Nt+1):
-#            devec[i,x,y]=dispersiox(-L,L,Nx,normas[:,:,i])
-            
-#np.save('devec.npy',devec)
-#np.save('p0vec.npy',p0vec)
-#np.save('s2vec.npy',s2vec)
-#np.save('tvec.npy',tvec)
-
-#for i in range(0,4):
-#    Nx=np.int(20)+np.int(20)*i
-#    dex=np.real((2*L)/Nx)
-#    psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,p0vec[1]) for i in range(Nx+1)]
-#              for j in range(Nx+1)])
-#    psivec,normas,tvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,Vfree,hbar,m,psi0)
-#    np.save('psivector{}.npy'.format(i),psivec)
-
+    dxvec=np.array([0.03])
+    dtvec=np.array([0.01])
+    #Generacion rapida de animación
+    
+    #Nx=40
+    #dex=(2*L)/Nx
+    #Nt=np.int(tb/0.02)
+    #psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,10) for i in range(Nx+1)]
+    #                    for j in range(Nx+1)])
+    #psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
+    #                                         Vfree,hbar,m,psi0)
+    #dades=[L,Nx,Nt]
+    #np.save('normasprov.npy',normas)
+    #np.save('dadesprov.npy',dades)
+    #np.save('Vvec.npy',Vvec)
+    
+    
+    #for i in range(len(dxvec)):
+    #    for j in range(len(dtvec)):
+    #        dex=dxvec[i]
+    #        dt=dtvec[j]
+    #        Nx=np.int(2*L/dex)
+    #        Nt=np.int((tb-ta)/dt)
+    #       
+    #        psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,10) for i in range(Nx+1)]
+    #                    for j in range(Nx+1)])
+    #        t_ini=time()
+    #        psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
+    #                                         Vfree,hbar,m,psi0)
+    ##        t_final=time()
+    #        tejec=t_final-t_ini
+    #        devec=np.array([dex,dt,tejec])
+    #        np.save('normadx{}dt{}.npy'.format(dex,dt),normas)
+    #        np.save('psivecdx{}dt{}.npy'.format(dex,dt),psivec)
+    #        np.save('tvecdx{}dt{}.npy'.format(dex,dt),tvec)
+    #        np.save('Vvecdx{}dt{}.npy'.format(dex,dt),Vvec)
+    #        np.save('dvecdx{}dt{}.npy'.format(dex,dt),devec)
+    
+    dex=dxvec[0]
+    dt=dtvec[0]
+    Nx=np.int(2*L/dex)
+    Nt=np.int((tb-ta)/dt)
+    xb=L
+    yb=L
+    psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,5.) for i in range(Nx+1)]
+                        for j in range(Nx+1)],dtype=np.complex128)
+    Vvece=np.array([[Vharm(-L+i*dex,-L+j*dex,xb,yb) for i in range(Nx+1)]
+            for j in range(Nx+1)])
+    r=dt/(4*dex**2)
+    dxvector=dvecx(psi0,2,r,Vvece)   
+    
+        
+    t_ini=time()
+    psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
+                                             Vharm,hbar,m,psi0)
+    t_final=time()
+    tejec=t_final-t_ini
+    devec=np.array([dex,dt,tejec])
+    np.save('normaharmdx{}dt{}.npy'.format(dex,dt),normas)
+    np.save('psiharmdx{}dt{}.npy'.format(dex,dt),psivec)
+    np.save('tvecharmdx{}dt{}.npy'.format(dex,dt),tvec)
+    np.save('Vvecharmdx{}dt{}.npy'.format(dex,dt),Vvec)
+    np.save('dvecharmdx{}dt{}.npy'.format(dex,dt),devec)
+    
+    print(trapezis(-L,L,-L,L,dex,normas[:,:,0]))
+    print(trapezis(-L,L,-L,L,dex,normas[:,:,40]))
+    
+    #s2vec=np.array([0.4,0.6,0.8,1,1.2,1.4])
+    #p0vec=np.array([10,50,100,200,500,1000,10000,1000000])
+    #for x in range(0,6):
+    #    for y in range(0,8):    
+    #        psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,s2vec[x],p0vec[y]) for i in range(Nx+1)]
+    #              for j in range(Nx+1)])
+    #        psivec,normas,tvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,Vfree,hbar,m,psi0)
+    #        for i in range(Nt+1):
+    #            devec[i,x,y]=dispersiox(-L,L,Nx,normas[:,:,i])
+                
+    #np.save('devec.npy',devec)
+    #np.save('p0vec.npy',p0vec)
+    #np.save('s2vec.npy',s2vec)
+    #np.save('tvec.npy',tvec)
+    
+    #for i in range(0,4):
+    #    Nx=np.int(20)+np.int(20)*i
+    #    dex=np.real((2*L)/Nx)
+    #    psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,p0vec[1]) for i in range(Nx+1)]
+    #              for j in range(Nx+1)])
+    #    psivec,normas,tvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,Vfree,hbar,m,psi0)
+    #    np.save('psivector{}.npy'.format(i),psivec)
+    

@@ -46,7 +46,7 @@ def Crannk_step(psi,avec,bxvec,byvec,cvec,r,V):
     for i in range(Nx+1):
         dvec=dx(psi[i,:],i,r,V)
         psi[i,:]=tridiag(avec,bxvec[i],cvec,dvec)
-    #Fa el mateix per les psi[j,:]
+    #Fa el mateix per les psi[:,j]
     for j in range(Nx+1):
         dvec=dy(psi[:,j],j,r,V)
         psi[:,j]=tridiag(avec,byvec[j],cvec,dvec)    
@@ -62,15 +62,19 @@ def Crannk2D(xa,xb,ya,yb,ta,tb,Nx,Ny,Nt,V,hbar,m,psi):
     dy=(yb-ya)/np.float(Ny)
     #Dividim entre dos per què cada pas de Crannk Nicolson requereix
     #primer mig pas dt/2, i després un altre dt/2
-    dt=(tb-ta)/(2*np.float(Nt))
+    dt=(tb-ta)/(np.float(Nt))
+    dt=dt/2
     xvec=np.array([xa+i*dx for i in range(Nx+1)])
     yvec=np.array([ya+i*dy for i in range(Ny+1)])
     tvec=np.array([ta+dt*i*2 for i in range(Nt+1)])
     #Matriu de potencial
     Vvec=np.array([[V(xvec[i],yvec[j],xb,yb) for i in range(Nx+1)]
         for j in range(Ny+1)])
+
+#Crec que aquí falta un 4...., ho provo
+    #He de pensar perque... no se que passa
     
-    r=(dt/(4*dx**2))*(hbar**2/m)
+    r=(dt/(4*dx**2))*(hbar/m)
     #Generem vectors bx i by:
     bxvec=np.array([bx(i,r,Vvec) for i in range(Nx+1)])
     byvec=np.array([by(i,r,Vvec) for i in range(Ny+1)])
@@ -83,7 +87,9 @@ def Crannk2D(xa,xb,ya,yb,ta,tb,Nx,Ny,Nt,V,hbar,m,psi):
     psivec[:,:,0]=psi
     normas[:,:,0]=norma(psi)
     
-    for i in range(Nt):        
+    for i in range(Nt): 
+        #Això aplica 2dt, es a dir, fa un pas de temps i després un altre.
+        #El conjunt sera un dt.
         psivec[:,:,i+1]=Crannk_step(psivec[:,:,i],avec,bxvec,byvec,cvec,r,Vvec)
         normas[:,:,i+1]=norma(psivec[:,:,i+1])
     
@@ -97,8 +103,6 @@ def psi0f(x,y,s2,p0):
     n=1./((2*np.pi*s2)**(1/2))
     a= n*np.exp(-((x)**2+(y)**2)/(4*s2))*np.exp(p0*x)
     return a
-
-
 
 
 
@@ -124,9 +128,10 @@ def Hx(n,r,V):
     for i in range(Nx+1):
         for j in range(Nx+1):
             if i==j:
-                H[i,j]=1j*(V[n,j]+r*2)
+                H[i,j]=1j*((dt/2.)*V[n,j]+r*2)
             elif abs(i-j)==1:
                 H[i,j]=-1j*r
+                
     return H    
 
 def Hy(n,r,V):
@@ -135,39 +140,39 @@ def Hy(n,r,V):
     for i in range(Nx+1):
         for j in range(Nx+1):
             if i==j:
-                H[i,j]=1j*(V[i,n]+r*2)
+                H[i,j]=1j*((dt/2.)*V[i,n]+r*2)
             elif abs(i-j)==1:
                 H[i,j]=-1j*r    
     return H
     
 
 def bx(n,r,V):
-    Hamp=Hx(n,r,V)+np.eye(Nx+1,dtype=complex)
+    Hamp=Hx(n,r,V)+np.eye(Nx+1)
     return np.array([Hamp[i,j] for i in range(Nx+1) for j in range(Nx+1)
             if i==j])
 def by(n,r,V):
-    Hamp=Hy(n,r,V)+np.eye(Nx+1,dtype=complex)
+    Hamp=Hy(n,r,V)+np.eye(Nx+1)
     return np.array([Hamp[i,j] for i in range(Nx+1) for j in range(Nx+1)
             if i==j])
 
 def ac(r,V):
-    Hamp=Hx(0,r,V)+np.eye(Nx+1,dtype=complex)
+    Hamp=Hx(0,r,V)
     return np.array([Hamp[i,j] for i in range(Nx+1) for j in range(Nx+1)
             if (i-j)==1])
-    
+
 
 def dx(psi,n,r,V):
-    Hamm=(np.eye(Nx+1,dtype=complex))-Hx(n,r,V)
-    psi=np.dot(Hamm,psi)
+    Hamm=(np.eye(Nx+1))-Hx(n,r,V)
+    prod=np.dot(Hamm,psi)
    
     
-    return psi
+    return prod
 
 def dy(psi,n,r,V):
-    Hamm=(np.eye(Nx+1,dtype=complex))-Hy(n,r,V)
-    psi=np.dot(Hamm,psi)    
+    Hamm=(np.eye(Nx+1))-Hy(n,r,V)
+    prod=np.dot(Hamm,psi)    
     
-    return psi
+    return prod
 
 
 
@@ -201,19 +206,34 @@ def dispersiox(xa,xb,Nx,fun):
     s2=xesp2-xesp**2
     return s2
 
+
+def psi0harm(x,y,w,m,hbar):
+    c=np.sqrt((w*m)/(hbar*np.pi))
+    psi0=c*np.exp(-0.5*((m*w)/hbar)*((x)**2+y**2))
+
+    return psi0
+
+def Vharm(x,y,xb,yb):
+    if abs(x)>=xb or abs(y)>=yb:
+        V=10000000.
+    else:        
+        w=0.5
+        m=1.
+        V=0.5*m*(w**2)*(x**2+y**2)
     
+    return V
     
 
 
 
 L=3
-tb=1.8
+tb=0.2
 ta=0
-hbar=1
-m=1
+hbar=1.
+m=1.
 
-dxvec=np.array([0.05,0.075,0.10,0.15])
-dtvec=np.array([0.003,0.006,0.01])
+dxvec=np.array([0.01])
+dtvec=np.array([0.001])
 #Generacion rapida de animación
 
 #Nx=40
@@ -229,26 +249,45 @@ dtvec=np.array([0.003,0.006,0.01])
 #np.save('Vvec.npy',Vvec)
 
 
-for i in range(len(dxvec)):
-    for j in range(len(dtvec)):
-        dex=dxvec[i]
-        dt=dtvec[j]
-        Nx=np.int(2*L/dex)
-        Nt=np.int((tb-ta)/dt)
-        
-        psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,10) for i in range(Nx+1)]
+#for i in range(len(dxvec)):
+#    for j in range(len(dtvec)):
+#        dex=dxvec[i]
+#        dt=dtvec[j]
+#        Nx=np.int(2*L/dex)
+#        Nt=np.int((tb-ta)/dt)
+#       
+#        psi0=np.array([[psi0f(-L+i*dex,-L+j*dex,0.25,10) for i in range(Nx+1)]
+#                    for j in range(Nx+1)])
+#        t_ini=time()
+#        psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
+#                                         Vfree,hbar,m,psi0)
+##        t_final=time()
+#        tejec=t_final-t_ini
+#        devec=np.array([dex,dt,tejec])
+#        np.save('normadx{}dt{}.npy'.format(dex,dt),normas)
+#        np.save('psivecdx{}dt{}.npy'.format(dex,dt),psivec)
+#        np.save('tvecdx{}dt{}.npy'.format(dex,dt),tvec)
+#        np.save('Vvecdx{}dt{}.npy'.format(dex,dt),Vvec)
+#        np.save('dvecdx{}dt{}.npy'.format(dex,dt),devec)
+
+dex=dxvec[0]
+dt=dtvec[0]
+Nx=np.int(2*L/dex)
+Nt=np.int((tb-ta)/dt)
+
+psi0=np.array([[psi0harm(-L+i*dex,-L+j*dex,0.5,1.,1.) for i in range(Nx+1)]
                     for j in range(Nx+1)])
-        t_ini=time()
-        psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
-                                         Vfree,hbar,m,psi0)
-        t_final=time()
-        tejec=t_final-t_ini
-        devec=np.array([dex,dt,tejec])
-        np.save('normadx{}dt{}.npy'.format(dex,dt),normas)
-        np.save('psivecdx{}dt{}.npy'.format(dex,dt),psivec)
-        np.save('tvecdx{}dt{}.npy'.format(dex,dt),tvec)
-        np.save('Vvecdx{}dt{}.npy'.format(dex,dt),Vvec)
-        np.save('dvecdx{}dt{}.npy'.format(dex,dt),devec)
+t_ini=time()
+psivec,normas,tvec,Vvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,
+                                         Vharm,hbar,m,psi0)
+t_final=time()
+tejec=t_final-t_ini
+devec=np.array([dex,dt,tejec])
+np.save('normaharmdx{}dt{}.npy'.format(dex,dt),normas)
+np.save('psiharmdx{}dt{}.npy'.format(dex,dt),psivec)
+np.save('tvecharmdx{}dt{}.npy'.format(dex,dt),tvec)
+np.save('Vvecharmdx{}dt{}.npy'.format(dex,dt),Vvec)
+np.save('dvecharmdx{}dt{}.npy'.format(dex,dt),devec)
 
 
 
@@ -274,3 +313,7 @@ for i in range(len(dxvec)):
 #              for j in range(Nx+1)])
 #    psivec,normas,tvec=Crannk2D(-L,L,-L,L,ta,tb,Nx,Nx,Nt,Vfree,hbar,m,psi0)
 #    np.save('psivector{}.npy'.format(i),psivec)
+
+#%%
+
+ab=np.eye(3,dtype=complex)
