@@ -1,0 +1,144 @@
+
+
+<StartingScreen>:
+
+    box1: box1_id
+
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing:10
+        padding:20
+        
+        BoxLayout:
+            id:box1_id
+            
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.4
+            spacing:10
+            padding:20
+            Button:
+                text: 'GO!'
+                on_press: root.snake_mov()
+            Button:
+                text: 'up'
+                on_press: root.snake_up()
+            BoxLayout:
+                orientation: 'horizontal'
+                Button:
+                    text: 'left'
+                    on_press: root.snake_left()
+                Button:
+                    text:'right'
+                    on_press: root.snake_right()
+            Button:
+                text: 'down'
+                on_press: root.snake_down()
+                
+                
+            
+            
+            
+            
+            
+            
+            
+        
+       
+   
+                
+            
+<TunnelPopup>: 
+      
+    title: 'Tunneling'
+    box1: box1_id
+    box2: box2_id
+    box3: box3_id
+    box4: box4_id
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing:10
+        padding:20
+        
+        BoxLayout:
+            id: box1_id
+                 
+        BoxLayout:
+            orientation:'vertical'
+            size_hint_x: 0.5
+            spacing:10
+            
+            Label:
+                text: "T analitic"
+                size_hint_y: 0.5
+            BoxLayout:
+                id: box2_id
+            Label:
+                text: "Probabilitat esquerra"
+                size_hint_y: 0.5
+            BoxLayout:
+                id: box3_id
+            Label:
+                text: "Norma"
+                size_hint_y: 0.5
+            BoxLayout:
+                id: box4_id
+                
+            Label:
+                text: "Barrera"
+                size_hint_y: 0.5
+            BoxLayout:
+                orientation: 'horizontal'
+                
+                Button:
+                    text: "Quadrada"
+                    on_press: root.canvi_potencial_quadrat()
+                Button:
+                    text: "Gaussiana"
+                    on_press: root.canvi_potencial_gauss()
+                
+            Button:
+                text: "Evolucio"
+                on_press: root.inici_evolucio()
+            BoxLayout:
+                orientation: 'horizontal'
+                Button:
+                    text: "reset"
+                    on_press:  root.reset()
+                Button:
+                    text: "stop"
+                    on_press: root.stop_evolucio()
+            Label:
+                text: "amplada"
+                size_hint_y: 0.5
+            BoxLayout:
+                orientation: 'horizontal'
+                
+                Button:
+                    text: "+"
+                    on_press:root.add_width()
+            
+                Button:
+                    text:"-"
+                    on_press:root.subtract_width() 
+            Label: 
+                text: "altura"
+                size_hint_y: 0.5
+                
+            BoxLayout:
+                orientation: 'horizontal'
+                Button: 
+                    text: "+"
+                    on_press: root.add_bheight()
+                Button:
+                    text: "-"
+                    on_press: root.subtract_bheight()
+            
+            Button:
+                text: "Exit"
+                on_press: 
+                    root.dismiss() 
+   
+        
