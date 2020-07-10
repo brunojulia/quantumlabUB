@@ -22,6 +22,7 @@ from kivy.properties import ObjectProperty,ReferenceListProperty,NumericProperty
 from kivy.graphics import Color, Ellipse,Line,Rectangle
 from kivy.core.window import Window
 ############
+
 class PaquetgApp(App):
     """Inicialitzem la aplicació"""
     
@@ -294,6 +295,7 @@ class PaquetScreen(Screen):
             self.t_total=self.t_total+(self.dt)/2.
             self.box3.tempschange.text='temps={0:.3f}'.format(self.t_total)
             
+            #Videojoc, coses del  videojoc
             if self.play_game==True:
                 self.maxvalue=np.amax(self.normavec)
                 self.llindar=self.maxvalue/20.
@@ -364,7 +366,7 @@ class PaquetScreen(Screen):
     def changep(self,add_px,add_py,*largs):
         """Funció que respon als buto + i - que varia el moment inicial del paquet.
         Per que aquest canvi sigui efectiu, hem de canviar tambe el propi paquet."""
-        
+        #if selfpause==True
         #Canvi el moment en pantalla
         self.px+=add_px
         self.py+=add_py
@@ -393,7 +395,7 @@ class PaquetScreen(Screen):
     #4.Potpress(apunta les coordenades on es pren el potencial)
     #5.Potrelease(apunta les coordenades on es solta el potencial)
     #6.modifypot(Agafa aquests dos punts i els ajunta, tot creaunt un potencial 
-    # infinit al mig que encara s'ha de millorar (l'he de fer gaussià.))
+    # infinit al mig.
     #7.clear (reseteja el potencial que s'hagui dibuixat, amb tot el que implica)
        
     def editorfun(self,*largs):
