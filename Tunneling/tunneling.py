@@ -51,7 +51,7 @@ class StartingScreen(Screen):
         #Creem una llista de possibles amplades inicials
         self.list_amp = np.zeros(10)
         for i in range(0,10):
-            self.list_amp[i] = 0.2 + i*0.1
+           self.list_amp[i] = 0.2 + i*0.1
         
         self.botons_amp = np.zeros(4)
         self.botons_T = np.zeros(4)
@@ -62,26 +62,34 @@ class StartingScreen(Screen):
             self.ona()
             self.botons_T[i] = self.T
             
-        self.bonus = [1.2,1.5,2.0,5.0,10.0]
-        self.posx_rand = [25,75,125,175,225,275,325,375,425,475]
-        self.posy_rand = [25,75,125,175,225,275,325,375,425,475]
-        self.nbonus = 4
-        self.matriu_bonus = np.zeros((self.nbonus,3))
+        #self.bonus = [1.2,1.5,2.0,5.0,10.0]
+        #self.posx_rand = [25,75,125,175,225,275,325,375,425,475]
+        #self.posy_rand = [25,75,125,175,225,275,325,375,425,475]
+        #self.nbonus = 4
+        #self.matriu_bonus = np.zeros((self.nbonus,3))
         
-        for i in range(0,self.nbonus):
+        #for i in range(0,self.nbonus):
             
-            self.matriu_bonus[i,0] = random.choice(self.posx_rand)
-            self.matriu_bonus[i,1] = random.choice(self.posy_rand)
-            self.matriu_bonus[i,2] = random.choice(self.bonus)
-        
+            #self.matriu_bonus[i,0] = random.choice(self.posx_rand)
+            #self.matriu_bonus[i,1] = random.choice(self.posy_rand)
+            #self.matriu_bonus[i,2] = random.choice(self.bonus)
+            
+        #definim on comença i on acaba el tauler
+        self.inrect = 50.0
+        self.finrect = 410.0
         
         self.amplada = 0.1
-        self.posx_red = 60
-        self.posy_red = 60
-        self.posx_blue = 510
-        self.posy_blue = 60
-        self.posx_end = 300
-        self.posy_end = 500
+        
+        #definim la maxima posicio de les partícules en x i en y
+        self.maxpos = self.finrect + 20.0
+        self.minpos = self.inrect + 20.0
+        #definim posició inicial de les partícules
+        self.posx_red = self.minpos
+        self.posy_red = self.minpos
+        self.posx_blue = self.maxpos
+        self.posy_blue = self.minpos
+        
+        self.salt = 90.0 # salt cada cop que movem la partícula
         self.angle_start_red = 0
         self.angle_end_red = 360
         self.angle_start_blue = 0
@@ -91,46 +99,63 @@ class StartingScreen(Screen):
         self.blue_prob = 1.0
         
         self.torn = 'red'
+        #control_botons controla que només es pugui prémer un dels botons
         self.control_botons = False
+    
+        
+        self.interval = 90.0
+        self.marge = 5
+        self.dt_barr = 0.5
+        self.bar_pos_x = np.arange(self.inrect,self.finrect + 2.0*self.interval,self.interval)
+        self.bar_pos_y = np.arange(self.inrect,self.finrect + 2.0*self.interval,self.interval)
+        
+        #també necessitem tenir la posició actualitzada de cada partícula
+        self.actualposx_blue = 9
+        self.actualposy_blue = 9
+        self.actualposx_red = 0
+        self.actualposy_red = 9
         
         self.draw_redcircle()
         self.draw_bluecircle()
-        self.draw_endpoint()
         self.tauler()
         self.pantalles()
-        self.write_bonus()
+        #Sself.write_bonus()
+        self.rectangle()
+        
+        #que comenci el canvi d'amplada de les barreres automàticament
+        self.canvi_barreres()
         
         
     def pantalles(self):
         
         
-        self.pantup = plt.figure()
-        self.pantup.patch.set_facecolor('black')
-        self.pantup_canvas =  FigureCanvasKivyAgg(self.pantup)
-        self.box3.add_widget(self.pantup_canvas)
+        #self.pantup = plt.figure()
+        #self.pantup.patch.set_facecolor('black')
+        #self.pantup_canvas =  FigureCanvasKivyAgg(self.pantup)
+        #self.box3.add_widget(self.pantup_canvas)
         
-        self.up_txt = self.pantup.text(0.1,0.1,'%.6f' % (self.botons_T[1]),color='white')
+        #self.up_txt = self.pantup.text(0.1,0.1,'%.6f' % (self.botons_T[1]),color='white')
         
-        self.pantdown = plt.figure()
-        self.pantdown.patch.set_facecolor('black')
-        self.pantdown_canvas =  FigureCanvasKivyAgg(self.pantdown)
-        self.box6.add_widget(self.pantdown_canvas)
+        #self.pantdown = plt.figure()
+        #self.pantdown.patch.set_facecolor('black')
+        #self.pantdown_canvas =  FigureCanvasKivyAgg(self.pantdown)
+        #self.box6.add_widget(self.pantdown_canvas)
         
-        self.down_txt = self.pantdown.text(0.1,0.1,'%.6f' % (self.botons_T[0]),color='white')
+        #self.down_txt = self.pantdown.text(0.1,0.1,'%.6f' % (self.botons_T[0]),color='white')
         
-        self.pantright = plt.figure()
-        self.pantright.patch.set_facecolor('black')
-        self.pantright_canvas =  FigureCanvasKivyAgg(self.pantright)
-        self.box7.add_widget(self.pantright_canvas)
+        #self.pantright = plt.figure()
+        #self.pantright.patch.set_facecolor('black')
+        #self.pantright_canvas =  FigureCanvasKivyAgg(self.pantright)
+        #self.box7.add_widget(self.pantright_canvas)
         
-        self.right_txt = self.pantright.text(0.1,0.1,'%.6f' % (self.botons_T[2]),color='white')
+        #self.right_txt = self.pantright.text(0.1,0.1,'%.6f' % (self.botons_T[2]),color='white')
         
-        self.pantleft = plt.figure()
-        self.pantleft.patch.set_facecolor('black')
-        self.pantleft_canvas =  FigureCanvasKivyAgg(self.pantleft)
-        self.box8.add_widget(self.pantleft_canvas)
+        #self.pantleft = plt.figure()
+        #self.pantleft.patch.set_facecolor('black')
+        #self.pantleft_canvas =  FigureCanvasKivyAgg(self.pantleft)
+        #self.box8.add_widget(self.pantleft_canvas)
         
-        self.left_txt = self.pantleft.text(0.1,0.1, '%.6f' % (self.botons_T[3]),color='white')
+        #self.left_txt = self.pantleft.text(0.1,0.1, '%.6f' % (self.botons_T[3]),color='white')
         
         self.pantprob_red = plt.figure()
         self.pantprob_red.patch.set_facecolor('red')
@@ -158,7 +183,7 @@ class StartingScreen(Screen):
         
         with self.box1.canvas:
             Color(1,0,0,mode = 'rgb')
-            Ellipse(pos=(self.posx_red,self.posy_red),size = (30,30),
+            Ellipse(pos=(self.posx_red,self.posy_red),size = (50,50),
                     angle_start = self.angle_start_red, angle_end = self.angle_end_red)
                  
         
@@ -172,7 +197,7 @@ class StartingScreen(Screen):
     
         with self.box1.canvas:
             Color(0,0,1,mode = 'rgb')
-            self.bluecircle = Ellipse(pos=(self.posx_blue,self.posy_blue),size=(30,30),
+            self.bluecircle = Ellipse(pos=(self.posx_blue,self.posy_blue),size=(50,50),
                                       angle_start = self.angle_start_blue, angle_end = self.angle_end_blue)
             
         self.blue_particle = FloatLayout()
@@ -182,103 +207,124 @@ class StartingScreen(Screen):
             
         return self.blue_particle
     
-    def draw_endpoint(self):
-        
-        with self.box1.canvas:
-            Color(0,1,0,mode='rgb')
-            self.endpoint = Rectangle(pos= (self.posx_end,self.posy_end),size=(50,50))
-        
-        self.endpoint = FloatLayout()
-        self.box1.add_widget(self.endpoint)
-        
-        return self.endpoint
     
-    def write_bonus(self):
-        self.write_bonus0()
-        self.write_bonus1()
-        self.write_bonus2()
-        self.write_bonus3()
+    #def write_bonus(self):
+        #self.write_bonus0()
+        #self.write_bonus1()
+        #self.write_bonus2()
+        #self.write_bonus3()
         
     
-    def write_bonus0(self):
+    #def write_bonus0(self):
         
-        with self.box1.canvas:
-            self.bonus0 = Label(text= 'x' + (str(self.matriu_bonus[0,2])), 
-                                  pos=(int(self.matriu_bonus[0,0]),int(self.matriu_bonus[0,1])))
+        #with self.box1.canvas:
+            #self.bonus0 = Label(text= 'x' + (str(self.matriu_bonus[0,2])), 
+                                  #pos=(int(self.matriu_bonus[0,0]),int(self.matriu_bonus[0,1])))
         
-        self.bonus0 = FloatLayout()
-        self.box1.add_widget(self.bonus0)
+        #self.bonus0 = FloatLayout()
+        #self.box1.add_widget(self.bonus0)
         
-        return self.bonus0
-    
-    def write_bonus1(self):
-        
-        with self.box1.canvas:
-            self.bonus1 = Label(text= 'x' + (str(self.matriu_bonus[1,2])), 
-                                  pos=(int(self.matriu_bonus[1,0]),int(self.matriu_bonus[1,1])))
-        
-        self.bonus1 = FloatLayout()
-        self.box1.add_widget(self.bonus1)
-        
-        return self.bonus1
-    
-    def write_bonus2(self):
-        
-        with self.box1.canvas:
-            self.bonus2 = Label(text= 'x' + (str(self.matriu_bonus[2,2])), 
-                                  pos=(int(self.matriu_bonus[2,0]),int(self.matriu_bonus[2,1])))
-        
-        self.bonus2 = FloatLayout()
-        self.box1.add_widget(self.bonus2)
-        
-        return self.bonus2
-    
-    def write_bonus3(self):
-        
-        with self.box1.canvas:
-            self.bonus3 = Label(text= 'x' + (str(self.matriu_bonus[3,2])), 
-                                  pos=(int(self.matriu_bonus[3,0]),int(self.matriu_bonus[3,1])))
-        
-        self.bonus3 = FloatLayout()
-        self.box1.add_widget(self.bonus3)
-        
-        return self.bonus3
+        #return self.bonus0
 
 
     def tauler(self):
         
+        self.index_barr = 0
+        
+        for i in range(1,len(self.bar_pos_x)-1):
+            for j in range(0,len(self.bar_pos_y)-1):
+                x = self.bar_pos_x[i]
+                y_1 = self.bar_pos_y[j] + self.marge
+                y_2 = self.bar_pos_y[j+1] - self.marge
+                amp_bar = GlobalShared.barr_vert[j,i-1,0]
+                
+                with self.box1.canvas:
+                    Color(0,1,0,mode='rgb')
+                    Line(bezier=(x,y_1,x,y_2),width = amp_bar*5.0)
+                    
+        for i in range(1,len(self.bar_pos_y)-1):
+            for j in range(0,len(self.bar_pos_x)-1):
+                y = self.bar_pos_y[i]
+                x_1 = self.bar_pos_x[j] + self.marge
+                x_2 = self.bar_pos_x[j+1] - self.marge
+                amp_bar = GlobalShared.barr_hor[j-1,i,0]
+                
+                with self.box1.canvas:
+                    Color(0,1,0,mode='rgb')
+                    Line(bezier=(x_1,y,x_2,y),width = amp_bar*5.0)
+                    
+    
+    def rectangle(self):
+        
         with self.box1.canvas:
             Color(0,1,0,mode='rgb')
-            for i in range(0,10):
-                Line(rectangle=(50 + 50*i,50,50,500))
-                Line(rectangle=(50, 50 + 50*i,500,50))
-            Color(0,1,1,mode='rgb')
-            Line(rectangle = (50,50,500,500))
+            Line(rectangle = (self.inrect,self.inrect,self.finrect + self.inrect,self.finrect + self.inrect),width = 3.0)
         
-        self.rectangle1 = FloatLayout()
-        self.box1.add_widget(self.rectangle1)
+        self.limits = FloatLayout()
+        self.box1.add_widget(self.limits)
+        
+        return self.limits
     
+    
+    
+    def canvi_barreres(self):
         
-        return self.rectangle1
+        self.ev_barr = Clock.schedule_interval(self.evolucio_barr,self.dt_barr)
+        
+    def evolucio_barr(self,dt):
+        
+        self.index_barr = self.index_barr + 1
+        
+        if self.index_barr == 3:
+            self.index_barr = 0
+            
+        self.box1.canvas.clear()
+        
+        for i in range(1,len(self.bar_pos_x)-1):
+            for j in range(0,len(self.bar_pos_y)-1):
+                x = self.bar_pos_x[i]
+                y_1 = self.bar_pos_y[j] + self.marge
+                y_2 = self.bar_pos_y[j+1] - self.marge
+                amp_bar = GlobalShared.barr_vert[j,i-1,self.index_barr]
+                
+                with self.box1.canvas:
+                    Color(0,1,0,mode='rgb')
+                    Line(bezier=(x,y_1,x,y_2),width = amp_bar*5.0)
+                    
+        for i in range(1,len(self.bar_pos_y)-1):
+            for j in range(0,len(self.bar_pos_x)-1):
+                y = self.bar_pos_y[i]
+                x_1 = self.bar_pos_x[j] + self.marge
+                x_2 = self.bar_pos_x[j+1] - self.marge
+                amp_bar = GlobalShared.barr_hor[j-1,i,self.index_barr]
+                
+                with self.box1.canvas:
+                    Color(0,1,0,mode='rgb')
+                    Line(bezier=(x_1,y,x_2,y),width = amp_bar*5.0)  
+                    
+        self.rectangle()
+        self.draw_bluecircle()
+        self.draw_redcircle()
+        
+    def stop_evolucio_barr(self):
+        
+        self.ev_barr.cancel()
+        
     
     def down_red(self):
         
         if self.torn == 'red' and self.control_botons == False:
-            self.amplada = self.botons_amp[0]
-        
-            if self.posy_red == 60:
+            
+            if self.posy_red == self.minpos:
                 self.posy_red = self.posy_red
         
             else:
-                self.posy_red = self.posy_red - 50
-            self.box1.canvas.clear()
-            self.tauler()
-            self.draw_redcircle()
-            self.draw_bluecircle()
-            self.write_bonus()
-            self.draw_endpoint()
-            
-            self.control_botons = True
+                self.stop_evolucio_barr() #parem primer el canvi d'amplada de les barreres
+                self.posy_red = self.posy_red - self.salt
+                self.actualposy_red = self.actualposy_red + 1
+                self.amplada = GlobalShared.barr_hor[self.actualposy_red,self.actualposx_red,self.index_barr]
+                
+                self.post_botons_posicio()
 
 
 
@@ -287,141 +333,132 @@ class StartingScreen(Screen):
         if self.torn == 'blue' and self.control_botons == False:
             self.amplada = self.botons_amp[0]
         
-            if self.posy_blue == 60:
+            if self.posy_blue == self.minpos:
                 self.posy_blue = self.posy_blue
         
             else:
-                self.posy_blue = self.posy_blue - 50
-            self.box1.canvas.clear()
-            self.tauler()
-            self.draw_redcircle()
-            self.draw_bluecircle()
-            self.write_bonus()
-            self.draw_endpoint()
-            
-            self.control_botons = True
+                self.stop_evolucio_barr()
+                self.posy_blue = self.posy_blue - self.salt
+                self.actualposy_blue = self.actualposy_blue + 1
+                self.amplada = GlobalShared.barr_hor[self.actualposy_blue,self.actualposx_blue,self.index_barr]
+                
+                self.post_botons_posicio()
 
             
     def up_blue(self):
         
         if self.torn == 'blue' and self.control_botons == False:
-            self.amplada = self.botons_amp[1]
         
-            if self.posy_blue == 510:
+            if self.posy_blue == self.maxpos:
                 self.posy_blue = self.posy_blue
         
             else:
-                self.posy_blue = self.posy_blue + 50
-            self.box1.canvas.clear()
-            self.tauler()
-            self.draw_redcircle()
-            self.draw_bluecircle()
-            self.write_bonus()
-            self.draw_endpoint()
-            
-            self.control_botons = True
+                self.stop_evolucio_barr()
+                self.posy_blue = self.posy_blue + self.salt
+                self.actualposy_blue = self.actualposy_blue - 1
+                self.amplada = GlobalShared.barr_hor[self.actualposy_blue - 1,self.actualposx_blue,self.index_barr]
+                
+                self.post_botons_posicio()
+
         
         
     def up_red(self):
         
         if self.torn == 'red' and self.control_botons == False:
-            self.amplada = self.botons_amp[1]
+            
+            
         
-            if self.posy_red == 510:
+            if self.posy_red == self.maxpos:
                 self.posy_red = self.posy_red
         
             else:
-                self.posy_red = self.posy_red + 50
-            self.box1.canvas.clear()
-            self.tauler()
-            self.draw_redcircle()
-            self.draw_bluecircle()
-            self.write_bonus()
-            self.draw_endpoint()
-            
-            self.control_botons = True
+                self.stop_evolucio_barr()
+                self.posy_red = self.posy_red + self.salt
+                self.actualposy_red = self.actualposy_red - 1
+                self.amplada = GlobalShared.barr_hor[self.actualposy_red-1,self.actualposx_red,self.index_barr]
+                
+                self.post_botons_posicio()
+
             
     
     def right_red(self):
         
         if self.torn == 'red' and self.control_botons == False:
-            self.amplada = self.botons_amp[2]
         
-            if self.posx_red == 510:
+            if self.posx_red == self.maxpos:
                 self.posx_red = self.posx_red
         
             else:
-                self.posx_red = self.posx_red + 50
+                self.stop_evolucio_barr()
+                self.posx_red = self.posx_red + self.salt
+                self.actualposx_red = self.actualposx_red + 1
+                self.amplada = GlobalShared.barr_vert[self.actualposy_red,self.actualposx_red,self.index_barr]
+                
             
-            self.box1.canvas.clear()
-            self.tauler()
-            self.draw_redcircle()
-            self.draw_bluecircle()
-            self.write_bonus()
-            self.draw_endpoint()
-            
-            self.control_botons = True
-            
+                self.post_botons_posicio()
+
+                
     def right_blue(self):
         
         if self.torn == 'blue' and self.control_botons == False:
-            self.amplada = self.botons_amp[2]
         
-            if self.posx_blue == 510:
+            if self.posx_blue == self.maxpos:
                 self.posx_blue = self.posx_blue
         
             else:
-                self.posx_blue = self.posx_blue + 50
+                self.stop_evolucio_barr()
+                self.posx_blue = self.posx_blue + self.salt
+                self.actualposy_blue = self.actualposy_blue + 1
+                self.amplada = GlobalShared.barr_vert[self.actualposy_blue,self.actualposx_blue,self.index_barr]
+                
     
-            self.box1.canvas.clear()
-            self.tauler()
-            self.draw_redcircle()
-            self.draw_bluecircle()
-            self.write_bonus()
-            self.draw_endpoint()
-        
-            self.control_botons = True
+                self.post_botons_posicio()
             
     def left_red(self):
         
         if self.torn == 'red' and self.control_botons == False:
-            self.amplada = self.botons_amp[3]
         
-            if self.posx_red == 60:
+            if self.posx_red == self.minpos:
                 self.posx_red = self.posx_red
         
             else:
-                self.posx_red = self.posx_red - 50
-            self.box1.canvas.clear()
-            self.tauler()
-            self.draw_redcircle()
-            self.draw_bluecircle()
-            self.write_bonus()
-            self.draw_endpoint()
+                self.stop_evolucio_barr()
+                self.posx_red = self.posx_red - self.salt
+                self.actualposx_red = self.actualposx_red - 1
+                self.amplada = GlobalShared.barr_vert[self.actualposy_red,self.actualposx_red-1,self.index_barr]
             
-            self.control_botons = True
+                self.post_botons_posicio()
+
 
             
     def left_blue(self):
         
         if self.torn =='blue' and self.control_botons == False:
-            self.amplada = self.botons_amp[3]
         
-            if self.posx_blue == 60:
+            if self.posx_blue == self.minpos:
                 self.posx_blue = self.posx_blue
         
             else:
-                self.posx_blue = self.posx_blue - 50
+                self.stop_evolucio_barr()
+                self.posx_blue = self.posx_blue - self.salt
+                self.actualposx_blue = self.actualposx_blue - 1
+                self.amplada = GlobalShared.barr_vert[self.actualposy_blue,self.actualposx_blue-1,self.index_barr]
                 
-            self.box1.canvas.clear()
-            self.tauler()
-            self.draw_redcircle()
-            self.draw_bluecircle()
-            self.write_bonus()
-            self.draw_endpoint()
+                self.post_botons_posicio()
+                
+                
+    def post_botons_posicio(self):
+        
+        self.box1.canvas.clear()
+        self.tauler()
+        self.draw_redcircle()
+        self.draw_bluecircle()
+        #self.write_bonus()
+        self.rectangle()
             
-            self.control_botons = True
-            
+        self.control_botons = True
+        
+        
         
     def canvi_torn(self):
         
@@ -513,13 +550,6 @@ class StartingScreen(Screen):
             
     def actualitzacio(self,instance):
         
-        #En l'actualitzacio també hi ha d'haver nous valors per a T
-        for i in range(0,4):
-            self.botons_amp[i] = random.choice(self.list_amp)
-            self.amplada = self.botons_amp[i]
-            self.potencial()
-            self.ona()
-            self.botons_T[i] = self.T
         
         #for i in range(0,self.nbonus):
             #if self.posx_red == self.matriu_bonus[i,0] and self.posy_red == self.matriu_bonus[i,1]:
@@ -529,57 +559,51 @@ class StartingScreen(Screen):
             #if self.posx_blue == self.matriu_bonus[i,0] and self.posy_blue == self.matriu_bonus[i,1]:
                 #GlobalShared.bonus = self.matriu_bonus[i,2]
         
-        #Ara ho ha de dibuixar en les pantalles assignades
-        self.up_txt.remove()
-        self.up_txt = self.pantup.text(0.1,0.1,'%.6f' % (self.botons_T[1]),color='white')
-        self.pantup_canvas.draw()
+        #Ara ho ha de dibuixar enles  pantalles assignades
+        #self.up_txt.remove()
+        #self.up_txt = self.pantup.text(0.1,0.1,'%.6f' % (self.botons_T[1]),color='white')
+        #self.pantup_canvas.draw()
         
-        self.down_txt.remove()
-        self.down_txt = self.pantdown.text(0.1,0.1,'%.6f' % (self.botons_T[0]),color='white')
-        self.pantdown_canvas.draw()
+        #self.down_txt.remove()
+        #self.down_txt = self.pantdown.text(0.1,0.1,'%.6f' % (self.botons_T[0]),color='white')
+        #self.pantdown_canvas.draw()
         
-        self.right_txt.remove()
-        self.right_txt = self.pantright.text(0.1,0.1,'%.6f' % (self.botons_T[2]),color='white')
-        self.pantright_canvas.draw()
+        #self.right_txt.remove()
+        #self.right_txt = self.pantright.text(0.1,0.1,'%.6f' % (self.botons_T[2]),color='white')
+        #self.pantright_canvas.draw()
         
-        self.left_txt.remove()
-        self.left_txt = self.pantleft.text(0.1,0.1,'%.6f' % (self.botons_T[3]),color='white')
-        self.pantleft_canvas.draw()
+        #self.left_txt.remove()
+        #self.left_txt = self.pantleft.text(0.1,0.1,'%.6f' % (self.botons_T[3]),color='white')
+        #self.pantleft_canvas.draw()
 
         if self.torn == 'red':
             self.prob_txt.remove()
             self.red_prob = self.red_prob*GlobalShared.prob*GlobalShared.bonus
-            self.prob_txt = self.pantprob_red.text(0.1,0.5,str(self.red_prob))
+            self.prob_txt = self.pantprob_red.text(0.1,0.5,'%.3f' % (self.red_prob))
         
             self.pantprob_red_canvas.draw()
             
             self.angle_end_red = self.angle_end_red - 50*(1 - GlobalShared.prob)
-            self.box1.canvas.clear()
-            self.tauler()
-            self.draw_redcircle()
-            self.draw_bluecircle()
-            self.write_bonus()
-            self.draw_endpoint()
-            
-            self.canvi_torn()
+           
             
         elif self.torn == 'blue':
             self.probb_txt.remove()
             self.blue_prob = self.blue_prob*GlobalShared.prob*GlobalShared.bonus
-            self.probb_txt = self.pantprob_blue.text(0.1,0.5,str(self.blue_prob))
+            self.probb_txt = self.pantprob_blue.text(0.1,0.5,'%.3f' % (self.blue_prob))
         
             self.pantprob_blue_canvas.draw()
             
             self.angle_end_blue = self.angle_end_blue - 50*(1 - GlobalShared.prob)
-            self.box1.canvas.clear()
-            self.tauler()
-            self.draw_redcircle()
-            self.draw_bluecircle()
-            self.write_bonus()
-            self.draw_endpoint()
+           
+        self.box1.canvas.clear()
+        self.tauler()
+        self.rectangle()
+        self.draw_redcircle()
+        self.draw_bluecircle()
+        #self.write_bonus()
+        self.canvi_barreres()
             
-            self.canvi_torn()
-        #GlobalShared.bonus = 1.0
+        self.canvi_torn()
         
         
         
@@ -634,8 +658,8 @@ class TunnelPopup(Popup):
         self.p0 = -200.0/self.lx_max
         self.bheight_quadrat = 76.0
         self.bheight_gauss = 0.1
-        self.potencial()
         self.control_pot = 'quadrat'
+        self.potencial()
         self.max_pot = 90.0
         self.min_pot = 0.0
         self.phi0()
@@ -693,16 +717,18 @@ class TunnelPopup(Popup):
         
     def potencial(self):
         
-        #self.pot = 42.55*(np.exp(-(self.xx/self.bwidth)**2))/np.sqrt(self.bheight_gauss*np.pi)
         self.pot = np.zeros(len(self.xx))
-        for i in range(0,len(self.xx)):
-            if -self.bwidth/2.0 < self.xx[i] < self.bwidth/2.0:
-                self.pot[i] = self.bheight_quadrat
+        
+        if self.control_pot == 'quadrat':
+            for i in range(0,len(self.xx)):
+                if -self.bwidth/2.0 < self.xx[i] < self.bwidth/2.0:
+                    self.pot[i] = self.bheight_quadrat
+        elif self.control_pot == 'gauss':
+            self.pot = 42.55*(np.exp(-(self.xx/self.bwidth)**2))/np.sqrt(self.bheight_gauss*np.pi)
                 
     def canvi_potencial_gauss(self):
         
         self.pot = 42.55*(np.exp(-(self.xx/self.bwidth)**2))/np.sqrt(self.bheight_gauss*np.pi)
-        self.control_pot  = 'gauss'
         
         self.pot_data.remove()
         self.pot_data, = self.pot_graf.fill(self.xx, self.pot,color=self.colpot)
@@ -713,6 +739,8 @@ class TunnelPopup(Popup):
         
         self.main_canvas.draw()
         self.pant1_canvas.draw()
+        
+        self.control_pot = 'gauss'
         
     def canvi_potencial_quadrat(self):
         
@@ -730,6 +758,8 @@ class TunnelPopup(Popup):
         
         self.main_canvas.draw()
         self.pant1_canvas.draw()
+        
+        self.control_pot = 'quadrat'
         
             
 
@@ -782,7 +812,13 @@ class TunnelPopup(Popup):
         
         self.pot_data.remove()
         self.T_txt.remove()
-        self.bwidth = self.bwidth + 0.05
+        
+        if self.control_pot == 'quadrat': 
+            self.bwidth = self.bwidth + 0.05 
+        elif self.control_pot == 'gauss':
+            self.bwidth = self.bwidth + 0.05
+            
+            
         self.potencial()
         self.T_analitic()
         self.T_txt = self.pant1.text(0.1, 0.5,str(self.T))
@@ -796,7 +832,12 @@ class TunnelPopup(Popup):
         
         self.pot_data.remove()
         self.T_txt.remove()
-        self.bwidth = self.bwidth - 0.05
+        
+        if self.control_pot == 'quadrat':
+            self.bwidth = self.bwidth - 0.05
+        if self.control_pot == 'gauss':
+            self.bwidth = self.bwidth - 0.05
+            
         self.potencial()
         self.T_analitic()
         self.pot_data, = self.pot_graf.fill(self.xx, self.pot,color=self.colpot)
@@ -809,7 +850,12 @@ class TunnelPopup(Popup):
         
         self.pot_data.remove()
         self.T_txt.remove()
-        self.bheight_quadrat = self.bheight_quadrat + 0.5
+        
+        if self.control_pot == 'quadrat':
+            self.bheight_quadrat = self.bheight_quadrat + 0.5
+        elif self.control_pot == 'gauss':
+            self.bheight_gauss = self.bheight_gauss - 0.01
+            
         self.potencial()
         self.T_analitic()
         self.pot_data, = self.pot_graf.fill(self.xx, self.pot,color=self.colpot)
@@ -820,16 +866,45 @@ class TunnelPopup(Popup):
         
     def subtract_bheight(self):
         
-        self.pot_data.remove()
-        self.T_txt.remove()
-        self.bheight_quadrat = self.bheight_quadrat - 0.5
-        self.potencial()
-        self.T_analitic()
-        self.pot_data, = self.pot_graf.fill(self.xx, self.pot,color=self.colpot)
-        self.T_txt = self.pant1.text(0.1, 0.5,'%.8f' % (self.T))
         
-        self.pant1_canvas.draw()
-        self.main_canvas.draw()
+        
+        if self.control_pot == 'quadrat':
+            if self.bheight_quadrat > 66.0:
+                self.bheight_quadrat = self.bheight_quadrat - 0.5
+                
+                self.pot_data.remove()
+                self.T_txt.remove()
+        
+                self.potencial()
+                self.T_analitic()
+                self.pot_data, = self.pot_graf.fill(self.xx, self.pot,color=self.colpot)
+                self.T_txt = self.pant1.text(0.1, 0.5,'%.8f' % (self.T))
+                
+                self.pant1_canvas.draw()
+                self.main_canvas.draw()
+                
+            else:
+                self.bheight_quadrat = self.bheight_quadrat
+                
+        elif self.control_pot == 'gauss':
+            if self.bheight_gauss < 0.13:
+                self.bheight_gauss = self.bheight_gauss + 0.01
+                
+                self.pot_data.remove()
+                self.T_txt.remove()
+                
+                self.potencial()
+                self.T_analitic()
+                self.pot_data, = self.pot_graf.fill(self.xx, self.pot,color=self.colpot)
+                self.T_txt = self.pant1.text(0.1, 0.5,'%.8f' % (self.T))
+                
+                self.pant1_canvas.draw()
+                self.main_canvas.draw()
+            else:
+                self.bheight_gauss = self.bheight_gauss
+
+            
+        
 
         
     def T_analitic(self):
