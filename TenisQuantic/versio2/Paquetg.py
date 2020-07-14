@@ -87,7 +87,8 @@ class PaquetScreen(Screen):
         "Iniciem el primer dibuix de l'aplicació"
         
         #Variables globals...
-        global Vvec,avec,cvec,psi0,normavec,mode
+        global Vvec,avec,cvec,psi0,normavec,mode,Vvecstandard
+        global setcordpress,setcordrelease,avec,cvec
         
         ################### PARAMETRES DE LA CAIXA,DISCRETITZAT,PARTICULA########
         self.L=3
@@ -105,7 +106,7 @@ class PaquetScreen(Screen):
         #particula i constants físiques
         self.m=1
         self.hbar=1
-        self.t_total=0.
+        self.t_total=0.00
         self.x0=0.
         self.y0=0.
         self.px=0
@@ -129,50 +130,21 @@ class PaquetScreen(Screen):
         #################### PARAMETRES NECESSARIS PER EFECTUAR ELS CALCULS######
         
         
-        #################### POTENCIALS
-        
-        #Potencial estandar(mode=0)
-        self.Vvecestandar=np.array([[ck.Vharm(self.xa+i*self.dx,self.xa+j*self.dx,
-                                      self.xb,self.xb) 
-                             for i in range(self.Nx+1)]
-                            for j in range(self.Nx+1)],dtype=np.float64)
-        
-        
-        #Potencial slit(mode=1)
-        self.yposslitd=np.int(self.Nx*(4.75/10))
-        self.yposslitu=np.int(self.Nx*(5.25/10))
-        self.xposslit=np.int(self.Nx/3)
-        self.x0slit=self.L/2
-        self.y0slit=0.
-        self.Vvecslit=np.copy(self.Vvecestandar)
-        
-        self.Vvecslit[0:self.yposslitd,self.xposslit]=100000
-        
-        self.Vvecslit[self.yposslitu:self.Nx,self.xposslit]=100000
-        
-        
-        
-        ##################### PAQUETS
-        
-        #Paquet propi del mode estandar
-        self.psiestandar=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,self.x0,self.y0) 
-                             for i in range(self.Nx+1)]
-                       for j in range(self.Nx+1)])#dtype=np.complex128)
-        
-        #Paquet propi del mode slit
-        self.psislit=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,self.x0slit,self.y0slit) 
-                             for i in range(self.Nx+1)]
-                       for j in range(self.Nx+1)])
-        
-        ##################### MODES
-        
+        #################### MODES
         #mode: 0, estandard
         #      1,slit
         #      2,disparo(encara no està fet)
-        #definm el mode inicial tal que:
+        
+        #Posició slit
+
+        self.x0slit=self.L/2
+        self.y0slit=0.
+
+        
+        ################### CONFIGURACIÓ INICIAL
             
-        self.Vvec=self.Vvecestandar
-        self.psi0=self.psiestandar
+        self.Vvec=self.Vvecstand()
+        self.psi0=self.psistand(0.,0.)
         #Ens indica en quin mode estem
         self.mode=0
         
@@ -286,6 +258,7 @@ class PaquetScreen(Screen):
     #3.compute(play)
     #4.pause
     #5.reset
+    #6.transition_PS
     
     def p_schedule_fired(self):
         "Ara, definim l'update, a partir d'aqui farem l'animació"
@@ -359,18 +332,28 @@ class PaquetScreen(Screen):
         if self.pause_state==True:
             #Segons el mode, reseteja un potencial o un paquet diferent
             if self.mode==0:
-                self.psi0=self.psiestandar
-                self.Vvec=self.Vvecestandar
-            if self.mode==1:
-                self.psi0=self.psislit
-                self.Vvec=self.Vvecslit
-            
+                self.psi0=self.psistand(0.,0.)
+                self.Vvec=self.Vvecstand()
+            else:
+                self.psi0=self.psislit()
+                self.Vvec=self.Vvecslit()
+        
             #Parametres que s'han de tornar a resetejar
             self.i=0
-            self.px=0
-            self.py=0
+            self.px=0.
+            self.py=0.
             self.t_toal=0.
             
+            if self.setcordpress.size>0:
+                self.editorstop()
+            else:
+                pass
+
+            self.paint.canvas.clear()
+            self.setcordpress=self.emptylist()
+            self.setcordrelease=self.emptylist()          
+            self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
+            print('Clear!')
             #Rseteja la imatge
             
             self.normavec=ck.norma(self.psi0,self.Nx)
@@ -385,29 +368,44 @@ class PaquetScreen(Screen):
             self.box3.tempschange.text='0.0'
             self.box3.pxchange.text='0.0'
             self.box3.pychange.text='0.0'
-            self.clear()
+            self.box4.boxpx.pxslider.value=0.
+            self.box4.boxpy.pyslider.value=0.
+            self.x0=self.zero()
+            self.y0=self.zero()
+            
+            
             
     def transition_PS(self,*largs):
             self.p_schedule_cancel()
             self.manager.transition=FadeTransition()
             self.manager.current='starting'
+            
+    def zero(self,*largs):
+        a=0.
+        return a
     
     
             
     ############################## MODES####################################
     #Aquestes funcions s'activen quan clikem self o slit i s'encarreguen de que
     #resetejar tot el que hi ha en pantalla (si estan en un mode difent al seu
-    #propi) i posar el mode escollit
+    #propi) i posar el mode escollit. També escrivim aquí els potencials i
+    #paquets propis de cada mode.
+    
     #1.standard(mode 0)
     #2.slit(mode slit)
     #3.modechange (canvia entre un mode o l'altre)   
+    #4.Vvecstand
+    #5.Vvecslit
+    #6.psistand
+    #7.psislit
     def standard(self,*largs):
         """Funció que retorna el mode estandard en tots els aspectes: de càlcul,
         en pantalla, etf..."""
         
         self.mode=0
-        self.Vvec=self.Vvecestandar
-        self.psi0=self.psiestandar
+        self.Vvec=self.Vvecstand()
+        self.psi0=self.psistand(0.,0.)
         #Llevem les líneas que hi pogui haver
 
         self.lineslit1.remove()
@@ -434,8 +432,8 @@ class PaquetScreen(Screen):
         potencial de referència i ho deixem en el mode slit. Aquest mode
         correspon amb el número 1."""
         self.mode=1
-        self.Vvec=self.Vvecslit
-        self.psi0=self.psislit
+        self.Vvec=self.Vvecslit()
+        self.psi0=self.psislit()
         
         """Pintem tot lo dit i afegim una líniea que es correspón amb el potencial,
         fix en aquest mode."""
@@ -473,9 +471,58 @@ class PaquetScreen(Screen):
         if self.mode==1:
             self.standard()
             self.box21.modechange.text='Standard'
-        else:
+        if self.mode==0:
             self.slit()
             self.box21.modechange.text='Slit'
+    
+    def Vvecstand(self,*largs):
+        """Potencial del mode estandard"""
+        Vvecestandard=np.array([[ck.Vharm(self.xa+i*self.dx,self.xa+j*self.dx,
+                                      self.xb,self.xb) 
+                             for i in range(self.Nx+1)]
+                            for j in range(self.Nx+1)],dtype=np.float64)
+        
+        return Vvecestandard
+    
+    def Vvecslit(self,*largs):
+        """Potencial del mode slit"""
+        #Potencial slit(mode=1)
+        self.yposslitd=np.int(self.Nx*(4.75/10))
+        self.yposslitu=np.int(self.Nx*(5.25/10))
+        self.xposslit=np.int(self.Nx/3)
+        
+        Vvecslit=self.Vvecstand()
+        
+        Vvecslit[0:self.yposslitd,self.xposslit]=100000
+        
+        Vvecslit[self.yposslitu:self.Nx,self.xposslit]=100000
+        
+        return Vvecslit
+    
+    def psistand(self,x0,y0,*largs):
+        """Paquet corresponent al mode standard"""
+        
+        psiestandar=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,x0,y0) 
+                             for i in range(self.Nx+1)]
+                       for j in range(self.Nx+1)])
+        
+        return psiestandar
+        
+    def psislit(self,*largs):
+        """Paquet corresponent al mode slit"""
+        
+        #Paquet propi del mode slit
+        psislit=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,self.x0slit,self.y0slit) 
+                             for i in range(self.Nx+1)]
+                       for j in range(self.Nx+1)])
+        
+        return psislit
+    
+    def emptylist(self,*largs):
+        """Returns an empty list"""
+        
+        empty=np.array([])
+        return empty
     #####################################CHANGE PARAMETERs##################
     #Fucnions que s'encarregar del canvi efectiu dels parametres
     #1.changepx
@@ -524,20 +571,22 @@ class PaquetScreen(Screen):
         fetes al paquet mitjançant el menú d'edició. """
         
         #Canvi del moment efectiu
-        if self.mode==0:
-            self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,0.,0.) 
-                                     for i in range(self.Nx+1)]
-                               for j in range(self.Nx+1)])
-        if self.mode==1:
-            self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,self.x0slit,self.y0slit) 
-                                 for i in range(self.Nx+1)]
-                           for j in range(self.Nx+1)]) 
-        #Canvi de la modificació del potencial
         
-        self.modifypot()
-        #tencament de l'editor
-        #self.editorstop()
+        if self.t_total<self.dt:
             
+            if self.mode==0:
+                self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,self.x0,self.y0) 
+                                         for i in range(self.Nx+1)]
+                                   for j in range(self.Nx+1)])
+            if self.mode==1:
+                self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,self.x0slit,self.y0slit) 
+                                     for i in range(self.Nx+1)]
+                               for j in range(self.Nx+1)]) 
+        
+
+
+        
+   
     ################################# POTENCIAL MODE #########################
     #Aquestes funcions juntament amb el widget MyPaintWidget porten la posibilitat
     #de poder dibuixar un potencial.
@@ -610,6 +659,8 @@ class PaquetScreen(Screen):
         on s'ha soltat al plot."""
         self.setcordrelease=np.append(self.setcordrelease,cordrelease)
         print(self.setcordrelease)
+
+        #self.modifypot()
         
  
     
@@ -622,18 +673,17 @@ class PaquetScreen(Screen):
         #Variables on guardem les dates del dibuix
         vecpress=self.setcordpress
         vecrelease=self.setcordrelease
+        print(vecpress,vecrelease)
         #linias dibuixades=vecsize/2
         vecsize=np.int(vecpress.size)
+        print(vecsize)
         #Aquí guardarem els resultats.
-        transformvectorx=np.array([],dtype=int)
-        transformvectory=np.array([],dtype=int)
-        
         #Coloquem una guasiana al voltant del potencial que pintem. La sigma^2 farem que
         #sigui del mateix tamany que el pas
-        s2vec=self.dx
-        valorVec=10000.
+        s2vec=self.dx/2.
+        valorVec=10000
+        
 
-        #Bucle de conversió de les dades
         for i in range(0,vecsize,2):
             #Establim noms de variables
             index=i
@@ -641,48 +691,62 @@ class PaquetScreen(Screen):
             y0=vecpress[index+1]
             x1=vecrelease[index]
             y1=vecrelease[index+1]
-
-
+    
+    
             Vecgaussia=self.potential_maker(x0,y0,x1,y1,valorVec,s2vec)
-            #I el sumem...
+                #I el sumem...
             self.Vvec+=Vecgaussia
-            #Coloquem una petita gaussiana al voltant de cada punt de sigma*2=self.dx/2
+                #Coloquem una petita gaussiana al voltant de cada punt de sigma*2=self.dx/2
+                #self.Vvec=Vvec
+            #Modifiquem els respectius ac,vc
             #self.Vvec=Vvec
-        #Modifiquem els respectius ac,vc
-        #self.Vvec=Vvec
         print(self.Vvec)
         self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
-        
+            
         print('Applied!')
         
+        if vecsize>0:
+            self.editorstop()
+        
+        else:
+            pass
     def gaussian_maker(self,x,y,x0,y0,x1,y1,value,s2,*largs):
         """Introduïm aquí la gaussiana per cada x e y... x0,y0,x1,y1, son els
         dos punts que uneixen la recta dibuixada. Utilitzarem les rectes perpen-
         diculars en aquestes a cada punt per dissenyar aquest potencial."""
         
         #Primer de tot, definim el pendent de la recta que uneix els dos punts
-        if (x1-x0)==0.:
-            x_c=x0
-            y_c=y
-        
-        else:
-        
-            m=(y1-y0)/(x1-x0)
-            
-            if m==0:
-                y_c=y0
-                x_c=x
-            else:
-                x_c=0.5*(x0+x-(y0-y)/m)
-                y_c=m*(x_c-x0)+y0
-        #definim condicio per si posar-hi gaussiana o no:
-        if x0-self.dx<x_c<x1+self.dx:
-            #Obteim el punt en y
-            #Ara només hem de calcular quant val la gaussiana:
-            Vvecgauss=value*(1./(np.sqrt(s2*2.*np.pi)))*np.exp(-(0.5/s2)*((x-x_c)**2
+        if np.abs(x1-x0)<self.dx:
+            if (y0<y<y1 or y1<y<y0):                
+                x_c=x0
+                y_c=y
+                Vvecgauss=value*(1./(np.sqrt(s2*2.*np.pi)))*np.exp(-(0.5/s2**2)*((x-x_c)**2
                                                                     +(y-y_c)**2))
+            else:
+                Vvecgauss=0.
+                
+        
+        elif np.abs(y1-y0)<self.dx:
+            if (x0<x<x1 or x1<x<x0):                
+                x_c=x
+                y_c=y0
+                Vvecgauss=value*(1./(np.sqrt(s2*2.*np.pi)))*np.exp(-(0.5/s2**2)*((x-x_c)**2
+                                                                    +(y-y_c)**2))
+            else:
+                Vvecgauss=0.
         else:
-            Vvecgauss=0.
+            
+            m=(y1-y0)/(x1-x0)                      
+            x_c=0.5*(x0+x+(y-y0)/m)
+            y_c=m*(x_c-x0)+y0
+        
+            if (x0<x_c<x1 or x1<x_c<x0):
+                Vvecgauss=value*(1./(np.sqrt(s2*2.*np.pi)))*np.exp(-(0.5/s2**2)*((x-x_c)**2
+                                                                    +(y-y_c)**2))
+            else:
+                Vvecgauss=0.
+                
+                
         return Vvecgauss
     
     def potential_maker(self,x0,y0,x1,y1,value,s2,*largs):
@@ -696,17 +760,89 @@ class PaquetScreen(Screen):
         """Aquesta funció neteja el canvas i tot els canvis introduïts 
         tan al potencial com a les coordenades del potencial. """
         self.paint.canvas.clear()
-        self.setcordpress=np.array([])
-        self.setcordrelease=np.array([])
+        self.setcordpress=self.emptylist()
+        self.setcordrelease=self.emptylist()
+
         if self.mode==0:
             
-            self.Vvec=self.Vvecestandar
+            self.Vvec=self.Vvecstand()
 
         if self.mode==1:
-            self.Vvec=self.Vvecslit
+            self.Vvec=self.Vvecslit()
+            
+        self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
+        print('Clear!')
+        
+    #################################### SELECT POSITION ##################
+    def editorfuns(self,*largs):
+        """Aquesta funció es l'encarregada d'activar el mode editor. Activa
+        l'event de matplotlib que detecta la entrada al propi plot o la sortida,
+        i l'enllaça amb la funció activatepaint"""
+        
+                                                       
+        #Controla que només es pogui dibuixar dins la figura
+        self.cidactivates=self.main_canvas.mpl_connect('axes_enter_event',
+                                               partial(self.activatepaints,1))
+        self.ciddesactivates=self.main_canvas.mpl_connect('axes_leave_event',
+                                               partial(self.activatepaints,0))
+        
+        
+        
+  
+    def editorstops(self,*largs):
+        """Aquesta funció desactiva totes les conexions activades a editorfun,
+        i per tant, desactiva el mode editor"""
+        self.main_canvas.mpl_disconnect(self.cidactivates)   
+        self.main_canvas.mpl_disconnect(self.ciddesactivates)
+
+        
+    def activatepaints(self,n,*largs):
+        """Aquesta funció s'encarrega d'activar el widget Paint(que dona la
+        capactiat de pintar en pantalla, només quan el cursor està dins del
+        plot). També activa quatre funcions i les conecta amb les accions 
+        d'apretar i soltar el click dret del mouse per, d'aquesta manera,
+        enregistar on s'ha apretat."""
+        
+        if n==1:
+
+            self.cid1s=self.main_canvas.mpl_connect('button_press_event',press_sel)
+            self.cid2s=self.main_canvas.mpl_connect('button_press_event',
+                                               partial(self.selpress))
             
 
+            
     
+            print('painting')
+            
+        else:
+
+            self.main_canvas.mpl_disconnect(self.cid1s)   
+            self.main_canvas.mpl_disconnect(self.cid2s)
+ 
+            
+            
+    def selpress(self,*largs):
+        """Funció que s'encarrega de guardar en coordenades de data el lloc
+        on s'ha apretat al plot"""
+        self.x0=cordpress_sel[0]
+        self.y0=cordpress_sel[1]
+        print(self.x0,self.y0)
+            
+        if self.t_total<self.dt and self.mode==0:
+            self.changed_position=True
+            self.psi0=self.psistand(self.x0,self.y0)
+            #Rseteja la imatge
+            
+            self.normavec=ck.norma(self.psi0,self.Nx)
+            self.visu_im.remove()
+            self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
+                                          extent=(-self.L,self.L,-self.L,self.L)) 
+          
+            self.main_canvas.draw()
+        
+        #parem la selecció
+        self.editorstops()
+        #generem el nou paquet
     ################################### COMPUTE PARAMETES#####################
     #Aquestes funcions efectuan càlculs de diferents parametres. De moment, 
     # només de l'energia i la norma
@@ -1164,7 +1300,9 @@ class GameScreen(Screen):
             self.px=0
             self.py=0
             self.t_toal=0.
-            
+            self.paint.canvas.clear()
+            self.setcordpress=np.array([])
+            self.setcordrelease=np.array([])
             #Rseteja la imatge
             
             self.normavec=ck.norma(self.psi0,self.Nx)
@@ -1176,9 +1314,9 @@ class GameScreen(Screen):
             
             #Canviem els parametre en pantalla tambe
             
-            self.box3.tempschange.text='0.'
-            self.box3.pxchange.text='0'
-            self.box3.pychange.text='0'
+            self.box3.tempschange.text='0.00'
+            self.box3.pxchange.text='0.00'
+            self.box3.pychange.text='0.00'
             
     def transition_GS(self,*largs):
             self.g_schedule_cancel()
@@ -1284,6 +1422,7 @@ class GameScreen(Screen):
         on s'ha soltat al plot."""
         self.setcordrelease=np.append(self.setcordrelease,cordrelease)
         print(self.setcordrelease)
+        self.editorstop()
         
  
     
@@ -1324,6 +1463,7 @@ class GameScreen(Screen):
             #self.Vvec=Vvec
         #Modifiquem els respectius ac,vc
         #self.Vvec=Vvec
+        
         print(self.Vvec)
         self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
         
@@ -1635,6 +1775,7 @@ class MyPaintWidget(Widget):
 
         else:
             return super(MyPaintWidget, self).on_touch_down(touch)
+        
 
 
     def on_touch_up(self, touch):
@@ -1668,7 +1809,10 @@ def release(event):
     cordrelease=np.array([[event.xdata,event.ydata]])
 
 
-    
+def press_sel(event):
+    print('press released from test', event.x, event.y, event.button)
+    global cordpress_sel
+    cordpress_sel=np.array([event.xdata,event.ydata])   
 
 
 
