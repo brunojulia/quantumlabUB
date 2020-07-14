@@ -82,6 +82,8 @@
     ###########################EDITON##############################3
     RelativeLayout:
         id:box4_id
+        boxpx: box_px_id
+        boxpy: box_py_id
         size_hint:0.25,0.5
         pos_hint:{'y':0.,'x':0.75}
         Widget:
@@ -113,6 +115,8 @@
             color:color_labels
         BoxLayout:
         #px slider
+            id:box_px_id
+            pxslider: px_slider_id
             orientation: 'horizontal'
             pos_hint:{'x':0.3,'y':0.8}
             size_hint:0.5,0.1
@@ -134,6 +138,8 @@
             color:color_labels
         BoxLayout:
         #py slider
+            id:box_py_id
+            pyslider: py_slider_id
             orientation: 'horizontal'
             pos_hint:{'x':0.3,'y':0.7}
             size_hint:0.5,0.1
@@ -158,6 +164,7 @@
                 color: color_labels
             Button:
                 text:'Select'
+                on_press:root.editorfuns()
             
         Label:
             text:'Potential mode'
@@ -168,12 +175,12 @@
             text:'Draw'
             on_press:root.editorfun()
             pos_hint:{'x':0.05,'y':0.27}
-            size_hint:0.45,0.1
-        Button:
-            text:'Clear'
-            on_press:root.clear()
-            pos_hint:{'x':0.50,'y':0.27}
-            size_hint:0.45,0.1
+            size_hint:0.9,0.1
+        #Button:
+        #    text:'Clear'
+        #    on_press:root.clear()
+        #    pos_hint:{'x':0.50,'y':0.27}
+        #    size_hint:0.45,0.1
         
         Label:
             text:'Apply changes'
@@ -185,7 +192,7 @@
             text:'Okay'
             pos_hint:{'x':0.05,'y':0.07}
             size_hint:0.45,0.1
-            on_press: root.applychanges()
+            on_press: root.applychanges(),root.modifypot()
         Button:
             text:'Reset'
             pos_hint:{'x':0.50,'y':0.07}
@@ -290,7 +297,7 @@
                 text:'temps'                
                 color:color_labels
             Label:
-                text:'0'
+                text:'0.00'
                 id: tempschange
                 color: black
                 canvas.before:               
@@ -326,7 +333,7 @@
                 color: color_labels
                 
             Label:
-                text:'0'
+                text:'0.00'
                 id:pxchange
                 color: black
                 canvas.before:               
@@ -341,7 +348,7 @@
                 color: color_labels
                 
             Label:
-                text:'0'
+                text:'0.00'
                 id:pychange
                 color: black
                 canvas.before:               
