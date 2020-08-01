@@ -7,9 +7,9 @@ Created on Sun Apr  5 20:29:04 2020
 import kivy
 import numpy as np
 import matplotlib.pyplot as plt
-import random
 from kivy.app import App
-from kivy.uix.screenmanager import Screen
+from kivy.uix.screenmanager import ScreenManager,Screen
+from kivy.uix.screenmanager import FadeTransition, SlideTransition
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
@@ -20,25 +20,72 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import NumericProperty,StringProperty
 from kivy.core.window import Window
 import GlobalShared
-from kivy.core.window import WindowBase
-from kivy.uix.label import Label
+from kivy.uix.label import Label 
+from kivy.uix.slider import Slider
+from kivy.uix.button import Button
+from kivy.uix.image import Image
+
+import random
+
+
+
+
 
 
 class TunnelingApp(App):
+    
     def build(self):
+        
         self.title = 'Tunneling'
-        return StartingScreen()
+        return MyScreenManager() 
     
-
+class MyScreenManager(ScreenManager):
     
+    def __init__(self,**kwargs):
+        
+        super(MyScreenManager, self).__init__(**kwargs)
+        self.get_screen('gaming').gpseudo_init()
+        self.get_screen('Simulation').spseudo_init()
+        
 class StartingScreen(Screen):
+    
+    def __init__(self,**kwargs):
+        
+        super(StartingScreen,self).__init__(**kwargs)
+        #Window.fullscreen = 'auto'
+        
+    """ Les següents funcoins són cridades pels botons de la pantalla d'inici
+    i canvien de pantalla segons el botó premut """
+        
+    def transition_SG(self):
+        
+        self.manager.current = 'gaming'
+        self.manager.transition = FadeTransition()
+        
+    def transition_SS(self):
+        
+        self.manager.current = 'Simulation'
+        self.manager.transition = FadeTransition()
+    
+class GamingScreen(Screen):
+    
        
-    def  __init__(self):
+    def  __init__(self,**kwargs):
     
-        super(StartingScreen, self).__init__()
-        self.inicial()
+        super(GamingScreen, self).__init__(**kwargs)
+        Window.fullscreen = 'auto'
+        
     
-    def inicial(self):
+        
+    def transition_GS(self):
+        
+        """ Aquesta funció és cridada quan el botó "back" és premut per poder 
+        tornar a la patnalla inicial """
+        
+        self.manager.current = 'starting'
+        self.manager.transition = FadeTransition()
+    
+    def gpseudo_init(self):
 
         
         self.lx_max = 17.0
@@ -47,49 +94,13 @@ class StartingScreen(Screen):
         self.dx = (self.lx_max - self.lx_min)/float(self.nx)
         self.xx = np.arange(self.lx_min,self.lx_max + self.dx,self.dx)
         self.p0 = -200.0/self.lx_max
-        
-        #Creem una llista de possibles amplades inicials
-        self.list_amp = np.zeros(10)
-        for i in range(0,10):
-           self.list_amp[i] = 0.2 + i*0.1
-        
-        self.botons_amp = np.zeros(4)
-        self.botons_T = np.zeros(4)
-        for i in range(0,4):
-            self.botons_amp[i] = random.choice(self.list_amp)
-            self.amplada = self.botons_amp[i]
-            self.potencial()
-            self.ona()
-            self.botons_T[i] = self.T
-            
-        #self.bonus = [1.2,1.5,2.0,5.0,10.0]
-        #self.posx_rand = [25,75,125,175,225,275,325,375,425,475]
-        #self.posy_rand = [25,75,125,175,225,275,325,375,425,475]
-        #self.nbonus = 4
-        #self.matriu_bonus = np.zeros((self.nbonus,3))
-        
-        #for i in range(0,self.nbonus):
-            
-            #self.matriu_bonus[i,0] = random.choice(self.posx_rand)
-            #self.matriu_bonus[i,1] = random.choice(self.posy_rand)
-            #self.matriu_bonus[i,2] = random.choice(self.bonus)
             
         #definim on comença i on acaba el tauler
         self.inrect = 50.0
-        self.finrect = 410.0
+        self.finrect = 410.0*1.5
         
         self.amplada = 0.1
         
-        #definim la maxima posicio de les partícules en x i en y
-        self.maxpos = self.finrect + 20.0
-        self.minpos = self.inrect + 20.0
-        #definim posició inicial de les partícules
-        self.posx_red = self.minpos
-        self.posy_red = self.minpos
-        self.posx_blue = self.maxpos
-        self.posy_blue = self.minpos
-        
-        self.salt = 90.0 # salt cada cop que movem la partícula
         self.angle_start_red = 0
         self.angle_end_red = 360
         self.angle_start_blue = 0
@@ -103,60 +114,97 @@ class StartingScreen(Screen):
         self.control_botons = False
     
         
-        self.interval = 90.0
+        self.interval = 90.0*1.5
         self.marge = 5
         self.dt_barr = 0.5
-        self.bar_pos_x = np.arange(self.inrect,self.finrect + 2.0*self.interval,self.interval)
-        self.bar_pos_y = np.arange(self.inrect,self.finrect + 2.0*self.interval,self.interval)
+        self.bar_pos_x = np.arange(self.inrect,self.finrect + 1.0*self.interval,self.interval)
+        self.bar_pos_y = np.arange(self.inrect,self.finrect + 1.0*self.interval,self.interval)
         
         #també necessitem tenir la posició actualitzada de cada partícula
-        self.actualposx_blue = 9
-        self.actualposy_blue = 9
+        self.actualposx_blue = 4
+        self.actualposy_blue = 4
         self.actualposx_red = 0
-        self.actualposy_red = 9
+        self.actualposy_red = 4
+        
+        #definim la maxima posicio de les partícules en x i en y
+        self.maxpos = self.inrect + 45.0 + 4*(self.interval)
+        self.minpos = self.inrect + 45.0 
+        #definim posició inicial de les partícules
+        self.posx_red = self.minpos
+        self.posy_red = self.minpos
+        self.posx_blue = self.maxpos
+        self.posy_blue = self.minpos
+        self.salt = self.interval # salt cada cop que movem la partícula
+        
+        #definim variables necessàries per a controlar el final del joc
+        self.end_red = False
+        self.end_blue = False
+        
+        self.imatge_cursor = 'cursor_amplada.png'
+        
+        """ Definim tots els paràmetres per calcular l'evolucio de la ona
+        al travessar la barrera"""
+        
+        self.hbar = 1.0
+        self.massa = 1.0
+        self.lx_max = 17.0
+        self.lx_min = -17.0
+        self.nx = 500
+        self.dx = (self.lx_max - self.lx_min)/float(self.nx)
+        self.xx = np.arange(self.lx_min,self.lx_max + self.dx,self.dx)
+        self.dt = 0.01
+        self.tmax = 1.5
+        self.temps = 0.
+        self.nt = (self.tmax/self.dt)+1
+        self.r = 1j*self.dt/(2.0*(self.dx**2))
+        
+        self.p0 = -200.0/self.lx_max
+        self.bheight_quadrat = 76.0
+        self.bheight_gauss = 0.1
+        self.control_pot = 'quadrat'
+        self.potencial()
+        self.max_pot = 90.0
+        self.min_pot = 0.0
+        self.phi0()
+        self.phi02 = abs(self.phi0)**2
+        self.color = self.torn
+        
+        self.colpot = 'yellow'
+        self.cole = 'green'
+        self.colphi = 'red'
+        
+        self.control_evolucio = False
+        
+        """ Un cop tot definit cridem les funcions que ho dibuixen """
         
         self.draw_redcircle()
         self.draw_bluecircle()
         self.tauler()
-        self.pantalles()
-        #Sself.write_bonus()
+        self.imatge_tauler()
         self.rectangle()
+        self.pantalles()
         
         #que comenci el canvi d'amplada de les barreres automàticament
         self.canvi_barreres()
         
         
+        self.create_first_slider()
+        
+        #definim el mode de joc
+        self.control_mode = 'wkb'
+        self.box3.size_hint_y = 0.1
+        self.label_mode = Label(text = 'WKB')
+        self.box10.add_widget(self.label_mode)
+        self.box8.size_hint_y = 0.5
+        self.box9.size_hint_y = 0.5
+        self.botons_mode()
+
+        
+  
     def pantalles(self):
         
-        
-        #self.pantup = plt.figure()
-        #self.pantup.patch.set_facecolor('black')
-        #self.pantup_canvas =  FigureCanvasKivyAgg(self.pantup)
-        #self.box3.add_widget(self.pantup_canvas)
-        
-        #self.up_txt = self.pantup.text(0.1,0.1,'%.6f' % (self.botons_T[1]),color='white')
-        
-        #self.pantdown = plt.figure()
-        #self.pantdown.patch.set_facecolor('black')
-        #self.pantdown_canvas =  FigureCanvasKivyAgg(self.pantdown)
-        #self.box6.add_widget(self.pantdown_canvas)
-        
-        #self.down_txt = self.pantdown.text(0.1,0.1,'%.6f' % (self.botons_T[0]),color='white')
-        
-        #self.pantright = plt.figure()
-        #self.pantright.patch.set_facecolor('black')
-        #self.pantright_canvas =  FigureCanvasKivyAgg(self.pantright)
-        #self.box7.add_widget(self.pantright_canvas)
-        
-        #self.right_txt = self.pantright.text(0.1,0.1,'%.6f' % (self.botons_T[2]),color='white')
-        
-        #self.pantleft = plt.figure()
-        #self.pantleft.patch.set_facecolor('black')
-        #self.pantleft_canvas =  FigureCanvasKivyAgg(self.pantleft)
-        #self.box8.add_widget(self.pantleft_canvas)
-        
-        #self.left_txt = self.pantleft.text(0.1,0.1, '%.6f' % (self.botons_T[3]),color='white')
-        
+        """ Dibuixa les pantalles amb les probabilitats """
+       
         self.pantprob_red = plt.figure()
         self.pantprob_red.patch.set_facecolor('red')
         self.pantprob_red_canvas =  FigureCanvasKivyAgg(self.pantprob_red)
@@ -171,15 +219,145 @@ class StartingScreen(Screen):
         
         self.probb_txt = self.pantprob_blue.text(0.1,0.5,str(self.blue_prob))
         
-        self.pantorn = plt.figure()
-        self.pantorn.patch.set_facecolor('black')
-        self.pantorn_canvas = FigureCanvasKivyAgg(self.pantorn)
-        self.box5.add_widget(self.pantorn_canvas)
+        #self.pantorn = plt.figure()
+        #self.pantorn.patch.set_facecolor('black')
+        #self.pantorn_canvas = FigureCanvasKivyAgg(self.pantorn)
+        #self.box5.add_widget(self.pantorn_canvas)
         
-        self.torn_txt = self.pantorn.text(0.1,0.5,"RED PARTICLE'S TURN!",color=self.torn)
+        #self.torn_txt = self.pantorn.text(0.1,0.5,"RED PARTICLE'S TURN!",color=self.torn)
+       
+        """ Dibuixa la pantalla amb el valor del WKB """
+        self.pant_wkb = plt.figure()
+        self.pant_wkb.patch.set_facecolor('white')
+        self.pant_wkb_canvas = FigureCanvasKivyAgg(self.pant_wkb)
+        self.box5.add_widget(self.pant_wkb_canvas)
+        
+        self.wkb_txt = self.pant_wkb.text(0.1,0.5,'0.00000000')
         
         
+    def pantalla_evolucio(self):
+        
+        self.main_fig = plt.figure()
+        self.main_fig.patch.set_facecolor('white')
+        self.main_canvas = FigureCanvasKivyAgg(self.main_fig)
+        #self.main_canvas.bind(on_touch_up = self.control_teclat)
+        self.box3.add_widget(self.main_canvas)
+            
+        self.pot_graf = plt.subplot()
+        self.pot_graf.set_facecolor('black')
+        self.pot_graf.axis([self.lx_min, self.lx_max, self.min_pot, self.max_pot])
+        self.pot_data, = self.pot_graf.fill(self.xx, self.pot,color = self.colpot)
+        self.e_data, = self.pot_graf.plot(self.xx,self.E_vect,color = self.torn)
+        
+        self.ona = self.pot_graf.twinx()
+        self.visu_ona, = self.ona.fill(self.xx,self.phi02, color = self.torn)
+        self.ona.axis([self.lx_min,self.lx_max,0.0,1.0])
+        
+        self.main_fig.tight_layout() 
+        self.main_canvas.draw()
+        
+        
+        
+    """_______ CONTROL DEL MODE DEL JOC ____________________________________"""
+    
+    def botons_mode(self):
+        
+        #creem els botons per triar el mode
+        self.boto_wkb = Button(text = 'WKB mode')
+        self.box8.add_widget(self.boto_wkb)
+        self.boto_wkb.bind(on_press = self.wkb_mode)
+        self.boto_wkb.background_color = (0,0,0,0)
+        
+        self.boto_schrodinger = Button(text = 'Schrodinger mode')
+        self.box9.add_widget(self.boto_schrodinger)
+        self.boto_schrodinger.bind(on_press = self.schrodinger_mode)
+        
+        self.boto_nexturn = Button(text= "Next turn")
+        self.box11.add_widget(self.boto_nexturn)
+        self.boto_nexturn.bind(on_press = self.boto_nexturn_premut)
+        
+    def boto_nexturn_premut(self,instance):
+        
+        if self.control_mode == 'wkb':
+        
+            self.actualitzacio()
+        
+        
+    def wkb_mode(self,instance):
+        
+        if self.control_mode == 'schrodinger':
+    
+            #fem que canvii de color el botó WKB
+            self.boto_wkb.background_color = (0,0,0,0)
+            self.boto_schrodinger.background_color = (1,1,1,1)
+        
+            self.box10.remove_widget(self.label_mode)
+            self.label_mode = Label(text = 'WKB')
+            self.box10.add_widget(self.label_mode)
+            
+            self.box8.size_hint_y = 0.5
+            self.box9.size_hint_y = 0.5
+            
+            self.box11.size_hint_y = 1
+            self.box11.remove_widget(self.boto_nexturn)
+            self.boto_nexturn = Button(text= "Next turn")
+            self.box11.add_widget(self.boto_nexturn)
+            self.boto_nexturn.bind(on_press = self.boto_nexturn_premut)
+        
+
+            self.box3.remove_widget(self.main_canvas)
+            self.box3.size_hint_y = 0.1
+            
+            self.control_mode = 'wkb'
+        
+            return self.label_mode
+
+        
+    def schrodinger_mode(self,instance):
+        
+        if self.control_mode == 'wkb':
+        
+            self.control_mode = 'schrodinger'
+        
+            #fem que canvii el color del boto Schrodinger
+            self.boto_schrodinger.background_color = (0,0,0,0)
+            self.boto_wkb.background_color = (1,1,1,1)
+        
+            self.box10.remove_widget(self.label_mode)
+            self.label_mode = Label(text = 'Probability left')
+            self.box10.add_widget(self.label_mode)
+            
+            self.box8.size_hint_y = 1
+            self.box9.size_hint_y = 1
+            
+            self.box11.remove_widget(self.boto_nexturn)
+            self.box11.size_hint_y = 0.1
+
+        
+            self.box3.size_hint_y = 5
+            self.pantalla_evolucio()
+        
+            return self.label_mode
+        
+        
+        
+            
+        
+            
+        
+            
+
+    """________FUNCIONS QUE DIBUIXEN ELS ELEMENTS DEL TAULER________________ """
+    
+    """Aquestes funcions dibuixen les barreres del tauler cada cop que les funcions 
+    que controlen l'evolució temporal de les barreres les criden. També dibuixen les 
+    partícules en la seva posicio corresponent i el rectangle extern del tauler. Són
+    cridades totes en conjunt en la funcio actualitzacio_tauler """
+
+
     def draw_redcircle(self):
+        
+        
         
         with self.box1.canvas:
             Color(1,0,0,mode = 'rgb')
@@ -194,6 +372,8 @@ class StartingScreen(Screen):
         
         
     def draw_bluecircle(self):
+        
+        
     
         with self.box1.canvas:
             Color(0,0,1,mode = 'rgb')
@@ -208,26 +388,12 @@ class StartingScreen(Screen):
         return self.blue_particle
     
     
-    #def write_bonus(self):
-        #self.write_bonus0()
-        #self.write_bonus1()
-        #self.write_bonus2()
-        #self.write_bonus3()
-        
-    
-    #def write_bonus0(self):
-        
-        #with self.box1.canvas:
-            #self.bonus0 = Label(text= 'x' + (str(self.matriu_bonus[0,2])), 
-                                  #pos=(int(self.matriu_bonus[0,0]),int(self.matriu_bonus[0,1])))
-        
-        #self.bonus0 = FloatLayout()
-        #self.box1.add_widget(self.bonus0)
-        
-        #return self.bonus0
 
 
     def tauler(self):
+        
+        """ Dibuixa el tauler cada cop que és cridada per les funcions de la 
+        evolucio temporal del tauler self.evolucio_barr """
         
         self.index_barr = 0
         
@@ -252,20 +418,70 @@ class StartingScreen(Screen):
                 with self.box1.canvas:
                     Color(0,1,0,mode='rgb')
                     Line(bezier=(x_1,y,x_2,y),width = amp_bar*5.0)
+        
+        #self.imatge_tauler()
                     
     
     def rectangle(self):
         
         with self.box1.canvas:
-            Color(0,1,0,mode='rgb')
-            Line(rectangle = (self.inrect,self.inrect,self.finrect + self.inrect,self.finrect + self.inrect),width = 3.0)
+            if self.torn == 'red':
+                Color(1,0,0,mode='rgb')
+            elif self.torn == 'blue':
+                Color(0,0,1,mode='rgb')
+            Line(rectangle = (self.inrect,self.inrect,self.finrect + self.inrect + 10.0,self.finrect + self.inrect + 10.0),width = 3.0)
         
         self.limits = FloatLayout()
         self.box1.add_widget(self.limits)
         
         return self.limits
     
+    def imatge_tauler(self):
+        
+        for i in range(0,5):
+            for j in range(0,5):
+                
+                #primer passem del númemro assignat al tipus de casella
+                if GlobalShared.caselles_tauler[i,j] == 1:
+                    
+                    imatge1 = Image(source = 'cursor_alçada.png')
+                    imatge1.allow_stretch = True
+                    imatge1.keep_ratio = False
+                    imatge1.size_hint_x = 0.1
+                    imatge1.size_hint_y = 0.1
+                    imatge1.pos = ((self.inrect  + 22.5 + i*self.interval),(self.inrect + 22.5 + j*self.interval))
+                    self.box1.add_widget(imatge1)
+
+                
+                if GlobalShared.caselles_tauler[i,j] == 2:
+                    
+                    imatge2 = Image(source = 'cursor_amplada.png')
+                    imatge2.allow_stretch = True
+                    imatge2.keep_ratio = False
+                    imatge2.size_hint_x = 0.1
+                    imatge2.size_hint_y = 0.1
+                    imatge2.pos = ((self.inrect  + 22.5 + i*self.interval),(self.inrect + 22.5 + j*self.interval))
+                    self.box1.add_widget(imatge2)
+                    
+                    
+        
+
+                    
+                    
+
+
+        
+
     
+    
+    
+    
+    
+    """ CONTROL DE L'EVOLUCIÓ TEMPORAL DEL TAULER """
+
+    """ La funció que inicia l'evolució de les barreres és cridada automàticament
+    quan s'obre la pantalla de joc. També és cridada per la funció de l'actualització
+    del tauler (que és cridada just despés de moure una partícula) """    
     
     def canvi_barreres(self):
         
@@ -291,6 +507,8 @@ class StartingScreen(Screen):
                     Color(0,1,0,mode='rgb')
                     Line(bezier=(x,y_1,x,y_2),width = amp_bar*5.0)
                     
+                
+                    
         for i in range(1,len(self.bar_pos_y)-1):
             for j in range(0,len(self.bar_pos_x)-1):
                 y = self.bar_pos_y[i]
@@ -303,15 +521,29 @@ class StartingScreen(Screen):
                     Line(bezier=(x_1,y,x_2,y),width = amp_bar*5.0)  
                     
         self.rectangle()
+        #self.imatge_tauler()
         self.draw_bluecircle()
         self.draw_redcircle()
+        
+        
         
     def stop_evolucio_barr(self):
         
         self.ev_barr.cancel()
         
     
-    def down_red(self):
+    """ BOTONS PER MOURE LES PARTÍCULES """ 
+    
+    """Comproven de qui es el torn i mouen la partícula corresponent.
+    Paren levolució temporal de les barreres del tauler i agafen lamplada
+    de la barrera del moment del pas. Després es criden les funcions 
+    dactualització sactualiza la posicio de la partícula, es calcula el WKB
+    en funció de lamplada registrada i es dibuixa la barrera de potencial 
+    amb lamplada corresponent. També es crida la funció que controla 
+    la variació de paràmetres, i aquesta crea l'slider corresponent etc"""
+        
+    
+    def down(self):
         
         if self.torn == 'red' and self.control_botons == False:
             
@@ -322,15 +554,10 @@ class StartingScreen(Screen):
                 self.stop_evolucio_barr() #parem primer el canvi d'amplada de les barreres
                 self.posy_red = self.posy_red - self.salt
                 self.actualposy_red = self.actualposy_red + 1
-                self.amplada = GlobalShared.barr_hor[self.actualposy_red,self.actualposx_red,self.index_barr]
+                self.amplada = GlobalShared.barr_hor[self.actualposy_red - 1,self.actualposx_red,self.index_barr]
+                print(self.amplada)
                 
-                self.post_botons_posicio()
-
-
-
-    def down_blue(self):
-        
-        if self.torn == 'blue' and self.control_botons == False:
+        elif self.torn == 'blue' and self.control_botons == False:
             self.amplada = self.botons_amp[0]
         
             if self.posy_blue == self.minpos:
@@ -340,12 +567,27 @@ class StartingScreen(Screen):
                 self.stop_evolucio_barr()
                 self.posy_blue = self.posy_blue - self.salt
                 self.actualposy_blue = self.actualposy_blue + 1
-                self.amplada = GlobalShared.barr_hor[self.actualposy_blue,self.actualposx_blue,self.index_barr]
+                self.amplada = GlobalShared.barr_hor[self.actualposy_blue - 1,self.actualposx_blue,self.index_barr]
+                print(self.amplada)
+            
+        self.control_botons = True            
                 
-                self.post_botons_posicio()
+        self.actualitzacio_tauler()
+        self.actualitzacio_wkb()
+    
+        self.var_parametres()
+        
+        if self.control_mode == 'schrodinger':
+            self.actualitzacio_pantallaev()
+            self.inici_evolucio()
+
+
+                
+                
+   
 
             
-    def up_blue(self):
+    def up(self):
         
         if self.torn == 'blue' and self.control_botons == False:
         
@@ -356,32 +598,41 @@ class StartingScreen(Screen):
                 self.stop_evolucio_barr()
                 self.posy_blue = self.posy_blue + self.salt
                 self.actualposy_blue = self.actualposy_blue - 1
-                self.amplada = GlobalShared.barr_hor[self.actualposy_blue - 1,self.actualposx_blue,self.index_barr]
-                
-                self.post_botons_posicio()
+                self.amplada = GlobalShared.barr_hor[self.actualposy_blue,self.actualposx_blue,self.index_barr]
+                print(self.amplada)
 
-        
-        
-    def up_red(self):
-        
-        if self.torn == 'red' and self.control_botons == False:
             
-            
+        elif self.torn == 'red' and self.control_botons == False:    
         
             if self.posy_red == self.maxpos:
                 self.posy_red = self.posy_red
         
             else:
                 self.stop_evolucio_barr()
+                print(self.index_barr)
                 self.posy_red = self.posy_red + self.salt
                 self.actualposy_red = self.actualposy_red - 1
-                self.amplada = GlobalShared.barr_hor[self.actualposy_red-1,self.actualposx_red,self.index_barr]
+                self.amplada = GlobalShared.barr_hor[self.actualposy_red,self.actualposx_red,self.index_barr]
+                print(self.amplada)
+                print(GlobalShared.barr_hor[self.actualposy_red,self.actualposx_red,:])
                 
-                self.post_botons_posicio()
+        self.control_botons = True
+                
+        self.actualitzacio_tauler()
+        self.actualitzacio_wkb()
+        
+        
+        self.var_parametres()
+        
+        if self.control_mode == 'schrodinger':
+            self.actualitzacio_pantallaev()
+            self.inici_evolucio()
+
+
 
             
     
-    def right_red(self):
+    def right(self):
         
         if self.torn == 'red' and self.control_botons == False:
         
@@ -392,15 +643,12 @@ class StartingScreen(Screen):
                 self.stop_evolucio_barr()
                 self.posx_red = self.posx_red + self.salt
                 self.actualposx_red = self.actualposx_red + 1
-                self.amplada = GlobalShared.barr_vert[self.actualposy_red,self.actualposx_red,self.index_barr]
-                
+                self.amplada = GlobalShared.barr_vert[self.actualposy_red,self.actualposx_red -1,self.index_barr]
+                print(self.amplada)
             
-                self.post_botons_posicio()
 
                 
-    def right_blue(self):
-        
-        if self.torn == 'blue' and self.control_botons == False:
+        elif self.torn == 'blue' and self.control_botons == False:
         
             if self.posx_blue == self.maxpos:
                 self.posx_blue = self.posx_blue
@@ -408,13 +656,25 @@ class StartingScreen(Screen):
             else:
                 self.stop_evolucio_barr()
                 self.posx_blue = self.posx_blue + self.salt
-                self.actualposy_blue = self.actualposy_blue + 1
-                self.amplada = GlobalShared.barr_vert[self.actualposy_blue,self.actualposx_blue,self.index_barr]
+                self.actualposx_blue = self.actualposx_blue + 1
+                self.amplada = GlobalShared.barr_vert[self.actualposy_blue,self.actualposx_blue -1,self.index_barr]
+                print(self.amplada)
                 
+        self.control_botons = True
     
-                self.post_botons_posicio()
+        self.actualitzacio_tauler()
+        self.actualitzacio_wkb()
+        
+        
+        self.var_parametres()
+        
+        if self.control_mode == 'schrodinger':
+            self.actualitzacio_pantallaev()
+            self.inici_evolucio()
+
+
             
-    def left_red(self):
+    def left(self):
         
         if self.torn == 'red' and self.control_botons == False:
         
@@ -425,15 +685,12 @@ class StartingScreen(Screen):
                 self.stop_evolucio_barr()
                 self.posx_red = self.posx_red - self.salt
                 self.actualposx_red = self.actualposx_red - 1
-                self.amplada = GlobalShared.barr_vert[self.actualposy_red,self.actualposx_red-1,self.index_barr]
-            
-                self.post_botons_posicio()
-
-
-            
-    def left_blue(self):
-        
-        if self.torn =='blue' and self.control_botons == False:
+                self.amplada = GlobalShared.barr_vert[self.actualposy_red,self.actualposx_red,self.index_barr]
+                print(self.amplada)
+                
+                
+                
+        elif self.torn =='blue' and self.control_botons == False:
         
             if self.posx_blue == self.minpos:
                 self.posx_blue = self.posx_blue
@@ -442,70 +699,312 @@ class StartingScreen(Screen):
                 self.stop_evolucio_barr()
                 self.posx_blue = self.posx_blue - self.salt
                 self.actualposx_blue = self.actualposx_blue - 1
-                self.amplada = GlobalShared.barr_vert[self.actualposy_blue,self.actualposx_blue-1,self.index_barr]
-                
-                self.post_botons_posicio()
-                
-                
-    def post_botons_posicio(self):
+                self.amplada = GlobalShared.barr_vert[self.actualposy_blue,self.actualposx_blue,self.index_barr]
+                print(self.amplada)
         
+        self.control_botons = True
+                
+        self.actualitzacio_tauler()
+        self.actualitzacio_wkb()
+        
+        
+        self.var_parametres()
+        
+        if self.control_mode == 'schrodinger':
+            self.actualitzacio_pantallaev()
+            self.inici_evolucio()
+
+        
+        
+
+    """ FUNCIONS UTILITZADES DESPRÉS DE MOURE LA PARTÍCULA PER DIBUIXAR """
+               
+                
+    def actualitzacio_tauler(self):
+        
+        """ Aquesta funció dibuixa el nou estat del tauler  """
+
+        #dibuixem el nou estat del tauler
         self.box1.canvas.clear()
         self.tauler()
         self.draw_redcircle()
         self.draw_bluecircle()
-        #self.write_bonus()
         self.rectangle()
+        #self.imatge_tauler()
+        
+        self.canvi_barreres()
+        
+    def actualitzacio_wkb(self):
+        
+        if self.control_mode == 'wkb':
             
-        self.control_botons = True
+            self.potencial()
+            self.T_analitic()
+            self.wkb_txt.remove()
+            self.wkb_txt = self.pant_wkb.text(0.1,0.5,'%.6f' % self.T)
+        
+            self.pant_wkb_canvas.draw()
+            
+        
+    def actualitzacio_potencial(self):
+        
+        self.pot_data.remove()
+        self.potencial()
+        self.pot_data, = self.pot_graf.fill(self.xx, self.pot,color=self.colpot)
+        self.main_canvas.draw()
         
         
+    def actualitzacio_pantallaev(self):
         
+        """ Fa un reset de l'ona i la dibuixa amb el color corresponent al torn """
+        
+        self.pot_data.remove()
+        self.visu_ona.remove()
+        self.potencial()
+        self.visu_ona, = self.ona.fill(self.xx,self.phi02, color = self.torn)
+        self.pot_data, = self.pot_graf.fill(self.xx, self.pot,color=self.colpot)
+        self.e_data, = self.pot_graf.plot(self.xx,self.E_vect,color = self.torn)
+        self.main_canvas.draw()
+        
+  
+        
+
+    """___________________ CONTROL DEL JOC ____________________________ """
+               
+    def actualitzacio(self):
+        
+        """ Controla que s' la partícula ja s'ha mogut, es pugui fer el canvi de torn.
+        Actualitza doncs la pantalla on surt la probabilitat d'haver passat de cada
+        partícula, resta una part a la partícula (proporcional al que no ha passat),
+        actualitza el tauler i la pantalla on es veu l'evolució. A més a més canvia el torn.
+        També comprova que el joc no s'hagi acabat"""
+        
+        if self.control_botons == True: 
+            
+            if self.control_mode == 'wkb':
+                GlobalShared.prob = self.T
+
+            if self.torn == 'red':
+                self.prob_txt.remove()
+                self.red_prob = self.red_prob*GlobalShared.prob*GlobalShared.bonus
+                self.prob_txt = self.pantprob_red.text(0.1,0.5,'%.7f' % self.red_prob)
+                
+                self.angle_end_red = self.angle_end_red - 50*(1 - GlobalShared.prob)
+        
+                self.pantprob_red_canvas.draw()
+            
+                
+           
+            
+            elif self.torn == 'blue':
+                self.probb_txt.remove()
+                self.blue_prob = self.blue_prob*GlobalShared.prob*GlobalShared.bonus
+                self.probb_txt = self.pantprob_blue.text(0.1,0.5,'%.7f' % self.blue_prob)
+                
+                self.angle_end_blue = self.angle_end_blue - 50*(1 - GlobalShared.prob)
+        
+                self.pantprob_blue_canvas.draw()
+            
+
+            self.canvi_torn()
+        
+            #hem de redibuixar el tauler ja que quan canvia 
+            #el torn canvia el color del contorn
+            self.actualitzacio_tauler()
+            
+            #Si s'ha activat la evolució, demanem que s'aturi
+            if self.control_evolucio == True:
+                self.control_evolucio = False
+                self.stop_evolucio()
+        
+            #dibuixem la barrera de nou amb el color corresponent
+            if self.control_mode == 'schrodinger':
+                self.actualitzacio_pantallaev()
+            
+            #aquesta funció també comprovarà que el joc no s'hagi acabat
+            self.final_joc()
+            
     def canvi_torn(self):
         
-        if self.torn == 'red':
+        if self.torn == 'red' and self.end_red == False:
             self.torn = 'blue'
             
-            self.torn_txt.remove()
-            self.pantorn.patch.set_facecolor('black')
-            self.torn_txt = self.pantorn.text(0.1,0.5,"BLUE PARTICLE'S TURN!",color = self.torn)
-            self.pantorn_canvas.draw()
+        elif self.torn == 'blue' and self.end_blue == False:
+            self.torn = 'red'
+        
+
+        self.control_botons = False
+        
+    def final_joc(self):
+        
+        """ Aquesta funció controla primerament quan les partícules arriben a la
+        casella final. Si hi arriben els hi treu el torn i l'altra partícula
+        continua jugant fins que arriba també. Un cop arribades les dues comprova
+        quina de les dues té més probabilitats d'haver arribat """
+        
+        if self.actualposy_red == 0 and self.actualposx_red == 2:
+            print('LA PARTICULA VERMELLA HA ACABAT')
+            self.end_red = True
+        
+        if self.actualposy_blue == 0 and self.actualposx_blue == 2:
+            print('LA PARTÍCULA BLAVA HA ACABAT')
+            self.end_blue = True
+        
+        if self.end_blue == True and self.end_red == True:
+            
+            print('EL JOC HA ACABAT')
+            #ara comrpovem qui ha guanyat
+            if self.blue_prob > self.red_prob:
+                print('HA GUANYAT LA PARTÍCULA BLAVA')
+                self.torn_txt.remove()
+                self.pantorn.patch.set_facecolor('blue')
+                self.torn_txt = self.pantorn.text(0.1,0.5,"BLUE PARTICLE WINNER!",color = 'black')
+                self.pantorn_canvas.draw()
+                
+            elif self.red_prob > self.blue_prob:
+                print('HA GUANYAT LA PARTÍCULA VERMELLA')
+                self.torn_txt.remove()
+                self.pantorn.patch.set_facecolor('red')
+                self.torn_txt = self.pantorn.text(0.1,0.5,"RED PARTICLE WINNER!",color = 'black')
+                self.pantorn_canvas.draw()
+                
+    """______________________ PARÀMETRES VARIABLES EN L'EVOLUCIÓ ________ """
+    
+    """ Les següents funcions seran cridades quan una partícula passi una barrera.
+    Depenent del paràmetre que es pugui variar en aquella casella es cridarà una
+    funció o una altra. Aquestes funcions crearan nous botons o sliders que 
+    permetran variar el paràmetre en qüestio """
+    
+    def var_parametres(self):
+        
+        if self.torn == 'red':
+        
+            self.parametre = GlobalShared.caselles_tauler[self.actualposx_red,self.actualposy_red]
             
         elif self.torn == 'blue':
-            self.torn = 'red'
             
-            self.torn_txt.remove()
-            self.pantorn.patch.set_facecolor('black')
-            self.torn_txt = self.pantorn.text(0.1,0.5,"RED PARTICLE'S TURN!",color = self.torn)
-            self.pantorn_canvas.draw()
+            self.parametre = GlobalShared.caselles_tauler[self.actualposx_blue,self.actualposy_blue]
+            
+        self.create_slider()
         
-        if self.control_botons == True:
-            self.control_botons = False
-    
-    def simpson2(self,h,vect):
+    def create_first_slider(self):
         
-        #add the extrems
-        add=(vect[0]+vect[len(vect)-1])
-
-        #add each parity its factor
-        for i in np.arange(2,len(vect)-1,2):
-            add+=2*vect[i]
-
-        for i in np.arange(1,len(vect)-1,2):
-            add+=4*vect[i]
-
-        #add the global factor
-        add*=(h/np.float(3))
-
-        return add 
+        self.slider = Slider(min = 67.0,max = 80.0,value = 76.0,orientation = 'horizontal',
+                        value_track = True, cursor_image = 'atom.jpg',
+                        cursor_size = (60,60))
+        
+        self.box7.add_widget(self.slider)
+        
+        self.label = Label(text =str(self.slider.value))
+        self.box6.add_widget(self.label)
+        
+        return self.slider,self.label
+        
     
+    def create_slider(self):
+        
+    
+        if self.parametre == 1:
+            self.box7.remove_widget(self.slider)
+            imatge = 'cursor_amplada.png'
+            self.slider = Slider(min = 0.2,max = 1.2,value =0.5,orientation = 'horizontal',
+                        value_track = True, cursor_image = imatge,
+                        cursor_size = (60,60))
+            
+            
+        elif self.parametre == 2:
+            self.box7.remove_widget(self.slider)
+            imatge = 'cursor_alçada.png'
+            self.slider = Slider(min = 67.0,max = 80.0,value = 76.0,orientation = 'horizontal',
+                        value_track = True, cursor_image = imatge,
+                        cursor_size = (60,60))
+        
+            
+            
+        self.box7.add_widget(self.slider)
+        
+        return self.slider
+    
+    
+    def label_slider(self):
+        
+        self.box6.remove_widget(self.label)
+        
+        self.label = Label(text =str(self.slider.value))
+        
+        self.box6.add_widget(self.label)
+        
+        
+        return self.label
+        
+        
+        
+        
+    
+    def on_touch_Slider(self):
+        
+     
+        if self.control_mode == 'schrodinger' and self.control_evolucio == True:
+            
+            if self.parametre == 1:
+            
+                self.amplada = self.slider.value
+                self.actualitzacio_potencial()
+                self.actualitzacio_wkb()
+                self.label_slider()
+            
+                
+            elif self.parametre == 2:
+                    
+                self.bheight_quadrat = self.slider.value
+                self.actualitzacio_potencial()
+                self.actualitzacio_wkb()
+                self.label_slider()
+                
+        elif self.control_mode == 'wkb':
+            
+            if self.parametre == 1:
+            
+                self.amplada = self.slider.value
+                self.actualitzacio_wkb()
+                self.label_slider()
+            
+                
+            elif self.parametre == 2:
+                    
+                self.bheight_quadrat = self.slider.value
+                self.actualitzacio_wkb()
+                self.label_slider()
+            
+            
+            
+
+                
+            
+            
+    
+                    
+                
+    """ ______________________ CÀLCULS ONA I BARRERA ___________________ """                
+
     def potencial(self):
         
-        #self.pot = 42.55*(np.exp(-(self.xx/self.bwidth)**2))/np.sqrt(self.bheight_gauss*np.pi)
         self.pot = np.zeros(len(self.xx))
-        for i in range(0,len(self.xx)):
-            if -self.amplada/2.0 < self.xx[i] < self.amplada/2.0:
-                self.pot[i] = 76.0
-    
+        
+        if self.control_pot == 'quadrat':
+            for i in range(0,len(self.xx)):
+                if -self.amplada/2.0 < self.xx[i] < self.amplada/2.0:
+                    self.pot[i] = self.bheight_quadrat
+        elif self.control_pot == 'gauss':
+            self.pot = 42.55*(np.exp(-(self.xx/self.amplada)**2))/np.sqrt(self.bheight_gauss*np.pi)
+
+    def phi0(self):
+        
+        self.phi0 = 1j*np.zeros(len(self.xx))
+        self.phi0 = (1.0/(2.0*np.pi)**(1.0/4.0))*np.exp((-(self.xx - 7.0)**2)/4.0)*np.exp(1j*self.xx*self.p0)
+        self.energia()
+        self.T_analitic()
+        
     def ona(self):
         
         self.phi0 = 1j*np.zeros(len(self.xx))
@@ -547,100 +1046,204 @@ class StartingScreen(Screen):
         
         for i in range(0,self.nx+1):
             self.E_vect[i] = self.E
-            
-    def actualitzacio(self,instance):
+        
+    def inici_evolucio(self):
+        
+        if self.control_mode == 'schrodinger':
+        
+            self.ev = Clock.schedule_interval(self.evolucio,self.dt)
+
+            #Es crearan els vectors i matriu necessaris per la evolucio
+            self.abc()
+            self.matriuB()
+            self.phii = 1j*np.zeros(self.nx-1)
+            for i in range(1,self.nx-1):
+                self.phii[i] = self.phi0[i]
+                self.phi = 1j*np.zeros(self.nx+1)
+                self.phi2 = np.zeros(self.nx + 1)
+        
+            self.t = 0
+        
+            #Controlem si s'ha activat la evolucio
+            self.control_evolucio = True
         
         
-        #for i in range(0,self.nbonus):
-            #if self.posx_red == self.matriu_bonus[i,0] and self.posy_red == self.matriu_bonus[i,1]:
-                #GlobalShared.bonus = self.matriu_bonus[i,2]
+    def abc(self):
+        
+        self.b = 1j*np.zeros(self.nx-1)
+        self.a = 1j*np.zeros(self.nx-1)
+        self.c = 1j*np.zeros(self.nx-1)
+        
+        for i in range(0,self.nx-1):
+            self.b[i] = 2.0*(1.0 + self.r) + 1.0j*self.pot[i]*self.dt
+            if i != 0:
+                self.a[i] = -self.r
+            if i != self.nx-2:
+                self.c[i] = -self.r
+        
+        
+    def stop_evolucio(self):
+        
+        self.ev.cancel()
+        GlobalShared.prob = self.probleft
+        self.actualitzacio()
+        self.control_evolucio = False
+    
+    def matriuB(self):
+        
+        self.matriu_B = 1j*np.zeros((self.nx -1,self.nx-1))
+        for i in range(0,self.nx-1):
+            self.matriu_B[i,i] = 2.0*(1.0 -self.r) - 1.0j*self.pot[i]*self.dt
+            if i != (self.nx-2):
+                self.matriu_B[i,i+1] = self.r
+                self.matriu_B[i+1,i] = self.r
                 
-        #for i in range(0,self.nbonus):
-            #if self.posx_blue == self.matriu_bonus[i,0] and self.posy_blue == self.matriu_bonus[i,1]:
-                #GlobalShared.bonus = self.matriu_bonus[i,2]
+    
+    def evolucio(self,dt):
         
-        #Ara ho ha de dibuixar enles  pantalles assignades
-        #self.up_txt.remove()
-        #self.up_txt = self.pantup.text(0.1,0.1,'%.6f' % (self.botons_T[1]),color='white')
-        #self.pantup_canvas.draw()
+        self.abc()
+        self.matriuB()
         
-        #self.down_txt.remove()
-        #self.down_txt = self.pantdown.text(0.1,0.1,'%.6f' % (self.botons_T[0]),color='white')
-        #self.pantdown_canvas.draw()
+        self.t += 100*self.dt
+    
+        self.d = np.dot(self.matriu_B,self.phii)
         
-        #self.right_txt.remove()
-        #self.right_txt = self.pantright.text(0.1,0.1,'%.6f' % (self.botons_T[2]),color='white')
-        #self.pantright_canvas.draw()
+        # Apliquem condicions de contorn
+        self.d[0] = self.d[0] + 2.0*self.r*self.phi0[0]
+        self.d[self.nx-2] = self.d[self.nx-2] + 2.0*self.r*self.phi0[self.nx]
         
-        #self.left_txt.remove()
-        #self.left_txt = self.pantleft.text(0.1,0.1,'%.6f' % (self.botons_T[3]),color='white')
-        #self.pantleft_canvas.draw()
+        
+        # Cridem la subrutina tridiag que ens calculi phi pel temsp següent
+        self.tridiag()
+        
+        self.phi[1:self.nx] = self.phii
+        self.phi[0] = self.phi0[0]
+        self.phi[self.nx] = self.phi0[self.nx]
+        
+        for i in range(0,self.nx+1):
+            self.phi2[i] = (np.abs(self.phi[i]))**2
+        
+        #Ara per a cada temps ha de esborrar la figura anterior i 
+        #dibuixar la nova
+        
+        self.visu_ona.remove()
+        self.visu_ona, = self.ona.fill(self.xx,self.phi2,color = self.torn)
+        
+        
+        self.main_canvas.draw()
+        
+        if np.mod(self.t,5.0) == 0.0:
+            
+            #Cridem la funció que integra la funcio d'ona a l'esquerra
+            self.prob_left()
+        
+            self.wkb_txt.remove()
+            self.wkb_txt = self.pant_wkb.text(0.1,0.5,'%.6f' % self.probleft)
+        
+            self.pant_wkb_canvas.draw()
+            
+            
+        if self.t == 150:
+            
+            self.stop_evolucio()
 
-        if self.torn == 'red':
-            self.prob_txt.remove()
-            self.red_prob = self.red_prob*GlobalShared.prob*GlobalShared.bonus
-            self.prob_txt = self.pantprob_red.text(0.1,0.5,'%.3f' % (self.red_prob))
-        
-            self.pantprob_red_canvas.draw()
             
-            self.angle_end_red = self.angle_end_red - 50*(1 - GlobalShared.prob)
-           
+    def tridiag(self):
+    
+        n = np.size(self.a)
+
+        cp = np.zeros(n, dtype = np.complex)
+        dp = np.zeros(n, dtype = np.complex)
+        cp[0] = self.c[0]/self.b[0]
+        dp[0] = self.d[0]/self.b[0]
+
+        for i in range(1,n):
+            m = (self.b[i]-self.a[i]*cp[i-1])
+            cp[i] = self.c[i]/m
+            dp[i] = (self.d[i] - self.a[i]*dp[i-1])/m
+
+        self.phii[n-1] = dp[n-1]
+
+        for j in range(1,n):
+            i = (n-1)-j
+            self.phii[i] = dp[i]-cp[i]*self.phii[i+1]
             
-        elif self.torn == 'blue':
-            self.probb_txt.remove()
-            self.blue_prob = self.blue_prob*GlobalShared.prob*GlobalShared.bonus
-            self.probb_txt = self.pantprob_blue.text(0.1,0.5,'%.3f' % (self.blue_prob))
+    def simpson2(self,h,vect):
         
-            self.pantprob_blue_canvas.draw()
-            
-            self.angle_end_blue = self.angle_end_blue - 50*(1 - GlobalShared.prob)
-           
-        self.box1.canvas.clear()
-        self.tauler()
-        self.rectangle()
-        self.draw_redcircle()
-        self.draw_bluecircle()
-        #self.write_bonus()
-        self.canvi_barreres()
-            
-        self.canvi_torn()
+        #add the extrems
+        add=(vect[0]+vect[len(vect)-1])
+
+        #add each parity its factor
+        for i in np.arange(2,len(vect)-1,2):
+            add+=2*vect[i]
+
+        for i in np.arange(1,len(vect)-1,2):
+            add+=4*vect[i]
+
+        #add the global factor
+        add*=(h/np.float(3))
+
+        return add 
+    
+    def prob_left(self):
         
+        n = int(self.nx/2)
         
-        
-        
-        
+        self.probleft = self.simpson2(self.dx,self.phi2[0:n])/self.simpson2(self.dx,self.phi2)
+          
         
 
-        
+    """_________________POPUP INFORMATIU________________________________"""
+    
     def openpop(self):
         
-        amplada = self.amplada
-        torn = self.torn
-        popup = TunnelPopup(amplada,torn)
+        popup = InfoPopup()
         popup.open() 
         
-        popup.bind(on_dismiss = self.actualitzacio)      
-        
-        
-        
-        
-        
-class TunnelPopup(Popup):
-    
-    amplada = NumericProperty()
-    torn = StringProperty()
-    
-    
-    def __init__(self,amplada,torn):
 
-        super(Popup, self).__init__()  
+
+
+
+class InfoPopup (Popup):
+    
+    def __init__(self):
         
-        self.bwidth = amplada
-        self.color = torn
-        self.gpseudo_init()
+        super(Popup, self).__init__() 
+        
+    def ipseudo_init(self):
+        
+        label = Label(text = "En aquest Popup s'explicarà el joc i la diferència entre els dos modes")
+        self.box1.add_widget(label)
+        
+        return label
+
+
+
+
+
+
+
+
+
+
+
+"""__________________________SIMULATION SCREEN___________________________"""
+           
+        
+class SimulationScreen(Screen):
+    
+    
+    def __init__(self,**kwargs):
+        
+        super(SimulationScreen, self).__init__(**kwargs)
+        
+    def transition_SS(self):
+        
+        self.manager.current = 'starting'
+        self.manager.transition = FadeTransition()
     
 
-    def gpseudo_init(self): 
+    def spseudo_init(self): 
         
         self.hbar = 1.0
         self.massa = 1.0
@@ -658,6 +1261,7 @@ class TunnelPopup(Popup):
         self.p0 = -200.0/self.lx_max
         self.bheight_quadrat = 76.0
         self.bheight_gauss = 0.1
+        self.bwidth = 0.5
         self.control_pot = 'quadrat'
         self.potencial()
         self.max_pot = 90.0
@@ -668,6 +1272,7 @@ class TunnelPopup(Popup):
         self.colpot = 'yellow'
         self.cole = 'green'
         self.colphi = 'red'
+        self.color = 'red'
   
         self.main_fig = plt.figure()
         self.main_fig.patch.set_facecolor('white')
@@ -1085,8 +1690,15 @@ class TunnelPopup(Popup):
     def _teclat_tancat(self):
         
         self._teclat.unbind(on_key_down=self._teclat_activat) 
+        
 
         
+        
+        
+
+      
+ 
+       
 TunnelingApp().run()
     
 

@@ -29,4 +29,42 @@ for i in range(0,9):
     for j in range(0,10):
         for k in range(0,3):
             barr_hor[i,j,k] = random.choice(list_amp)
+
+
+            
+#creem vectors amb les possibles posicions x i y de les particules per poder 
+#situar els bonus
+
+inrect = 50.0
+finrect = 410.0
+interval = 90.0
+
+posicions_x = np.arange(inrect,finrect + interval,interval)
+posicions_y = np.arange(inrect,finrect + interval,interval)
+
+#seleccionem cinc posicions random dins d'aquests vectors
+vales_x = np.zeros(5)
+vales_y = np.zeros(5)
+
+for i in range(0,5):
+    vales_x[i] = random.choice(posicions_x) + 45.0
+    vales_y[i] = random.choice(posicions_y) + 45.0
+    
+#1:alçada
+#2:moment inicial
+#3:forma de la barrera
+#4:bonus
+tauler = [1,2]
+
+caselles_tauler = np.ones((5,5))
+
+for i in range(0,5):
+   for j in range(0,5):
+        caselles_tauler[i,j] = random.choice(tauler)
+
+
+
+
+
+
         
