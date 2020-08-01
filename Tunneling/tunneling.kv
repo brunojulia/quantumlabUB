@@ -1,0 +1,253 @@
+#:import Factory kivy.factory.Factory
+
+
+<MyScreenManager>:
+    StartingScreen:
+    GamingScreen:
+    SimulationScreen:
+    
+    
+<StartingScreen>:
+
+    name: 'starting'
+    
+    BoxLayout:
+        orientation: 'vertical'
+        Button:
+            text: 'Game'
+            size_hint_y: 0.2
+            size_hint_x: 0.2
+            on_press: root.transition_SG()
+    
+        Button:
+            text: 'Simulation'
+            size_hint_y: 0.2
+            size_hint_x: 0.2
+            on_press: root.transition_SS()
+    
+    
+    
+<GamingScreen>:
+
+    name:'gaming'
+    
+
+    box1: box1_id
+    box2: box2_id
+    box3: box3_id
+    box4: box4_id
+    box5: box5_id
+    box6: box6_id
+    box7: box7_id
+    box8: box8_id
+    box9: box9_id
+    box10: box10_id
+    box11: box11_id
+
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing:10
+        padding:20
+        
+        FloatLayout:
+            id:box1_id
+            
+
+                
+            
+            
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.8
+            spacing: 10
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 10
+                
+                BoxLayout:
+                    id: box8_id
+                BoxLayout:
+                    id: box9_id
+
+            
+            BoxLayout:
+                id:box3_id
+                
+            BoxLayout:
+                orientation: 'horizontal'
+                BoxLayout: 
+                    id: box6_id
+                BoxLayout:
+                    id:box7_id
+                    on_touch_move: root.on_touch_Slider()
+                
+            
+                
+            BoxLayout:
+                orientation: 'horizontal'
+                BoxLayout:
+                    id: box10_id
+                BoxLayout:
+                    id: box5_id
+                
+                
+            BoxLayout:
+                orientation:'horizontal'
+                spacing: 20
+                
+                BoxLayout:
+                    id: box4_id
+                    
+                BoxLayout:
+                    id: box2_id
+                    
+            BoxLayout:
+                id: box11_id
+
+                
+            Button:
+                text: "UP"
+                size_hint_x: 0.3
+                pos_x: 100.0
+                on_press: root.up()
+            
+           
+                
+            BoxLayout:
+                spacing: 10
+                Button:
+                    text: "LEFT"
+                    on_press: root.left()
+                Button:
+                    text: "DOWN"
+                    on_press: root.down()
+                Button:
+                    text:"RIGHT"
+                    on_press: root.right()
+            
+            BoxLayout:
+            
+                orientation: 'horizontal'
+                
+                Button:
+                    text: "i"
+                    on_press: root.openpop()
+                
+                Button:
+                    text: 'back'
+                    on_press: root.transition_GS()
+                    
+    
+<InfoPopup>:
+
+    title: 'Game Info'
+    box1: box1_id
+    
+    BoxLayout:
+    
+        BoxLayout: 
+            id: box1_id
+            
+        Button:
+            text: "Exit"
+            on_press: root.dismiss()
+    
+        
+    
+      
+                
+            
+<SimulationScreen>: 
+      
+    name: 'Simulation'
+    box1: box1_id
+    box2: box2_id
+    box3: box3_id
+    box4: box4_id
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing:10
+        padding:20
+        
+        BoxLayout:
+            id: box1_id
+                 
+        BoxLayout:
+            orientation:'vertical'
+            size_hint_x: 0.5
+            spacing:10
+            
+            Label:
+                text: "T analitic"
+                size_hint_y: 0.5
+            BoxLayout:
+                id: box2_id
+            Label:
+                text: "Probabilitat esquerra"
+                size_hint_y: 0.5
+            BoxLayout:
+                id: box3_id
+            Label:
+                text: "Norma"
+                size_hint_y: 0.5
+            BoxLayout:
+                id: box4_id
+                
+            Label:
+                text: "Barrera"
+                size_hint_y: 0.5
+            BoxLayout:
+                orientation: 'horizontal'
+                
+                Button:
+                    text: "Quadrada"
+                    on_press: root.canvi_potencial_quadrat()
+                Button:
+                    text: "Gaussiana"
+                    on_press: root.canvi_potencial_gauss()
+                
+            Button:
+                text: "Evolucio"
+                on_press: root.inici_evolucio()
+            BoxLayout:
+                orientation: 'horizontal'
+                Button:
+                    text: "reset"
+                    on_press:  root.reset()
+                Button:
+                    text: "stop"
+                    on_press: root.stop_evolucio()
+            Label:
+                text: "amplada"
+                size_hint_y: 0.5
+            BoxLayout:
+                orientation: 'horizontal'
+                
+                Button:
+                    text: "+"
+                    on_press:root.add_width()
+            
+                Button:
+                    text:"-"
+                    on_press:root.subtract_width() 
+            Label: 
+                text: "altura"
+                size_hint_y: 0.5
+                
+            BoxLayout:
+                orientation: 'horizontal'
+                Button: 
+                    text: "+"
+                    on_press: root.add_bheight()
+                Button:
+                    text: "-"
+                    on_press: root.subtract_bheight()
+            
+            Button:
+                text: "Exit"
+                on_press: root.transition_SS()
+   
+        
