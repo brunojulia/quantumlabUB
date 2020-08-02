@@ -1,9 +1,18 @@
 #:kivy 1.11.1
+#:import Factory kivy.factory.Factory
 
 <MyScreenManager>:
     StartingScreen:
     PaquetScreen:
     GameScreen:
+    
+<MyPopup@Popup>:
+    auto_dismiss: False
+    size_hint:0.25,0.60
+    pos_hint:{'y':0.,'x':0.75}
+    Button:
+        text: 'Close me!'
+        on_release: root.dismiss()
     
 #Intentem dibuixar una mica jeje
 <StartingScreen>:
@@ -45,12 +54,33 @@
                         rectangle: self.x, self.y, self.width, self.height
                 
 <PaquetRectangle>:
+
     canvas:
         Color:
-            rgba:0,0,0,1
+            rgba: 1,1,1,1
         Rectangle:
             pos:self.pos
             size:self.size
+            source: 'cat.png'
+
+<Fish>
+    canvas:
+        Color:
+            rgba: 1,1,1,1
+        Rectangle:
+            pos:self.pos
+            size:self.size
+            source: 'fish.png'
+
+
+            
+<Arrow>:
+    canvas:
+        Color:
+            rgba:1,0,0,1
+        Line:
+            points:0,0,1,1
+            width:10
 
 
 <PaquetScreen>:
@@ -63,6 +93,7 @@
     quadrat: quadrat_id
     #:set color_labels 1,1,1,1
     #:set black 0,0,0,1
+    arrow: arrow_id
 
     
     #############################MAINCANVAS############################
@@ -73,10 +104,14 @@
         
     PaquetRectangle:
         id:quadrat_id
-        size_hint:0.02,0.02
+        size_hint:0.05,0.05
 
         pos:self.pos
-        
+    Arrow:
+        id:arrow_id
+        size_hint:0.2,0.2
+        pos:self.pos
+        points:self.points
 
                 
     ###########################EDITON##############################3
@@ -84,7 +119,11 @@
         id:box4_id
         boxpx: box_px_id
         boxpy: box_py_id
-        size_hint:0.25,0.5
+        box_sel: box_sel_id
+        draw_but: draw_but_id
+        okay_but: okay_but_id
+        reset_but: reset_but_id
+        size_hint:0.25,0.60
         pos_hint:{'y':0.,'x':0.75}
         Widget:
             canvas.before:
@@ -129,6 +168,8 @@
                 value: 0                  
                 on_touch_up: 
                     root.changepx(self.value)
+                on_touch_move:
+                    root.changedrawpx(self.value)
         
             
         Label:
@@ -152,19 +193,25 @@
                 value: 0                                 
                 on_touch_up: 
                     root.changepy(self.value)
+                on_touch_move:
+                    root.changedrawpy(self.value)
         
         BoxLayout:
         #Initial position 
+            id: box_sel_id
             orientation: 'vertical'
             pos_hint:{'x':0.05,'y': 0.47}
             size_hint:0.9,0.2
+            select_but:select_but_id
             
             Label:
                 text:'Initial position'
                 color: color_labels
             Button:
+                id: select_but_id
                 text:'Select'
-                on_press:root.editorfuns()
+                background_disabled_normal:'gray.png'
+                on_press:root.editorfuns(),root.noselect()
             
         Label:
             text:'Potential mode'
@@ -173,8 +220,10 @@
         
         Button:
             text:'Draw'
+            id:draw_but_id
             on_press:root.editorfun()
             pos_hint:{'x':0.05,'y':0.27}
+            background_disabled_normal:'gray.png'
             size_hint:0.9,0.1
         #Button:
         #    text:'Clear'
@@ -190,14 +239,413 @@
         
         Button:
             text:'Okay'
+            id: okay_but_id
+            background_disabled_normal:'gray.png'
             pos_hint:{'x':0.05,'y':0.07}
             size_hint:0.45,0.1
             on_press: root.applychanges(),root.modifypot()
         Button:
             text:'Reset'
+            id: reset_but_id
+            background_disabled_normal:'gray.png'
             pos_hint:{'x':0.50,'y':0.07}
             size_hint:0.45,0.1
             on_press: root.reset()
+
+        
+
+        
+    ################PARAMETERS##############################
+    RelativeLayout:
+        id:box3_id
+        pxchange:pxchange.__self__
+        pychange:pychange.__self__
+        tempschange:tempschange.__self__
+        longitudchange:longitudchange.__self__
+        #dxchange:dxchange.__self__
+        #dtchange:dtchange.__self__
+        normachange:normachange.__self__
+        energychange:energychange.__self__
+        
+        size_hint:0.25,0.4
+        pos_hint:{'y':0.60,'x':0.75}
+        Widget:
+            canvas.before:
+                Color:
+                    rgba:0.3,0.3,0.3,1
+                Rectangle:
+            
+                    pos:self.pos
+                    size:self.size
+    
+        Label:
+            text:'Parameters'
+            pos_hint:{'x':0.1,'y':0.9}
+            size_hint:0.8,0.1
+            color: color_labels
+            canvas.before:
+                Color:
+                    rgba:0,0,0,1
+                Rectangle:
+            
+                    pos:self.pos
+                    size:self.size
+            
+        ##Parametres que s'han de calcular amb el buto compute
+        GridLayout:
+            cols: 2
+            spacing: self.height/7
+            pos_hint:{'x':0.1,'y':0.30}
+            size_hint:0.8,0.5
+            Label:
+                text:'Norma'
+                color: color_labels
+                
+            Label:
+                text:'0'
+                id:normachange
+                color: black
+                canvas.before:               
+                    Rectangle:
+                
+                        pos:self.pos
+                        size:self.size
+                        Color:
+                            rgba:color_labels
+                    
+                        
+   
+                
+            Label:
+                text:'Energia'
+                color: color_labels
+                
+            Label:
+                text:'0'
+                id:energychange
+                color: black
+                canvas.before:               
+                    Rectangle:
+                
+                        pos:self.pos
+                        size:self.size
+                        Color:
+                            rgba:color_labels
+            Label:
+                text:'L'                
+                color:color_labels
+            
+            Label:
+                text:'3'
+                id:longitudchange
+                color: black
+                canvas.before:               
+                    Rectangle:
+                
+                        pos:self.pos
+                        size:self.size
+                        Color:
+                            rgba:color_labels
+                            
+            Label:
+                text:'temps'                
+                color:color_labels
+            Label:
+                text:'0.00'
+                id: tempschange
+                color: black
+                canvas.before:               
+                    Rectangle:
+                
+                        pos:self.pos
+                        size:self.size
+                        Color:
+                            rgba:color_labels
+        #Button:
+        #    text:'Compute'
+        #    on_press:root.compute_parameters()
+        #    pos_hint:{'x':0.3,'y':0.57}
+        #    size_hint:0.5,0.1
+        #    background_normal:''
+        #    background_color:0.6,0.6,0.6,1
+            
+        ##Parametres que canvien amb els butons de EDICIÓ
+        
+        Label:
+            text:'Moment'
+            pos_hint:{'x':0.1,'y':0.15}
+            size_hint:0.8,0.1
+            color: 0,0,0,1
+            
+        GridLayout:
+            cols: 4
+            spacing: self.height/7
+            pos_hint:{'x':0,'y':0.05}
+            size_hint:0.9,0.1
+            Label:
+                text:'p_x'
+                color: color_labels
+                
+            Label:
+                text:'0.00'
+                id:pxchange
+                color: black
+                canvas.before:               
+                    Rectangle:
+                
+                        pos:self.pos
+                        size:self.size
+                        Color:
+                            rgba:color_labels
+            Label:
+                text:'p_y'
+                color: color_labels
+                
+            Label:
+                text:'0.00'
+                id:pychange
+                color: black
+                canvas.before:               
+                    Rectangle:                
+                        pos:self.pos
+                        size:self.size
+                        Color:
+                            rgba:color_labels
+
+
+        #Label:
+        #    text:'Discretitzat'
+        #    pos_hint:{'x':0.1,'y':0.12}
+        #    size_hint:0.8,0.1
+        #    color: 0,0,0,1
+            
+        #GridLayout:
+        #    cols: 4
+        #    spacing: self.height/7
+        #    pos_hint:{'x':0,'y':0.02}
+        #    size_hint:0.9,0.1
+        #    Label:
+        #        text:'dx'
+        #        color: color_labels
+                
+        #    Label:
+        #        text:'0'
+        #        id:dxchange
+        #        color: black
+        #        canvas.before:               
+        #            Rectangle:
+                
+        #                pos:self.pos
+        #                size:self.size
+        #                Color:
+        #                    rgba:color_labels
+        #    Label:
+        #        text:'dt'
+        #        color: color_labels
+                
+        #    Label:
+        #        text:'0'
+        #        id:dtchange
+        #        color: black
+        #        canvas.before:               
+        #            Rectangle:                
+        #                pos:self.pos
+        #                size:self.size
+        #                Color:
+        #                    rgba:color_labels
+
+#Control del flux del joc
+    BoxLayout:
+        id:box2_id
+        size_hint:0.20,0.075
+        pos_hint:{'y':0.,'x':0}
+        orientation:'horizontal'
+        height:50
+        
+        Button:
+            text:'Compute'
+            on_press: root.compute()
+            background_color: 0,1,0,1
+        Button:
+            text:'Pause'
+            on_press: root.pause()
+            background_color: 1,0,0,1
+    
+    BoxLayout:
+        id:box21_id
+        size_hint:0.55,0.075
+        pos_hint:{'y':0.,'x':0.2}
+        orientation:'horizontal'
+        height:50
+        modechange: modechange.__self__
+        
+        
+        Button:
+            background_normal: 'prev.WEBP'
+            background_down: 'prev.WEBP'
+            on_release: root.modechange()
+            
+        Label:
+            id:modechange
+            text:'standard'
+            color:0,0,0,1
+        
+        Button:
+            background_normal: 'next.png'
+            background_down: 'next.png'
+            on_release: root.modechange()
+        Button:
+            text:'Back'
+            on_press:root.transition_PS()
+        
+
+<GameScreen>:
+    name: 'game'
+    box1: box1_id
+    box2: box2_id
+    box21: box21_id
+    boxlife: boxlife_id
+    box3: box3_id
+    box4: box4_id
+    quadrat: quadrat_id
+    fish: fish_id
+    lifechange: lifechange_id
+    #:set color_labels 1,1,1,1
+    #:set black 0,0,0,1
+    arrow: arrow_id
+
+    
+    #############################MAINCANVAS############################
+    FloatLayout:
+        id:box1_id
+        orientation:'vertical'   
+        size_hint:1,1
+        
+    PaquetRectangle:
+        id:quadrat_id
+        size_hint:0.05,0.05
+
+        pos:self.pos
+    Fish:
+        id: fish_id
+        size_hint:0.05,0.05
+        pos:self.pos
+    Arrow:
+        id:arrow_id
+        size_hint:0.2,0.2
+        pos:self.pos
+        points:self.points
+
+                
+    ###########################EDITON##############################3
+    RelativeLayout:
+        id:box4_id
+        size_hint:0.25,0.5
+        pos_hint:{'y':0.,'x':0.75}
+        levelchange:levelchange_id.__self__
+        fishchange:fishchange_id
+        statechange:statechange_id
+        Widget:
+            canvas.before:
+                Color:
+                    rgba:0.1,0.1,0.1,1
+                Rectangle:
+            
+                    pos:self.pos
+                    size:self.size
+    
+        Label:
+            text:'Game'
+            pos_hint:{'x':0.1,'y':0.9}
+            size_hint:0.8,0.1
+            color: color_labels
+            canvas.before:
+                Color:
+                    rgba:0,0,0,1
+                Rectangle:
+            
+                    pos:self.pos
+                    size:self.size
+        
+        
+        
+        GridLayout:
+            cols:2
+            rows:4
+            spacing: self.height/7
+            pos_hint: {'x':0.03,'y':0.20}
+            size_hint: 0.87, 0.60
+            Label:
+                text:'Level'
+                color:color_labels
+                
+            Label:
+                text:'1'
+                id:levelchange_id
+                color: black
+                canvas.before:               
+                    Rectangle:
+                
+                        pos:self.pos
+                        size:self.size
+                        Color:
+                            rgba:color_labels
+        
+            Image:
+                source:'heart.png'
+            
+            Label:
+                text:str(life_slider_id.value)+'%'
+                id:lifechange_id
+                color: black
+                canvas.before:               
+                    Rectangle:
+                
+                        pos:self.pos
+                        size:self.size
+                        Color:
+                            rgba:color_labels
+            
+            Image:
+                source:'fish.png'
+            
+            Label:
+                text:'0/10'
+                id: fishchange_id
+                color: black
+                canvas.before:               
+                    Rectangle:
+                
+                        pos:self.pos
+                        size:self.size
+                        Color:
+                            rgba:color_labels
+            
+            Label:
+                text:'State'
+                color:color_labels
+                
+            Label:
+                text:'Resting'
+                id:statechange_id
+                color: black
+                canvas.before:               
+                    Rectangle:
+                
+                        pos:self.pos
+                        size:self.size
+                        Color:
+                            rgba:color_labels
+                
+        
+        
+
+        Button:
+            text:'Reset'
+            pos_hint:{'x':0.05,'y':0.07}
+            size_hint:0.9,0.1
+            on_press: root.reset()        
+        
         
 
         
@@ -409,7 +857,7 @@
         height:50
         
         Button:
-            text:'Compute'
+            text:'Play'
             on_press: root.compute()
             background_color: 0,1,0,1
         Button:
@@ -419,227 +867,31 @@
     
     BoxLayout:
         id:box21_id
-        size_hint:0.55,0.075
+        size_hint:0.15,0.075
+        pos_hint:{'y':0.,'x':0.6}
+        orientation:'horizontal'
+        height:50
+        
+        
+        
+        Button:
+            text:'Back'
+            on_press:root.transition_GS()
+            
+    BoxLayout:
+        id:boxlife_id
+        size_hint:0.4,0.075
         pos_hint:{'y':0.,'x':0.2}
         orientation:'horizontal'
         height:50
-        modechange: modechange.__self__
+        life_slider:life_slider_id
+        Slider:            
+            id: life_slider_id
+            min: 0
+            max: +100
+            value_track_color: 1,0,0,1
+            value_track: True
+            cursor_disabled_image: 'heart.png'
+            value: 100                              
+            disabled: True
         
-        
-        Button:
-            background_normal: 'prev.WEBP'
-            background_down: 'prev.WEBP'
-            on_press: root.modechange()
-            
-        Label:
-            id:modechange
-            text:'standard'
-            color:0,0,0,1
-        
-        Button:
-            background_normal: 'next.png'
-            background_down: 'next.png'
-            on_press: root.modechange()
-        Button:
-            text:'Back'
-            on_press:root.transition_PS()
-        
-
-<GameScreen>:
-    name: 'game'
-    box1: box1_id
-    box2: box2_id
-    box3: box3_id
-    box4: box4_id
-    quadrat: quadrat_id
-    #:set color_labels 1,1,1,1
-
-    
-    #############################MAINCANVAS############################
-    FloatLayout:
-        id:box1_id
-        orientation:'vertical'   
-        size_hint:1,1
-        
-    PaquetRectangle:
-        id:quadrat_id
-        size_hint:0.02,0.02
-
-        pos:self.pos
-        
-
-                
-    ###########################EDITON##############################3
-    RelativeLayout:
-        id:box4_id
-        size_hint:0.25,0.5
-        pos_hint:{'y':0.,'x':0.75}
-        Widget:
-            canvas.before:
-                Color:
-                    rgba:0.1,0.1,0.1,1
-                Rectangle:
-            
-                    pos:self.pos
-                    size:self.size
-    
-        Label:
-            text:'Edition'
-            pos_hint:{'x':0.1,'y':0.9}
-            size_hint:0.8,0.1
-            color: color_labels
-        
-        Label:
-            text:'px:'
-            pos_hint:{'x':0.2,'y':0.8}
-            size_hint:0.05,0.1
-            color:color_labels
-        Button:
-            text:'-'
-            on_press:root.changep(-1,0)
-            pos_hint:{'x':0.3,'y':0.8}
-            size_hint:0.2,0.1
-        Button:
-            text:'+'
-            on_press:root.changep(1,0)
-            pos_hint:{'x':0.55,'y':0.8}
-            size_hint:0.2,0.1        
-            
-        Label:
-            text:'py:'
-            pos_hint:{'x':0.2,'y':0.7}
-            size_hint:0.05,0.1
-            color:color_labels
-        Button:
-            text:'-'
-            on_press:root.changep(0,-1)
-            pos_hint:{'x':0.3,'y':0.7}
-            size_hint:0.2,0.1
-        Button:
-            text:'+'
-            on_press:root.changep(0,1)
-            pos_hint:{'x':0.55,'y':0.7}
-            size_hint:0.2,0.1    
-            
-        Label:
-            text:'Potential mode'
-            pos_hint:{'x':0.05,'y':0.4}
-            size_hint:0.9,0.1
-        
-        Button:
-            text:'on'
-            on_press:root.editorfun()
-            pos_hint:{'x':0.05,'y':0.3}
-            size_hint:0.9,0.1
-        Button:
-            text:'Apply'
-            on_press:root.modifypot()
-            pos_hint:{'x':0.05,'y':0.2}
-            size_hint:0.45,0.1
-        Button:
-            text:'Clear'
-            on_press:root.clear()
-            pos_hint:{'x':0.50,'y':0.2}
-            size_hint:0.45,0.1
-        Button:
-            text:'off'
-            on_press:root.editorstop()
-            pos_hint:{'x':0.05,'y':0.1}
-            size_hint:0.9,0.1
-        
-
-        
-    ################PARAMETERS##############################
-    RelativeLayout:
-        id:box3_id
-        pxchange:pxchange.__self__
-        pychange:pychange.__self__
-        tempschange:tempschange.__self__
-        longitudchange:longitudchange.__self__
-        dxchange:dxchange.__self__
-        dtchange:dtchange.__self__
-        normachange:normachange.__self__
-        energychange:energychange.__self__
-        
-        size_hint:0.25,0.5
-        pos_hint:{'y':0.5,'x':0.75}
-        Widget:
-            canvas.before:
-                Color:
-                    rgba:0.3,0.3,0.3,1
-                Rectangle:
-            
-                    pos:self.pos
-                    size:self.size
-    
-        Label:
-            text:'Parameters'
-            pos_hint:{'x':0.1,'y':0.9}
-            size_hint:0.8,0.1
-            color: color_labels
-            
-        ##Parametres que s'han de calcular amb el buto compute
-        Label:
-            text:'Norma:'
-            id:normachange
-            pos_hint:{'x':0.25,'y':0.8}
-            size_hint:0.5,0.1
-            color: color_labels
-        Label:
-            id:energychange
-            text:'Energia:'
-            pos_hint:{'x':0.25,'y':0.7}
-            size_hint:0.5,0.1
-            color:color_labels
-        Button:
-            text:'Compute'
-            on_press:root.compute_parameters()
-            pos_hint:{'x':0.3,'y':0.57}
-            size_hint:0.5,0.1
-            background_normal:''
-            background_color:0.6,0.6,0.6,1
-            
-        ##Parametres que canvien amb els butons de EDICIÓ
-        
-        Label:
-            id:pxchange
-            text:'px:0'
-            pos_hint:{'x':0.05,'y':0.4}
-            size_hint:0.4,0.1
-            color:color_labels
-        Label:
-            id:pychange
-            size_hint:0.4,0.1
-            text:'py:0'
-            pos_hint:{'x':0.5,'y':0.4}
-            color:color_labels
-        Label:
-            id:tempschange
-            text:'temps=0.0'
-            pos_hint:{'x':0.05,'y':0.22}
-            size_hint:0.5,0.2
-            color:color_labels
-        Label:
-            id:longitudchange
-            text:'L=3.0'
-            pos_hint:{'x':0.05,'y':0.15}
-            size_hint:0.2,0.1
-            color:color_labels
-        Label:
-            id:dtchange
-            text:'dx=0.45'
-            pos_hint:{'x':0.3,'y':0.15}
-            size_hint:0.2,0.1
-            color:color_labels
-        Label:
-            id:dxchange
-            text:'dt=0.015'
-            pos_hint:{'x':0.65,'y':0.15}
-            size_hint:0.2,0.1
-            color:color_labels
-    BoxLayout:
-        id:box2_id
-        size_hint:0.75,0.1
-        pos_hint:{'y':0.,'x':0}
-        orientation:'horizontal'
-        height:50
