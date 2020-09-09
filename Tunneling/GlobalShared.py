@@ -9,7 +9,6 @@ import numpy as np
 import random
 
 prob = 1.0
-bonus = 1.0
 
 #també escrivim la matriu d'amplades en aquest document
 list_amp = np.zeros(10)
@@ -54,13 +53,14 @@ for i in range(0,5):
 #2:moment inicial
 #3:forma de la barrera
 #4:bonus
-tauler = [1,2]
+nivell1_numeros = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
 
-caselles_tauler = np.ones((5,5))
+nivell1 = np.ones((5,5))
 
 for i in range(0,5):
    for j in range(0,5):
-        caselles_tauler[i,j] = random.choice(tauler)
+        nivell1[i,j] = random.choice(nivell1_numeros)
+
 
 
 

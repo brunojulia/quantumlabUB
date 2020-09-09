@@ -11,22 +11,58 @@
 
     name: 'starting'
     
-    BoxLayout:
-        orientation: 'vertical'
-        Button:
-            text: 'Game'
-            size_hint_y: 0.2
-            size_hint_x: 0.2
-            on_press: root.transition_SG()
+    BoxLayout: 
+        orientation: 'horizontal'
     
-        Button:
-            text: 'Simulation'
-            size_hint_y: 0.2
-            size_hint_x: 0.2
-            on_press: root.transition_SS()
+        BoxLayout:
     
+        BoxLayout:
+            orientation: 'vertical'
+            spacing:50
+            padding:50
+            
+            Image:
+                source: 'Images/logo.png'
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, .2, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+                
+        
+            Button:
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: '[color=FFFF33]GAME[/color]'
+                font_name: 'Arial'
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, .2, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+                on_press: root.transition_SG()
+            
     
-    
+            Button:
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: '[color=FFFF33]SIMULATION[/color]'
+                font_name: 'Arial'
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, .2, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+                on_press: root.transition_SS()
+        
+            Image:
+                source: 'Images/logo_ub.png'
+                
+        BoxLayout:
+        
 <GamingScreen>:
 
     name:'gaming'
@@ -41,8 +77,21 @@
     box7: box7_id
     box8: box8_id
     box9: box9_id
-    box10: box10_id
+    box10:box10_id
     box11: box11_id
+    box12: box12_id
+    box13: box13_id
+    box14: box14_id
+#    box15: box15_id
+#    box16: box16_id
+    box17: box17_id
+    box18: box18_id
+    box19: box19_id
+    box20: box20_id
+    box21: box21_id
+#    box22: box22_id
+#    box23: box23_id
+#    box24: box24_id
 
     
     BoxLayout:
@@ -61,75 +110,232 @@
             orientation: 'vertical'
             size_hint_x: 0.8
             spacing: 10
-            
+
             BoxLayout:
                 orientation: 'horizontal'
+                spacing: 60
+                BoxLayout:
+                    id: box4_id
+                BoxLayout:
+                    id: box2_id
+            
+            BoxLayout:
+                id:box3_id 
+                size_hint_y: 4
+                
+            
+            
+                
+            BoxLayout:
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing:20
+                    BoxLayout:
+                        size_hint_x: 3
+                        Label:
+                            text: 'Target Left Probability'
+      
+                        BoxLayout:
+                            id:box17_id
+                            
+                
+                    Button:
+                        background_normal: 'Images/startev.png'
+                        background_down: 'Images/startev.png'
+                        size_hint_y: 1.2
+                        size_hint_x: 0.5
+                        on_release: root.inici_evolucio()
+                        canvas.before:
+                            Color:
+                                rgba: 1, 1, 1, 1
+                            Line:
+                                width: 2
+                                rectangle: self.x, self.y, self.width, self.height
+                    
+                    Button:
+                        background_normal: 'Images/stopev.png'
+                        background_down: 'Images/stopev.png'
+                        size_hint_y: 1.2
+                        size_hint_x: 0.5
+                        on_release: root.actualitzacio()
+                        canvas.before:
+                            Color:
+                                rgba: 1, 1, 1, 1
+                            Line:
+                                width: 2
+                                rectangle: self.x, self.y, self.width, self.height
+                    
+                    
+            BoxLayout:
+                orientation:'horizontal'
+
+                    
+                    #BoxLayout:
+                        #Label:
+                            #text: 'Error'
+                        #BoxLayout:
+                            #id: box22_id
+                            
+                BoxLayout:
+                    Label: 
+                        text: 'WKB prediction'
+                    BoxLayout:
+                        id: box5_id
+                            
+                BoxLayout:
+                    Label:
+                        text: 'Left Probability'
+                    BoxLayout:
+                        id: box6_id
+                
+                
+             
+
+                
+            BoxLayout:
+                orientation:'horizontal'  
+                spacing:10 
+        
+                Label:
+                    text: 'Initial conditions'
+                    halign: 'center'
+                        
+                Label:
+                    text: 'Evolution'
+                    halign: 'center'
+
+      
+            BoxLayout:
+                orientation: 'horizontal'
+                BoxLayout:
+                    Label:
+                        text:'px'
+                    BoxLayout: 
+                        #boto per augmentar valor absolut de px
+                        id:box7_id
+                    BoxLayout:
+                        #boto per dosminuïr valor absolut de px
+                        id:box8_id
+                        
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Image:
+                        source: 'Images/var_amp.png'
+                    BoxLayout:
+                        id:box11_id
+                    BoxLayout:
+                        id:box12_id
+                            
+            BoxLayout:
+                orientation: 'horizontal'
+                BoxLayout:
+                    orientation:'horizontal'
+                    Label:
+                        text: 'Amp'
+                    BoxLayout:
+                        #boto per augmentar amplada ona inicial
+                        id: box9_id
+                    BoxLayout: 
+                        #boto per disminuir amplada de l'ona
+                        id: box10_id
+                            
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Label:
+                        text: 'Height'
+                        
+                    BoxLayout:
+                        id: box13_id
+                    BoxLayout:
+                        id: box14_id
+                        
+                            
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 20
+                
+                Label:
+                    text: 'Shape'
+                Button:
+                    background_normal: 'Images/barrera_quadrada.png'
+                    background_down: 'Images/barrera_quadrada.png'
+                    size_hint_x: 0.5
+                    on_release: root.canvi_potencial_quadrat()
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, .6, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    #id: box15_id
+                Button:
+                    background_normal: 'Images/barrera_gaussiana.png'
+                    background_down: 'Images/barrera_gaussiana.png'
+                    size_hint_x: 0.5
+                    on_release: root.canvi_potencial_gauss()
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, .6, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    #id: box16_id 
+                            
+                    
+                            
+                        
+                            
+                BoxLayout:
+                    orientation:'vertical'
+                    spacing:10
+                        
+                    
+                            
+                    #botons per canviar paràmetres de la barrera durant evolucio
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        
+                        
+                    
+                    
+                        
+            
+
+
+
+                
+
+            BoxLayout:
                 spacing: 10
                 
                 BoxLayout:
-                    id: box8_id
-                BoxLayout:
-                    id: box9_id
-
-            
-            BoxLayout:
-                id:box3_id
-                
-            BoxLayout:
-                orientation: 'horizontal'
-                BoxLayout: 
-                    id: box6_id
-                BoxLayout:
-                    id:box7_id
-                    on_touch_move: root.on_touch_Slider()
-                
-            
-                
-            BoxLayout:
-                orientation: 'horizontal'
-                BoxLayout:
-                    id: box10_id
-                BoxLayout:
-                    id: box5_id
-                
-                
-            BoxLayout:
-                orientation:'horizontal'
-                spacing: 20
-                
-                BoxLayout:
-                    id: box4_id
                     
                 BoxLayout:
-                    id: box2_id
+                    id: box18_id
+                    size_hint_x: 0.5
                     
-            BoxLayout:
-                id: box11_id
-
+                    
+                BoxLayout:
                 
-            Button:
-                text: "UP"
-                size_hint_x: 0.3
-                pos_x: 100.0
-                on_press: root.up()
+                
             
            
                 
             BoxLayout:
                 spacing: 10
-                Button:
-                    text: "LEFT"
-                    on_press: root.left()
-                Button:
-                    text: "DOWN"
-                    on_press: root.down()
-                Button:
-                    text:"RIGHT"
-                    on_press: root.right()
+                BoxLayout:
+                    id: box19_id
+                BoxLayout:
+                    id: box20_id
+                BoxLayout:
+                    id: box21_id
             
             BoxLayout:
             
                 orientation: 'horizontal'
+
                 
                 Button:
                     text: "i"
@@ -208,6 +414,64 @@
                 Button:
                     text: "Gaussiana"
                     on_press: root.canvi_potencial_gauss()
+                    
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                
+                Label:
+                    text: "amplada"
+                
+                Button:
+                    text: "+"
+                    on_press:root.add_width()
+            
+                Button:
+                    text:"-"
+                    on_press:root.subtract_width() 
+                    
+            
+                
+            BoxLayout:
+                orientation: 'horizontal'
+                
+                Label: 
+                    text: "altura"
+                Button: 
+                    text: "+"
+                    on_press: root.add_bheight()
+                Button:
+                    text: "-"
+                    on_press: root.subtract_bheight()
+                    
+            Label:
+                text: "Paquet"
+            
+            BoxLayout:
+                Label:
+                    text: "Sigma"
+                
+                Button:
+                    text: "+"
+                    on_release: root.amp_up()
+                    
+                Button:
+                    text: "-"
+                    on_release: root.amp_down()
+                    
+            BoxLayout:
+                Label:
+                    text: "Px"
+                
+                Button:
+                    text: "+"
+                    on_release: root.px_up()
+                
+                Button:
+                    text: "-"
+                    on_release: root.px_down()
+                    
+                    
                 
             Button:
                 text: "Evolucio"
@@ -220,31 +484,8 @@
                 Button:
                     text: "stop"
                     on_press: root.stop_evolucio()
-            Label:
-                text: "amplada"
-                size_hint_y: 0.5
-            BoxLayout:
-                orientation: 'horizontal'
-                
-                Button:
-                    text: "+"
-                    on_press:root.add_width()
+
             
-                Button:
-                    text:"-"
-                    on_press:root.subtract_width() 
-            Label: 
-                text: "altura"
-                size_hint_y: 0.5
-                
-            BoxLayout:
-                orientation: 'horizontal'
-                Button: 
-                    text: "+"
-                    on_press: root.add_bheight()
-                Button:
-                    text: "-"
-                    on_press: root.subtract_bheight()
             
             Button:
                 text: "Exit"
