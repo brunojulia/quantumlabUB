@@ -1,0 +1,679 @@
+#:import Factory kivy.factory.Factory
+
+
+<MyScreenManager>:
+    StartingScreen:
+    GamingScreen:
+    SimulationScreen:
+    
+    
+<StartingScreen>:
+
+    name: 'starting'
+    
+    BoxLayout: 
+        orientation: 'horizontal'
+    
+        BoxLayout:
+    
+        BoxLayout:
+            orientation: 'vertical'
+            spacing:50
+            padding:50
+            
+            Image:
+                source: 'Images/logo.png'
+                size_hint_y:2
+
+        
+            Button:
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: '[color=FFFF33]GAME[/color]'
+                font_name: 'Arial'
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, .2, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+                on_press: root.transition_SG()
+            
+    
+            Button:
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: '[color=FFFF33]SIMULATION[/color]'
+                font_name: 'Arial'
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, .2, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+                on_press: root.transition_SS()
+        
+            Image:
+                source: 'Images/logo_ub.png'
+                
+        BoxLayout:
+        
+<GamingScreen>:
+
+    name:'gaming'
+    
+
+    box1: box1_id
+    box2: box2_id
+    box3: box3_id
+    box4: box4_id
+    box5: box5_id
+    box6: box6_id
+    box7: box7_id
+    box8: box8_id
+    box9: box9_id
+    box10:box10_id
+    box11: box11_id
+    box12: box12_id
+    box13: box13_id
+    box14: box14_id
+#    box15: box15_id
+#    box16: box16_id
+    box17: box17_id
+#    box18: box18_id
+#    box19: box19_id
+#    box20: box20_id
+#    box21: box21_id
+#    box22: box22_id
+#    box23: box23_id
+#    box24: box24_id
+
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing:10
+        padding:20
+        
+        FloatLayout:
+            id:box1_id
+            
+            
+
+                
+            
+            
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint_x: 0.8
+            spacing: 10
+
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 20
+                Label:
+                    text: 'Score'
+                BoxLayout:
+                    id: box4_id
+                    size_hint_x: 0.4
+                    canvas.before:
+                        Color:
+                            rgba: 1, 0, 0, .8
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                BoxLayout:
+                    id: box2_id
+                    size_hint_x:0.4
+                    canvas.before:
+                        Color:
+                            rgba: 0, 0, 1, .8
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                            
+                BoxLayout:
+                
+            
+            BoxLayout:
+                id:box3_id 
+                size_hint_y: 4
+                
+            
+            
+                
+            BoxLayout:
+                
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing:20
+                    BoxLayout:
+                        size_hint_x: 3
+                        Label:
+                            text: 'Target Left Probability'
+      
+                        BoxLayout:
+                            id:box17_id
+                            
+                
+                    Button:
+                        background_normal: 'Images/startev.png'
+                        background_down: 'Images/startev.png'
+                        size_hint_y: 1.2
+                        size_hint_x: 0.5
+                        on_release: root.inici_evolucio()
+                        canvas.before:
+                            Color:
+                                rgba: 1, 1, 1, 1
+                            Line:
+                                width: 2
+                                rectangle: self.x, self.y, self.width, self.height
+                    
+                    Button:
+                        background_normal: 'Images/stopev.png'
+                        background_down: 'Images/stopev.png'
+                        size_hint_y: 1.2
+                        size_hint_x: 0.5
+                        on_release: root.actualitzacio()
+                        canvas.before:
+                            Color:
+                                rgba: 1, 1, 1, 1
+                            Line:
+                                width: 2
+                                rectangle: self.x, self.y, self.width, self.height
+                    
+                    
+            BoxLayout:
+                orientation:'horizontal'
+
+                    
+                    #BoxLayout:
+                        #Label:
+                            #text: 'Error'
+                        #BoxLayout:
+                            #id: box22_id
+                            
+                BoxLayout:
+                    Label: 
+                        text: 'WKB prediction'
+                    BoxLayout:
+                        id: box5_id
+                            
+                BoxLayout:
+                    Label:
+                        text: 'Left Probability'
+                    BoxLayout:
+                        id: box6_id
+                
+                
+             
+
+                
+            BoxLayout:
+                orientation:'horizontal'  
+                spacing:10 
+        
+                Label:
+                    text: 'Initial conditions'
+                    halign: 'center'
+                        
+                Label:
+                    text: 'Evolution'
+                    halign: 'center'
+
+      
+            BoxLayout:
+                orientation: 'horizontal'
+                BoxLayout:
+                    Label:
+                        text:'px'
+                    BoxLayout: 
+                        #boto per augmentar valor absolut de px
+                        id:box7_id
+                    BoxLayout:
+                        #boto per dosminuïr valor absolut de px
+                        id:box8_id
+                        
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Image:
+                        source: 'Images/var_amp.png'
+                    BoxLayout:
+                        id:box11_id
+                    BoxLayout:
+                        id:box12_id
+                            
+            BoxLayout:
+                orientation: 'horizontal'
+                BoxLayout:
+                    orientation:'horizontal'
+                    Image:
+                        source: 'Images/sigma.png'
+                    BoxLayout:
+                        #boto per augmentar amplada ona inicial
+                        id: box9_id
+                    BoxLayout: 
+                        #boto per disminuir amplada de l'ona
+                        id: box10_id
+                            
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Image:
+                        source: 'Images/var_alsada.png'
+                        
+                        
+                    BoxLayout:
+                        id: box13_id
+                    BoxLayout:
+                        id: box14_id
+                        
+                            
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 20
+                size_hint_y: 1.2
+                
+                Label:
+                    text: 'Shape'
+                Button:
+                    background_normal: 'Images/barrera_quadrada.png'
+                    background_down: 'Images/barrera_quadrada.png'
+                    on_release: root.canvi_potencial_quadrat()
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, .6, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    #id: box15_id
+                Button:
+                    background_normal: 'Images/barrera_gaussiana.png'
+                    background_down: 'Images/barrera_gaussiana.png'
+                    on_release: root.canvi_potencial_gauss()
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, .6, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    #id: box16_id 
+                    
+                BoxLayout:
+                
+                BoxLayout:
+                
+                BoxLayout:
+                
+                            
+                    
+                            
+                        
+                            
+                BoxLayout:
+                    orientation:'vertical'
+                    spacing:10
+                        
+                    
+                            
+                    #botons per canviar paràmetres de la barrera durant evolucio
+                    
+                    BoxLayout:
+                        orientation: 'horizontal'
+                        
+                        
+                    
+                    
+                        
+            
+
+
+
+                
+
+            BoxLayout:
+                spacing: 10
+                size_hint_y: 1.2
+                
+                BoxLayout:
+                    
+                Button:
+                    background_normal: 'Images/fletxa_amunt.png'
+                    background_down: 'Images/fletxa_amunt.png'
+                    on_release: root.up()
+                    size_hint_x: 0.3
+                    
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    
+                    
+                    
+                    
+                    
+                BoxLayout:
+                
+                
+            
+           
+                
+            BoxLayout:
+                spacing: 10
+                size_hint_y: 1.2
+                BoxLayout:
+                
+                BoxLayout:
+                
+                Button:
+                    background_normal: 'Images/fletxa_esquerra.png'
+                    background_down: 'Images/fletxa_esquerra.png'
+                    on_release: root.left()
+
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                Button:
+                    background_normal: 'Images/fletxa_avall.png'
+                    background_down: 'Images/fletxa_avall.png'
+                    on_release: root.down()
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                Button:
+                    background_normal: 'Images/fletxa_dreta.png'
+                    background_down: 'Images/fletxa_dreta.png'
+                    on_release: root.right()
+
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                            
+                BoxLayout:
+                
+                BoxLayout:
+                    
+            
+            BoxLayout:
+                spacing: 20
+                orientation: 'horizontal'
+                size_hint_y: 1.1
+
+                BoxLayout:
+                
+                BoxLayout:
+                
+                Button:
+                    on_release: root.openpop()
+                    background_normal: 'Images/informacio.png'
+                    background_down: 'Images/informacio.png'
+                    size_hint_x: 0.3
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, .6, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    
+                
+                Button:
+                    background_normal: 'Images/back.png'
+                    background_down: 'Images/back.png'
+                    on_release: root.transition_GS()
+                    size_hint_x: 0.3
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, .6, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    
+    
+<InfoPopup>:
+
+    size_hint: 0.5,0.95
+    separator_color: [1,1,0,1]
+    title: 'Game Instructions'
+    title_align: 'center'
+    title_size: self.height/40
+    title_color: [1,0,0,1]
+    intro: intro_id
+    howtoplay: howtoplay_id
+    
+
+    
+    BoxLayout:
+        spacing: 20
+        padding: 20
+        orientation: 'vertical'
+    
+        Label:
+            id: intro_id
+            font_size: root.height/60
+            text_size: self.width, None
+            color: (1, 1, 1, 1)
+            markup: True
+                
+        Label:
+            id:howtoplay_id
+            font_size: root.height/60
+            text_size: self.width, None
+            color: (1, 1, 1, 1)
+            markup: True
+            
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint_y:0.2
+        
+            BoxLayout:   
+        
+            Button:
+                background_normal: 'Images/back.png'
+                background_down: 'Images/back.png'
+                on_release: root.dismiss()
+                size_hint_x: 0.1
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, .6, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+    
+        
+    
+      
+                
+            
+<SimulationScreen>: 
+      
+    name: 'Simulation'
+    box1: box1_id
+    box2: box2_id
+    box3: box3_id
+    box4: box4_id
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        spacing:10
+        padding:20
+        
+        BoxLayout:
+            id: box1_id
+                 
+        BoxLayout:
+            orientation:'vertical'
+            size_hint_x: 0.5
+            spacing:10
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: "WKB prediction"
+                    size_hint_y: 0.5
+                BoxLayout:
+                    id: box2_id
+                    
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: "Left probability"
+                    size_hint_y: 0.5
+                BoxLayout:
+                    id: box3_id
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                Label:
+                    text: "Norm"
+                    size_hint_y: 0.5
+                BoxLayout:
+                    id: box4_id
+                
+            Label:
+                text: "Potential Barrier"
+                size_hint_y: 0.5
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 50
+                size_hint_y: 1.5
+                
+                Button:
+                    background_normal: 'Images/barrera_quadrada.png'
+                    background_down: 'Images/barrera_quadrada.png'
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, .6, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    on_release: root.canvi_potencial_quadrat()
+                    
+                Button:
+                    background_normal: 'Images/barrera_gaussiana.png'
+                    background_down: 'Images/barrera_gaussiana.png'
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, .6, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    on_release: root.canvi_potencial_gauss()
+                    
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                
+                Image:
+                    source: 'Images/var_amp.png'
+                
+                Button:
+                    text: "+"
+                    on_press:root.add_width()
+            
+                Button:
+                    text:"-"
+                    on_press:root.subtract_width() 
+                    
+            
+                
+            BoxLayout:
+                orientation: 'horizontal'
+                
+                Image:
+                    source: 'Images/var_alsada.png'
+                Button: 
+                    text: "+"
+                    on_press: root.add_bheight()
+                Button:
+                    text: "-"
+                    on_press: root.subtract_bheight()
+                    
+            Label:
+                text: "Wave function"
+            
+            BoxLayout:
+                Image:
+                    source: 'Images/sigma.png'
+                
+                Button:
+                    text: "+"
+                    on_release: root.amp_up()
+                    
+                Button:
+                    text: "-"
+                    on_release: root.amp_down()
+                    
+            BoxLayout:
+                Label:
+                    text: "Px"
+                
+                Button:
+                    text: "+"
+                    on_release: root.px_up()
+                
+                Button:
+                    text: "-"
+                    on_release: root.px_down()
+                    
+                    
+                
+            
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: 40
+                
+                BoxLayout:
+                
+                Button:
+                    background_normal: 'Images/startev.png'
+                    background_down: 'Images/startev.png'
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    on_release: root.inici_evolucio()
+                    
+                Button:
+                    background_normal: 'Images/stopev.png'
+                    background_down: 'Images/stopev.png'
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, 1, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    on_release: root.stop_evolucio()
+                    
+                BoxLayout:
+
+            
+            BoxLayout:
+                size_hint_y: 1.2
+                orientation: 'horizontal'
+                
+                BoxLayout:
+                
+                Button:
+                    background_normal: 'Images/back.png'
+                    background_down: 'Images/back.png'
+                    size_hint_x: 0.2
+                    canvas.before:
+                        Color:
+                            rgba: 1, 1, .6, 1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    on_release: root.transition_SS()
+   
+        
