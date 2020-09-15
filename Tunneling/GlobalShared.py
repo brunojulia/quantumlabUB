@@ -8,7 +8,7 @@ Created on Mon May 11 16:53:34 2020
 import numpy as np
 import random
 
-prob = 1.0
+prob = 0
 
 #també escrivim la matriu d'amplades en aquest document
 list_amp = np.zeros(10)
@@ -29,7 +29,8 @@ for i in range(0,9):
         for k in range(0,3):
             barr_hor[i,j,k] = random.choice(list_amp)
 
-
+red_life = 1.0
+blue_life = 1.0
             
 #creem vectors amb les possibles posicions x i y de les particules per poder 
 #situar els bonus
@@ -60,6 +61,8 @@ nivell1 = np.ones((5,5))
 for i in range(0,5):
    for j in range(0,5):
         nivell1[i,j] = random.choice(nivell1_numeros)
+        
+print(nivell1)
 
 
 
