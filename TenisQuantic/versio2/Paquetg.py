@@ -93,7 +93,7 @@ class PaquetScreen(Screen):
         
         #Variables globals...
         global Vvec,avec,cvec,psi0,normavec,mode,Vvecstandard
-        global setcordpress,setcordrelease,avec,cvec
+        global setcordpress,setcordrelease,avec,cvec,value,s2
         
         ################### PARAMETRES DE LA CAIXA,DISCRETITZAT,PARTICULA########
         self.L=3.0
@@ -122,7 +122,9 @@ class PaquetScreen(Screen):
         #parametre del discretitzat
         self.r=(self.dt/(4*(self.dx**2)))*(self.hbar/self.m)
         
-        
+        #Parametres del potencial infinit
+        self.value=10000
+        self.s2=self.dx/2.
 
         #Canvia el text del interior de la caixa 'parameters' amb els parametr
         #es inicials escollits
@@ -142,7 +144,7 @@ class PaquetScreen(Screen):
         
         #Posició slit
 
-        self.x0slit=(2*self.L/3.)
+        self.x0slit=(6.4*self.L/10.)
         self.y0slit=0.
 
         
@@ -214,11 +216,13 @@ class PaquetScreen(Screen):
         self.setcordrelease=np.array([])
         self.paint=MyPaintWidget()
         self.arrow=Arrow()
+        self.slitcanvas=Slit()
         self.fish=Fish()
         #No pinta a no ser que estigui activat.
         self.paint.pause_paint=True
         self.box1.add_widget(self.paint,0)
         self.box1.add_widget(self.arrow,0)
+        self.box1.add_widget(self.slitcanvas,0)
 
 
         ###############################PROPIETATS DEL QUADRAT AMB EL QUE JUGUEM
@@ -247,6 +251,8 @@ class PaquetScreen(Screen):
 
     ##Ara venen tot el seguït de funcions que utilitzarem conjuntament amb els 
     #parametres definits a g_init
+    
+        self.remove_widget(self.box5)
 
     ##############################RESIZING############################
     #1.Resize_kivy
@@ -399,12 +405,17 @@ class PaquetScreen(Screen):
         self.box4.box_sel.select_but.disabled=True
         self.box4.box_sel.disabled=True
         
+        #if self.mode==1:   
+        #    self.box5.slit_slider.disabled=True
+        
     def pause(self,*largs):
         """Aquesta funció para el càlcul del joc"""
         self.pause_state=True
         self.box4.okay_but.disabled=False
         self.box4.reset_but.disabled=False
         self.box4.draw_but.disabled=False
+        #if self.mode==1:
+        #    self.box5.slit_slider.disabled=False
 
 
         
@@ -415,12 +426,10 @@ class PaquetScreen(Screen):
         if self.pause_state==True:
             #Segons el mode, reseteja un potencial o un paquet diferent
             if self.mode==0:
-                self.psi0=self.psistand(0.,0.)
-                self.Vvec=self.Vvecstand()
+                self.standard()
                 self.box4.box_sel.select_but.disabled=False
             else:
-                self.psi0=self.psislit()
-                self.Vvec=self.Vvecslit()
+                self.slit()
                 self.box4.box_sel.select_but.disabled=True
         
             #Parametres que s'han de tornar a resetejar
@@ -438,18 +447,11 @@ class PaquetScreen(Screen):
             self.arrow.canvas.clear()
             self.setcordpress=self.emptylist()
             self.setcordrelease=self.emptylist()          
-            self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
+            #self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
             print('Clear!')
             #Rseteja la imatge
             
-            self.normavec=ck.norma(self.psi0,self.Nx)
-            self.visu_im.remove()
-            self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                          extent=(-self.L,self.L,-self.L,self.L)) 
-          
-            self.main_canvas.draw()
             
-            #Canviem els parametre en pantalla tambe
             
             self.box3.tempschange.text='0.00'
             self.box3.pxchange.text='0.0'
@@ -496,8 +498,12 @@ class PaquetScreen(Screen):
     def standard(self,*largs):
         """Funció que retorna el mode estandard en tots els aspectes: de càlcul,
         en pantalla, etf..."""
-        self.box4.box_sel.select_but.disabled=False
-        self.mode=0
+        
+        if self.mode==1:
+            self.box4.box_sel.select_but.disabled=False
+            #self.remove_widget(self.box5)
+            self.slitcanvas.canvas.clear()
+        #self.mode=0
         self.L=3.0
         self.dx=0.03
         self.box3.longitudchange.text='{}'.format(self.L)
@@ -506,9 +512,7 @@ class PaquetScreen(Screen):
         self.Vvec=self.Vvecstand()
         self.psi0=self.psistand(0.,0.)
         #Llevem les líneas que hi pogui haver
-
-        self.lineslit1.remove()
-        self.lineslit2.remove()
+        
             
         #Això es un reset, pensar fer-ho amb el reset.
         #Canviem la pantalla i el mode:
@@ -532,15 +536,29 @@ class PaquetScreen(Screen):
         """Quan activem aquest buto, canviem el paquet de referencia i el 
         potencial de referència i ho deixem en el mode slit. Aquest mode
         correspon amb el número 1."""
-        self.mode=1
-        self.L=5.0
+        #self.mode=1
+        self.L=3.0
         self.dx=0.03
         self.box3.longitudchange.text='{}'.format(self.L)
         self.Nx=np.int((2*self.L)/self.dx)
+        self.slitwidth=1.5
+        self.xslit=((self.L)*2)*(4/10.)-self.L
+        self.yslitinf=-self.slitwidth/2.
+        self.yslitsup=self.slitwidth/2.
+        self.value=10000
+        self.s2=self.dx/2.
+        self.Vvec=self.Vvecstand()
+
+        self.Vvec+=self.potencial_final(self.xslit,-self.L,self.xslit,self.yslitinf,
+                                        self.value,self.s2)
+        self.Vvec+=self.potencial_final(self.xslit,self.yslitsup,self.xslit,self.L,
+                                        self.value,self.s2)
         self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
-        self.Vvec=self.Vvecslit()
         self.psi0=self.psistand(self.x0slit,self.y0slit)
-        self.box4.box_sel.select_but.disabled=True
+        #self.box4.box_sel.select_but.disabled=True
+        
+        #Parametres del forat del slit
+
         
         """Pintem tot lo dit i afegim una líniea que es correspón amb el potencial,
         fix en aquest mode."""
@@ -555,20 +573,81 @@ class PaquetScreen(Screen):
  
         
         
-        self.lineslit1=self.visu.axvline(x=-self.L+self.xposslit*self.dx,
-                                         ymin=0,
-                                         ymax=0.475,
-                                         color='white')
+        self.inf1=self.visu.transData.transform([(self.xslit,-self.L)])
+        self.inf2=self.visu.transData.transform([(self.xslit,self.yslitinf)])
         
+        self.sup1=self.visu.transData.transform([(self.xslit,self.yslitsup)])
+        self.sup2=self.visu.transData.transform([(self.xslit,self.L)])
         
+        self.slitcanvas.canvas.clear()
+        with self.slitcanvas.canvas:
+            Color(1,1,1)
+            Line(points=(self.inf1[0,0],self.inf1[0,1],self.inf2[0,0],self.inf2[0,1]))
+            Line(points=(self.sup1[0,0],self.sup1[0,1],self.sup2[0,0],self.sup2[0,1]))               
+        #Afegim un slider
         
-        self.lineslit2=self.visu.axvline(x=-self.L+self.xposslit*self.dx,
-                                         ymin=0.525,
-                                         ymax=1,color='white',)
+        if self.mode==0:
+            #self.add_widget(self.box5)
+            self.box4.box_sel.select_but.disabled=True
+            
+            
+        #self.box5.slit_slider.max=self.L*2
+        #self.box5.slit_slider.min=0
+        #self.box5.slit_slider.value=self.slitwidth
         
 
         #I utilitzar-lo
         self.main_canvas.draw()    
+        
+    def changedrawslit(self,value):
+        
+        
+        self.slitwidth=value
+        self.xslit=((self.L)*2)*(1/3.)-self.L
+        self.yslitinf=-self.slitwidth/2.
+        self.yslitsup=self.slitwidth/2.
+        self.slitcanvas.canvas.clear()
+        
+        self.inf1=self.visu.transData.transform([(self.xslit,-self.L)])
+        self.inf2=self.visu.transData.transform([(self.xslit,self.yslitinf)])
+        
+        self.sup1=self.visu.transData.transform([(self.xslit,self.yslitsup)])
+        self.sup2=self.visu.transData.transform([(self.xslit,self.L)])
+        
+        self.slitcanvas.canvas.clear()
+        with self.slitcanvas.canvas:
+            Color(1,1,1)
+            Line(points=(self.inf1[0,0],self.inf1[0,1],self.inf2[0,0],self.inf2[0,1]))
+            Line(points=(self.sup1[0,0],self.sup1[0,1],self.sup2[0,0],self.sup2[0,1])) 
+        
+    def changeslit(self,value):
+        
+        
+        self.slitwidth=value
+        self.xslit=((self.L)*2)*(1/3.)-self.L
+        self.yslitinf=-self.slitwidth/2.
+        self.yslitsup=self.slitwidth/2.
+        
+        self.inf1=self.visu.transData.transform([(self.xslit,-self.L)])
+        self.inf2=self.visu.transData.transform([(self.xslit,self.yslitinf)])
+        
+        self.sup1=self.visu.transData.transform([(self.xslit,self.yslitsup)])
+        self.sup2=self.visu.transData.transform([(self.xslit,self.L)])
+        
+        self.slitcanvas.canvas.clear()
+        with self.slitcanvas.canvas:
+            Color(1,1,1)
+            Line(points=(self.inf1[0,0],self.inf1[0,1],self.inf2[0,0],self.inf2[0,1]))
+            Line(points=(self.sup1[0,0],self.sup1[0,1],self.sup2[0,0],self.sup2[0,1])) 
+        
+        self.Vvec=self.Vvecstand()
+
+        self.Vvec+=self.potencial_final(self.xslit,-self.L,self.xslit,self.yslitinf,
+                                        self.value,self.s2)
+        self.Vvec+=self.potencial_final(self.xslit,self.yslitsup,self.xslit,self.L,
+                                        self.value,self.s2)
+        self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
+    
         
     def modechange(self,*largs):
         """Funció que s'encarrega de canviar de mode. De moment només en tenim
@@ -579,11 +658,16 @@ class PaquetScreen(Screen):
         #Canviem el mode posteriorment.
         if self.mode==1:
             self.standard()
+            self.mode=0
             self.box21.modechange.text='Standard'
+            
         else:
             self.slit()
             self.box21.modechange.text='Slit'
-    
+            self.mode=1
+        
+        
+ 
     def Vvecstand(self,*largs):
         """Potencial del mode estandard"""
         Vvecestandard=np.array([[ck.Vharm(self.xa+i*self.dx,self.xa+j*self.dx,
@@ -856,6 +940,21 @@ class PaquetScreen(Screen):
         
         else:
             pass
+        
+    def potencial_final(self,x0,y0,x1,y1,value,s2):
+        """Funció que genera un potencial infinit que va desde x0,y0 fins x1,y1 """
+        
+        
+        Vecgaussia=self.potential_maker(x0,y0,x1,y1,value,s2)
+        Vvecsegur=self.Vvecmarcat(x0,y0,x1,y1,value*(1./(np.sqrt(s2*2.*np.pi))))
+                #I el sumem...
+        Vvecfinal=Vvecsegur+Vecgaussia
+        #Coloquem una petita gaussiana al voltant de cada punt de sigma*2=self.dx/2
+        #self.Vvec=Vvec
+        #Modifiquem els respectius ac,vc
+        #self.Vvec=Vvec
+        return Vvecfinal
+
     def gaussian_maker(self,x,y,x0,y0,x1,y1,value,s2,*largs):
         """Introduïm aquí la gaussiana per cada x e y... x0,y0,x1,y1, son els
         dos punts que uneixen la recta dibuixada. Utilitzarem les rectes perpen-
@@ -1214,6 +1313,8 @@ class GameScreen(Screen):
     pxslider=ObjectProperty(None)
     pyslider=ObjectProperty(None)
     fish=ObjectProperty(None)
+    buttong=ObjectProperty(None)
+    door=ObjectProperty(None)
     
 
     def __init__(self,**kwargs):
@@ -1265,9 +1366,9 @@ class GameScreen(Screen):
 
         #Canvia el text del interior de la caixa 'parameters' amb els parametr
         #es inicials escollits
-        self.box3.dxchange.text="{}".format(self.dx)
+        #self.box3.dxchange.text="{}".format(self.dx)
         self.box3.longitudchange.text="{}".format(self.L)
-        self.box3.dtchange.text="{}".format(self.dt)
+        #self.box3.dtchange.text="{}".format(self.dt)
         
         print(self.size)
 
@@ -1321,9 +1422,10 @@ class GameScreen(Screen):
         self.box1.add_widget(self.main_canvas,1)
         #Plot principal
         self.visu=plt.axes(label='princiapl')
-       
+        self.main_fig.set_facecolor(color='xkcd:grey')
         self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                      extent=(-self.L,self.L,-self.L,self.L))
+                                      extent=(-self.L,self.L,-self.L,self.L),
+                                      cmap='inferno')
         
         #Posició de la figura
         self.visu.set_position([0,0.15,0.8,0.8])
@@ -1350,16 +1452,19 @@ class GameScreen(Screen):
         self.setcordrelease=np.array([])
         self.paint=MyPaintWidget()
         self.arrow=Arrow()
+        self.slitcanvas=Slit()
         #No pinta a no ser que estigui activat.
         self.paint.pause_paint=True
         self.box1.add_widget(self.paint,0)
         self.box1.add_widget(self.arrow,0)
-
+        self.box1.add_widget(self.slitcanvas,0)
         ###############################PROPIETATS DEL QUADRAT AMB EL QUE JUGUEM
         self.quadrat.pos=[800,800]
         self.fish.pos=[100,800]
+        self.buttong.pos=[100,800]
+        self.door.pos=[100,800]
         self.pause_game=True
-        self.lv_1=True
+        self.lv_inicial=True
         self.life=100
         
         self.fishcatched=0
@@ -1382,7 +1487,25 @@ class GameScreen(Screen):
         
 
         #####################################PAUSESTATE
-
+        
+        #Coses del nivell 2
+        self.slitwidthlist=np.array([3,1.5,0.75,0.5])
+        self.lv_2=False
+        self.conf=0
+        self.xslit0=(self.L*(2))*(4/10.)-self.L
+        self.xslit1=(self.L*(2))*(6/10.)-self.L
+        self.slitwidth=self.slitwidthlist[0]
+        self.yslitinf=-self.slitwidth/2.
+        self.yslitsup=+self.slitwidth/2.
+        
+        self.value=10000
+        self.s2=self.dx/2.
+        self.closedslit=False
+        self.doorphase=False
+        self.phaselvl2=1
+        
+        #Cmaps
+        self.cmap='inferno'
 
     ##Ara venen tot el seguït de funcions que utilitzarem conjuntament amb els 
     #parametres definits a g_init
@@ -1476,9 +1599,10 @@ class GameScreen(Screen):
                                          self.cent[0,1]+self.py*7.5))
                     
                 
-        if self.lv_1==True and self.t_total<self.dt:
+        if self.lv_inicial==True and self.t_total<self.dt:
             self.setlvl1()
-            self.lv_1=False
+            self.lv_inicial=False
+            self.lv_1=True
                     
         if self.pause_state==False:
             #Primer de tot, representem el primer frame
@@ -1490,8 +1614,12 @@ class GameScreen(Screen):
             self.normavec=ck.norma(self.psi0,self.Nx)
             self.visu_im.remove()
             #Posar el nou
+            #self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
+            #                              extent=(-self.L,self.L,-self.L,self.L)) 
             self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                          extent=(-self.L,self.L,-self.L,self.L)) 
+                                          extent=(-self.L,self.L,-self.L,self.L),
+                                           cmap='inferno')
+            #self.visu.set_facecolor(color='xkcd:warm gray')
             #I utilitzar-lo
             self.main_canvas.draw()
             #CALCUL
@@ -1503,15 +1631,20 @@ class GameScreen(Screen):
             self.t_total=self.t_total+(self.dt)/2.
             self.box3.tempschange.text='{0:.3f}'.format(self.t_total)
             self.i+=1
-            if self.i>1:
+            if 10>self.i>1:
                 self.box4.statechange.text='Go!'
             
-            if self.i>20:
-                self.box4.statechange.text='Fishing'
+            if self.i>5:
+                if self.lv_1==True:
+                    self.box4.statechange.text='Fishing'
+            
+            
             #Videojoc, coses del  videojoc
-        if self.pause_game==False:
+        if self.pause_game==False and self.lv_1==True:
                         #Utilitzem la transformació inversa que ens porta de pixels matplotlib 
                 # a dades matplotlib.
+                
+            
             inv_data=self.visu.transData.inverted()
             pos=self.quadrat.pos
             #Posició del centre del quadrat
@@ -1543,27 +1676,119 @@ class GameScreen(Screen):
                 pass
            
                     
-        ##fishthings
-        if  (self.fish.x-self.fish.width/2.)<self.quadrat.x<(self.fish.x+(3*self.fish.width)/2.):
-            if (self.fish.y-(self.fish.height)/2.)<self.quadrat.y<(self.fish.y+(3*(self.fish.height))/2):
-                    #Generem una posició aleatoria
+            ##fishthings
+            if  (self.fish.x-self.fish.width/2.)<self.quadrat.x<(self.fish.x+(3*self.fish.width)/2.):
+                if (self.fish.y-(self.fish.height)/2.)<self.quadrat.y<(self.fish.y+(3*(self.fish.height))/2):
+                        #Generem una posició aleatoria
+                        
+                    x=np.random.random()*5.65-3.00
+                    y=np.random.random()*5.65-3.00
+                    self.drawfish(x,y)
+                    self.lifecontrol(+3)
                     
-                x=np.random.random()*5.65-3.00
-                y=np.random.random()*5.65-3.00
-                self.drawfish(x,y)
-                self.lifecontrol(+3)
+                    
                 
+        if self.pause_game==False and self.lv_2==True:
+                        #Utilitzem la transformació inversa que ens porta de pixels matplotlib 
+                # a dades matplotlib.
+            inv_data=self.visu.transData.inverted()
+            pos=self.quadrat.pos
+            #Posició del centre del quadrat
+            pos_data=inv_data.transform((pos[0]+self.quadrat.width/2,
+                                             pos[1]+self.quadrat.height/2))
+            self.pos_discret=np.array([(pos_data[0]+self.L)/self.dx,
+                              (pos_data[1]+self.L)/self.dx],dtype=int)
+       
+
+            self.llindar=0.02
+            self.valor_actual=self.normavec[self.pos_discret[1],self.pos_discret[0]] 
             
-            
-            #Cada 31 pasos de temps calculem el temps:
-            
+            if self.valor_actual>self.llindar:
+                print('Touched',self.valor_actual )
                 
-      
+                if self.llindar<self.valor_actual<0.05:                 
+                    self.lifecontrol(-3)
+                
+                elif 0.05<self.valor_actual<0.1:
+                    self.lifecontrol(-5)
+                elif 0.1<self.valor_actual<0.15:
+                    self.lifecontrol(-7)
+                elif 0.15<self.valor_actual<0.2:
+                    self.lifecontrol(-9)
+                elif 0.2<self.valor_actual:
+                    self.lifecontrol(-12)
+                    
+            
+            else:
+                pass
+            
+            
+            if self.closedslit==False:
+                
+                if self.i>10:
+                    self.box4.statechange.text='Close the slit!'
+                #tanquem les portes
+                if  (self.buttong.x-self.buttong.width/2.)<self.quadrat.x<(self.buttong.x+(3*self.buttong.width)/2.):
+                    if (self.buttong.y-(self.buttong.height)/2.)<self.quadrat.y<(self.buttong.y+(3*(self.buttong.height))/2):
+                        #Tanca les portes
+                
+                        self.closeslit(self.slitwidth,self.conf)
+                        self.buttong.pos=[100,800]
+                        self.fishphase=True
+                        self.fishphase0=True
+                        self.box4.statechange.text='Fish'
+                        
+            #Un cop esta tancada la slit, comença la segona fase del joc, agafar
+            #tres peixets que es colocaran aleatòriament. 
+            
+            if self.closedslit==True and self.fishphase==True:
+   
+                if self.conf==0:
+                    x=np.random.random()*(5.65-(self.xslit0+self.L))+self.xslit0
+                    y=np.random.random()*5.65-self.L
+                    
+                
+                if self.conf==1:
+                    x=np.random.random()*(5.65-(self.L+self.xslit0))-self.L
+                    y=np.random.random()*5.65-self.L
+                    
 
-
-        
-
-    
+                
+                if self.fishphase0==True:
+                    pos_data=self.visu.transData.transform([(x,y)])
+                    self.fish.x=np.int(pos_data[0,0])
+                    self.fish.y=np.int(pos_data[0,1])
+                    self.fishphase0=False
+                #self.fishphase0=False
+           
+                 ##fishthings
+                if  (self.fish.x-self.fish.width/2.)<self.quadrat.x<(self.fish.x+(3*self.fish.width)/2.):
+                    if (self.fish.y-(self.fish.height)/2.)<self.quadrat.y<(self.fish.y+(3*(self.fish.height))/2):
+                        self.lifecontrol(+15)
+                        self.drawfish(x,y)
+                    
+            if self.doorphase==True:
+                if self.conf==0:
+                    x=np.random.random()*(5.65-(self.xslit0+self.L))+self.xslit0
+                    y=np.random.random()*5.65-self.L
+                
+                if self.conf==1:
+                    x=np.random.random()*(5.65-(self.L+self.xslit0))-self.L
+                    y=np.random.random()*5.65-self.L
+                    
+                
+                if self.doorphase0==True:
+                    
+                    pos_data=self.visu.transData.transform([(x,y)])
+                    self.door.x=np.int(pos_data[0,0])
+                    self.door.y=np.int(pos_data[0,1])
+                    self.doorphase0=False
+                
+                if  (self.door.x-self.door.width/2.)<self.quadrat.x<(self.door.x+(3*self.door.width)/2.):
+                    if (self.door.y-(self.door.height)/2.)<self.quadrat.y<(self.door.y+(3*(self.door.height))/2):
+                        self.doorphase=False
+                        self.changeconf()
+                        
     def compute(self,*largs):    
         """Quan es clica el butó play, s'activa aquesta funció, que activa
         el calcul"""     
@@ -1588,56 +1813,47 @@ class GameScreen(Screen):
     def reset(self,*largs):
         """Aquesta funció reseteja el paquet i el potencial inicials. Segons el
         mode inicial en el que ens trobem, es resetejara un o l altre."""
-        if self.pause_state==True:
+        if self.pause_state==True:            
             #Segons el mode, reseteja un potencial o un paquet diferent
-            if self.mode==0:
-                self.psi0=self.psistand(0.,0.)
-                self.Vvec=self.Vvecstand()
-            else:
-                self.psi0=self.psislit()
-                self.Vvec=self.Vvecslit()
+            
+            self.paint.canvas.clear()
+            self.arrow.canvas.clear()
+            self.slitcanvas.canvas.clear()
+            self.setcordpress=self.emptylist()
+            self.setcordrelease=self.emptylist()          
+            
+            #Canviem els parametre en pantalla tambe
+            self.t_total=0.00
+            self.box3.tempschange.text='0.00'
+            #self.box3.pxchange.text='0.0'
+            #self.box3.pychange.text='0.0'
+         
+            #•self.x0=self.zero()
+            #self.y0=self.zero()
+            if self.lv_1==True:
+                self.activatelvl1()
+                #self.box4.box_sel.select_but.disabled=False
+            elif self.lv_2==True:
+                self.activatelvl2()
+                #self.box4.box_sel.select_but.disabled=True
         
             #Parametres que s'han de tornar a resetejar
             self.i=0
             self.px=0.
             self.py=0.
-            self.t_total=0.00
             
             if self.setcordpress.size>0:
                 self.editorstop()
             else:
                 pass
 
-            self.paint.canvas.clear()
-            self.arrow.canvas.clear()
-            self.setcordpress=self.emptylist()
-            self.setcordrelease=self.emptylist()          
-            self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
-            print('Clear!')
-            #Rseteja la imatge
             
-            self.normavec=ck.norma(self.psi0,self.Nx)
-            self.visu_im.remove()
-            self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                          extent=(-self.L,self.L,-self.L,self.L)) 
-          
-            self.main_canvas.draw()
-            
-            #Canviem els parametre en pantalla tambe
-            
-            self.box3.tempschange.text='0.00'
-            self.box3.pxchange.text='0.0'
-            self.box3.pychange.text='0.0'
-         
-            self.x0=self.zero()
-            self.y0=self.zero()
             self.selectmode_pause=False
+            
             self.lifecontrol(150)
             
-            self.setlvl1()
             
-            
-            
+
     def transition_GS(self,*largs):
             self.g_schedule_cancel()
             self.manager.transition=FadeTransition()
@@ -1662,17 +1878,26 @@ class GameScreen(Screen):
     #5.Vvecslit
     #6.psistand
     #7.psislit
+    
+            
     def standard(self,*largs):
         """Funció que retorna el mode estandard en tots els aspectes: de càlcul,
         en pantalla, etf..."""
         
-        self.mode=0
+        if self.mode==1:
+            #self.box4.box_sel.select_but.disabled=False
+            #self.remove_widget(self.box5)
+            self.slitcanvas.canvas.clear()
+        #self.mode=0
+        self.L=3.0
+        self.dx=0.03
+        self.box3.longitudchange.text='{}'.format(self.L)
+        self.Nx=np.int((2*self.L)/self.dx)
+        self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
         self.Vvec=self.Vvecstand()
         self.psi0=self.psistand(0.,0.)
         #Llevem les líneas que hi pogui haver
-
-        self.lineslit1.remove()
-        self.lineslit2.remove()
+        
             
         #Això es un reset, pensar fer-ho amb el reset.
         #Canviem la pantalla i el mode:
@@ -1688,17 +1913,39 @@ class GameScreen(Screen):
 
         #I utilitzar-lo
         self.main_canvas.draw()            
-        self.box4.box_sel.select_but.background_color=[1,1,1,1]
+  
             
                     
  
-    def slit(self,*largs):
+    def slit(self,xslit,slitwidth,x0slit,y0slit,*largs):
         """Quan activem aquest buto, canviem el paquet de referencia i el 
         potencial de referència i ho deixem en el mode slit. Aquest mode
         correspon amb el número 1."""
-        self.mode=1
-        self.Vvec=self.Vvecslit()
-        self.psi0=self.psislit()
+        #self.mode=1
+        self.L=3.0
+        self.dx=0.03
+        self.box3.longitudchange.text='{}'.format(self.L)
+        self.Nx=np.int((2*self.L)/self.dx)
+        #self.slitwidth=0.5
+        #self.xslit=((self.L)*2)*(1/3.)-self.L
+        self.xslit=xslit
+        self.slitwidth=slitwidth
+        self.yslitinf=-self.slitwidth/2.
+        self.yslitsup=self.slitwidth/2.
+        self.value=10000
+        self.s2=self.dx/2.
+        self.Vvec=self.Vvecstand()
+
+        self.Vvec+=self.potencial_final(self.xslit,-self.L,self.xslit,self.yslitinf,
+                                        self.value,self.s2)
+        self.Vvec+=self.potencial_final(self.xslit,self.yslitsup,self.xslit,self.L,
+                                        self.value,self.s2)
+        self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
+        self.psi0=self.psistand(x0slit,y0slit)
+        #self.box4.box_sel.select_but.disabled=True
+        
+        #Parametres del forat del slit
+
         
         """Pintem tot lo dit i afegim una líniea que es correspón amb el potencial,
         fix en aquest mode."""
@@ -1709,24 +1956,33 @@ class GameScreen(Screen):
         self.visu_im.remove()
         #Posar el nou
         self.visu_im=self.visu.imshow(self.normavec,origin={'upper'},
-                                         extent=(-self.L,self.L,-self.L,self.L)) 
+                                         extent=(-self.L,self.L,-self.L,self.L),cmap='inferno') 
  
         
         
-        self.lineslit1=self.visu.axvline(x=-self.L+self.xposslit*self.dx,
-                                         ymin=0,
-                                         ymax=0.475,
-                                         color='white')
+        self.inf1=self.visu.transData.transform([(self.xslit,-self.L)])
+        self.inf2=self.visu.transData.transform([(self.xslit,self.yslitinf)])
         
+        self.sup1=self.visu.transData.transform([(self.xslit,self.yslitsup)])
+        self.sup2=self.visu.transData.transform([(self.xslit,self.L)])
         
+        self.slitcanvas.canvas.clear()
+        with self.slitcanvas.canvas:
+            Color(1,1,1)
+            Line(points=(self.inf1[0,0],self.inf1[0,1],self.inf2[0,0],self.inf2[0,1]))
+            Line(points=(self.sup1[0,0],self.sup1[0,1],self.sup2[0,0],self.sup2[0,1]))               
+        #Afegim un slider
         
-        self.lineslit2=self.visu.axvline(x=-self.L+self.xposslit*self.dx,
-                                         ymin=0.525,
-                                         ymax=1,color='white',)
+        #if self.mode==0:
+            #self.add_widget(self.box5)
+            #self.box4.box_sel.select_but.disabled=True
+            
         
-        self.box4.box_sel.select_but.background_color=[0.5,0.5,0.5,1]
+
         #I utilitzar-lo
-        self.main_canvas.draw()    
+        self.main_canvas.draw()                    
+ 
+        
         
     def modechange(self,*largs):
         """Funció que s'encarrega de canviar de mode. De moment només en tenim
@@ -1737,10 +1993,13 @@ class GameScreen(Screen):
         #Canviem el mode posteriorment.
         if self.mode==1:
             self.standard()
+            self.mode=0
             self.box21.modechange.text='Standard'
+            
         else:
             self.slit()
             self.box21.modechange.text='Slit'
+            self.mode=1
     
     def Vvecstand(self,*largs):
         """Potencial del mode estandard"""
@@ -1775,7 +2034,7 @@ class GameScreen(Screen):
         
         return psiestandar
         
-    def psislit(self,*largs):
+    def psislit(self,x0,y0,px0,py0,*largs):
         """Paquet corresponent al mode slit"""
         
         #Paquet propi del mode slit
@@ -1802,7 +2061,7 @@ class GameScreen(Screen):
         #Canvi el moment en pantalla
         self.px=value_px
         
-        self.box3.pxchange.text='{0:.2f}'.format(self.px)
+        self.box3.pxchange.text='{0:.0f}'.format(self.px)
        
         #Canvi del moment efectiu
         #if self.mode==0:
@@ -1813,13 +2072,12 @@ class GameScreen(Screen):
         #    self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,self.x0slit,self.y0slit) 
         #                         for i in range(self.Nx+1)]
         #                   for j in range(self.Nx+1)])
-    def changedrawpx(self,value_px,*largs):
+    def changedrawpx(self,value_px,x0,y0,*largs):
         
-        if self.mode==1:
-            self.cent=self.visu.transData.transform([(self.x0slit,self.y0slit)])
-        else:
-            
-            self.cent=self.visu.transData.transform([(self.x0,self.y0)])
+        
+        self.cent=self.visu.transData.transform([(x0,y0)])
+        
+
         self.px=value_px
         
         if self.t_total<self.dt:
@@ -1830,13 +2088,9 @@ class GameScreen(Screen):
                 Line(points=(self.cent[0,0],self.cent[0,1],self.cent[0,0]+self.px*7.5,
                                      self.cent[0,1]+self.py*7.5))
     
-    def changedrawpy(self,value_py,*largs):
+    def changedrawpy(self,value_py,x0,y0,*largs):
         
-        if self.mode==1:
-            self.cent=self.visu.transData.transform([(self.x0slit,self.y0slit)])
-        else:
-            
-            self.cent=self.visu.transData.transform([(self.x0,self.y0)])
+        self.cent=self.visu.transData.transform([(x0,y0)])
         self.py=value_py
         
         if self.t_total<self.dt:
@@ -1857,7 +2111,7 @@ class GameScreen(Screen):
         #Canvi el moment en pantalla
         self.py=value_py
         
-        self.box3.pychange.text='{0:.2f}'.format(self.py)
+        self.box3.pychange.text='{0:.0f}'.format(self.py)
         
         #Canvi del moment efectiu
         #if self.mode==0:
@@ -1869,22 +2123,19 @@ class GameScreen(Screen):
         #                         for i in range(self.Nx+1)]
         #                   for j in range(self.Nx+1)]) 
     
-    def applychanges(self,*largs):
+    def applychanges(self,x0,y0,*largs):
         """Aquesta funció s'encarrega d'aplicar les modificacions físiques
         fetes al paquet mitjançant el menú d'edició. """
         
         #Canvi del moment efectiu
         
-        if self.t_total<self.dt:
+        #if self.t_total<self.dt:
             
-            if self.mode==0:
-                self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,self.x0,self.y0) 
+            
+        self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,x0,y0) 
                                          for i in range(self.Nx+1)]
                                    for j in range(self.Nx+1)])
-            if self.mode==1:
-                self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,self.x0slit,self.y0slit) 
-                                     for i in range(self.Nx+1)]
-                               for j in range(self.Nx+1)]) 
+            
         
 
 
@@ -2014,6 +2265,20 @@ class GameScreen(Screen):
         
         else:
             pass
+        
+    def potencial_final(self,x0,y0,x1,y1,value,s2):
+        """Funció que genera un potencial infinit que va desde x0,y0 fins x1,y1 """
+        
+        
+        #Vecgaussia=self.potential_maker(x0,y0,x1,y1,value,s2)
+        Vvecsegur=self.Vvecmarcat(x0,y0,x1,y1,value*(1./(np.sqrt(s2*2.*np.pi))))
+                #I el sumem...
+        Vvecfinal=Vvecsegur
+        #Coloquem una petita gaussiana al voltant de cada punt de sigma*2=self.dx/2
+        #self.Vvec=Vvec
+        #Modifiquem els respectius ac,vc
+        #self.Vvec=Vvec
+        return Vvecfinal
     def gaussian_maker(self,x,y,x0,y0,x1,y1,value,s2,*largs):
         """Introduïm aquí la gaussiana per cada x e y... x0,y0,x1,y1, son els
         dos punts que uneixen la recta dibuixada. Utilitzarem les rectes perpen-
@@ -2183,7 +2448,8 @@ class GameScreen(Screen):
             self.normavec=ck.norma(self.psi0,self.Nx)
             self.visu_im.remove()
             self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                          extent=(-self.L,self.L,-self.L,self.L)) 
+                                          extent=(-self.L,self.L,-self.L,self.L),
+                                          cmap='inferno') 
           
             self.main_canvas.draw()
             self.activatepaints(0)
@@ -2252,45 +2518,145 @@ class GameScreen(Screen):
         #Hem de pensar que la posició es defineix a la  cantonada inferior esquerre
         #del rectangle
         dist=5
-
         
-        #Conexions events amb moviment quadrat
-        if keycode[1] == 'w':
-            if self.quadrat.y+dist+h>ylimsup:
-                pass
-            else:
-                self.quadrat.y += pas
-                self.position=self.quadrat.pos
-            return True
+        
 
-        if keycode[1] == 's':
-            if self.quadrat.y-dist<yliminf:
-                pass
-            else:
-                self.quadrat.y-= pas
-                self.position=self.quadrat.pos
-            #self.position=self.quadrat.position
-            #print(self.quadrat.position)  
-            return True
-
-
-        if keycode[1]=='d':     
-            if self.quadrat.x+dist+w>xlimsup:
-                pass
-            else:
-                self.quadrat.x+=pas
-                self.position=self.quadrat.pos
-            return True
- 
+        if self.lv_1==True:
+            #Conexions events amb moviment quadrat
+            if keycode[1] == 'w':
+                if self.quadrat.y+dist+h>ylimsup:
+                    pass
+                else:
+                    self.quadrat.y += pas
+                    self.position=self.quadrat.pos
+                return True
+    
+            if keycode[1] == 's':
+                if self.quadrat.y-dist<yliminf:
+                    pass
+                else:
+                    self.quadrat.y-= pas
+                    self.position=self.quadrat.pos
+                #self.position=self.quadrat.position
+                #print(self.quadrat.position)  
+                return True
+    
+    
+            if keycode[1]=='d':     
+                if self.quadrat.x+dist+w>xlimsup:
+                    pass
+                else:
+                    self.quadrat.x+=pas
+                    self.position=self.quadrat.pos
+                return True
+     
+                
+                   
+            elif keycode[1] =='a' :
+                if self.quadrat.x-dist<xliminf:
+                    pass
+                else:
+                    self.quadrat.x -=pas
+                    self.position=self.quadrat.pos
+                return True
             
-               
-        elif keycode[1] =='a' :
-            if self.quadrat.x-dist<xliminf:
-                pass
-            else:
-                self.quadrat.x -=pas
-                self.position=self.quadrat.pos
-            return True
+            
+        if self.lv_2==True:
+            #Conexions events amb moviment quadrat
+            #Necessitem saber on es troba en tot moment el potencial, per tant
+            if self.conf==0:
+                self.inf=self.visu.transData.transform([(self.xslit0,self.yslitinf)])
+                self.sup=self.visu.transData.transform([(self.xslit0,self.yslitsup)])
+                
+            elif self.conf==1:
+                self.inf=self.visu.transData.transform([(self.xslit1,self.yslitinf)])
+                self.sup=self.visu.transData.transform([(self.xslit1,self.yslitsup)])
+                
+            
+                
+            if keycode[1] == 'w':
+                if self.quadrat.y+dist+h>ylimsup:
+                    pass
+                else:
+                    self.quadrat.y += pas
+                    self.position=self.quadrat.pos
+                return True
+    
+            if keycode[1] == 's':
+                if self.quadrat.y-dist<yliminf:
+                    pass
+                else:
+                    self.quadrat.y-= pas
+                    self.position=self.quadrat.pos
+                #self.position=self.quadrat.position
+                #print(self.quadrat.position)  
+                return True
+    
+    
+            if keycode[1]=='d':     
+                
+                if self.conf==0:
+                    if self.quadrat.x+dist+w>xlimsup:
+                        pass
+                    
+                    
+                    elif self.inf[0,0]+w>self.quadrat.x+w+dist>self.inf[0,0] and (self.quadrat.y<self.inf[0,1] or self.quadrat.y+h>self.sup[0,1]) and self.closedslit==False:
+                        
+                        pass
+                    
+                    
+                    else:
+                        self.quadrat.x+=pas
+                        self.position=self.quadrat.pos
+                                                       
+                    return True
+                
+                if self.conf==1:
+                    if self.quadrat.x+dist+w>xlimsup:
+                        pass
+                    
+                    
+                    elif self.inf[0,0]+w>self.quadrat.x+w+dist>self.inf[0,0] and (self.quadrat.y<self.inf[0,1] or self.quadrat.y+h>self.sup[0,1]) and self.closedslit==False:
+                        
+                        pass
+                    
+                    elif self.quadrat.x+dist+w>self.inf[0,0] and self.closedslit==True:
+                        pass
+                    else:
+                        self.quadrat.x+=pas
+                        self.position=self.quadrat.pos
+                                                       
+                    return True
+     
+                
+                   
+            elif keycode[1] =='a' :
+                
+                if self.conf==0:
+                    
+                    if self.quadrat.x-dist<xliminf:
+                        pass
+                    
+                    elif self.inf[0,0]-2*dist<self.quadrat.x-dist<self.inf[0,0] and (self.quadrat.y<self.inf[0,1] or self.quadrat.y+h>self.sup[0,1]) and self.closedslit==False:
+                        pass
+                    
+                    elif self.quadrat.x-dist<self.inf[0,0] and self.closedslit==True:
+                        pass
+                    else:
+                        self.quadrat.x -=pas
+                        self.position=self.quadrat.pos
+                        
+                if self.conf==1:
+                    if self.quadrat.x-dist<xliminf:
+                        pass
+                    
+                    elif self.inf[0,0]-2*dist<self.quadrat.x-dist<self.inf[0,0] and (self.quadrat.y<self.inf[0,1] or self.quadrat.y+h>self.sup[0,1]) and self.closedslit==False:
+                        pass
+                    
+                    else:
+                        self.quadrat.x -=pas
+                        self.position=self.quadrat.pos
+                return True
    
 
         
@@ -2335,7 +2701,24 @@ class GameScreen(Screen):
             
             
         else:           
-            self._keyboard.unbind(on_key_down=self._on_keyboard_down)           
+            self._keyboard.unbind(on_key_down=self._on_keyboard_down)    
+            
+    def activatelvl1(self,*largs):
+        
+        """Funció que deixa preparat el nivell 1"""
+        
+        
+        self.lv_2=False
+        self.lv_1=True
+        self.slitcanvas.canvas.clear()
+        self.paint.canvas.clear()
+        self.t_total=0.00
+        self.lifecontrol(150)
+        self.box3.tempschange.text='0.00'
+        #self.arrow.canvas.clear()
+        self.buttong.pos=[100,800]
+        self.standard()
+        self.setlvl1()
     
     def drawlvl1(self,*largs):
         """Dibuixa la configuració inical del nivell 1"""
@@ -2358,11 +2741,13 @@ class GameScreen(Screen):
     def setlvl1(self,*largs):
         """Prepara la configuració del paquet pel nivell 1"""
         pxinicial=-10.00
+        x0=0.
+        y0=0.
         self.fishcatched=0
         self.box4.fishchange.text="{}/10".format(self.fishcatched)
         self.changepx(pxinicial)
-        self.changedrawpx(pxinicial)
-        self.applychanges()
+        self.changedrawpx(pxinicial,x0,y0)
+        self.applychanges(x0,y0)
         self.drawlvl1()
     
     def lifecontrol(self,value,*largs):
@@ -2374,8 +2759,9 @@ class GameScreen(Screen):
             self.life+=value
         else:
             self.life=0
-            self.box4.statechange.text='You lose :/'
+            
             self.pause()
+            self.box4.statechange.text='Finished :('
         self.boxlife.life_slider.value=self.life
         
     def drawfish(self,x,y,*largs):
@@ -2386,25 +2772,185 @@ class GameScreen(Screen):
         print(pos_data)
         #ara tenim les coordenades kivy
         
-        self.fish.x=np.int(pos_data[0,0])
-        self.fish.y=np.int(pos_data[0,1])
-        self.fishcatched+=1
-        self.box4.fishchange.text="{}/10".format(self.fishcatched)
+        if self.lv_1==True:
+            
+            self.fish.x=np.int(pos_data[0,0])
+            self.fish.y=np.int(pos_data[0,1])
+            self.fishcatched+=1
+            self.box4.fishchange.text="{}/10".format(self.fishcatched)
+            
+            if self.fishcatched==10:
+                self.pause()
+                self.box4.statechange.text='Finished!'
+                
+        if self.lv_2==True:
+            self.fishcatched+=1
+            self.box4.fishchange.text="{}/3".format(self.fishcatched)
+            
+            if self.fishcatched==3:
+                self.fishphase=False
+                self.fish.pos=[100,800]
+                self.doorphase=True
+                self.doorphase0=True
+                self.box4.statechange.text='Get out!'
+            
+            else:
+                self.fish.x=np.int(pos_data[0,0])
+                self.fish.y=np.int(pos_data[0,1])
+      
+                
+    def setlvl2(self,conf,slitwidth):
+        """Dibuixa les diferents configuracions del nivell 2, que com ja
+        sabem, presenta diverses configuracions. El flux serà controlat des de
+        plotpsiev"""
+        #Paràmetre de les dues configuracions del slit
+        xslit0=self.xslit0
+        xslit1=self.xslit1
+        #Parametres de les deus configuracions del paquet.
+        x0slit0=(self.L*2)*(7.3/10.)-self.L
+        y0slit=0.
+        x0slit1=(self.L*2)*(3.55/10.)-self.L
+        self.box4.fishchange.text="0/3".format(self.fishcatched)
+        px00=-10.
+        px01=10.
+        self.box4.statechange.text='Close the slit!'
+        if conf==0:
+            self.slit(xslit0,slitwidth,x0slit0,y0slit)
+            self.changepx(px00)
+            self.changedrawpx(px00,x0slit0,y0slit)
+            self.applychanges(x0slit0,y0slit)
+            self.drawlvl2(0)
+            
+        elif conf==1:
+            self.slit(xslit1,slitwidth,x0slit1,y0slit)
+            self.changepx(px01)
+            self.changedrawpx(px01,x0slit1,y0slit)
+            self.applychanges(x0slit1,y0slit)
+            self.drawlvl2(1)
+            
+        #Dibuixem diferents 
         
-        if self.fishcatched==10:
+    def drawlvl2(self,conf,*largs):
+        """Dibuixa la configuració inical del nivell 2"""
+                     
+        self.cantonsnew=self.visu.transData.transform([(-3,-3),(-3,3),(3,3),(3,-3)])
+        self.inf=self.visu.transData.transform([(self.xslit0,self.yslitinf)])
+        self.sup=self.visu.transData.transform([(self.xslit0,self.yslitsup)])
+        
+        if conf==0:
+         
+            self.quadrat.x=np.int((-self.cantonsnew[0,0]+self.cantonsnew[2,0])/10.
+                                      +self.cantonsnew[0,0])
+            self.quadrat.y=np.int(3*(-self.cantonsnew[0,1]+self.cantonsnew[1,1])/4.
+                                      +self.cantonsnew[0,1]) 
+            
+            self.buttong.x=np.int(7*(-self.cantonsnew[0,0]+self.cantonsnew[2,0])/10.
+                                      +self.cantonsnew[0,0])
+            
+            self.buttong.y=np.int(4*(-self.cantonsnew[0,1]+self.cantonsnew[1,1])/5.
+                                      +self.cantonsnew[0,1]) 
+        
+        elif conf==1:
+            self.quadrat.x=np.int(9*(-self.cantonsnew[0,0]+self.cantonsnew[2,0])/10.
+                                      +self.cantonsnew[0,0])
+            self.quadrat.y=np.int(3*(-self.cantonsnew[0,1]+self.cantonsnew[1,1])/4.
+                                      +self.cantonsnew[0,1]) 
+            
+            self.buttong.x=np.int(2*(-self.cantonsnew[0,0]+self.cantonsnew[2,0])/10.
+                                      +self.cantonsnew[0,0])
+            
+            self.buttong.y=np.int(4*(-self.cantonsnew[0,1]+self.cantonsnew[1,1])/5.
+                                      +self.cantonsnew[0,1]) 
+        
+        self.fish.pos=[100,800]
+     
+        self.door.pos=[100,800]
+        #self.fish.x=np.int(5*(-self.cantonsnew[0,0]+self.cantonsnew[2,0])/6.
+        #                              +self.cantonsnew[0,0])
+         
+        #self.fish.y=np.int(1*(-self.cantonsnew[0,1]+self.cantonsnew[1,1])/4.
+        #                              +self.cantonsnew[0,1])
+                        
+  
+    def activatelvl2(self,*largs):
+        
+        """Aquesta funció s'encarrega de inicialitzar el nivell 2. """
+        
+            
+          
+        self.lv_1=False
+                    
+        self.lv_2=True
+        self.t_total=0.00
+        self.box3.tempschange.text='0.00'
+              #Construeix la configuració incial del nivell 2
+        self.conf=0
+        self.setlvl2(self.conf,self.slitwidthlist[0])
+        self.fish.pos=[100,800]
+        self.closedslit=False
+            
+        self.fishcatched=0
+        self.doorphase=False
+        self.doorphase0=False
+        self.fishphase=False
+        self.fishphase0=False
+        self.phaselvl2=1
+        self.lifecontrol(150)
+       
+        
+    
+    def closeslit(self,slitwidth,conf,*largs):
+        """Aquesta funció tanca el slit"""
+        
+        if conf==0:
+            xslit=self.xslit0
+            
+        elif conf==1:
+            xslit=self.xslit1
+       
+        #Canviem el potencial
+        
+        #self.Vvec+=self.Vvecmarcat(xslit,-slitwidth/2.,xslit,slitwidth/2.,self.value*(1./(np.sqrt(self.s2*2.*np.pi))))
+        #Canviem el dibuix del potencial
+        self.Vvec+=self.potencial_final(xslit,-slitwidth/2.,xslit,slitwidth/2.,
+                                        self.value,self.s2)
+        
+        self.inf=self.visu.transData.transform([(xslit,-slitwidth/2.)])
+        self.sup=self.visu.transData.transform([(xslit, slitwidth/2.)])
+        
+        
+        with self.slitcanvas.canvas:
+            Color(1,1,1)
+            Line(points=(self.inf[0,0],self.inf[0,1],self.sup[0,0],self.sup[0,1]))
+            
+        
+        self.closedslit=True
+        
+        
+    def changeconf(self,*largs):        
+        """Aquesta funció s'encarrega de canviar la pantalla del nivell 2."""
+        self.closedslit=False
+        self.fishcatched=0
+        self.phaselvl2+=1
+
+        if self.phaselvl2==self.slitwidthlist.size+1:
             self.pause()
             self.box4.statechange.text='Finished!'
+            pass
+        else:
+            self.slitwidth=self.slitwidthlist[np.int(self.phaselvl2-1)]
+            if self.conf==0:
+                self.conf=1
+            elif self.conf==1:
+                self.conf=0
+            self.pause_game=True
+            self.pause_state=True
+            self.setlvl2(self.conf,self.slitwidth)
+            self.door.pos=[100,800] 
+            self.pause_game=False
+            self.pause_state=False
+            #self.compute()
         
-        
-            
-            
-    
-                
-        
-        
-
-        
-   
 class MyPaintWidget(Widget):
 
     
@@ -2450,7 +2996,14 @@ class Arrow(Widget):
 class Fish(Widget):
     pass
 
-        
+class Slit(Widget):
+    pass
+
+class Butg(Widget):
+    pass
+
+class Door(Widget):
+    pass        
 
 
 def press(event):
