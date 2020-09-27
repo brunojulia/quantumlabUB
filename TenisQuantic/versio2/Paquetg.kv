@@ -63,14 +63,14 @@
             size:self.size
             source: 'cat.png'
 
-<Fish>
+<Fish>:
     canvas:
         Color:
             rgba: 1,1,1,1
         Rectangle:
             pos:self.pos
             size:self.size
-            source: 'fish.png'
+            source: 'fish1.png'
 
 
             
@@ -81,6 +81,25 @@
         Line:
             points:0,0,1,1
             width:10
+            
+<Butg>:
+    canvas:
+        Color:
+            rgba: 1,1,1,1
+        Rectangle:
+            pos: self.pos
+            size:self.size
+            source: 'button.png'
+            
+<Door>:
+    canvas:
+        Color:
+            rgba: 1,1,1,1
+        Rectangle:
+            pos: self.pos
+            size:self.size
+            source: 'door.png'
+            
 
 
 <PaquetScreen>:
@@ -90,6 +109,7 @@
     box21: box21_id
     box3: box3_id
     box4: box4_id
+    box5: box5_id
     quadrat: quadrat_id
     #:set color_labels 1,1,1,1
     #:set black 0,0,0,1
@@ -114,7 +134,31 @@
         points:self.points
 
                 
-    ###########################EDITON##############################3
+    ###########################EDITON##############################
+    
+    RelativeLayout:
+        id:box5_id
+        orientation:'vertical'
+        size_hint: 0.05,0.5
+        pos_hint:{'y':0.3,'x':0.02}
+        slit_slider: slit_slider_id
+        Label:
+            text:'Wide'
+            color: black
+            pos_hint:{'y':0.9,'x':0}
+            size_hint:1,0.1
+        Slider:
+            id:slit_slider_id
+            orientation:'vertical'
+            pos_hint:{'y':0,'x':0}
+            size_hint:1,0.9
+            min:0
+            max:3
+            value:0.5
+            on_touch_up:
+                root.changeslit(self.value)
+            on_touch_move:
+                root.changedrawslit(self.value)
     RelativeLayout:
         id:box4_id
         boxpx: box_px_id
@@ -513,7 +557,8 @@
     #:set color_labels 1,1,1,1
     #:set black 0,0,0,1
     arrow: arrow_id
-
+    buttong:buttongame_id
+    door: door_id
     
     #############################MAINCANVAS############################
     FloatLayout:
@@ -530,13 +575,22 @@
         id: fish_id
         size_hint:0.05,0.05
         pos:self.pos
+        #color: 0.1,0.1,1
     Arrow:
         id:arrow_id
         size_hint:0.2,0.2
         pos:self.pos
         points:self.points
+        
+    Butg:
+        id: buttongame_id
+        size_hint:0.05,0.05
+        pos:self.pos
 
-                
+    Door:
+        id: door_id
+        size_hint:0.05,0.05
+        pos:self.pos           
     ###########################EDITON##############################3
     RelativeLayout:
         id:box4_id
@@ -571,10 +625,10 @@
         
         GridLayout:
             cols:2
-            rows:4
+            rows:3
             spacing: self.height/7
-            pos_hint: {'x':0.03,'y':0.20}
-            size_hint: 0.87, 0.60
+            pos_hint: {'x':0.03,'y':0.35}
+            size_hint: 0.87, 0.50
             Label:
                 text:'Level'
                 color:color_labels
@@ -621,21 +675,21 @@
                         Color:
                             rgba:color_labels
             
-            Label:
-                text:'State'
-                color:color_labels
+        
                 
-            Label:
-                text:'Resting'
-                id:statechange_id
-                color: black
-                canvas.before:               
-                    Rectangle:
+        Label:
+            pos_hint:{'x':0.05,'y':0.2}
+            size_hint:0.9,0.1
+            text:'Resting'
+            id:statechange_id
+            color: black
+            canvas.before:               
+                Rectangle:
                 
-                        pos:self.pos
-                        size:self.size
-                        Color:
-                            rgba:color_labels
+                    pos:self.pos
+                    size:self.size
+                    Color:
+                        rgba:color_labels
                 
         
         
@@ -643,8 +697,20 @@
         Button:
             text:'Reset'
             pos_hint:{'x':0.05,'y':0.07}
-            size_hint:0.9,0.1
-            on_press: root.reset()        
+            size_hint:0.45,0.1
+            on_press: root.reset()
+            
+        Button:
+            text:'2'
+            pos_hint: {'x':0.5,'y':0.07}
+            size_hint:0.22,0.1
+            on_press: root.activatelvl2()
+            
+        Button:
+            text:'1'
+            pos_hint: {'x':0.72,'y':0.07}
+            size_hint:0.22,0.1
+            on_press: root.activatelvl1()
         
         
 
@@ -656,8 +722,7 @@
         pychange:pychange.__self__
         tempschange:tempschange.__self__
         longitudchange:longitudchange.__self__
-        dxchange:dxchange.__self__
-        dtchange:dtchange.__self__
+
         normachange:normachange.__self__
         energychange:energychange.__self__
         
@@ -771,17 +836,18 @@
             size_hint:0.8,0.1
             color: 0,0,0,1
             
-        GridLayout:
-            cols: 4
-            spacing: self.height/7
+        BoxLayout:
+            #cols: 4
+            #spacing: self.height/7
             pos_hint:{'x':0,'y':0.22}
             size_hint:0.9,0.1
+            orientation:'horizontal'
             Label:
-                text:'p_x'
+                text:'('
                 color: color_labels
                 
             Label:
-                text:'0.00'
+                text:'0'
                 id:pxchange
                 color: black
                 canvas.before:               
@@ -792,11 +858,11 @@
                         Color:
                             rgba:color_labels
             Label:
-                text:'p_y'
+                text:','
                 color: color_labels
                 
             Label:
-                text:'0.00'
+                text:'0'
                 id:pychange
                 color: black
                 canvas.before:               
@@ -805,82 +871,59 @@
                         size:self.size
                         Color:
                             rgba:color_labels
+            Label:
+                text:')'
+                color:color_labels
 
-
-        Label:
-            text:'Discretitzat'
-            pos_hint:{'x':0.1,'y':0.12}
-            size_hint:0.8,0.1
-            color: 0,0,0,1
-            
-        GridLayout:
-            cols: 4
-            spacing: self.height/7
-            pos_hint:{'x':0,'y':0.02}
-            size_hint:0.9,0.1
-            Label:
-                text:'dx'
-                color: color_labels
-                
-            Label:
-                text:'0'
-                id:dxchange
-                color: black
-                canvas.before:               
-                    Rectangle:
-                
-                        pos:self.pos
-                        size:self.size
-                        Color:
-                            rgba:color_labels
-            Label:
-                text:'dt'
-                color: color_labels
-                
-            Label:
-                text:'0'
-                id:dtchange
-                color: black
-                canvas.before:               
-                    Rectangle:                
-                        pos:self.pos
-                        size:self.size
-                        Color:
-                            rgba:color_labels
 
 #Control del flux del joc
     BoxLayout:
         id:box2_id
-        size_hint:0.20,0.075
-        pos_hint:{'y':0.,'x':0}
+        size_hint:0.17,0.05
+        pos_hint:{'y':0.01,'x':0.01}
         orientation:'horizontal'
+        spacing:self.width/15.
         height:50
         
         Button:
-            text:'Play'
+            #text:'Play'
             on_press: root.compute()
-            background_color: 0,1,0,1
+    
+            background_normal: 'play.png'
+            background_color: 2555/256.,215/256.,0,1
+            border:(0,0,0,0)
         Button:
-            text:'Pause'
+            #text:'Pause'
             on_press: root.pause()
-            background_color: 1,0,0,1
+            background_normal:'pause.png'
+            background_color: 255/256.,215/256.,0,1
+            border:(0,0,0,0)
+        
+        
+        Button:
+            on_press: root.reset()
+            background_normal:'restart.png'
+            background_color: 255/256.,215/256.,0,1
+            border:(0,0,0,0)
     
     BoxLayout:
         id:box21_id
-        size_hint:0.15,0.075
-        pos_hint:{'y':0.,'x':0.6}
+        size_hint:0.05,0.04
+        pos_hint:{'y':0.01,'x':0.67}
         orientation:'horizontal'
         height:50
         
         
         
         Button:
-            text:'Back'
             on_press:root.transition_GS()
+            background_normal:'back.png'
+            border:(0,0,0,0)
+            
             
     BoxLayout:
         id:boxlife_id
-        size_hint:0.4,0.075
+        size_hint:0.45,0.075
         pos_hint:{'y':0.,'x':0.2}
         orientation:'horizontal'
         height:50
