@@ -460,16 +460,7 @@ class GamingScreen(Screen):
         self.actualitzacio_pantallaev()
         self.control_flux_botons()
         
-        #hem de vigilar també que no haguem arribat a la ultima casella
-        self.final_joc()
-
-
-
-                
-                
-   
-
-            
+        
     def up(self):
         
         if self.torn == 'blue' and self.control_botons == False:
@@ -507,8 +498,7 @@ class GamingScreen(Screen):
         self.actualitzacio_pantallaev()
         self.control_flux_botons()
 
-        #hem de vigilar també que no haguem arribat a la ultima casella
-        self.final_joc()
+
 
 
             
@@ -549,8 +539,6 @@ class GamingScreen(Screen):
         self.actualitzacio_pantallaev()
         self.control_flux_botons()
 
-        #hem de vigilar també que no haguem arribat a la ultima casella
-        self.final_joc()
 
             
     def left(self):
@@ -588,8 +576,6 @@ class GamingScreen(Screen):
         self.actualitzacio_pantallaev()
         self.control_flux_botons()
 
-        #hem de vigilar també que no haguem arribat a la ultima casella
-        self.final_joc()
         
 
     """ FUNCIONS UTILITZADES DESPRÉS DE MOURE LA PARTÍCULA PER DIBUIXAR """
@@ -751,6 +737,16 @@ class GamingScreen(Screen):
             
         self.pant_target_canvas.draw()
         
+        if self.actualposy_red == 0 and self.actualposx_red == 2:
+            print('LA PARTICULA VERMELLA HA ACABAT')
+            self.end_red = True
+        
+        if self.actualposy_blue == 0 and self.actualposx_blue == 2:
+            print('LA PARTÍCULA BLAVA HA ACABAT')
+            self.end_blue = True
+            
+        self.final_joc()
+        
             
         
            
@@ -778,11 +774,17 @@ class GamingScreen(Screen):
             
     def canvi_torn(self):
         
-        if self.torn == 'red' and self.end_red == False:
+        if self.torn == 'red' and self.end_blue == False:
             self.torn = 'blue'
             
-        elif self.torn == 'blue' and self.end_blue == False:
+        elif self.torn == 'blue' and self.end_red == False:
             self.torn = 'red'
+            
+        elif self.torn == 'red' and self.end_blue == True:
+            self.torn = 'red'
+        
+        elif self.torn == 'blue' and self.end_red == True:
+            self.torn = 'blue'
             
     def final_joc(self):
         
@@ -791,31 +793,33 @@ class GamingScreen(Screen):
         continua jugant fins que arriba també. Un cop arribades les dues comprova
         quina de les dues té més probabilitats d'haver arribat """
         
-        if self.actualposy_red == 0 and self.actualposx_red == 2:
-            print('LA PARTICULA VERMELLA HA ACABAT')
-            self.end_red = True
-        
-        if self.actualposy_blue == 0 and self.actualposx_blue == 2:
-            print('LA PARTÍCULA BLAVA HA ACABAT')
-            self.end_blue = True
-        
         if self.end_blue == True and self.end_red == True:
             
             print('EL JOC HA ACABAT')
             #ara comrpovem qui ha guanyat
             if self.blue_prob > self.red_prob:
                 print('HA GUANYAT LA PARTÍCULA BLAVA')
-                self.torn_txt.remove()
-                self.pantorn.patch.set_facecolor('blue')
-                self.torn_txt = self.pantorn.text(0.1,0.5,"BLUE PARTICLE WINNER!",color = 'black')
-                self.pantorn_canvas.draw()
+                self.winner = 'blue'
                 
             elif self.red_prob > self.blue_prob:
                 print('HA GUANYAT LA PARTÍCULA VERMELLA')
-                self.torn_txt.remove()
-                self.pantorn.patch.set_facecolor('red')
-                self.torn_txt = self.pantorn.text(0.1,0.5,"RED PARTICLE WINNER!",color = 'black')
-                self.pantorn_canvas.draw()
+                self.winner = 'red'
+                
+            self.finalpop()
+            
+        if GlobalShared.blue_life < 0.2:
+            self.winner = 'red'
+            self.finalpop()
+        
+        elif GlobalShared.red_life < 0.2:
+            self.winner = 'blue'
+            self.finalpop()
+            
+        else:
+            pass
+
+                
+                
                 
     """______________________ PARÀMETRES VARIABLES EN L'EVOLUCIÓ ________ """
     
@@ -1261,6 +1265,50 @@ class GamingScreen(Screen):
         popup = InfoPopup()
         popup.open() 
         
+    """________________POPUP FINAL DEL JOC______________________________ """
+    
+    def finalpop(self):
+        
+        winner = self.winner
+        popup = FinalPopup(winner)
+        popup.open() 
+        
+        popup.bind(on_dismiss = self.menu)
+        
+    def menu(self,instance):
+        
+        self.transition_GS()
+        
+
+
+class FinalPopup(Popup):
+    
+    def __init__(self,winner):
+
+        super(Popup, self).__init__()  
+        
+        self.color = winner
+        self.gpseudo_init()
+        
+    def transition_GS(self):
+        
+        """ Aquesta funció és cridada quan el botó "back" és premut per poder 
+        tornar a la patnalla inicial """
+        
+        self.manager.current = 'starting'
+        self.manager.transition = FadeTransition()
+        
+    def gpseudo_init(self): 
+        
+        if self.color == 'red':
+            
+            self.winnerlabel = Label(text = 'RED PARTICLE WINS')
+            self.box1.add_widget(self.winnerlabel)
+            
+        else:
+            
+            self.winnerlabel = Label(text = 'BLUE PARTICLE WINS')
+            self.box1.add_widget(self.winnerlabel)
 
 
 
