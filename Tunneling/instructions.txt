@@ -1,0 +1,18 @@
+This game consists of moving your particle throughout the table and arriving to the end box with the maximum of points.
+Every time you move from box to box you are passing through a potential barrier and quantum tunneling takes place. 
+When quantum tunneling takes place, there are some probabilities for the particle to have passed the barrier, and some probabilities that it has not.
+This game allows you to change the initial conditions from your wave function and the potential barrier parameters in order to have some control among the probabilities to have passed.
+When you want to cross a barrier, the game will give you a target probability to pass, and by changing some parameters you need to achieve this probability.
+When initial conditions are changed, the game uses the WKB prediction which calculates the probability of crossing the barrier using the initial conditions. 
+During the evolution of the wave crossing the barrier, the probability for the wave of having crossed the barrier is shown every short periods of time.
+The closer you get to the given target probability, the more points you will be given.
+Be careful, because every time you cross a barrier only a part of your particle passes to the next box, and it is proportional to the target probability in the box. The white/grey circles in the table give you an intuition about the target probability in that box.
+HOW TO PLAY
+Red particle will start. The red player has to choose where to move and click the corresponding arrow. 
+After that, the player will be allowed to change the initial conditions of the wave function.
+After that, when the player considers they are close enough to the target probability, they can start the evolution.
+While the evolution of the wave is taking place, the player will be allowed to change the parameters of the barrier.
+Evolution can be stopped whenever the player wants
+When the evolution is stopped a score according to the error commited is given to the red particle. The lower the error the higher the score.
+At the same time, the turn is given to the blue particle.
+
