@@ -53,10 +53,11 @@ class StartingScreen(Screen):
         """Transició des de la pantalla inicial a la pantalla de edició"""
         
         paquetscreen=self.manager.get_screen('paquet')
+
         paquetscreen.p_schedule_fired()
         self.manager.transition=FadeTransition()
         self.manager.current='paquet'
-    
+
     def transition_SG(self):
         """Transició des de la pantalla inicial al propi joc."""
         gamescreen=self.manager.get_screen('game')
@@ -81,7 +82,7 @@ class PaquetScreen(Screen):
         "Unim la clase amb la paraula self"
         super(PaquetScreen,self).__init__(**kwargs)
         #Aquesta linia uneix keyboard amb request keyboard
-        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
+        #self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
 
         #self._keyboard.bind(on_key_down=self._on_keyboard_down)
         
@@ -185,8 +186,9 @@ class PaquetScreen(Screen):
         #Plot principal
         self.visu=plt.axes()
         self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                      extent=(-self.L,self.L,-self.L,self.L))
-        
+                                      extent=(-self.L,self.L,-self.L,self.L),
+                                      cmap='inferno')
+        self.main_fig.set_facecolor(color='xkcd:grey')
        
                 
         #Posició de la figura
@@ -209,7 +211,10 @@ class PaquetScreen(Screen):
         self.main_canvas.mpl_connect('resize_event',partial(self.resize_kivy))
         
 
-        
+        self.arrowcolor=np.array([231/255.,30/255.,30/255.])
+        self.arrowwidth=2.
+        self.arrowdist=15.
+        self.arrowdist2=8.5
         ################################POTENCIAL MODE/Widget de dibuix
         self.ara=0
         self.setcordpress=np.array([])
@@ -251,9 +256,10 @@ class PaquetScreen(Screen):
 
     ##Ara venen tot el seguït de funcions que utilitzarem conjuntament amb els 
     #parametres definits a g_init
-    
+        self.slitwidth0=1.5
         self.remove_widget(self.box5)
-
+        self.activatepaint(1)
+        self.activatepaint(0)
     ##############################RESIZING############################
     #1.Resize_kivy
     
@@ -341,12 +347,55 @@ class PaquetScreen(Screen):
                     self.cent=self.visu.transData.transform([(self.x0,self.y0)])
                 
                 with self.arrow.canvas:
-                    Color(1,0,0)
-                    Line(points=(self.cent[0,0],self.cent[0,1],self.cent[0,0]+self.px*7.5,
-                                         self.cent[0,1]+self.py*7.5))
+                    Color(self.arrowcolor[0],self.arrowcolor[1],self.arrowcolor[2])
+                    x0=self.cent[0,0]
+                    y0=self.cent[0,1]
+                    x1=x0+self.px*7.5
+                    y1=y0+self.py*7.5
+                    Line(points=(x0,y0,x1,y1),width=self.arrowwidth)
+                    p_max=np.sqrt(10**2 + 10**2)
+                    p=np.sqrt(self.px**2+self.py**2)
+                    c=p/p_max
+                    if self.px==0.0:
+                        p1=np.array([x0-self.arrowdist*c,y1])
+                        p2=np.array([x0+self.arrowdist*c,y1])
+                        p3=np.array([x1,y0+self.py*self.arrowdist2])                    
+                    elif self.py==0.0:
+                        p1=np.array([x1,y0+self.arrowdist*c])
+                        p2=np.array([x1,y0-self.arrowdist*c])
+                        p3=np.array([x0+self.px*self.arrowdist2,y1])
+                    else:
+                        m=(y1-y0)/(x1-x0)
+                        phi=np.pi/2.-np.arctan(m)
+                        xr=x1-np.cos(phi)*self.arrowdist*c
+                        xm=x1+np.cos(phi)*self.arrowdist*c
+                        p1=np.array([xr,-np.tan(phi)*(xr-x1)+y1])
+                        p2=np.array([xm,-np.tan(phi)*(xm-x1)+y1])
+                        p3=np.array([x0 + self.px*self.arrowdist2,y0 + self.py*self.arrowdist2])
                     
+                    
+                    Line(points=(p1[0],p1[1],p2[0],p2[1]),width=self.arrowwidth)
+                    Line(points=(p2[0],p2[1],p3[0],p3[1]),width=self.arrowwidth)
+                    Line(points=(p3[0],p3[1],p1[0],p1[1]),width=self.arrowwidth)
+            
+                        
+            if self.mode==1:
+                self.slitcanvas.canvas.clear()
+                self.xslit=((self.L)*2)*(1/3.)-self.L
+                self.yslitinf=-self.slitwidth/2.
+                self.yslitsup=self.slitwidth/2.
+                self.inf1=self.visu.transData.transform([(self.xslit,-self.L)])
+                self.inf2=self.visu.transData.transform([(self.xslit,self.yslitinf)])
                 
-                    
+                self.sup1=self.visu.transData.transform([(self.xslit,self.yslitsup)])
+                self.sup2=self.visu.transData.transform([(self.xslit,self.L)])
+                
+                with self.slitcanvas.canvas:
+                    Color(1,1,1)
+                    Line(points=(self.inf1[0,0],self.inf1[0,1],self.inf2[0,0],self.inf2[0,1]))
+                    Line(points=(self.sup1[0,0],self.sup1[0,1],self.sup2[0,0],self.sup2[0,1]))   
+                        
+                            
                     
         if self.pause_state==False:
             #Primer de tot, representem el primer frame
@@ -359,7 +408,8 @@ class PaquetScreen(Screen):
             self.visu_im.remove()
             #Posar el nou
             self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                          extent=(-self.L,self.L,-self.L,self.L)) 
+                                          extent=(-self.L,self.L,-self.L,self.L),
+                                          cmap='inferno') 
             #I utilitzar-lo
             self.main_canvas.draw()
             #CALCUL
@@ -382,7 +432,8 @@ class PaquetScreen(Screen):
             
             
             #Cada 31 pasos de temps calculem el temps:
-            
+            if self.i>2:
+                self.box4.statechange.text='Simulating'
                 
             self.i+=1
 
@@ -399,23 +450,24 @@ class PaquetScreen(Screen):
         self.arrow.canvas.clear()
         self.box4.boxpx.pxslider.disabled=True
         self.box4.boxpy.pyslider.disabled=True
-        self.box4.okay_but.disabled=True
-        self.box4.reset_but.disabled=True
-        self.box4.draw_but.disabled=True
-        self.box4.box_sel.select_but.disabled=True
-        self.box4.box_sel.disabled=True
-        
-        #if self.mode==1:   
-        #    self.box5.slit_slider.disabled=True
+        self.box4.box_edition.okay_but.disabled=True
+        self.box2.reset_but.disabled=True
+        self.box4.box_edition.draw_but.disabled=True
+        self.box4.box_edition.select_but.disabled=True
+        #self.box4.box_sel.disabled=True
+        self.box4.statechange.text='Computing...'
+        if self.mode==1:   
+            self.box5.slit_slider.disabled=True
         
     def pause(self,*largs):
         """Aquesta funció para el càlcul del joc"""
         self.pause_state=True
-        self.box4.okay_but.disabled=False
-        self.box4.reset_but.disabled=False
-        self.box4.draw_but.disabled=False
-        #if self.mode==1:
-        #    self.box5.slit_slider.disabled=False
+        self.box4.box_edition.okay_but.disabled=False
+        self.box2.reset_but.disabled=False
+        self.box4.box_edition.draw_but.disabled=False
+        self.box4.statechange.text='Pause'
+        if self.mode==1:
+            self.box5.slit_slider.disabled=False
 
 
         
@@ -427,16 +479,17 @@ class PaquetScreen(Screen):
             #Segons el mode, reseteja un potencial o un paquet diferent
             if self.mode==0:
                 self.standard()
-                self.box4.box_sel.select_but.disabled=False
-            else:
+
+            elif self.mode==1:
                 self.slit()
-                self.box4.box_sel.select_but.disabled=True
+                self.box4.box_edition.select_but.disabled=True
         
             #Parametres que s'han de tornar a resetejar
             self.i=0
             self.px=0.
             self.py=0.
             self.t_total=0.00
+
             
             if self.setcordpress.size>0:
                 self.editorstop()
@@ -463,11 +516,11 @@ class PaquetScreen(Screen):
             self.selectmode_pause=False
             self.box4.boxpx.pxslider.disabled=False
             self.box4.boxpy.pyslider.disabled=False
-            self.box4.okay_but.disabled=False
-            self.box4.reset_but.disabled=False
-            self.box4.draw_but.disabled=False
+            self.box4.box_edition.okay_but.disabled=False
+            self.box2.reset_but.disabled=False
+            self.box4.box_edition.draw_but.disabled=False
     
-            
+            self.box4.statechange.text='Modify initial parameters'
             
             
             
@@ -475,6 +528,7 @@ class PaquetScreen(Screen):
             self.p_schedule_cancel()
             self.manager.transition=FadeTransition()
             self.manager.current='starting'
+            
             
     def zero(self,*largs):
         a=0.
@@ -500,9 +554,10 @@ class PaquetScreen(Screen):
         en pantalla, etf..."""
         
         if self.mode==1:
-            self.box4.box_sel.select_but.disabled=False
-            #self.remove_widget(self.box5)
+            self.box4.box_edition.select_but.disabled=False
+            self.remove_widget(self.box5)
             self.slitcanvas.canvas.clear()
+        self.box4.box_edition.select_but.disabled=False
         #self.mode=0
         self.L=3.0
         self.dx=0.03
@@ -523,7 +578,8 @@ class PaquetScreen(Screen):
         self.visu_im.remove()
         #Posar el nou
         self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                         extent=(-self.L,self.L,-self.L,self.L)) 
+                                         extent=(-self.L,self.L,-self.L,self.L),
+                                         cmap='inferno') 
         
 
         #I utilitzar-lo
@@ -541,8 +597,8 @@ class PaquetScreen(Screen):
         self.dx=0.03
         self.box3.longitudchange.text='{}'.format(self.L)
         self.Nx=np.int((2*self.L)/self.dx)
-        self.slitwidth=1.5
-        self.xslit=((self.L)*2)*(4/10.)-self.L
+        self.slitwidth=self.slitwidth0
+        self.xslit=((self.L)*2)*(1/3.)-self.L
         self.yslitinf=-self.slitwidth/2.
         self.yslitsup=self.slitwidth/2.
         self.value=10000
@@ -569,7 +625,8 @@ class PaquetScreen(Screen):
         self.visu_im.remove()
         #Posar el nou
         self.visu_im=self.visu.imshow(self.normavec,origin={'upper'},
-                                         extent=(-self.L,self.L,-self.L,self.L)) 
+                                         extent=(-self.L,self.L,-self.L,self.L),
+                                         cmap='inferno') 
  
         
         
@@ -587,13 +644,13 @@ class PaquetScreen(Screen):
         #Afegim un slider
         
         if self.mode==0:
-            #self.add_widget(self.box5)
-            self.box4.box_sel.select_but.disabled=True
+            self.add_widget(self.box5)
+            self.box4.box_edition.select_but.disabled=True
             
             
-        #self.box5.slit_slider.max=self.L*2
-        #self.box5.slit_slider.min=0
-        #self.box5.slit_slider.value=self.slitwidth
+        self.box5.slit_slider.max=self.L*2
+        self.box5.slit_slider.min=0
+        self.box5.slit_slider.value=self.slitwidth0
         
 
         #I utilitzar-lo
@@ -647,6 +704,8 @@ class PaquetScreen(Screen):
         self.Vvec+=self.potencial_final(self.xslit,self.yslitsup,self.xslit,self.L,
                                         self.value,self.s2)
         self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
+        
+        self.box4.statechange.text='Potential changed' + '\n'+ 'Do not forget to apply changes'
     
         
     def modechange(self,*largs):
@@ -659,11 +718,11 @@ class PaquetScreen(Screen):
         if self.mode==1:
             self.standard()
             self.mode=0
-            self.box21.modechange.text='Standard'
+            self.box4.changemode.text='[color=F027E8]Standard mode[/color]'
             
         else:
             self.slit()
-            self.box21.modechange.text='Slit'
+            self.box4.changemode.text='[color=F027E8]Slit mode[/color]'
             self.mode=1
         
         
@@ -728,9 +787,8 @@ class PaquetScreen(Screen):
         #Canvi el moment en pantalla
         self.px=value_px
         
-        self.box3.pxchange.text='{0:.2f}'.format(self.px)
-       
-        #Canvi del moment efectiu
+        self.box3.pxchange.text='{0:.1f}'.format(self.px)
+        
         #if self.mode==0:
         #    self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,0.,0.) 
         #                             for i in range(self.Nx+1)]
@@ -752,9 +810,36 @@ class PaquetScreen(Screen):
             
             self.arrow.canvas.clear()
             with self.arrow.canvas:
-                Color(1,0,0)
-                Line(points=(self.cent[0,0],self.cent[0,1],self.cent[0,0]+self.px*7.5,
-                                     self.cent[0,1]+self.py*7.5))
+                Color(self.arrowcolor[0],self.arrowcolor[1],self.arrowcolor[2])
+                x0=self.cent[0,0]
+                y0=self.cent[0,1]
+                x1=x0+self.px*7.5
+                y1=y0+self.py*7.5
+                Line(points=(x0,y0,x1,y1),width=self.arrowwidth)
+                p_max=np.sqrt(10**2 + 10**2)
+                p=np.sqrt(self.px**2+self.py**2)
+                c=p/p_max
+                if self.px==0.0:
+                    p1=np.array([x0-self.arrowdist*c,y1])
+                    p2=np.array([x0+self.arrowdist*c,y1])
+                    p3=np.array([x1,y0+self.py*self.arrowdist2])                    
+                elif self.py==0.0:
+                    p1=np.array([x1,y0+self.arrowdist*c])
+                    p2=np.array([x1,y0-self.arrowdist*c])
+                    p3=np.array([x0+self.px*self.arrowdist2,y1])
+                else:
+                    m=(y1-y0)/(x1-x0)
+                    phi=np.pi/2.-np.arctan(m)
+                    xr=x1-np.cos(phi)*self.arrowdist*c
+                    xm=x1+np.cos(phi)*self.arrowdist*c
+                    p1=np.array([xr,-np.tan(phi)*(xr-x1)+y1])
+                    p2=np.array([xm,-np.tan(phi)*(xm-x1)+y1])
+                    p3=np.array([x0 + self.px*self.arrowdist2,y0 + self.py*self.arrowdist2])
+                
+                
+                Line(points=(p1[0],p1[1],p2[0],p2[1]),width=self.arrowwidth)
+                Line(points=(p2[0],p2[1],p3[0],p3[1]),width=self.arrowwidth)
+                Line(points=(p3[0],p3[1],p1[0],p1[1]),width=self.arrowwidth)
     
     def changedrawpy(self,value_py,*largs):
         
@@ -769,11 +854,36 @@ class PaquetScreen(Screen):
             
             self.arrow.canvas.clear()
             with self.arrow.canvas:
-                Color(1,0,0)
-                Line(points=(self.cent[0,0],self.cent[0,1],self.cent[0,0]+self.px*7.5,
-                                     self.cent[0,1]+self.py*7.5))
-            
-        
+                Color(self.arrowcolor[0],self.arrowcolor[1],self.arrowcolor[2])
+                x0=self.cent[0,0]
+                y0=self.cent[0,1]
+                x1=x0+self.px*7.5
+                y1=y0+self.py*7.5
+                Line(points=(x0,y0,x1,y1),width=self.arrowwidth)
+                p_max=np.sqrt(10**2 + 10**2)
+                p=np.sqrt(self.px**2+self.py**2)
+                c=p/p_max
+                if self.px==0.0:
+                    p1=np.array([x0-self.arrowdist*c,y1])
+                    p2=np.array([x0+self.arrowdist*c,y1])
+                    p3=np.array([x1,y0+self.py*self.arrowdist2])                    
+                elif self.py==0.0:
+                    p1=np.array([x1,y0+self.arrowdist*c])
+                    p2=np.array([x1,y0-self.arrowdist*c])
+                    p3=np.array([x0+self.px*self.arrowdist2,y1])
+                else:
+                    m=(y1-y0)/(x1-x0)
+                    phi=np.pi/2.-np.arctan(m)
+                    xr=x1-np.cos(phi)*self.arrowdist*c
+                    xm=x1+np.cos(phi)*self.arrowdist*c
+                    p1=np.array([xr,-np.tan(phi)*(xr-x1)+y1])
+                    p2=np.array([xm,-np.tan(phi)*(xm-x1)+y1])
+                    p3=np.array([x0 + self.px*self.arrowdist2,y0 + self.py*self.arrowdist2])
+                
+                
+                Line(points=(p1[0],p1[1],p2[0],p2[1]),width=self.arrowwidth)
+                Line(points=(p2[0],p2[1],p3[0],p3[1]),width=self.arrowwidth)
+                Line(points=(p3[0],p3[1],p1[0],p1[1]),width=self.arrowwidth)
         
         
     def changepy(self,value_py,*largs):
@@ -783,9 +893,8 @@ class PaquetScreen(Screen):
         #Canvi el moment en pantalla
         self.py=value_py
         
-        self.box3.pychange.text='{0:.2f}'.format(self.py)
-        
-        #Canvi del moment efectiu
+        self.box3.pychange.text='{0:.1f}'.format(self.py)
+       
         #if self.mode==0:
         #    self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,0.,0.) 
         #                             for i in range(self.Nx+1)]
@@ -794,6 +903,14 @@ class PaquetScreen(Screen):
         #    self.psi0=np.array([[ck.psi0f(-self.L+i*self.dx,-self.L+j*self.dx,0.25,self.px,self.py,self.x0slit,self.y0slit) 
         #                         for i in range(self.Nx+1)]
         #                   for j in range(self.Nx+1)]) 
+        
+    def changemomentstate(self,*largs):
+        self.box4.statechange.text='Moment changed!'+'\n'+'Do not forget to apply changes'
+        #Canvi del moment efectiu
+        
+    def potentialstatechange(self,*largs):
+        self.box4.statechange.text='You can draw an'+'\n'+'infinite potential now'
+        
     
     def applychanges(self,*largs):
         """Aquesta funció s'encarrega d'aplicar les modificacions físiques
@@ -812,9 +929,16 @@ class PaquetScreen(Screen):
                                      for i in range(self.Nx+1)]
                                for j in range(self.Nx+1)]) 
         
-
-
+        if self.mode==1:
+            if self.t_total<self.dt:
+                if self.slitwidth==self.slitwidth0:
+                    pass
+                else:
+                    self.changeslit(self.slitwidth)
         
+
+
+        self.box4.statechange.text='Changes applied!'+'\n'+'Start the simulation'
    
     ################################# POTENCIAL MODE #########################
     #Aquestes funcions juntament amb el widget MyPaintWidget porten la posibilitat
@@ -840,6 +964,8 @@ class PaquetScreen(Screen):
         self.ciddesactivate=self.main_canvas.mpl_connect('axes_leave_event',
                                                partial(self.activatepaint,0))
         
+   
+        
         
         
   
@@ -848,7 +974,11 @@ class PaquetScreen(Screen):
         i per tant, desactiva el mode editor"""
         self.main_canvas.mpl_disconnect(self.cidactivate)   
         self.main_canvas.mpl_disconnect(self.ciddesactivate)
-
+        self.main_canvas.mpl_disconnect(self.cid1)   
+        self.main_canvas.mpl_disconnect(self.cid2)
+        self.main_canvas.mpl_disconnect(self.cid3)
+        self.main_canvas.mpl_disconnect(self.cid4)
+        self.paint.pause_paint=True
         
     def activatepaint(self,n,*largs):
         """Aquesta funció s'encarrega d'activar el widget Paint(que dona la
@@ -866,7 +996,8 @@ class PaquetScreen(Screen):
             self.cid3=self.main_canvas.mpl_connect('button_release_event',release)
             self.cid4=self.main_canvas.mpl_connect('button_release_event',
                                                partial(self.potrelease))
-    
+
+            self.box4.statechange.text='You can draw'
             print('painting')
             
         else:
@@ -882,6 +1013,8 @@ class PaquetScreen(Screen):
         """Funció que s'encarrega de guardar en coordenades de data el lloc
         on s'ha apretat al plot"""
         self.setcordpress=np.append(self.setcordpress,cordpress)
+        self.box4.statechange.text='Potential drawn'+'\n'+'Do not forget to apply the changes'
+
         print(self.setcordpress)
     
     def potrelease(self,*largs):
@@ -889,7 +1022,9 @@ class PaquetScreen(Screen):
         on s'ha soltat al plot."""
         self.setcordrelease=np.append(self.setcordrelease,cordrelease)
         print(self.setcordrelease)
-
+        self.box4.statechange.text='Potential drawn'+'\n'+'Do not forget to apply the changes'
+        self.editorstop()
+        
         #self.modifypot()
         
  
@@ -1040,7 +1175,8 @@ class PaquetScreen(Screen):
         return Vvecmarcat
             
             
-        
+    def changetitleslit(self,*largs):
+        self.box4.statechange.text='Do not forget to apply changes!'
         
     def clear(self,*largs):
         """Aquesta funció neteja el canvas i tot els canvis introduïts 
@@ -1071,6 +1207,8 @@ class PaquetScreen(Screen):
                                                    partial(self.activatepaints,1))
             self.ciddesactivates=self.main_canvas.mpl_connect('axes_leave_event',
                                                    partial(self.activatepaints,0))
+            
+        self.box4.statechange.text='Select an initial position'
         
         
         
@@ -1080,9 +1218,14 @@ class PaquetScreen(Screen):
         i per tant, desactiva el mode editor"""
         self.main_canvas.mpl_disconnect(self.cidactivates)   
         self.main_canvas.mpl_disconnect(self.ciddesactivates)
+        self.main_canvas.mpl_disconnect(self.cid1s)   
+        self.main_canvas.mpl_disconnect(self.cid2s)
+        self.box4.statechange.text='Do not forget to apply changes'
 
         print('stop editor')
-
+        
+    def selecttitle(self,*largs):
+        self.box4.statechange.text='Select an initial position'
         
     def activatepaints(self,n,*largs):
         """Aquesta funció s'encarrega d'activar el widget Paint(que dona la
@@ -1098,7 +1241,7 @@ class PaquetScreen(Screen):
                                                partial(self.selpress))
             
 
-            
+            self.box4.statechange.text='Select an initial position'
     
             print('selecting')
             
@@ -1124,19 +1267,21 @@ class PaquetScreen(Screen):
             self.normavec=ck.norma(self.psi0,self.Nx)
             self.visu_im.remove()
             self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                          extent=(-self.L,self.L,-self.L,self.L)) 
+                                          extent=(-self.L,self.L,-self.L,self.L),
+                                          cmap='inferno') 
           
             self.main_canvas.draw()
             self.activatepaints(0)
             self.editorstops()
             self.arrow.canvas.clear()
             self.cent=self.visu.transData.transform([(self.x0,self.y0)])
-            
+
             self.box4.boxpx.pxslider.disabled=False
             self.box4.boxpy.pyslider.disabled=False
-            self.box4.okay_but.disabled=False
-            self.box4.reset_but.disabled=False
-            self.box4.draw_but.disabled=False
+            self.box4.box_edition.okay_but.disabled=False
+            self.box2.reset_but.disabled=False
+            self.box4.box_edition.draw_but.disabled=False
+            
                 
             with self.arrow.canvas:
                 Color(1,0,0)
@@ -1149,9 +1294,9 @@ class PaquetScreen(Screen):
         
         self.box4.boxpx.pxslider.disabled=True
         self.box4.boxpy.pyslider.disabled=True
-        self.box4.okay_but.disabled=True
-        self.box4.reset_but.disabled=True
-        self.box4.draw_but.disabled=True
+        self.box4.box_edition.okay_but.disabled=True
+        self.box2.reset_but.disabled=True
+        self.box4.box_edition.draw_but.disabled=True
         
         #generem el nou paquet
     ################################### COMPUTE PARAMETES#####################
@@ -1333,7 +1478,7 @@ class GameScreen(Screen):
         
         #Variables globals...
         global Vvec,avec,cvec,psi0,normavec,mode,Vvecstandard
-        global setcordpress,setcordrelease,avec,cvec
+        global avec,cvec
         
         ################### PARAMETRES DE LA CAIXA,DISCRETITZAT,PARTICULA########
         self.L=3.0
@@ -1359,6 +1504,7 @@ class GameScreen(Screen):
         
         #Comptador de moments
         self.i=0
+        self.cont=0
         #parametre del discretitzat
         self.r=(self.dt/(4*(self.dx**2)))*(self.hbar/self.m)
         
@@ -1399,7 +1545,10 @@ class GameScreen(Screen):
         self.pause_state=True
         
         
-        
+        self.arrowcolor=np.array([231/255.,30/255.,30/255.])
+        self.arrowwidth=2.
+        self.arrowdist=15.
+        self.arrowdist2=8.5
         
         ##########################PRIMER CÀLCUL ENERGIA#####
                        
@@ -1427,11 +1576,19 @@ class GameScreen(Screen):
                                       extent=(-self.L,self.L,-self.L,self.L),
                                       cmap='inferno')
         
+        self.visu.tick_params(
+            axis='both',          # changes apply to the x-axis
+            which='both',      # both major and minor ticks are affected
+            bottom=False,      # ticks along the bottom edge are off
+            top=False,         # ticks along the top edge are off
+            labelbottom=False,
+            left=False,
+            labelleft=False) # labels along the bottom edge are off
         #Posició de la figura
         self.visu.set_position([0,0.15,0.8,0.8])
         
         self.main_canvas.draw()
-        
+
         ##################################MATPLOTLIB EVENTS/RESIZING
         #self.main_canvas.mpl_connect('motion_notify_event', motionnotify)
         
@@ -1448,9 +1605,9 @@ class GameScreen(Screen):
         
         ################################POTENCIAL MODE/Widget de dibuix
         self.ara=0
-        self.setcordpress=np.array([])
-        self.setcordrelease=np.array([])
-        self.paint=MyPaintWidget()
+        self.lit=0
+
+        self.paint=PaintWidget()
         self.arrow=Arrow()
         self.slitcanvas=Slit()
         #No pinta a no ser que estigui activat.
@@ -1487,7 +1644,7 @@ class GameScreen(Screen):
         
 
         #####################################PAUSESTATE
-        
+        self.lv_1=True
         #Coses del nivell 2
         self.slitwidthlist=np.array([3,1.5,0.75,0.5])
         self.lv_2=False
@@ -1551,54 +1708,149 @@ class GameScreen(Screen):
     
     def plotpsiev(self,dt):
         "Update function that updates psi plot"
+              
         if self.ara<1:
+            self.windowsizeg=Window.size
             self.ara=self.ara+1
             self.cantonsnew=self.visu.transData.transform([(-3,-3),(-3,3),(3,3),(3,-3)])
-            print(self.cantonsnew)
             
-            if self.setcordpress.size>0:
-                           
-                self.paint.canvas.clear()
-                vecpress=self.setcordpress
-                vecrelease=self.setcordrelease
-                vecsize=np.int(vecpress.size)
-    
-                #Coordenades dels nous cantons
-                for i in range(0,vecsize,2):
-                    x0=vecpress[i]
-                    y0=vecpress[i+1]
-                    
-                    x1=vecrelease[i]
-                    y1=vecrelease[i+1]
-                    
-                    newcoord=self.visu.transData.transform([(x0,y0),(x1,y1)])
-               
-                    with self.paint.canvas:
-                        Color(1, 1, 1)
-                        d=5.
-                        Ellipse(pos=(newcoord[0,0] - d / 2, newcoord[0,1] - d / 2), 
-                                size=(d,d))
-                        
-                        Ellipse(pos=(newcoord[1,0] - d / 2, newcoord[1,1] - d / 2), 
-                                 size=(d,d))
-                        
-                        Line(points=(newcoord[0,0],newcoord[0,1],newcoord[1,0],
-                                     newcoord[1,1]))
+            print(self.cantonsnew)
+            if self.lit==0:
+                self.cantonsold=self.cantonsnew
+            
+
+            
+            self.lit+=1
+            
+
             
             if (np.abs(self.px)>0. or np.abs(self.py)>0.) and self.t_total<self.dt:
                 
                 self.arrow.canvas.clear()
-                if self.mode==1:
-                    self.cent=self.visu.transData.transform([(self.x0slit,self.y0slit)])
-                else:
-                    self.cent=self.visu.transData.transform([(self.x0,self.y0)])
+                if self.lv_2==True:
+                    if self.conf==0:
+                        x0=(self.L*2)*(7.3/10.)-self.L
+                        y0=0.
+                    elif self.conf==1:
+                        x0=(self.L*2)*(3.55/10.)-self.L
+                        y0=0.
+                elif self.lv_1==True:
+                    x0=0.
+                    y0=0.
+                        
+
+                self.cent=self.visu.transData.transform([(x0,y0)])
                 
                 with self.arrow.canvas:
-                    Color(1,0,0)
-                    Line(points=(self.cent[0,0],self.cent[0,1],self.cent[0,0]+self.px*7.5,
-                                         self.cent[0,1]+self.py*7.5))
+                    Color(self.arrowcolor[0],self.arrowcolor[1],self.arrowcolor[2])
+                    x0=self.cent[0,0]
+                    y0=self.cent[0,1]
+                    x1=x0+self.px*7.5
+                    y1=y0+self.py*7.5
+                    Line(points=(x0,y0,x1,y1),width=self.arrowwidth)
+                    p_max=np.sqrt(10**2 + 10**2)
+                    p=np.sqrt(self.px**2+self.py**2)
+                    c=p/p_max
+                    if self.px==0.0:
+                        p1=np.array([x0-self.arrowdist*c,y1])
+                        p2=np.array([x0+self.arrowdist*c,y1])
+                        p3=np.array([x1,y0+self.py*self.arrowdist2])                    
+                    elif self.py==0.0:
+                        p1=np.array([x1,y0+self.arrowdist*c])
+                        p2=np.array([x1,y0-self.arrowdist*c])
+                        p3=np.array([x0+self.px*self.arrowdist2,y1])
+                    else:
+                        m=(y1-y0)/(x1-x0)
+                        phi=np.pi/2.-np.arctan(m)
+                        xr=x1-np.cos(phi)*self.arrowdist*c
+                        xm=x1+np.cos(phi)*self.arrowdist*c
+                        p1=np.array([xr,-np.tan(phi)*(xr-x1)+y1])
+                        p2=np.array([xm,-np.tan(phi)*(xm-x1)+y1])
+                        p3=np.array([x0 + self.px*self.arrowdist2,y0 + self.py*self.arrowdist2])
                     
+                    
+                    Line(points=(p1[0],p1[1],p2[0],p2[1]),width=self.arrowwidth)
+                    Line(points=(p2[0],p2[1],p3[0],p3[1]),width=self.arrowwidth)
+                    Line(points=(p3[0],p3[1],p1[0],p1[1]),width=self.arrowwidth)
+            
+            
+
                 
+            if self.lv_2==True and self.closedslit==False:
+                if self.conf==0:
+                    self.xslit=self.xslit0
+                elif self.conf==1:
+                    self.xslit=self.xslit1
+                self.slitcanvas.canvas.clear()
+          
+                self.yslitinf=-self.slitwidth/2.
+                self.yslitsup=self.slitwidth/2.
+                self.inf1=self.visu.transData.transform([(self.xslit,-self.L)])
+                self.inf2=self.visu.transData.transform([(self.xslit,self.yslitinf)])
+                
+                self.sup1=self.visu.transData.transform([(self.xslit,self.yslitsup)])
+                self.sup2=self.visu.transData.transform([(self.xslit,self.L)])
+                
+                with self.slitcanvas.canvas:
+                    Color(1,1,1)
+                    Line(points=(self.inf1[0,0],self.inf1[0,1],self.inf2[0,0],self.inf2[0,1]))
+                    Line(points=(self.sup1[0,0],self.sup1[0,1],self.sup2[0,0],self.sup2[0,1]))   
+            
+            elif self.lv_2==True and self.closedslit==True:
+                if self.conf==0:
+                    self.xslit=self.xslit0
+                elif self.conf==1:
+                    self.xslit=self.xslit1
+                self.slitcanvas.canvas.clear()
+                self.yslitinf=-self.slitwidth/2.
+                self.yslitsup=self.slitwidth/2.
+                self.inf1=self.visu.transData.transform([(self.xslit,-self.L)])
+        
+                self.sup2=self.visu.transData.transform([(self.xslit,self.L)])
+                
+                with self.slitcanvas.canvas:
+                    Color(1,1,1)
+                    Line(points=(self.inf1[0,0],self.inf1[0,1],self.sup2[0,0],self.sup2[0,1]))
+           
+            
+                
+            if self.cont>=1:
+                q_pos=self.visu.transData.transform([self.q_coords[0],self.q_coords[1]])
+                self.quadrat.pos=[int(q_pos[0]),int(q_pos[1])]
+                
+                if self.lv_1==True or (self.lv_2==True and self.fishphase==True):
+                    f_pos=self.visu.transData.transform([self.f_coords[0],self.f_coords[1]])
+                    self.fish.pos=[int(f_pos[0]),int(f_pos[1])]
+                
+                if self.lv_2==True and self.closedslit==False and self.fishphase==False:
+                    
+                    b_pos=self.visu.transData.transform([self.b_coords[0],self.b_coords[1]])
+                    self.buttong.pos=[int(b_pos[0]),int(b_pos[1])]
+                    
+                if self.lv_2==True and self.doorphase==True:
+                    d_pos=self.visu.transData.transform([self.d_coords[0],self.d_coords[1]])
+                    self.door.pos=[int(d_pos[0]),int(d_pos[1])]
+                
+            self.cont+=1
+        
+        if self.cont>=1:
+            inv_data=self.visu.transData.inverted()
+            q_pos0=self.quadrat.pos
+            f_pos0=self.fish.pos
+            b_pos0=self.buttong.pos
+            d_pos0=self.door.pos
+            #Posició del centre del quadrat
+            self.q_coords=inv_data.transform((q_pos0[0],
+                                             q_pos0[1]))
+            self.f_coords=inv_data.transform((f_pos0[0],
+                                             f_pos0[1]))
+            self.b_coords=inv_data.transform((b_pos0[0],
+                                             b_pos0[1]))
+            self.d_coords=inv_data.transform((d_pos0[0],
+                                             d_pos0[1]))
+            
+            
+            
         if self.lv_inicial==True and self.t_total<self.dt:
             self.setlvl1()
             self.lv_inicial=False
@@ -1637,8 +1889,11 @@ class GameScreen(Screen):
             if self.i>5:
                 if self.lv_1==True:
                     self.box4.statechange.text='Fishing'
+                    
+            #Calculem en tot moment on estan tots els objectes:
             
             
+               
             #Videojoc, coses del  videojoc
         if self.pause_game==False and self.lv_1==True:
                         #Utilitzem la transformació inversa que ens porta de pixels matplotlib 
@@ -1819,12 +2074,14 @@ class GameScreen(Screen):
             self.paint.canvas.clear()
             self.arrow.canvas.clear()
             self.slitcanvas.canvas.clear()
-            self.setcordpress=self.emptylist()
-            self.setcordrelease=self.emptylist()          
+                 
             
             #Canviem els parametre en pantalla tambe
             self.t_total=0.00
             self.box3.tempschange.text='0.00'
+            self.phaselvl2=1
+            self.box4.levelchange.text='{}'.format(self.phaselvl2)
+     
             #self.box3.pxchange.text='0.0'
             #self.box3.pychange.text='0.0'
          
@@ -1842,10 +2099,7 @@ class GameScreen(Screen):
             self.px=0.
             self.py=0.
             
-            if self.setcordpress.size>0:
-                self.editorstop()
-            else:
-                pass
+
 
             
             self.selectmode_pause=False
@@ -1857,6 +2111,7 @@ class GameScreen(Screen):
     def transition_GS(self,*largs):
             self.g_schedule_cancel()
             self.manager.transition=FadeTransition()
+            
             self.manager.current='starting'
             
     def zero(self,*largs):
@@ -1886,7 +2141,7 @@ class GameScreen(Screen):
         
         if self.mode==1:
             #self.box4.box_sel.select_but.disabled=False
-            #self.remove_widget(self.box5)
+            self.remove_widget(self.box5)
             self.slitcanvas.canvas.clear()
         #self.mode=0
         self.L=3.0
@@ -1908,7 +2163,8 @@ class GameScreen(Screen):
         self.visu_im.remove()
         #Posar el nou
         self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                         extent=(-self.L,self.L,-self.L,self.L)) 
+                                         extent=(-self.L,self.L,-self.L,self.L),
+                                         cmap=self.cmap) 
         
 
         #I utilitzar-lo
@@ -2084,10 +2340,37 @@ class GameScreen(Screen):
             
             self.arrow.canvas.clear()
             with self.arrow.canvas:
-                Color(1,0,0)
-                Line(points=(self.cent[0,0],self.cent[0,1],self.cent[0,0]+self.px*7.5,
-                                     self.cent[0,1]+self.py*7.5))
-    
+                Color(self.arrowcolor[0],self.arrowcolor[1],self.arrowcolor[2])
+                x0=self.cent[0,0]
+                y0=self.cent[0,1]
+                x1=x0+self.px*7.5
+                y1=y0+self.py*7.5
+                Line(points=(x0,y0,x1,y1),width=self.arrowwidth)
+                p_max=np.sqrt(10**2 + 10**2)
+                p=np.sqrt(self.px**2+self.py**2)
+                c=p/p_max
+                if self.px==0.0:
+                    p1=np.array([x0-self.arrowdist*c,y1])
+                    p2=np.array([x0+self.arrowdist*c,y1])
+                    p3=np.array([x1,y0+self.py*self.arrowdist2])                    
+                elif self.py==0.0:
+                    p1=np.array([x1,y0+self.arrowdist*c])
+                    p2=np.array([x1,y0-self.arrowdist*c])
+                    p3=np.array([x0+self.px*self.arrowdist2,y1])
+                else:
+                    m=(y1-y0)/(x1-x0)
+                    phi=np.pi/2.-np.arctan(m)
+                    xr=x1-np.cos(phi)*self.arrowdist*c
+                    xm=x1+np.cos(phi)*self.arrowdist*c
+                    p1=np.array([xr,-np.tan(phi)*(xr-x1)+y1])
+                    p2=np.array([xm,-np.tan(phi)*(xm-x1)+y1])
+                    p3=np.array([x0 + self.px*self.arrowdist2,y0 + self.py*self.arrowdist2])
+                
+                
+                Line(points=(p1[0],p1[1],p2[0],p2[1]),width=self.arrowwidth)
+                Line(points=(p2[0],p2[1],p3[0],p3[1]),width=self.arrowwidth)
+                Line(points=(p3[0],p3[1],p1[0],p1[1]),width=self.arrowwidth)
+                
     def changedrawpy(self,value_py,x0,y0,*largs):
         
         self.cent=self.visu.transData.transform([(x0,y0)])
@@ -2097,9 +2380,36 @@ class GameScreen(Screen):
             
             self.arrow.canvas.clear()
             with self.arrow.canvas:
-                Color(1,0,0)
-                Line(points=(self.cent[0,0],self.cent[0,1],self.cent[0,0]+self.px*7.5,
-                                     self.cent[0,1]+self.py*7.5))
+                Color(self.arrowcolor[0],self.arrowcolor[1],self.arrowcolor[2])
+                x0=self.cent[0,0]
+                y0=self.cent[0,1]
+                x1=x0+self.px*7.5
+                y1=y0+self.py*7.5
+                Line(points=(x0,y0,x1,y1),width=self.arrowwidth)
+                p_max=np.sqrt(10**2 + 10**2)
+                p=np.sqrt(self.px**2+self.py**2)
+                c=p/p_max
+                if self.px==0.0:
+                    p1=np.array([x0-self.arrowdist*c,y1])
+                    p2=np.array([x0+self.arrowdist*c,y1])
+                    p3=np.array([x1,y0+self.py*self.arrowdist2])                    
+                elif self.py==0.0:
+                    p1=np.array([x1,y0+self.arrowdist*c])
+                    p2=np.array([x1,y0-self.arrowdist*c])
+                    p3=np.array([x0+self.px*self.arrowdist2,y1])
+                else:
+                    m=(y1-y0)/(x1-x0)
+                    phi=np.pi/2.-np.arctan(m)
+                    xr=x1-np.cos(phi)*self.arrowdist*c
+                    xm=x1+np.cos(phi)*self.arrowdist*c
+                    p1=np.array([xr,-np.tan(phi)*(xr-x1)+y1])
+                    p2=np.array([xm,-np.tan(phi)*(xm-x1)+y1])
+                    p3=np.array([x0 + self.px*self.arrowdist2,y0 + self.py*self.arrowdist2])
+                
+                
+                Line(points=(p1[0],p1[1],p2[0],p2[1]),width=self.arrowwidth)
+                Line(points=(p2[0],p2[1],p3[0],p3[1]),width=self.arrowwidth)
+                Line(points=(p3[0],p3[1],p1[0],p1[1]),width=self.arrowwidth)
             
         
         
@@ -2153,118 +2463,14 @@ class GameScreen(Screen):
     # infinit al mig.
     #7.clear (reseteja el potencial que s'hagui dibuixat, amb tot el que implica)
        
-    def editorfun(self,*largs):
-        """Aquesta funció es l'encarregada d'activar el mode editor. Activa
-        l'event de matplotlib que detecta la entrada al propi plot o la sortida,
-        i l'enllaça amb la funció activatepaint"""
-        
-                                                       
-        #Controla que només es pogui dibuixar dins la figura
-        self.cidactivate=self.main_canvas.mpl_connect('axes_enter_event',
-                                               partial(self.activatepaint,1))
-        self.ciddesactivate=self.main_canvas.mpl_connect('axes_leave_event',
-                                               partial(self.activatepaint,0))
-        
-        
-        
-  
-    def editorstop(self,*largs):
-        """Aquesta funció desactiva totes les conexions activades a editorfun,
-        i per tant, desactiva el mode editor"""
-        self.main_canvas.mpl_disconnect(self.cidactivate)   
-        self.main_canvas.mpl_disconnect(self.ciddesactivate)
 
-        
-    def activatepaint(self,n,*largs):
-        """Aquesta funció s'encarrega d'activar el widget Paint(que dona la
-        capactiat de pintar en pantalla, només quan el cursor està dins del
-        plot). També activa quatre funcions i les conecta amb les accions 
-        d'apretar i soltar el click dret del mouse per, d'aquesta manera,
-        enregistar on s'ha apretat."""
-        
-        if n==1:
 
-            self.paint.pause_paint=False
-            self.cid1=self.main_canvas.mpl_connect('button_press_event',press)
-            self.cid2=self.main_canvas.mpl_connect('button_press_event',
-                                               partial(self.potpress))
-            self.cid3=self.main_canvas.mpl_connect('button_release_event',release)
-            self.cid4=self.main_canvas.mpl_connect('button_release_event',
-                                               partial(self.potrelease))
-    
-            print('painting')
-            
-        else:
-            self.paint.pause_paint=True
-            self.main_canvas.mpl_disconnect(self.cid1)   
-            self.main_canvas.mpl_disconnect(self.cid2)
-            self.main_canvas.mpl_disconnect(self.cid3)
-            self.main_canvas.mpl_disconnect(self.cid4)
-            print('no painting')
-            
-            
-    def potpress(self,*largs):
-        """Funció que s'encarrega de guardar en coordenades de data el lloc
-        on s'ha apretat al plot"""
-        self.setcordpress=np.append(self.setcordpress,cordpress)
-        print(self.setcordpress)
-    
-    def potrelease(self,*largs):
-        """Funció que s'encarrega de guardar en coordenades de data el lloc
-        on s'ha soltat al plot."""
-        self.setcordrelease=np.append(self.setcordrelease,cordrelease)
-        print(self.setcordrelease)
 
         #self.modifypot()
         
  
     
-    def modifypot(self,*largs):
-        """Aquesta funció s'aplica quan es clika el buto apply. Durant el
-        període que s'ha dibuixat, totes les lineas de potencial s'han en-
-        registrat a les variables self.csetcorpress i setcordreleas. Aquestes
-        estan en coordenades de self. data i les hem de passar al discretitzat."""
-        
-        #Variables on guardem les dates del dibuix
-        vecpress=self.setcordpress
-        vecrelease=self.setcordrelease
-        print(vecpress,vecrelease)
-        #linias dibuixades=vecsize/2
-        vecsize=np.int(vecpress.size)
-        print(vecsize)
-        #Aquí guardarem els resultats.
-        #Coloquem una guasiana al voltant del potencial que pintem. La sigma^2 farem que
-        #sigui del mateix tamany que el pas
-        s2vec=self.dx/2.
-        valorVec=10000
-        
 
-        for i in range(0,vecsize,2):
-            #Establim noms de variables
-            index=i
-            x0=vecpress[index]
-            y0=vecpress[index+1]
-            x1=vecrelease[index]
-            y1=vecrelease[index+1]
-            
-            Vecgaussia=self.potential_maker(x0,y0,x1,y1,valorVec,s2vec)
-            Vvecsegur=self.Vvecmarcat(x0,y0,x1,y1,valorVec*(1./(np.sqrt(s2vec*2.*np.pi))))
-                #I el sumem...
-            self.Vvec+=Vvecsegur+Vecgaussia
-                #Coloquem una petita gaussiana al voltant de cada punt de sigma*2=self.dx/2
-                #self.Vvec=Vvec
-            #Modifiquem els respectius ac,vc
-            #self.Vvec=Vvec
-
-        self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
-            
-        print('Applied!')
-        
-        if vecsize>0:
-            self.editorstop()
-        
-        else:
-            pass
         
     def potencial_final(self,x0,y0,x1,y1,value,s2):
         """Funció que genera un potencial infinit que va desde x0,y0 fins x1,y1 """
@@ -2370,8 +2576,7 @@ class GameScreen(Screen):
         """Aquesta funció neteja el canvas i tot els canvis introduïts 
         tan al potencial com a les coordenades del potencial. """
         self.paint.canvas.clear()
-        self.setcordpress=self.emptylist()
-        self.setcordrelease=self.emptylist()
+
 
         if self.mode==0:
             
@@ -2383,84 +2588,9 @@ class GameScreen(Screen):
         self.avec,self.cvec=ck.ac(self.r,self.Vvec,self.Nx)
         print('Clear!')
         
-    #################################### SELECT POSITION ##################
-    def editorfuns(self,*largs):
-        """Aquesta funció es l'encarregada d'activar el mode editor. Activa
-        l'event de matplotlib que detecta la entrada al propi plot o la sortida,
-        i l'enllaça amb la funció activatepaint"""
-        
-        if self.mode==0:
-            #Controla que només es pogui dibuixar dins la figura
-            self.cidactivates=self.main_canvas.mpl_connect('axes_enter_event',
-                                                   partial(self.activatepaints,1))
-            self.ciddesactivates=self.main_canvas.mpl_connect('axes_leave_event',
-                                                   partial(self.activatepaints,0))
-        
-        
-        
-  
-    def editorstops(self,*largs):
-        """Aquesta funció desactiva totes les conexions activades a editorfun,
-        i per tant, desactiva el mode editor"""
-        self.main_canvas.mpl_disconnect(self.cidactivates)   
-        self.main_canvas.mpl_disconnect(self.ciddesactivates)
-
-        print('stop editor')
-
-        
-    def activatepaints(self,n,*largs):
-        """Aquesta funció s'encarrega d'activar el widget Paint(que dona la
-        capactiat de pintar en pantalla, només quan el cursor està dins del
-        plot). També activa quatre funcions i les conecta amb les accions 
-        d'apretar i soltar el click dret del mouse per, d'aquesta manera,
-        enregistar on s'ha apretat."""
-        
-        if n==1:
-
-            self.cid1s=self.main_canvas.mpl_connect('button_press_event',press_sel)
-            self.cid2s=self.main_canvas.mpl_connect('button_press_event',
-                                               partial(self.selpress))
-            
 
             
-    
-            print('selecting')
-            
-        else:
 
-            self.main_canvas.mpl_disconnect(self.cid1s)   
-            self.main_canvas.mpl_disconnect(self.cid2s)
-            print('no selecting')
-            
-            
-    def selpress(self,*largs):
-        """Funció que s'encarrega de guardar en coordenades de data el lloc
-        on s'ha apretat al plot"""
-        self.x0=cordpress_sel[0]
-        self.y0=cordpress_sel[1]
-        print(self.x0,self.y0)
-            
-        if self.t_total<self.dt and self.mode==0:
-            self.changed_position=True
-            self.psi0=self.psistand(self.x0,self.y0)
-            #Rseteja la imatge
-            
-            self.normavec=ck.norma(self.psi0,self.Nx)
-            self.visu_im.remove()
-            self.visu_im=self.visu.imshow(self.normavec,origin={'lower'},
-                                          extent=(-self.L,self.L,-self.L,self.L),
-                                          cmap='inferno') 
-          
-            self.main_canvas.draw()
-            self.activatepaints(0)
-            self.editorstops()
-            self.arrow.canvas.clear()
-            self.cent=self.visu.transData.transform([(self.x0,self.y0)])
-                
-            with self.arrow.canvas:
-                Color(1,0,0)
-                Line(points=(self.cent[0,0],self.cent[0,1],self.cent[0,0]+self.px*7.5,
-                                         self.cent[0,1]+self.py*7.5))
             
         #parem la selecció
  
@@ -2719,6 +2849,7 @@ class GameScreen(Screen):
         self.buttong.pos=[100,800]
         self.standard()
         self.setlvl1()
+        self.box4.gamemode.text='[color=F027E8]Survay Mode[/color]'
     
     def drawlvl1(self,*largs):
         """Dibuixa la configuració inical del nivell 1"""
@@ -2896,7 +3027,21 @@ class GameScreen(Screen):
         self.fishphase0=False
         self.phaselvl2=1
         self.lifecontrol(150)
-       
+        self.box4.gamemode.text='[color=F027E8]Slit Mode[/color]'
+        
+    
+    def game_mode(self,*largs):
+        
+        if self.pause_state==True:
+            if self.lv_1==True:
+                self.phaselvl2=1
+                self.box4.levelchange.text='{}'.format(self.phaselvl2)
+                self.activatelvl2()
+            
+            elif self.lv_2==True:
+                self.phaselvl2=1
+                self.box4.levelchange.text='{}'.format(self.phaselvl2)
+                self.activatelvl1()
         
     
     def closeslit(self,slitwidth,conf,*largs):
@@ -2932,12 +3077,14 @@ class GameScreen(Screen):
         self.closedslit=False
         self.fishcatched=0
         self.phaselvl2+=1
+        
 
         if self.phaselvl2==self.slitwidthlist.size+1:
             self.pause()
             self.box4.statechange.text='Finished!'
             pass
         else:
+            self.box4.levelchange.text='{}'.format(self.phaselvl2)
             self.slitwidth=self.slitwidthlist[np.int(self.phaselvl2-1)]
             if self.conf==0:
                 self.conf=1
@@ -3005,6 +3152,8 @@ class Butg(Widget):
 class Door(Widget):
     pass        
 
+class PaintWidget(Widget):
+    pass
 
 def press(event):
     print('press released from test', event.x, event.y, event.button)
@@ -3052,6 +3201,9 @@ def figure_enter(event):
 
 def axes_enter(event):
     print('it enteeeeeeers')
+    
+def axes_leave(event):
+    print('something')
 
 
 def figure_leave(event):
