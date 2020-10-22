@@ -18,22 +18,44 @@
 <StartingScreen>:
     name:'starting'
     
-    BoxLayout:
+    RelativeLayout:
         orientation:'vertical'
+        
+        
         
         BoxLayout:
             spacing:self.height/10
             orientation:'vertical'
             padding: [self.width/5, 0]
-            size_hint_y:2
+            size_hint_y:0.20
+            #size_hint_x:
+            pos_hint: {'y': 0.75}
+            
+            Label:
+                text:'[color=FF9A00]Wave Packet[/color] [color=FFFFFF]VS[/color] [color=FF9A00]Cat [/color]'
+                font_name: 'Amatic-Bold'
+                font_size:root.height/15.
+                markup: True
+            Image:
+                source:'cat.png'
+                
+        BoxLayout:
+            spacing: self.height/10
+            orientation:'vertical'
+            size_hint_y:0.6
+            size_hint_x:0.4
+            pos_hint:{'y':0.1,'x':0.3}
+                    
             
             Button:
-                id:s_to_p
-                size_hint_y:1
+                id:s_to_g
+                #size_hint_y:1
                 background_color:(0,0,0,1)
                 markup:True
-                text:'Editor'
-                on_press: root.transition_SP()
+                text:'[color=F027E8]Game[/color]'
+                font_name: 'Amatic-Bold'
+                font_size:root.height/15.
+                on_press: root.transition_SG()
                 canvas.before:
                     Color:
                         rgba: .5, .5, .5, 1
@@ -41,11 +63,13 @@
                         width: 2
                         rectangle: self.x, self.y, self.width, self.height
             Button:
-                id:s_to_g
+                id:s_to_p
                 background_color:(0,0,0,1)
                 markup:True
-                text:'Game'
-                on_press: root.transition_SG()
+                text:'[color=F027E8]Editor[/color]'
+                font_name: 'Amatic-Bold'
+                font_size:root.height/15.
+                on_press: root.transition_SP()
                 canvas.before:
                     Color:
                         rgba: .5, .5, .5, 1
@@ -109,7 +133,7 @@
     box21: box21_id
     box3: box3_id
     box4: box4_id
-    box5: box5_id
+    box5: box5_id.__self__
     quadrat: quadrat_id
     #:set color_labels 1,1,1,1
     #:set black 0,0,0,1
@@ -156,17 +180,19 @@
             max:3
             value:0.5
             on_touch_up:
-                root.changeslit(self.value)
+                root.changedrawslit(self.value)
             on_touch_move:
                 root.changedrawslit(self.value)
+                
+            on_touch_down:
+                root.changetitleslit()
     RelativeLayout:
         id:box4_id
         boxpx: box_px_id
         boxpy: box_py_id
-        box_sel: box_sel_id
-        draw_but: draw_but_id
-        okay_but: okay_but_id
-        reset_but: reset_but_id
+        box_edition: box_edition_id
+        changemode: changemode_id
+        statechange: statechange_id
         size_hint:0.25,0.60
         pos_hint:{'y':0.,'x':0.75}
         Widget:
@@ -179,21 +205,34 @@
                     size:self.size
     
         Label:
-            text:'Edition'
-            pos_hint:{'x':0.1,'y':0.9}
-            size_hint:0.8,0.1
-            color: color_labels
-            canvas.before:
-                Color:
-                    rgba:0,0,0,1
-                Rectangle:
+            id: changemode_id
+            text:'[color=F027E8]Standard mode[/color]'
+            font_name: 'Amatic-Bold'
+            font_size:root.height/25.
+            markup: True
+            color: (0.99,0.7,0,1)
+            pos_hint:{'x':0.1,'y':0.87}
+            size_hint:0.8,0.12
             
-                    pos:self.pos
-                    size:self.size
+        Button:
+            background_normal:'leftpurplearrow.png'
+            border: (0,0,0,0)
+            size_hint:0.11,0.12
+            pos_hint:{'x':0.13,'y':0.87}
+            on_press: root.modechange()
+            
+        Button:
+            background_normal:'rightpurplearrow.png'
+            border: (0,0,0,0)
+            size_hint:0.11,0.12
+            pos_hint:{'x':0.75,'y':0.87}
+            on_press: root.modechange()
         
         Label:
-            text:'p_x'
-            pos_hint:{'x':0.2,'y':0.8}
+            text:'Px'
+            font_name: 'AmaticSC-Regular'
+            font_size:root.height/30.
+            pos_hint:{'x':0.2,'y':0.77}
             size_hint:0.05,0.1
             color:color_labels
         BoxLayout:
@@ -201,7 +240,7 @@
             id:box_px_id
             pxslider: px_slider_id
             orientation: 'horizontal'
-            pos_hint:{'x':0.3,'y':0.8}
+            pos_hint:{'x':0.3,'y':0.77}
             size_hint:0.5,0.1
                         
             Slider:
@@ -214,11 +253,15 @@
                     root.changepx(self.value)
                 on_touch_move:
                     root.changedrawpx(self.value)
+                on_touch_down:
+                    root.changemomentstate()
         
             
         Label:
-            text:'p_y'
-            pos_hint:{'x':0.2,'y':0.7}
+            text:'Py'
+            font_name: 'AmaticSC-Regular'
+            font_size:root.height/30.
+            pos_hint:{'x':0.2,'y':0.67}
             size_hint:0.05,0.1
             color:color_labels
         BoxLayout:
@@ -226,7 +269,7 @@
             id:box_py_id
             pyslider: py_slider_id
             orientation: 'horizontal'
-            pos_hint:{'x':0.3,'y':0.7}
+            pos_hint:{'x':0.3,'y':0.67}
             size_hint:0.5,0.1
                         
             Slider:
@@ -237,65 +280,102 @@
                 value: 0                                 
                 on_touch_up: 
                     root.changepy(self.value)
+             
                 on_touch_move:
                     root.changedrawpy(self.value)
-        
-        BoxLayout:
+              
+                on_touch_down:
+                    root.changemomentstate()
+        RelativeLayout:
         #Initial position 
-            id: box_sel_id
+            id: box_edition_id
             orientation: 'vertical'
-            pos_hint:{'x':0.05,'y': 0.47}
-            size_hint:0.9,0.2
+            pos_hint:{'x':0.05,'y': 0.23}
+            size_hint:0.9,0.4
             select_but:select_but_id
+            draw_but:draw_but_id
+            okay_but: okay_but_id
+       
+            spacing_horizontal:self.width/2
+
+            cols:2
             
             Label:
+                size_hint:0.7,0.30
+                pos_hint: {'x':0.00,'y':0.7}
                 text:'Initial position'
+                font_name:'AmaticSC-Regular'
+                font_size:root.height/30.
                 color: color_labels
+                
             Button:
                 id: select_but_id
-                text:'Select'
+                #text:'Select'
+                size_hint:0.3,0.20
+                pos_hint: {'x':0.7,'y':0.74}
+                border:(0,0,0,0)               
+                background_normal:'purplebutton.png'
                 background_disabled_normal:'gray.png'
                 on_press:root.editorfuns(),root.noselect()
+                on_release: root.selecttitle()
             
-        Label:
-            text:'Potential mode'
-            pos_hint:{'x':0.05,'y':0.37}
-            size_hint:0.9,0.1
-        
-        Button:
-            text:'Draw'
-            id:draw_but_id
-            on_press:root.editorfun()
-            pos_hint:{'x':0.05,'y':0.27}
-            background_disabled_normal:'gray.png'
-            size_hint:0.9,0.1
-        #Button:
-        #    text:'Clear'
-        #    on_press:root.clear()
-        #    pos_hint:{'x':0.50,'y':0.27}
-        #    size_hint:0.45,0.1
-        
-        Label:
-            text:'Apply changes'
-            pos_hint:{'x':0.05,'y':0.17}
-            size_hint:0.9,0.1
-            
-        
-        Button:
-            text:'Okay'
-            id: okay_but_id
-            background_disabled_normal:'gray.png'
-            pos_hint:{'x':0.05,'y':0.07}
-            size_hint:0.45,0.1
-            on_press: root.applychanges(),root.modifypot()
-        Button:
-            text:'Reset'
-            id: reset_but_id
-            background_disabled_normal:'gray.png'
-            pos_hint:{'x':0.50,'y':0.07}
-            size_hint:0.45,0.1
-            on_press: root.reset()
+            Label:
+                text:'Potential mode'
+                font_name:'AmaticSC-Regular'
+                font_size:root.height/30.
+                size_hint:0.7,0.32
+                pos_hint:{'x':0.00,'y':0.35}
 
+            
+            Button:
+                border:(0,0,0,0)               
+                background_normal:'purplebutton.png'
+                size_hint:0.3,0.20
+                pos_hint:{'x':0.7,'y':0.39}
+                id:draw_but_id
+                on_press:root.editorfun()
+                on_release:root.potentialstatechange()
+                background_disabled_normal:'gray.png'
+
+     
+        
+            Label:
+                text:'Apply changes'
+                font_name:'AmaticSC-Regular'
+                font_size:root.height/30.
+                size_hint:0.7,0.32
+                pos_hint:{'x':0.00,'y':0.00}
+                #pos_hint:{'x':0.05,'y':0.17}
+                #size_hint:0.9,0.1
+                
+            
+            Button:
+                border:(0,0,0,0)               
+                background_normal:'purplebutton.png'
+
+                id: okay_but_id
+                size_hint:0.3,0.20
+                pos_hint:{'x':0.7,'y':0.04}
+                background_disabled_normal:'gray.png'
+                #pos_hint:{'x':0.05,'y':0.07}
+                #size_hint:0.45,0.1
+                on_press: root.applychanges(),root.modifypot()
+
+        Label:
+            pos_hint:{'x':0.05,'y':0.02}
+            size_hint:0.9,0.18
+            text:'Modify initial parameters'
+            font_name:'Amatic-Bold'
+            font_size:root.height/30.
+            id:statechange_id
+            color: black
+            canvas.before:               
+                Rectangle:
+                
+                    pos:self.pos
+                    size:self.size
+                    Color:
+                        rgba:color_labels
         
 
         
@@ -323,26 +403,30 @@
                     size:self.size
     
         Label:
-            text:'Parameters'
+            text:'[color=FF9A00]Parameters[/color]'
             pos_hint:{'x':0.1,'y':0.9}
-            size_hint:0.8,0.1
-            color: color_labels
-            canvas.before:
-                Color:
-                    rgba:0,0,0,1
-                Rectangle:
+            size_hint:0.9,0.1
+            font_name: 'Amatic-Bold'
+            font_size:root.height/25.
+            markup: True
+            #canvas.before:
+            #    Color:
+            #        rgba:0,0,0,1
+            #    Rectangle:
             
-                    pos:self.pos
-                    size:self.size
+            #        pos:self.pos
+            #        size:self.size
             
         ##Parametres que s'han de calcular amb el buto compute
         GridLayout:
             cols: 2
-            spacing: self.height/7
-            pos_hint:{'x':0.1,'y':0.30}
-            size_hint:0.8,0.5
+            spacing: self.height/14
+            pos_hint:{'x':0,'y':0.05}
+            size_hint:0.9,0.8
             Label:
                 text:'Norma'
+                font_name:'AmaticSC-Regular'
+                font_size:root.height/30.
                 color: color_labels
                 
             Label:
@@ -362,6 +446,8 @@
                 
             Label:
                 text:'Energia'
+                font_size:root.height/30.
+                font_name:'AmaticSC-Regular'
                 color: color_labels
                 
             Label:
@@ -376,7 +462,9 @@
                         Color:
                             rgba:color_labels
             Label:
-                text:'L'                
+                text:'L' 
+                font_size:root.height/30.
+                font_name:'AmaticSC-Regular'               
                 color:color_labels
             
             Label:
@@ -392,7 +480,9 @@
                             rgba:color_labels
                             
             Label:
-                text:'temps'                
+                text:'temps' 
+                font_size:root.height/30.
+                font_name:'AmaticSC-Regular'               
                 color:color_labels
             Label:
                 text:'0.00'
@@ -415,46 +505,62 @@
             
         ##Parametres que canvien amb els butons de EDICIÓ
         
-        Label:
-            text:'Moment'
-            pos_hint:{'x':0.1,'y':0.15}
-            size_hint:0.8,0.1
-            color: 0,0,0,1
-            
-        GridLayout:
-            cols: 4
-            spacing: self.height/7
-            pos_hint:{'x':0,'y':0.05}
-            size_hint:0.9,0.1
             Label:
-                text:'p_x'
+                text:'Moment'
+                font_size:root.height/30.
+                font_name:'AmaticSC-Regular'
+                #pos_hint:{'x':0.1,'y':0.32}
+                #size_hint:0.8,0.1
                 color: color_labels
                 
-            Label:
-                text:'0.00'
-                id:pxchange
-                color: black
-                canvas.before:               
-                    Rectangle:
-                
-                        pos:self.pos
-                        size:self.size
-                        Color:
-                            rgba:color_labels
-            Label:
-                text:'p_y'
-                color: color_labels
-                
-            Label:
-                text:'0.00'
-                id:pychange
-                color: black
-                canvas.before:               
-                    Rectangle:                
-                        pos:self.pos
-                        size:self.size
-                        Color:
-                            rgba:color_labels
+            RelativeLayout:
+                #cols: 4
+                #spacing: self.height/7
+                #pos_hint:{'x':0,'y':0.22}
+                #size_hint:0.9,0.1
+                orientation:'horizontal'
+                Label:
+                    size_hint_x:0.1
+                    pos_hint:{'x':0.0}
+                    text:'('
+                    color: color_labels
+                    
+                Label:
+                    size_hint_x:0.35
+                    pos_hint:{'x':0.11}
+                    text:'0.0'
+                    id:pxchange
+                    color: black
+                    canvas.before:               
+                        Rectangle:
+                    
+                            pos:self.pos
+                            size:self.size
+                            Color:
+                                rgba:color_labels
+                Label:
+                    size_hint_x:0.05
+                    pos_hint:{'x':0.495}
+                    text:','
+                    color: color_labels
+                    
+                Label:
+                    size_hint_x:0.35
+                    pos_hint:{'x':0.53}
+                    text:'0.0'
+                    id:pychange
+                    color: black
+                    canvas.before:               
+                        Rectangle:                
+                            pos:self.pos
+                            size:self.size
+                            Color:
+                                rgba:color_labels
+                Label:
+                    size_hint_x:0.1
+                    pos_hint:{'x':0.9}
+                    text:')'
+                    color:color_labels
 
 
         #Label:
@@ -501,46 +607,49 @@
 #Control del flux del joc
     BoxLayout:
         id:box2_id
-        size_hint:0.20,0.075
-        pos_hint:{'y':0.,'x':0}
+        reset_but:res_but_id
+        size_hint:0.17,0.05
+        pos_hint:{'y':0.01,'x':0.01}
         orientation:'horizontal'
+        spacing:self.width/15.
         height:50
         
         Button:
-            text:'Compute'
+            #text:'Play'
             on_press: root.compute()
-            background_color: 0,1,0,1
+    
+            background_normal: 'play.png'
+            background_color: 2555/256.,215/256.,0,1
+            border:(0,0,0,0)
         Button:
-            text:'Pause'
+            #text:'Pause'
             on_press: root.pause()
-            background_color: 1,0,0,1
+            background_normal:'pause.png'
+            background_color: 255/256.,215/256.,0,1
+            border:(0,0,0,0)
+        
+        
+        Button:
+            id:res_but_id
+            on_press: root.reset()
+            
+            background_normal:'restart.png'
+            background_color: 255/256.,215/256.,0,1
+            border:(0,0,0,0)
     
     BoxLayout:
         id:box21_id
-        size_hint:0.55,0.075
-        pos_hint:{'y':0.,'x':0.2}
+        size_hint:0.05,0.04
+        pos_hint:{'y':0.01,'x':0.67}
         orientation:'horizontal'
         height:50
-        modechange: modechange.__self__
         
         
-        Button:
-            background_normal: 'prev.WEBP'
-            background_down: 'prev.WEBP'
-            on_release: root.modechange()
-            
-        Label:
-            id:modechange
-            text:'standard'
-            color:0,0,0,1
         
         Button:
-            background_normal: 'next.png'
-            background_down: 'next.png'
-            on_release: root.modechange()
-        Button:
-            text:'Back'
             on_press:root.transition_PS()
+            background_normal:'back.png'
+            border:(0,0,0,0)
         
 
 <GameScreen>:
@@ -594,11 +703,12 @@
     ###########################EDITON##############################3
     RelativeLayout:
         id:box4_id
-        size_hint:0.25,0.5
+        size_hint:0.25,0.6
         pos_hint:{'y':0.,'x':0.75}
         levelchange:levelchange_id.__self__
         fishchange:fishchange_id
         statechange:statechange_id
+        gamemode:gamemode_id
         Widget:
             canvas.before:
                 Color:
@@ -609,17 +719,36 @@
                     size:self.size
     
         Label:
-            text:'Game'
-            pos_hint:{'x':0.1,'y':0.9}
-            size_hint:0.8,0.1
+            id: gamemode_id
+            text:'[color=F027E8]Survay Mode[/color]'
+            font_name: 'Amatic-Bold'
+            font_size:root.height/25.
+            markup: True
+            color: (0.99,0.7,0,1)
+            pos_hint:{'x':0.1,'y':0.87}
+            size_hint:0.8,0.12
             color: color_labels
-            canvas.before:
-                Color:
-                    rgba:0,0,0,1
-                Rectangle:
+            #canvas.before:
+            #    Color:
+            #        rgba:0,0,0,1
+            #    Rectangle:
             
-                    pos:self.pos
-                    size:self.size
+            #        pos:self.pos
+            #        size:self.size
+        
+        Button:
+            background_normal:'leftpurplearrow.png'
+            border: (0,0,0,0)
+            size_hint:0.11,0.12
+            pos_hint:{'x':0.13,'y':0.87}
+            on_press: root.game_mode()
+            
+        Button:
+            background_normal:'rightpurplearrow.png'
+            border: (0,0,0,0)
+            size_hint:0.11,0.12
+            pos_hint:{'x':0.75,'y':0.87}
+            on_press: root.game_mode()
         
         
         
@@ -631,6 +760,8 @@
             size_hint: 0.87, 0.50
             Label:
                 text:'Level'
+                font_name:'AmaticSC-Regular'
+                font_size:root.height/30.
                 color:color_labels
                 
             Label:
@@ -661,7 +792,7 @@
                             rgba:color_labels
             
             Image:
-                source:'fish.png'
+                source:'fish1.png'
             
             Label:
                 text:'0/10'
@@ -678,10 +809,12 @@
         
                 
         Label:
-            pos_hint:{'x':0.05,'y':0.2}
-            size_hint:0.9,0.1
+            pos_hint:{'x':0.05,'y':0.06}
+            size_hint:0.9,0.23
             text:'Resting'
             id:statechange_id
+            font_name:'Amatic-Bold'
+            font_size:root.height/30.
             color: black
             canvas.before:               
                 Rectangle:
@@ -694,23 +827,23 @@
         
         
 
-        Button:
-            text:'Reset'
-            pos_hint:{'x':0.05,'y':0.07}
-            size_hint:0.45,0.1
-            on_press: root.reset()
+        #Button:
+        #    text:'Reset'
+        #    pos_hint:{'x':0.05,'y':0.07}
+        #    size_hint:0.45,0.1
+        #    on_press: root.reset()
             
-        Button:
-            text:'2'
-            pos_hint: {'x':0.5,'y':0.07}
-            size_hint:0.22,0.1
-            on_press: root.activatelvl2()
+        #Button:
+        #    text:'2'
+        #    pos_hint: {'x':0.5,'y':0.07}
+        #    size_hint:0.22,0.1
+        #    on_press: root.activatelvl2()
             
-        Button:
-            text:'1'
-            pos_hint: {'x':0.72,'y':0.07}
-            size_hint:0.22,0.1
-            on_press: root.activatelvl1()
+        #Button:
+        #    text:'1'
+        #    pos_hint: {'x':0.72,'y':0.07}
+        #    size_hint:0.22,0.1
+        #    on_press: root.activatelvl1()
         
         
 
@@ -726,8 +859,8 @@
         normachange:normachange.__self__
         energychange:energychange.__self__
         
-        size_hint:0.25,0.5
-        pos_hint:{'y':0.5,'x':0.75}
+        size_hint:0.25,0.4
+        pos_hint:{'y':0.6,'x':0.75}
         Widget:
             canvas.before:
                 Color:
@@ -738,26 +871,30 @@
                     size:self.size
     
         Label:
-            text:'Parameters'
+            text:'[color=FF9A00]Parameters[/color]'
             pos_hint:{'x':0.1,'y':0.9}
-            size_hint:0.8,0.1
-            color: color_labels
-            canvas.before:
-                Color:
-                    rgba:0,0,0,1
-                Rectangle:
+            size_hint:0.9,0.1
+            font_name: 'Amatic-Bold'
+            font_size:root.height/25.
+            markup: True
+            #canvas.before:
+            #    Color:
+            #        rgba:0,0,0,1
+            #    Rectangle:
             
-                    pos:self.pos
-                    size:self.size
+            #        pos:self.pos
+            #        size:self.size
             
         ##Parametres que s'han de calcular amb el buto compute
         GridLayout:
             cols: 2
-            spacing: self.height/7
-            pos_hint:{'x':0,'y':0.45}
-            size_hint:0.9,0.4
+            spacing: self.height/14
+            pos_hint:{'x':0,'y':0.05}
+            size_hint:0.9,0.8
             Label:
                 text:'Norma'
+                font_name:'AmaticSC-Regular'
+                font_size:root.height/30.
                 color: color_labels
                 
             Label:
@@ -777,6 +914,8 @@
                 
             Label:
                 text:'Energia'
+                font_size:root.height/30.
+                font_name:'AmaticSC-Regular'
                 color: color_labels
                 
             Label:
@@ -791,7 +930,9 @@
                         Color:
                             rgba:color_labels
             Label:
-                text:'L'                
+                text:'L' 
+                font_size:root.height/30.
+                font_name:'AmaticSC-Regular'               
                 color:color_labels
             
             Label:
@@ -807,7 +948,9 @@
                             rgba:color_labels
                             
             Label:
-                text:'temps'                
+                text:'temps' 
+                font_size:root.height/30.
+                font_name:'AmaticSC-Regular'               
                 color:color_labels
             Label:
                 text:'0.00'
@@ -830,50 +973,52 @@
             
         ##Parametres que canvien amb els butons de EDICIÓ
         
-        Label:
-            text:'Moment'
-            pos_hint:{'x':0.1,'y':0.32}
-            size_hint:0.8,0.1
-            color: 0,0,0,1
-            
-        BoxLayout:
-            #cols: 4
-            #spacing: self.height/7
-            pos_hint:{'x':0,'y':0.22}
-            size_hint:0.9,0.1
-            orientation:'horizontal'
             Label:
-                text:'('
+                text:'Moment'
+                font_size:root.height/30.
+                font_name:'AmaticSC-Regular'
+                #pos_hint:{'x':0.1,'y':0.32}
+                #size_hint:0.8,0.1
                 color: color_labels
                 
-            Label:
-                text:'0'
-                id:pxchange
-                color: black
-                canvas.before:               
-                    Rectangle:
-                
-                        pos:self.pos
-                        size:self.size
-                        Color:
-                            rgba:color_labels
-            Label:
-                text:','
-                color: color_labels
-                
-            Label:
-                text:'0'
-                id:pychange
-                color: black
-                canvas.before:               
-                    Rectangle:                
-                        pos:self.pos
-                        size:self.size
-                        Color:
-                            rgba:color_labels
-            Label:
-                text:')'
-                color:color_labels
+            BoxLayout:
+                #cols: 4
+                #spacing: self.height/7
+                #pos_hint:{'x':0,'y':0.22}
+                #size_hint:0.9,0.1
+                orientation:'horizontal'
+                Label:
+                    text:'('
+                    color: color_labels
+                    
+                Label:
+                    text:'0'
+                    id:pxchange
+                    color: black
+                    canvas.before:               
+                        Rectangle:
+                    
+                            pos:self.pos
+                            size:self.size
+                            Color:
+                                rgba:color_labels
+                Label:
+                    text:','
+                    color: color_labels
+                    
+                Label:
+                    text:'0'
+                    id:pychange
+                    color: black
+                    canvas.before:               
+                        Rectangle:                
+                            pos:self.pos
+                            size:self.size
+                            Color:
+                                rgba:color_labels
+                Label:
+                    text:')'
+                    color:color_labels
 
 
 #Control del flux del joc
