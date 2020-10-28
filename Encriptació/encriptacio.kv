@@ -1,0 +1,79 @@
+<WindowManager>:
+    HomeScreen:
+    Screen1:
+    
+<Button>:
+    #font_size: 30
+    color: 0.1,0.1,0.1,1 #num de 0 a 1
+    #size_hint: 0.6,0.5 
+    
+    
+<HomeScreen>:
+    
+    name: "home"
+    
+    BoxLayout:
+        orientation: "vertical"
+        spacing:100
+        padding:100
+            
+        Label: 
+            text: "HOME"
+            font_size: 50
+            color: 0,0.9,0.5,1
+          
+        Button:
+        
+            text: 'Start'
+            #size_hint: 0.5,0.3
+            #size: self.texture_size
+            #pos_hint: {"top":1}
+            
+            on_release: 
+                app.root.current = "screen1"
+            
+        
+    #Label:
+        #pos_hint
+        #text:"Home"
+   # Button: 
+    #    text:"Start"
+        
+<Screen1>:
+    name: "screen1"
+    
+    mxifrar: mxifrar
+    clau: clau
+    mxifrat: mxifrat
+    
+    
+    BoxLayout:
+        orientation: "vertical"
+        spacing:50
+        padding:50
+        
+
+        
+        GridLayout:
+            cols:2
+            
+            Label:
+                text: "Missatge per xifrar:"
+            
+            TextInput:
+                id: mxifrar
+                multiline: False
+            Label:
+                text: "Clau:"
+            
+            TextInput:
+                id: clau
+                multiline: False
+        
+        Button:
+            text: "Codificar"
+            on_press: root.btn()
+            
+        Label:
+            id: mxifrat
+            text: "El missastge xifrat és:   "
