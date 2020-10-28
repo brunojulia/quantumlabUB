@@ -1,6 +1,12 @@
+#:set cellsize 50
+#:set space 5
+
 <WindowManager>:
     Screen1:
     Screen2:
+    
+
+<Label>:
     
 
 <Button>:
@@ -10,101 +16,95 @@
     
 <CCell>:
     size_hint: None, None
-    size: 70, 70
+    size: cellsize, cellsize
     pos_hint: {"y":0}
     canvas:
         Color:
-            rgba: 0.3,0.3,0.7,0.5
-        Rectangle:
-            pos: self.pos
-            size: self.size
+            rgba: 0,0,0,1
+        Line:
+            points: self.x, self.y+self.height/2., self.x+self.width, self.y+self.height/2.
+            width: 3
+            cap: 'none'
+    
     Button:
-        text: "test"
+        opacity: 0.3
+        #text: "test"
         size_hint: None, None
-        size: 70,70
+        size: cellsize,cellsize
         pos_hint: {"x":0, "y":0}
     
     
 <CRow>:
     orientation: 'horizontal'
     pos_hint: {"x":0}
-    size_hint: 0.5,None
-    height: 70
-    canvas:
-        Color:
-            rgba: 0.3,0.7,0.3,0.5
-        Rectangle:
-            pos: self.pos
-            size: self.size
-    CCell:
-        id:0
-        pos: self.width, 0
-        
-    CCell:
-        id:1
-        pos: self.width+70, 0
+    size_hint: None,None
+    height: cellsize
         
     
 <CGrid>:
-    grid: grid  
-    ScrollView:           
+ #   grid: grid  
+    scroll: scroll
+            
+#    ScrollView:
+#        opacity: 0
+#        disabled: True          
+#        pos: root.pos
+#        size: root.size
+#        do_scroll_X: True
+#        do_scroll_y: True
+#        GridLayout:
+#            id: grid
+#            size_hint_y: None
+#            size_hint_x: None
+#            height: self.minimum_height
+#            width: self.minimum_width
+#            rows: 2
+#            spacing: 5
+#            row_default_height: cellsize
+#            col_default_width: cellsize
+#            col_force_default: True
+#            row_force_default: True
+#           
+#            
+#            Button:
+#                text: "test"
+#            Button:
+#                text: "test"
+    
+    ScrollView:
         pos: root.pos
         size: root.size
         do_scroll_X: True
         do_scroll_y: True
-        GridLayout:
-            id: grid
-            #pos: root.x, root.y+root.height/2.-grid.height/2.
+        
+        
+        FloatLayout:
+            id: scroll
             size_hint_y: None
             size_hint_x: None
-            height: self.minimum_height
-            width: self.minimum_width
-            rows: 2
-            spacing: 5
-            row_default_height: 70
-            col_default_width: 70
-            col_force_default: True
-            row_force_default: True
-           
+            size: root.width+200, root.height
+            pos: root.pos
             
             Button:
-                text: "test"
+                text: "- Col"
+                size_hint: (None, None)
+                size: cellsize, 0.5*cellsize
+                pos_hint: {}
+                pos: scroll.right-2*cellsize, scroll.top-30
+                on_release: root.remove_col()
+                
             Button:
-                text: "test"
-    Label:
-        id:v2
-        visible: False
-        opacity: 1 if self.visible else 0
-        disabled: not self.visible
-    CRow:
-        id:0
-        pos: 0,root.y
-        opacity: 1 if v2.visible else 0
-        disabled: not v2.visible
-    CRow:
-        id:1
-        pos: 0,root.y+75
-        opacity: 1 if v2.visible else 0
-        disabled: not v2.visible
-    Button:
-        text: "v2"
-        size_hint: (0.08, 0.06)
-        pos_hint: {"x":0}
-        pos: 0,root.y+150
-        on_release:
-            if v2.visible == False: v2.visible = True
-            elif v2.visible == True: v2.visible = False
-        
-        
-                  
-        
+                text: "+ Col"
+                size_hint: (None, None)
+                size: cellsize, scroll.height-(cellsize*0.5+space*1.5)
+                pos_hint: {}
+                pos: scroll.right-cellsize, scroll.y
+                on_release: root.add_col()
 
 
 <Screen1>:
     name: "Screen1"
-    btn: test_button
     cgrid: cgrid
-    v2:v2
     
     FloatLayout:
         canvas:
@@ -205,28 +205,13 @@
         #PANEL DEL CIRCUIT         
         FloatLayout: 
             id: circuit
-            canvas:
-                Color:
-                    rgba: 0.7,0.1,0.1,1
-                Rectangle:
-                    pos: (self.x,self.y)
-                    size: (self.width,10)
-                Rectangle:
-                    pos: (self.x,self.y)
-                    size: (10,self.height)
-                Rectangle:
-                    pos: (self.x,self.y+self.height-10)
-                    size: (self.width,10)
-                Rectangle:
-                    pos: (self.x+self.width-10,self.y)
-                    size: (10,self.height)
-                
             pos_hint: {"top":0.92, "left":0}
             size_hint: 0.7 if panel1.visible else 1, 0.62 if panel2.visible else 0.92
             
             BoxLayout: 
-                pos_hint: {"top":0.9,"x":0.1}
-                size_hint: 0.85,0.85
+                pos_hint: {"top":0.9,"x":0}
+                size_hint: 0.95,0.85
+                
                 CGrid:
                     id: cgrid
                         
@@ -253,36 +238,42 @@
                 if panel2.visible == False: panel2.visible = True
                 elif panel2.visible == True: panel2.visible = False
                 
-        Button:
-            id:test_button
-            text: "TEST"
-            size_hint: (0.1, 0.06)
-            pos_hint: {"x": 0.32, "y":0.93}
-            on_release: root.cgrid.add_element()
+#        Button:
+#            text: "TEST"
+#            size_hint: (0.1, 0.06)
+#            pos_hint: {"x": 0.1+0.11*2, "y":0.93-0.07*0}
+#            on_release: root.cgrid.add_element()
             
         Button:
-            id: v2
-            visible: False
-            opacity: 1 if self.visible else 0
-            disabled: not self.visible
             text: "TEST2"
             size_hint: (0.1, 0.06)
-            pos_hint: {"x": 0.21, "y":0.93}
-            on_release: root.cgrid.add_element2("1","1")
+            pos_hint: {"x": 0.1+0.11*2, "y":0.93-0.07*1}
+            on_release: root.cgrid.add_element2(1,1)
+            
         Button:
-            opacity: 1 if v2.visible else 0
-            disabled: not v2.visible
-            text: "TEST3"
+            text: "+ Col"
             size_hint: (0.1, 0.06)
-            pos_hint: {"x": 0.1, "y":0.93}
-            on_release: root.cgrid.add_element3()
+            pos_hint: {"x": 0.1+0.11*0, "y":0.93-0.07*0}
+            on_release: root.cgrid.add_col()
+                
         Button:
-            text: "v2"
-            size_hint: (0.08, 0.06)
-            pos_hint: {"x": 0.01, "y":0.93}
-            on_release:
-                if v2.visible == False: v2.visible = True
-                elif v2.visible == True: v2.visible = False
+            text: "- Col"
+            size_hint: (0.1, 0.06)
+            pos_hint: {"x": 0.1+0.11*0, "y":0.93-0.07*1}
+            on_release: root.cgrid.remove_col()
+            
+        Button:
+            text: "Refresh"
+            size_hint: (0.1, 0.06)
+            pos_hint: {"x": 0.1+0.11*2, "y":0.93-0.07*0}
+            on_release: root.cgrid.refresh()
+            
+        Button:
+            text: "+ Row"
+            size_hint: (0.1, 0.06)
+            pos_hint: {"x": 0.1+0.11*1, "y":0.93-0.07*0}
+            on_release: root.cgrid.add_row()
+            
     
             
                 
