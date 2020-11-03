@@ -1,6 +1,7 @@
 <WindowManager>:
     HomeScreen:
     Screen1:
+    Screen2:
     
 <Button>:
     #font_size: 30
@@ -9,7 +10,6 @@
     
     
 <HomeScreen>:
-    
     name: "home"
     
     BoxLayout:
@@ -24,13 +24,19 @@
           
         Button:
         
-            text: 'Start'
+            text: 'Clau senzilla'
             #size_hint: 0.5,0.3
             #size: self.texture_size
             #pos_hint: {"top":1}
             
             on_release: 
                 app.root.current = "screen1"
+                
+        Button: 
+            text:'Clau llarga'
+            
+            on_release:
+                app.root.current = "screen2"
             
         
     #Label:
@@ -45,35 +51,140 @@
     mxifrar: mxifrar
     clau: clau
     mxifrat: mxifrat
+    mxifrat2: mxifrat2
+    clau2: clau2
+    mdxifrat: mdxifrat
     
     
-    BoxLayout:
-        orientation: "vertical"
-        spacing:50
-        padding:50
+    GridLayout:
+        cols:2
         
+        BoxLayout:
+            orientation: "vertical"
+            spacing:50
+            padding:50
+            
+            GridLayout:
+                cols:2
+                
+                Label:
+                    text: "Missatge per xifrar:"
+                
+                TextInput:
+                    id: mxifrar
+                    multiline: False
+                Label:
+                    text: "Clau:"
+                
+                TextInput:
+                    id: clau
+                    multiline: False
+            
+            Button:
+                text: "Codificar"
+                on_press: root.btn()
+                
+            Label:
+                id: mxifrat
+                text: "Missatge xifrat:  "
+        
+        #------------------------------------- 
+        BoxLayout:
+            orientation: "vertical"
+            spacing:50
+            padding:50
 
-        
-        GridLayout:
-            cols:2
+            GridLayout:
+                cols:2
+                
+                Label:
+                    text: "Missatge per desxifrar:"
+                
+                Label: 
+                    id: mxifrat2
+                    #multiline: False
+                Label:
+                    text: "Clau:"
+                
+                TextInput:
+                    id: clau2
+                    multiline: False
             
+            Button:
+                text: "Descodificar"
+                on_press: root.btn1()
+                
             Label:
-                text: "Missatge per xifrar:"
-            
-            TextInput:
-                id: mxifrar
-                multiline: False
-            Label:
-                text: "Clau:"
-            
-            TextInput:
-                id: clau
-                multiline: False
+                id: mdxifrat
+                text: "Missatge desxifrat:  "
+
+<Screen2>:
+    name: "screen2"
+    
+    mxifrar: mxifrar
+    randomkey: randomkey
+    randomkeytxt: randomkeytxt
+    mxifrat: mxifrat
+    mxifrat2: mxifrat2
+    mdxifrat: mdxifrat
         
-        Button:
-            text: "Codificar"
-            on_press: root.btn()
+    GridLayout:
+        cols:2
+        
+        BoxLayout:
+            orientation: "vertical"
+            spacing:50
+            padding:50
             
-        Label:
-            id: mxifrat
-            text: "El missastge xifrat és:   "
+            GridLayout:
+                cols:2
+                
+                Label:
+                    text: "Missatge per xifrar:"
+                
+                TextInput:
+                    id: mxifrar
+                    multiline: False
+                    
+            Button: 
+                id: randomkey
+                text: "Genera una clau aleatòria"    
+                on_press: root.btnkey()       
+                
+            Label:
+                id: randomkeytxt
+                text: "Clau generada:"
+                multiline: True
+                
+            
+            Button:
+                text: "Codificar"
+                on_press: root.btn2()
+                
+            Label:
+                id: mxifrat
+                text: "Missatge xifrat:  "
+        
+        #------------------------------------- 
+        BoxLayout:
+            orientation: "vertical"
+            spacing:50
+            padding:50
+
+            GridLayout:
+                cols:2
+                
+                Label:
+                    text: "Missatge per desxifrar:"
+                
+                Label: 
+                    id: mxifrat2
+                    #multiline: False
+                
+            Button:
+                text: "Descodificar amb la mateixa clau"
+                on_press: root.btn3()
+                
+            Label:
+                id: mdxifrat
+                text: "Missatge desxifrat:  "
