@@ -42,42 +42,19 @@
         
     
 <CGrid>:
- #   grid: grid  
     scroll: scroll
-            
-#    ScrollView:
-#        opacity: 0
-#        disabled: True          
-#        pos: root.pos
-#        size: root.size
-#        do_scroll_X: True
-#        do_scroll_y: True
-#        GridLayout:
-#            id: grid
-#            size_hint_y: None
-#            size_hint_x: None
-#            height: self.minimum_height
-#            width: self.minimum_width
-#            rows: 2
-#            spacing: 5
-#            row_default_height: cellsize
-#            col_default_width: cellsize
-#            col_force_default: True
-#            row_force_default: True
-#           
-#            
-#            Button:
-#                text: "test"
-#            Button:
-#                text: "test"
-    
+    canvas:
+        Color:
+            rgba: 0.3,0.7,0.3,0.5
+        Rectangle:
+            size: self.size
+            pos: self.pos      
     ScrollView:
         pos: root.pos
         size: root.size
         do_scroll_X: True
         do_scroll_y: True
-        
-        
+               
         FloatLayout:
             id: scroll
             size_hint_y: None
@@ -102,11 +79,19 @@
                 on_release: root.add_col()
 
 
+
+    
+
+
 <Screen1>:
     name: "Screen1"
     cgrid: cgrid
+    circuit: circuit
+    gatesgrid: gatesgrid
+    on_touch_up: self.cgrid.on_touch_up
     
     FloatLayout:
+        
         canvas:
             Color:
                 rgba: 0.7,0.7,0.7,1
@@ -163,6 +148,8 @@
                 opacity: 1 if self.visible else 0
                 text: "Other"
                 pos_hint: {"x":0.1, "y": 0.6}
+                on_release: root.test()
+                    
                 
             Button:
                 text: "Exit"
@@ -202,15 +189,21 @@
             pos_hint: {"left":0, "bottom": 0}
             size_hint: 0.7, 0.3
             
+            GatesGrid:
+                pos_hint: {"top":0.9}
+                pos: 20, 0
+                id: gatesgrid
+            
         #PANEL DEL CIRCUIT         
         FloatLayout: 
             id: circuit
             pos_hint: {"top":0.92, "left":0}
-            size_hint: 0.7 if panel1.visible else 1, 0.62 if panel2.visible else 0.92
-            
+            size_hint: 1, 0.92
+                        
             BoxLayout: 
                 pos_hint: {"top":0.9,"x":0}
                 size_hint: 0.95,0.85
+                
                 
                 CGrid:
                     id: cgrid
@@ -226,23 +219,19 @@
             text: "Probabilities"
             size_hint: (0.15, 0.06)
             pos_hint: {"x": 0.54, "y":0.93}
+            on_release: root.cgrid.resize_panels(panel1.visible, panel2.visible)
             on_release:
                 if panel1.visible == False: panel1.visible = True
                 elif panel1.visible == True: panel1.visible = False
-                
+             
         Button:
             text: "Gates"
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.43, "y":0.93}
+            on_release: root.cgrid.resize_panels(panel1.visible, panel2.visible)
             on_release:
                 if panel2.visible == False: panel2.visible = True
                 elif panel2.visible == True: panel2.visible = False
-                
-#        Button:
-#            text: "TEST"
-#            size_hint: (0.1, 0.06)
-#            pos_hint: {"x": 0.1+0.11*2, "y":0.93-0.07*0}
-#            on_release: root.cgrid.add_element()
             
         Button:
             text: "TEST2"
