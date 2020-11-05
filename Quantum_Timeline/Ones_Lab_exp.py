@@ -6,9 +6,10 @@ Created on Mon Oct 26 20:41:14 2020
 """
 
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.animation as ani
-import matplotlib.gridspec as gridspec
 e=np.e
 pi=np.pi
 
@@ -22,7 +23,7 @@ def ona_plana(x,y,t,c,x0):
     elif x>c*t:
         valor=0
     else:
-        valor=e**(1j*(x-c*t))
+        valor=np.exp(1j*(x-c*t))
     return valor
 
 def ona_esf(x,y,x0,y0,t,c):
@@ -32,7 +33,7 @@ def ona_esf(x,y,x0,y0,t,c):
     elif (r+x0)>c*t:
         valor=0
     else:
-        valor=e**(1j*(r-c*t+x0))
+        valor=np.exp(1j*(r-c*t+x0))
     return valor
 
 def intensitat(psi):
@@ -47,14 +48,13 @@ y=np.zeros((101))
 
 xmax=50*pi
 ymax=25*pi
-pas=ymax/100
-print(xmax,ymax,pas)
 
-for i in range(201):
-    x[i]=pas*i
-    if i<101:
-        y[i]=pas*i
-        
+x=np.linspace(0,1,xmax)
+y=np.linspace(0,1,ymax)
+ypas=np.size(y)
+xpas=np.size(x)
+
+print(xmax,ymax,xpas,ypas)        
 print(x[0],x[200])
 print(y[0],y[100])
 
@@ -65,10 +65,12 @@ fixem el temps per representar una situació instantània
 t=350
 x0=40
 y1=55
-y2=15
+y2=35
 c=1
 
 print(ona_esf(45,5,x0,y1,t,c))
+
+
 
 for i in range(201):
     for j in range(101):
@@ -77,13 +79,15 @@ for i in range(201):
                      +ona_esf(x[i],y[j],x0,y2,t,c)
         Int[j,i]=intensitat(Lab[j,i])
         Ona[j,i]=Lab[j,i].real
+
+
         
 print(Ona.min(),Ona.max())
 
-plt.pcolormesh(x,y,Ona,vmin=Ona.min(),vmax=Ona.max())
-plt.show()
-plt.pcolormesh(x,y,Int,vmin=Int.min(),vmax=Int.max())
-plt.show()
+Ona1=plt.pcolormesh(x,y,Ona,vmin=Ona.min(),vmax=Ona.max(),cmap='gray')
+plt.savefig('Ona.png')
+plt.pcolormesh(x,y,Int,vmin=Int.min(),vmax=Int.max(),cmap="gray")
+
 
 x0=40
 c=1
@@ -92,6 +96,9 @@ y2=15
 
 fig = plt.figure()
 ax1 = plt.subplot()
+
+Writer = ani.writers['ffmpeg']
+writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 
 def animate(frame):
     t=frame
@@ -105,10 +112,12 @@ def animate(frame):
     plt.pcolormesh(x,y,Ona,vmin=-2,vmax=+2)
 
 anim = ani.FuncAnimation(fig, animate, 
-                               frames = 100, 
-                               blit = False, interval=1)
+                               frames = 400, 
+                               blit = False, interval=200)
 
-plt.show()
+
+
+
 
 
 
