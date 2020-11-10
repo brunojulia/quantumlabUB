@@ -7,9 +7,13 @@ Created on Mon Oct 26 18:42:50 2020
 import numpy as np
 import random
 from kivy.app import App
-#from kivy.properties import ObjectProperty
+from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import ScreenManager, Screen 
-#from kivy.lang import Builder
+from kivy.lang import Builder
+import os
+
+with open("encriptacio1.kv", encoding='utf-8') as kv_file:
+    Builder.load_string(kv_file.read())
 
 ''' Inici aplicació Encriptació  '''
 class encriptacioApp(App):
@@ -21,6 +25,9 @@ class encriptacioApp(App):
     
 """ Funcions"""
 f=open("fitxerencriptacio.txt","w") #Si ja existeix el fitxer, afegeix al que ja hi ha
+
+fr=open("Guardarllistes.txt","w")
+fr.close()
  
 def key_encrypt(message,key):
     '''
@@ -51,6 +58,8 @@ def key_encrypt(message,key):
     print('Missatge encriptat en abc:', message_en)
     print('Missatge encriptat en binari:',messageb)
     return message_en, messageb    
+
+
 def create_key(message):
     '''
     Parameters
@@ -144,7 +153,225 @@ def key_desencrypt2(message,key):
     return message_out
 
 
-"""Pantalles"""
+def guardar(direccio0,bit0,direccio1,bit1,dir0l,bit0l,dir1l,bit1l):    
+    '''
+    Funció que guarda les direccions i els bits i ho converteix tot en 
+    dues arrays: l'enviada i la rebuda'
+
+    Parameters
+    ----------
+    direccio0 : DIRECCIÓ ENVIAMENT (STR)
+    bit0 : BIT ENVIAT (INT)
+    direccio1 : DIRECCIÓ REBUDA (STR)
+    bit1:   BIT REBUT(INT)
+    dir0l : LLISTA DE TOTES LES DIRECCIONS DE L'ENVIAMENT
+    bit0l : LLISTA DE TOTS ELS BITS ENVIATS
+    dir1l : LLISTA DE TOTES LES DIRECCIONS DE LA REBUDA
+    bit1l : LLISTA DE TOTS ELS BITS REBUTS
+
+    Returns
+    -------
+    array0: ARRAY ENVIADA
+    array1: ARRAY REBUDA
+
+    '''
+    
+    dir0l.append(direccio0)
+    bit0l.append(bit0)
+    dir1l.append(direccio1)
+    bit1l.append(bit1)
+    
+    array0=np.empty((len(dir0l),2),dtype=str)
+    array1=np.empty((len(dir1l),2),dtype=str)
+    
+    array0[:,0]=dir0l
+    array0[:,1]=bit0l
+    array1[:,0]=dir1l
+    array1[:,1]=bit1l
+    
+    return array0,array1
+
+
+def enviament(direccio0,bit0,direccio1,dir0l,bit0l,dir1l,bit1l):
+    '''
+    Funció que simila l'enviament dels bits i la transformació d'ells
+
+    Parameters
+    ----------
+    direccio0 : DIRECCIÓ ENVIAMENT (STR)
+    bit0 : BIT ENVIAT (INT)
+    direccio1 : DIRECCIÓ REBUDA (STR)
+    dir0l : LLISTA DE TOTES LES DIRECCIONS DE L'ENVIAMENT
+    bit0l : LLISTA DE TOTS ELS BITS ENVIATS
+    dir1l : LLISTA DE TOTES LES DIRECCIONS DE LA REBUDA
+    bit1l : LLISTA DE TOTS ELS BITS REBUTS
+
+    Returns
+    -------
+    array0: ARRAY ENVIADA
+    array1: ARRAY REBUDA
+
+    '''
+    
+    #Si es mesura en la mateixa direcció 100% es rebrà igual
+    if direccio0==direccio1:
+        bit1=bit0
+        
+    #Si les dues direccions són diferents:   
+    else:
+        r=random.random()
+        if r<=0.5:
+            bit1=0
+        else: 
+            bit1=1
+            
+    array0,array1=guardar(direccio0,bit0,direccio1,bit1,dir0l,bit0l,dir1l,bit1l)
+
+    return array0,array1
+
+
+def guardar2(direccio0,bit0,direccio1,bit1,dir0l,bit0l,dir1l,bit1l):    
+    '''
+    Funció que guarda les direccions i els bits i ho converteix tot en 
+    dues arrays: l'enviada i la rebuda'
+
+    Parameters
+    ----------
+    direccio0 : DIRECCIÓ ENVIAMENT (STR)
+    bit0 : BIT ENVIAT (INT)
+    direccio1 : DIRECCIÓ REBUDA (STR)
+    bit1:   BIT REBUT(INT)
+    dir0l : LLISTA DE TOTES LES DIRECCIONS DE L'ENVIAMENT
+    bit0l : LLISTA DE TOTS ELS BITS ENVIATS
+    dir1l : LLISTA DE TOTES LES DIRECCIONS DE LA REBUDA
+    bit1l : LLISTA DE TOTS ELS BITS REBUTS
+
+    Returns
+    -------
+    array0: ARRAY ENVIADA
+    array1: ARRAY REBUDA
+
+    '''
+    
+    fr=open("Guardarllistes.txt","w")
+    
+    
+    dir0l.append(direccio0)
+    bit0l.append(bit0)
+    dir1l.append(direccio1)
+    bit1l.append(bit1)
+    
+    array0=np.empty((len(dir0l),2),dtype=str)
+    array1=np.empty((len(dir1l),2),dtype=str)
+    
+    array0[:,0]=dir0l
+    array0[:,1]=bit0l
+    array1[:,0]=dir1l
+    array1[:,1]=bit1l
+    
+    #Escric al fitxer les noves llistes
+    dir0s=""
+    for i in dir0l:
+        dir0s+=i
+    fr.write(dir0s+"\n")
+    
+    bit0s=""
+    for i in bit0l:
+        bit0s+=str(i)
+    fr.write(bit0s+"\n")
+    
+    dir1s=""
+    for i in dir1l:
+        dir1s+=i
+    fr.write(dir1s+"\n")
+    
+    bit1s=""
+    for i in bit1l:
+        bit1s+=str(i)
+    fr.write(bit1s+"\n")
+    
+    fr.close()
+    
+    return array0,array1
+
+def enviament2(direccio0,bit0,direccio1,dir0l,bit0l,dir1l,bit1l):
+    '''
+    Funció que simila l'enviament dels bits i la transformació d'ells
+    Parameters
+    ----------
+    direccio0 : DIRECCIÓ ENVIAMENT (STR)
+    bit0 : BIT ENVIAT (INT)
+    direccio1 : DIRECCIÓ REBUDA (STR)
+    dir0l : LLISTA DE TOTES LES DIRECCIONS DE L'ENVIAMENT
+    bit0l : LLISTA DE TOTS ELS BITS ENVIATS
+    dir1l : LLISTA DE TOTES LES DIRECCIONS DE LA REBUDA
+    bit1l : LLISTA DE TOTS ELS BITS REBUTS
+
+    Returns
+    -------
+    array0: ARRAY ENVIADA
+    array1: ARRAY REBUDA
+
+    '''
+    
+    #Si es mesura en la mateixa direcció 100% es rebrà igual
+    if direccio0==direccio1:
+        bit1=bit0
+        
+    #Si les dues direccions són diferents:   
+    else:
+        r=random.random()
+        if r<=0.5:
+            bit1=0
+        else: 
+            bit1=1
+            
+    array0,array1=guardar2(direccio0,bit0,direccio1,bit1,dir0l,bit0l,dir1l,bit1l)
+
+    return array0,array1
+
+def arrays():
+
+    if os.path.getsize("Guardarllistes.txt") == 0:
+        #fr=open("Guardarllistes.txt","a")
+        dir0=[]
+        bit0=[]
+        dir1=[]
+        bit1=[]
+        print("No hi ha res al document")
+        
+    else:
+        with open("Guardarllistes.txt", 'r') as fr:
+            dir0r= fr.readlines()[-4]
+
+        with open("Guardarllistes.txt", 'r') as fr:
+            bit0r= fr.readlines()[-3]
+
+        with open("Guardarllistes.txt", 'r') as fr:
+            dir1r = fr.readlines()[-2]
+            
+        with open("Guardarllistes.txt", 'r') as fr:
+            bit1r = fr.readlines()[-1]
+            
+        dir0=list(dir0r)
+        dir0.pop(len(dir0)-1) #El menys 1 és perquè al escriure al final s'ha de posar un \n
+        
+        bit0=list(bit0r)
+        bit0.pop(len(bit0)-1)
+        
+        dir1=list(dir1r)
+        dir1.pop(len(dir1)-1)
+        
+        bit1=list(bit1r)
+        bit1.pop(len(bit1)-1)       
+
+
+        fr.close()
+        
+    return dir0,bit0,dir1,bit1
+        
+
+"""_______________________Pantalles___________________"""
 
 class HomeScreen(Screen):
     pass   
@@ -218,11 +445,26 @@ class Screen2(Screen):
         mdencriptat=key_desencrypt2(self.mxifrat2.text,self.randomkey)
         
         self.mdxifrat.text="Missatge desxifrat:   "+mdencriptat
+
+    
+class Screen3(Screen):
+
+
+    def btn_array(self):
+        dir0l,bit0l,dir1l,bit1l=arrays()
+        array0,array1=enviament2(self.dir0.text,int(self.bit0.text),self.dir1.text,dir0l,bit0l,dir1l,bit1l)
+        self.array0.text= str(array0)
+        self.array1.text= str(array1)
+        n,m=np.shape(array1)
+        self.bit1.text=str(array1[n-1,m-1])
         
-        
+    
+
+    
         
 
 class WindowManager(ScreenManager):
+
     pass
 
     
