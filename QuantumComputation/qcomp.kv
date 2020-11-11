@@ -6,12 +6,15 @@
     Screen2:
     
 
+
+    
+
 <Label>:
     
 
 <Button>:
     size_hint: (0.8, 0.08)
-    pos_hint: {"x": 0.1}
+    #pos_hint: {"x": 0.1}
     
     
 <CCell>:
@@ -28,10 +31,10 @@
     
     Button:
         opacity: 0.3
-        #text: "test"
         size_hint: None, None
         size: cellsize,cellsize
         pos_hint: {"x":0, "y":0}
+        disabled:True
     
     
 <CRow>:
@@ -42,13 +45,7 @@
         
     
 <CGrid>:
-    scroll: scroll
-    canvas:
-        Color:
-            rgba: 0.3,0.7,0.3,0.5
-        Rectangle:
-            size: self.size
-            pos: self.pos      
+    scroll: scroll      
     ScrollView:
         pos: root.pos
         size: root.size
@@ -89,6 +86,8 @@
     circuit: circuit
     gatesgrid: gatesgrid
     on_touch_up: self.cgrid.on_touch_up
+    
+    
     
     FloatLayout:
         
@@ -200,10 +199,13 @@
             pos_hint: {"top":0.92, "left":0}
             size_hint: 1, 0.92
                         
-            BoxLayout: 
+            BoxLayout:
+                
                 pos_hint: {"top":0.9,"x":0}
                 size_hint: 0.95,0.85
                 
+                
+               
                 
                 CGrid:
                     id: cgrid
@@ -237,7 +239,7 @@
             text: "TEST2"
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.1+0.11*2, "y":0.93-0.07*1}
-            on_release: root.cgrid.add_element2(1,1)
+            on_press: root.cgrid.add_element2(1,1)
             
         Button:
             text: "+ Col"
