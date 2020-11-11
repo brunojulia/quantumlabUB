@@ -1,0 +1,353 @@
+<WindowManager>:
+    HomeScreen:
+    Screen1:
+    Screen2:
+    Screen3:
+    
+<Button>:
+    #font_size: 30
+    color: 0.1,0.1,0.1,1 #num de 0 a 1
+    #size_hint: 0.6,0.5 
+    #size_hint: (0.8, 0.08)
+    
+    
+<HomeScreen>:
+    name: "home"
+    
+    BoxLayout:
+        orientation: "vertical"
+        spacing:20
+        padding:150
+            
+        Label: 
+            text: "HOME"
+            font_size: 50
+            color: 0,0.9,0.5,1
+          
+        Button:
+        
+            text: 'Clau senzilla'
+            font_size: 20
+            anchor_x: 'center'
+            #height: 0.4
+            #size_hint: 0.5,0.3
+            size: self.texture_size
+            #pos_hint: {"top":1}
+            
+            on_release: 
+                app.root.current = "screen1"
+                root.manager.transition.direction = "left"
+                
+        Button: 
+            text:'Clau llarga'
+            font_size: 20
+            
+            on_release:
+                app.root.current = "screen2"
+                root.manager.transition.direction = "left"
+        Button:
+            text: "Enviament"
+            font_size: 20
+            on_release:
+                app.root.current = "screen3"
+                root.manager.transition.direction = "left"
+            
+        
+    #Label:
+        #pos_hint
+        #text:"Home"
+   # Button: 
+    #    text:"Start"
+        
+<Screen1>:
+    name: "screen1"
+    
+    mxifrar: mxifrar
+    clau: clau
+    mxifrat: mxifrat
+    mxifrat2: mxifrat2
+    clau2: clau2
+    mdxifrat: mdxifrat
+    
+
+        
+    GridLayout:
+        cols:2
+            
+        BoxLayout:
+            orientation: "vertical"
+            spacing:50
+            padding:50
+            
+            GridLayout:
+                cols:2
+                
+                Label:
+                    text: "Missatge per xifrar:"
+                
+                TextInput:
+                    id: mxifrar
+                    multiline: False
+                Label:
+                    text: "Clau:"
+                    
+                TextInput:
+                    id: clau
+                    multiline: False
+                
+            Button:
+                #anchor_x: 'center'
+                #size_hint: 0.5,0.3
+                text: "Codificar"
+                on_press: root.btn()
+                    
+            Label:
+                id: mxifrat
+                text: "Missatge xifrat:  "
+        
+   
+        #------------------------------------- 
+        BoxLayout:
+            orientation: "vertical"
+            spacing:50
+            padding:50
+
+            GridLayout:
+                cols:2
+                
+                Label:
+                    text: "Missatge per desxifrar:"
+                
+                Label: 
+                    id: mxifrat2
+                    #multiline: False
+                Label:
+                    text: "Clau:"
+                
+                TextInput:
+                    id: clau2
+                    multiline: False
+            
+            Button:
+                text: "Descodificar"
+                on_press: root.btn1()
+                
+            Label:
+                id: mdxifrat
+                text: "Missatge desxifrat:  "
+                
+                #-------------------
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'bottom'
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 0.2, .05
+            Button:
+                background_color: 0,0.9,0.5,1
+                text: 'Home'
+                on_press:
+                    app.root.current = "home"
+                    root.manager.transition.direction = "right"
+           
+               
+           # Button:
+            #    text: 'Clau llarga'
+             #   on_press: 
+              #      app.root.current = "screen2"
+               #     root.manager.transition.direction = "left"
+                
+<Screen2>:
+    name: "screen2"
+    
+    mxifrar: mxifrar
+    randomkey: randomkey
+    randomkeytxt: randomkeytxt
+    mxifrat: mxifrat
+    mxifrat2: mxifrat2
+    mdxifrat: mdxifrat
+        
+    GridLayout:
+        cols:2
+        
+        BoxLayout:
+            orientation: "vertical"
+            spacing:50
+            padding:50
+            
+            GridLayout:
+                cols:2
+                
+                Label:
+                    text: "Missatge per xifrar:"
+                
+                TextInput:
+                    id: mxifrar
+                    multiline: False
+                    
+            Button: 
+                id: randomkey
+                text: "Genera una clau aleatoria"    
+                on_press: root.btnkey()       
+                
+            Label:
+                id: randomkeytxt
+                text: "Clau generada:"
+                multiline: True
+                
+            
+            Button:
+                text: "Codificar"
+                on_press: root.btn2()
+                
+            Label:
+                id: mxifrat
+                text: "Missatge xifrat:  "
+        
+        #------------------------------------- 
+        BoxLayout:
+            orientation: "vertical"
+            spacing:50
+            padding:50
+
+            GridLayout:
+                cols:2
+                
+                Label:
+                    text: "Missatge per desxifrar:"
+                
+                Label: 
+                    id: mxifrat2
+                    #multiline: False
+                
+            Button:
+                text: "Descodificar amb la mateixa clau"
+                on_press: root.btn3()
+                
+            Label:
+                id: mdxifrat
+                text: "Missatge desxifrat:  "
+    #-----------------------
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'bottom'
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 0.2, .05
+            Button:
+                background_color: 0,0.9,0.5,1
+                text: 'Home'
+                on_press:
+                    app.root.current = "home"
+                    root.manager.transition.direction = "right"
+               
+            #Button:
+              #  text: 'Clau senzilla'
+               # on_press: 
+                #    app.root.current = "screen1"
+                 #   root.manager.transition.direction = "left"
+                    
+<Screen3>:
+    name: "screen3"
+    dir0: dir0
+    bit0: bit0
+    dir1: dir1
+    bit1: bit1
+    array0: array0
+    array1: array1
+    
+    
+    GridLayout:
+        cols:2
+        BoxLayout:
+            orientation: "vertical"
+            spacing:50
+            padding:50
+            
+            Label:
+                text: "Alice (enviat)"
+            
+            GridLayout:
+                cols:2
+                Label:
+                    text:"Direcció enviada:  "
+                TextInput:
+                    id: dir0
+                    multiline: True
+                Label: 
+                    id: bit1
+                    text: "Bit:"
+                TextInput:
+                    id: bit0
+                    multiline: False
+            Button: 
+                text: "Envia"
+                on_press:
+                    root.btn_array()
+            Label:
+                id: array0
+                text: " "
+
+    
+    
+    #---------
+        BoxLayout:
+            orientation: "vertical"
+            spacing:50
+            padding:50
+            
+            Label:
+                text: "Bob (rebut)"
+                
+            GridLayout:
+                cols:2
+                Label:
+                    text:"Direcció recepció:  "
+                TextInput:
+                    id: dir1
+                    multiline: False
+                Label: 
+                    text: "Bit rebut:"
+                Label:
+                    id: bit1
+                    text: ""
+            
+
+            Label:          
+                    
+                id: array1
+                text: " "
+    #-------------------
+   # GridLayout:
+    #    cols:2
+     #   Label:
+      #      id: array0
+       #     text: " Arr0"
+                
+        #Label:
+         #   id: array1
+          #  text: "Arr1 "
+        
+    
+    #-----------------
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'bottom'
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 0.2, .05
+            Button:
+                background_color: 0,0.9,0.5,1
+                #size_hint: 0.3,0.5
+                size: self.texture_size
+                #pos_hint: {"top":1}
+                
+                
+                text: 'Home'
+                on_press:
+                    app.root.current = "home"
+                    root.manager.transition.direction = "right"
+               
