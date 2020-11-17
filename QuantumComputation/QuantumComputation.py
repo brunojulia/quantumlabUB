@@ -23,21 +23,89 @@ from kivy.uix.scrollview import ScrollView
 from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.input.motionevent import MotionEvent
+from kivy.graphics import *
+from kivy.factory import Factory
+from kivy.uix.scatter import Scatter
+from functools import partial
 
 
 
 
 global matrix
 global row_name
+global multigates
 matrix =np.empty((0,0), str)
 row_name=[]
-gates=['A', 'B', 'C']
+gates_list=['A', 'B', 'C', 'D', 'E']
+gates_2={'D': 2, 'E': 3}
 pressed=''
+multigates=[]
+
 
 cellsize=50
 space=5
-
     
+
+class Gate_mouse(Button):
+    def __init__ (self, **kwargs):
+        global pressed
+        super(Gate_mouse, self).__init__(**kwargs)
+        self.text= pressed
+        self.opacity=0.6
+        self.size_hint=(None,None)
+        self.size=(cellsize*0.9, cellsize*0.9)
+    
+
+class Gate_circuit(Button):
+    
+    def __init__ (self, **kwargs):
+        super(Gate_circuit, self).__init__(**kwargs)
+        self.always_release=True
+        self.opacity=0.8
+        self.size_hint=(0.9, 0.9)
+        self.size=(cellsize/2., cellsize/2.)
+        self.background_down = self.background_normal
+        self.halign='center'
+        self.bind(
+            on_press=self.create_clock,
+            on_release=self.delete_clock)
+        
+    def create_clock(self,  *args):
+        global callback
+        callback = partial(self.long_press)
+        Clock.schedule_once(callback, 0.3)
+        
+
+    def delete_clock(self,  *args):
+        global callback
+        global pressed
+        global cgrid
+        
+        Clock.unschedule(callback)
+        pressed=''
+        cgrid.remove_widget(cgrid.scatter)
+        
+        
+    def long_press(self, *largs):
+        global cgrid
+        global matrix
+        global pressed
+        pressed=self.text
+        #cgrid.rows[self.matrix[0]].cols[self.matrix[1]].remove_widget(self)
+        self.parent.remove_widget(self)
+        matrix[self.matrix[0],self.matrix[1]]=''
+        
+        posx=self.x-cgrid.scroll.parent.scroll_x*(cgrid.scroll.width-cgrid.scroll.parent.width)
+        posy=self.y-cgrid.scroll.parent.scroll_y*(cgrid.scroll.height-cgrid.scroll.parent.height)+cgrid.scroll.parent.y
+        cgrid.scatter =Gate_mouse(pos=(posx,posy))
+        cgrid.add_widget(cgrid.scatter)
+        
+        
+    def on_touch_move(self, touch):
+        cgrid.scatter.center=touch.pos
+        
+    
+
 
 class Gate_panel(Button):
     def __init__ (self, **kwargs):
@@ -45,16 +113,24 @@ class Gate_panel(Button):
         self.always_release=True
         self.bind(on_press=self.press)
         self.bind(on_release=self.release)
-        #self.on_touch_up(print('up'))
+        self.size_hint=(None,None)
+        self.size= (cellsize,cellsize)
+        self.background_down = self.background_normal
+
     def press(self, *args):
         global pressed
+        global cgrid
         pressed=self.text
-        #print(pressed)
+        cgrid.scatter =Gate_mouse(pos=(-100,-100))
+        cgrid.add_widget(cgrid.scatter)
+
     def release(self, *args):
         global pressed
-        print(pressed)
         pressed=''
-        print(pressed)
+        cgrid.remove_widget(cgrid.scatter)
+        
+    def on_touch_move(self, touch):
+        cgrid.scatter.center=touch.pos
     
     
 
@@ -63,64 +139,128 @@ class GatesGrid(GridLayout):
         super(GatesGrid, self).__init__(**kwargs)
         self.rows=1
         self.spacing=10,10
-        #self.x= 20
-        
-        #self.y=self.parent.top-30
-        for i in gates:
-            self.add_widget(Gate_panel(text=i,size_hint=(None,None),size= (cellsize,cellsize)))
+      
+        for i in gates_list:
+            self.add_widget(Gate_panel(text=i))
             
         
 
 class CCell(FloatLayout):
     def __init__ (self, **kwargs):
         super(CCell, self).__init__(**kwargs)
+        
+        
     
     def on_touch_up(self, touch):
-        btn=Button(text='', size_hint=(None, None),size=(cellsize, cellsize), pos=(touch.x-cellsize/2.,touch.y-cellsize/2.))
-        btn2=Button(text=pressed, size_hint=(None, None),size=(cellsize/2., cellsize/2.), pos=(self.x,self.y))
-        #print('up')
-# =============================================================================
-#         print(self.x,self.y)
-#         print(touch.x, touch.y)
-#         obj=self
-#         print(type(obj).__name__,obj.height)
-#         obj=self.parent
-#         print(type(obj).__name__,obj.height)
-#         obj=self.parent.parent
-#         print(type(obj).__name__,obj.height)
-#         obj=self.parent.parent.parent
-#         print(type(obj).__name__,obj.height)
-#         obj=self.parent.parent.parent.parent
-#         print(type(obj).__name__,obj.height)
-#         obj2=self.parent.parent.parent.height-(self.parent.parent.height-self.y)+self.parent.parent.parent.y
-#         print(obj2, touch.y, obj2+cellsize)
-# =============================================================================
-        obj1=self.parent.parent.parent.width-(self.parent.parent.width-self.x)+self.parent.parent.parent.x
-        obj2=self.parent.parent.parent.height-(self.parent.parent.height-self.y)+self.parent.parent.parent.y
-
-        if (obj2 < touch.y <obj2+cellsize) and (obj1 < touch.x <obj1+cellsize):
-            print('up cell') 
+        global currentcell
+        global matrix
+        global row_name
+        global pressed
+        global multigate
+        global rowsconnected
+        
+        scrollview=self.parent.parent.parent
+        floatlay=self.parent.parent
+        refx=self.x-scrollview.scroll_x*(floatlay.width-scrollview.width)
+        refy=self.y-scrollview.scroll_y*(floatlay.height-scrollview.height)+scrollview.y
+        
+        
+        if (refy < touch.y <refy+cellsize) and (refx < touch.x <refx+cellsize):   
             if pressed != '':
-                self.add_widget(btn2)
-        #if self.collide_point(*touch.pos):
-            
-            #self.add_widget(btn2)
-        
-            
+                row=matrix.shape[0]-self.parent.parent.children.index(self.parent)-1
+                col=matrix.shape[1]-self.parent.children.index(self)-1  
                 
-# =============================================================================
-#         if self.x <= touch.x <= self.x+cellsize:
-#             if self.y <= touch.y <= self.y+cellsize:
-#                 self.add_widget(btn)
-#                 self.add_widget(btn2)
-#             
-#                 print('up cell')
-# =============================================================================
+                if pressed == 'multigate':
+                    
+                    self.secondclick(row, col)
+                    
+                            
+                elif pressed in gates_2:
+                    if currentcell != '':
+                        self.remove_widget(self.gate)
+                    gate=Gate_circuit(font_size='12sp',text=(pressed+'\n'+row_name[row]+'-> ?'), pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+                    currentcell= pressed
+                    self.gate=gate
+                    self.add_widget(self.gate)
+                    self.gate.matrix=(row,col)
+                    multigate=(row, col, pressed, gates_2[pressed])
+                    rowsconnected=[row]
+                    Clock.schedule_once(lambda dt:self.multigate(), 0)
+                    
+                
+                else:
+                    
+                    if currentcell != '':
+                        self.remove_widget(self.gate)
+                    gate=Gate_circuit(text=pressed, pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+                    currentcell= pressed
+                    self.gate=gate
+                    
+                    self.add_widget(self.gate)
+                    self.gate.matrix=(row,col)
+
         
-    def add_element(self):
-        button= Button(text="test2")
-        self.add_widget(button)
-    pass
+        super(CCell, self).on_touch_up(touch)
+                    
+    def multigate(self):
+        global pressed
+        pressed='multigate'
+    
+    def deletecurrent(self,col):
+        global rowsconnected
+        global matrix
+        global cgrid
+        global multigate
+        global pressed
+        
+        for i in rowsconnected:
+            cgrid.rows[i].cols[multigate[1]].remove_widget(cgrid.rows[i].cols[multigate[1]].gate)
+            #print('before:',matrix[i][col])
+            matrix[i][multigate[1]]=''
+            #print(matrix[i][col])
+        pressed=''
+        
+        
+    def secondclick(self, row, col):
+        global multigate
+        global cgrid
+        global matrix
+        global currentcell
+        global pressed
+        global rowsconnected
+        
+        if (multigate[1]!=col) or (multigate[0]==row):
+            Clock.schedule_once(lambda dt:self.deletecurrent(col), 0.05)
+            
+        else:
+            if currentcell != '':
+                self.remove_widget(self.gate)
+            rowsconnected.append(row)
+            #gatetext=multigate[2]+'\n'+row_name[multigate[0]]+'->'+row_name[row]
+            gatetext=multigate[2]+'\n'+str(rowsconnected)
+            gate=Gate_circuit(font_size='12sp',text=(gatetext), pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+            currentcell= multigate[2]
+            self.gate=gate
+            self.add_widget(self.gate)
+            self.gate.matrix=(row,col)
+            
+            pressed=''
+            
+            multigate=(multigate[0], multigate[1], multigate[2],multigate[3]-1)
+            print(multigate[3])
+            
+            if multigate[3] > 1:
+                pressed='multigate'
+                #print(pressed)
+                
+            print('rows',rowsconnected)
+                
+            
+            
+            
+                    
+       
+                
 
 class CRow(FloatLayout):
     global matrix
@@ -131,20 +271,19 @@ class CRow(FloatLayout):
         row_num=matrix.shape[0]
         self.reini(-1)
         
-# =============================================================================
-#     def on_touch_up(self, touch):
-#         if self.collide_point(*touch.pos):
-#             
-#             print('up row')
-# 
-#         super(CRow, self).on_touch_up(touch)
-# =============================================================================
-        
     def refresh_row(self, num):
+        global currentcell
         self.clear_widgets()
         self.reini(num)
         for i in range(len(self.cols)):
             self.add_widget(self.cols[i])
+            if matrix[num][i] != '':
+                    self.cols[i].remove_widget(self.cols[i].gate)
+                    currentcell=matrix[num][i]
+                    self.cols[i].gate=Gate_circuit(text=currentcell, pos=(self.cols[i].x+0.05*cellsize, self.y+0.05*cellsize))
+
+                    self.cols[i].add_widget(self.cols[i].gate)
+                    self.cols[i].gate.matrix=(num, i)
         return matrix
     
     def add_cell(self):
@@ -163,7 +302,6 @@ class CRow(FloatLayout):
         matrix=np.delete(matrix, num, axis=0)
         row_name.pop(num)
         for i in range(len(row_name)-num):
-            print(i, row_name[i+num],'q'+str(i+num+1))
             if row_name[i+num] == ('q'+str(i+num+1)):
                 row_name[i+num] = ('q'+str(i+num))
         self.parent.parent.parent.rows.pop(num)
@@ -194,37 +332,29 @@ class CGrid(FloatLayout):
     scroll=ObjectProperty(None)
     
     def __init__(self, **kwargs):
+        global cgrid
         super(CGrid, self).__init__(**kwargs)
         self.rows=[]
         for i in range(2):
-            Clock.schedule_once(lambda dt:self.add_row(), 1)
+            Clock.schedule_once(lambda dt:self.add_row(), 0.5)
         for i in range(12):
-            Clock.schedule_once(lambda dt:self.add_col(), 1)
-        Clock.schedule_once(lambda dt:self.resize_scroll(), 1)
+            Clock.schedule_once(lambda dt:self.add_col(), 0.5)
+        Clock.schedule_once(lambda dt:self.resize_scroll(), 1.2)
             
         Window.bind(on_resize=Clock.schedule_once(lambda dt:self.resize_scroll(), 0))
+        Window.bind(on_resize=Clock.schedule_once(lambda dt:self.set_scroll(), 0))
+        cgrid=self
         
     def on_touch_up(self, touch):
-        print('click')
-        
+        global matrix
+        global currentcell
         if self.collide_point(*touch.pos):
-            
-                print('up grid')
-        for i in range(matrix.shape[0]):
-            for j in range(matrix.shape[1]):
-                self.rows[i].cols[j].on_touch_up(touch)
-        super(CGrid, self).on_touch_up(touch)
-
-    def add_element(self):
-        for i in range(2):
-            button= Button(text="test")
-            self.grid.add_widget(button)
-        return self.grid
-    
-    def add_element2(self, row,col): #Modify cell (not from matrix)
-        self.rows[row].cols[1].clear_widgets()
-        button2= Button(text="test2",size_hint= (None, None), size= (cellsize,cellsize), pos_hint= {"x":0, "y":0})
-        self.rows[row].cols[1].add_widget(button2)
+            for i in range(matrix.shape[0]):
+                for j in range(matrix.shape[1]):
+                    currentcell=matrix[i][j]
+                    self.rows[i].cols[j].on_touch_up(touch)
+                    matrix[i][j]=currentcell
+            #super(CGrid, self).on_touch_up(touch)
         
     def add_col(self): #Adds column to matrix and rows
         global matrix
@@ -239,7 +369,6 @@ class CGrid(FloatLayout):
         for i in range(matrix.shape[0]):
             self.rows[i].pos= (0, self.scroll.y+(cellsize+space)*(matrix.shape[0]-i-1))
             self.rows[i].refresh_row(i)
-        return matrix
     
     def remove_col(self): #Remove column from matrix and rows
         global matrix
@@ -264,11 +393,22 @@ class CGrid(FloatLayout):
     def resize_scroll(self, *args):
         self.scroll.size=(cellsize*(matrix.shape[1]+1.5)+70,(cellsize+space)*(matrix.shape[0]+0.5))
     
+    def set_scroll(self): #Necessary to avoid problems when resizing
+        self.scroll.parent.scroll_x=0.0
+        self.scroll.parent.scroll_y=1.0
+    
     def resize_panels(self, prob, gates):
         width=0.7 if prob else 1
         height=0.62 if gates else 0.92
         self.parent.parent.size_hint=(width, height)
         Clock.schedule_once(lambda dt:self.resize_scroll(), 0)
+        Clock.schedule_once(lambda dt:self.set_scroll(), 0)
+
+    def add_element2(self, *args):
+        global pressed
+        global matrix
+        print(pressed)
+        print(matrix)
      
 
 class QComp(App):
@@ -280,13 +420,9 @@ class WindowManager(ScreenManager):
 
 
 class Screen1(Screen):
-    cgrid = ObjectProperty(None)
-
-    def test(self):
-        global pressed
-        print("-->",pressed)
+    #cgrid = ObjectProperty(None)
     pass
-        
+
 
         
     
