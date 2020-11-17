@@ -3,6 +3,12 @@
     Screen1:
     Screen2:
     Screen3:
+        id: screen3
+        
+    Publidir:
+        array0_text: screen3.text
+        array1_text2: screen3.text2
+        arraydir_text3: screen3.text3
     
 <Button>:
     #font_size: 30
@@ -51,7 +57,7 @@
             on_release:
                 app.root.current = "screen3"
                 root.manager.transition.direction = "left"
-            
+                
         
     #Label:
         #pos_hint
@@ -150,6 +156,7 @@
                 on_press:
                     app.root.current = "home"
                     root.manager.transition.direction = "right"
+    
            
                
            # Button:
@@ -332,6 +339,77 @@
         
     
     #-----------------
+    AnchorLayout:
+        anchor_x: 'center'
+        anchor_y: 'bottom'
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 0.4, .05
+            Button:
+                background_color: 0,0.9,0.5,1
+                #size_hint: 0.3,0.5
+                size: self.texture_size
+                #pos_hint: {"top":1}
+                
+                
+                text: 'Home'
+                on_press:
+                    app.root.current = "home"
+                    root.manager.transition.direction = "right"
+                    
+            Button: 
+                size: 
+                text: "Publica les direccions"
+                on_press:
+                    root.change_text()
+                    #app.root.current = "Publidir"
+                    
+
+<Publidir>:
+    name: "Publidir"
+    
+    array0: array0
+    array1: array1
+    arraydir: arraydir
+    
+    BoxLayout:
+        orientation: "vertical"
+        spacing:50
+        padding:100
+        #size_hint: 0.9, 0.6
+        GridLayout:
+            cols:3
+            Label:
+                text: "Direccions publicades"
+                font_size: 20
+            Label:
+                text: "Alice"
+                font_size: 20
+            Label:
+                text: "Bob"
+                font_size: 20
+                
+            Label:
+                id: arraydir
+                text: root.arraydir_text3 
+            Label: 
+                id: array0
+                text: root.array0_text
+            Label:
+                id: array1
+                text: root.array1_text2    
+                
+        GridLayout:
+            cols:1
+            Button:
+                size_hint: 0.1, 0.1
+                text: "Compara"
+                on_press:
+                    root.comparar()
+        
+        
+        
     AnchorLayout:
         anchor_x: 'center'
         anchor_y: 'bottom'
