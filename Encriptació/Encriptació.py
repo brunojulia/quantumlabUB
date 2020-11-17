@@ -10,6 +10,7 @@ from kivy.app import App
 from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import ScreenManager, Screen 
 from kivy.lang import Builder
+from kivy.properties import StringProperty
 import os
 
 with open("encriptacio1.kv", encoding='utf-8') as kv_file:
@@ -369,6 +370,117 @@ def arrays():
         fr.close()
         
     return dir0,bit0,dir1,bit1
+
+def llegirarrays():
+    if os.path.getsize("Guardarllistes.txt") == 0:
+        #fr=open("Guardarllistes.txt","a")
+        dir0=[]
+        bit0=[]
+        dir1=[]
+        bit1=[]
+        print("No hi ha res al document")
+        array0=np.array([0])
+        array1=np.array([0])
+        
+    else:
+        with open("Guardarllistes.txt", 'r') as fr:
+            dir0r= fr.readlines()[-4]
+
+        with open("Guardarllistes.txt", 'r') as fr:
+            bit0r= fr.readlines()[-3]
+
+        with open("Guardarllistes.txt", 'r') as fr:
+            dir1r = fr.readlines()[-2]
+            
+        with open("Guardarllistes.txt", 'r') as fr:
+            bit1r = fr.readlines()[-1]
+            
+        dir0=list(dir0r)
+        dir0.pop(len(dir0)-1) #El menys 1 és perquè al escriure al final s'ha de posar un \n
+        
+        bit0=list(bit0r)
+        bit0.pop(len(bit0)-1)
+        
+        dir1=list(dir1r)
+        dir1.pop(len(dir1)-1)
+        
+        bit1=list(bit1r)
+        bit1.pop(len(bit1)-1)       
+        
+        #Omplo les matrius
+        array0=np.empty((len(dir0),2),dtype=str)
+        array1=np.empty((len(dir1),2),dtype=str)
+    
+        array0[:,0]=dir0
+        array0[:,1]=bit0
+        array1[:,0]=dir1
+        array1[:,1]=bit1
+        
+        fr.close()
+        
+    return array0, array1
+
+
+def comparardir(array0,array1):
+    array02=np.copy(array0)
+    array12=np.copy(array1)
+    n,m=np.shape(array0)
+    for i in range(n):
+        n1,m1=np.shape(array02)
+        if i<n1:
+            endevant=0
+            while(endevant==0):
+                n1,m1=np.shape(array02)
+                if i<n1:
+                    if array02[i,0]!=array12[i,0]:
+                        array02=np.delete(array02,i,0)
+                        array12=np.delete(array12,i,0)
+                        endevant=0
+                    else:
+                        endevant=1
+                else: 
+                    endevant=1
+                    break
+                
+                
+        else:
+            break
+        
+    return array02,array12
+    
+def escriure(array0,array1):
+    
+    fw=open("Guardarllistes.txt","w")
+    
+    dir0l=list(array0[:,0])
+    bit0l=list(array0[:,1])
+    dir1l=list(array1[:,0])
+    bit1l=list(array1[:,1])
+    
+    #Escric al fitxer les noves llistes
+    dir0s=""
+    for i in dir0l:
+        dir0s+=i
+    fw.write(dir0s+"\n")
+    
+    bit0s=""
+    for i in bit0l:
+        bit0s+=str(i)
+    fw.write(bit0s+"\n")
+    
+    dir1s=""
+    for i in dir1l:
+        dir1s+=i
+    fw.write(dir1s+"\n")
+    
+    bit1s=""
+    for i in bit1l:
+        bit1s+=str(i)
+    fw.write(bit1s+"\n")
+    
+    fw.close()
+    
+
         
 
 """_______________________Pantalles___________________"""
@@ -458,12 +570,51 @@ class Screen3(Screen):
         n,m=np.shape(array1)
         self.bit1.text=str(array1[n-1,m-1])
         
+    text= StringProperty('')
+    text2= StringProperty('')
+    text3= StringProperty('')
+    
+    def change_text(self):
+        array0,array1=llegirarrays()
+        self.text= str(array0)
+        self.text2= str(array1)
+        arraydir=np.empty(np.shape(array0),dtype=str)
+        arraydir[:,0]=array0[:,0]
+        arraydir[:,1]=array1[:,0]
+        self.text3= str(arraydir)
+        self.manager.current= "Publidir"
     
 
+
+class Publidir(Screen):
+    array0_text= StringProperty('')
+    array1_text2= StringProperty('')
+    arraydir_text3= StringProperty('')
+    
+    def comparar(self):
+        array0,array1=llegirarrays()
+        array01,array11=comparardir(array0, array1)
+        self.array0.text= str(array01)
+        self.array1.text= str(array11)
+        arraydir=np.empty(np.shape(array01),dtype=str)
+        arraydir[:,0]=array01[:,0]
+        arraydir[:,1]=array11[:,0]
+        self.arraydir.text= str(arraydir)
+        escriure(array01, array11)
+        
+    
+    
+    '''   
+    def __init__(self,**kwargs):
+        array0,array1=llegirarrays()
+        self.array0.text= str(array0)
+
+    '''
     
         
 
 class WindowManager(ScreenManager):
+    
 
     pass
 
