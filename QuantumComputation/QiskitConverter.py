@@ -1,39 +1,24 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 
-global matrix
-matrix =np.empty((3,4), dtype="<U5")
-matrix[1][2]='CCX'
-matrix[0][2]='CCX'
-matrix[2][2]='CCX'
-
-matrix[0][0]='H'
-matrix[2][0]='H'
-
-matrix[0][1]='CX'
-matrix[1][1]='CX'
-
-gates_2={'CX': 2, 'CCX': 3}
-
-
-multigates=[]
-test=[1,0,2,2]
-multigates.append(test)
-
-test=[1,0,1]
-multigates.append(test)
 
 def QiskitConverter(matrix, multigates, row_name, gates_2):
-    
-    File = open("QiskitCircuit.txt","w")
+    File = open("QiskitCircuit.py","w")
+    s='    '
 
     File.write('from qiskit import * \n')
-    File.write('import matplotlib.pyplot as plt \n \n')
-    File.write('qr = QuantumRegister({}) \n'.format(matrix.shape[0]))
-    File.write('cr = ClassicalRegister({}) \n'.format(matrix.shape[0]))
-    File.write('circuit = QuantumCircuit(qr, cr) \n \n')
-    #File.write('%matplotlib inline \n \n')
+    File.write('import matplotlib.pyplot as plt \n')
+    File.write('from qiskit.visualization import plot_histogram\n\n')
+
+    File.write('def GetStatevector():\n')
+
+    File.write(s+"backend = Aer.get_backend('statevector_simulator')\n")
+    
+    File.write(s+'qr = QuantumRegister({}) \n'.format(matrix.shape[0]))
+    File.write(s+'cr = ClassicalRegister({}) \n'.format(matrix.shape[0]))
+    File.write(s+'circuit = QuantumCircuit(qr) \n \n')
+    
+
     
     for j in range(matrix.shape[1]):
         for i in range(matrix.shape[0]):
@@ -46,31 +31,15 @@ def QiskitConverter(matrix, multigates, row_name, gates_2):
                                 text='{}{}'.format(text,'qr[{}], '.format(k[t+1]))
                                 
                             text='{}{} \n'.format(text,'qr[{}])'.format(i))
-                            File.write(text)
-                            print(text)
+                            File.write(s+text)
                             
                 else:
-                    File.write('circuit.{}(qr[{}]) \n'.format(matrix[i][j].lower(),i))
+                    File.write(s+'circuit.{}(qr[{}]) \n'.format(matrix[i][j].lower(),i))
                     
                     
-                    
-    File.write('\ncircuit.measure(qr, cr) \n')
-    
-    File.write("simulator = Aer.get_backend('qasm_simulator') \n")
-    File.write('result = execute(circuit, backend = simulator).result() \n \n')
-    
-    File.write('from qiskit.tools.visualization import plot_histogram \n')
-    File.write("plot_histogram(result.get_counts(circuit)) \n")
-    File.write('plt.show() \n')
-                
-
-
-    
-
+    File.write('\n'+s+'results = execute(circuit,backend).result().get_statevector()\n')
+    File.write(s+'return results')
 
 
     File.close()
- 
-    
-print(matrix)
-QiskitConverter(matrix, multigates,0,gates_2)
+    return
