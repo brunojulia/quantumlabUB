@@ -29,17 +29,25 @@ from kivy.uix.scatter import Scatter
 from functools import partial
 
 from QiskitConverter import QiskitConverter
+import importlib
 
-
-
+from qiskit import * 
+import matplotlib.pyplot as plt 
+from qiskit.visualization import plot_histogram
 
 global matrix
 global row_name
 global multigates
+
+File = open("QiskitCircuit.py","w")
+File.close()
+
+import QiskitCircuit
+
 matrix =np.empty((0,0), dtype="<U5")
 row_name=[]
-gates_list=['H', 'CX', 'CCX', 'A', 'B', 'C', 'D', 'E']
-gates_2={'CX': 2, 'CCX': 3, 'D': 2, 'E': 3}
+gates_list=['H', 'X', 'CX', 'CCX', 'SWAP', 'T', 'Y', 'RESET']
+gates_2={'CX': 2, 'CCX': 3, 'SWAP': 2}
 pressed=''
 multigates=[]
 
@@ -250,7 +258,11 @@ class CCell(FloatLayout):
                         if prev.index(i)==0:
                             gatetext=multigate[2]
                         else:
-                            gatetext='--'+multigate[2]
+                            if multigate[2] in ('SWAP'):
+                                pref=''
+                            else:
+                                pref='--'
+                            gatetext=pref+multigate[2]
                         gate=Gate_circuit(text=gatetext, pos=(cgrid.rows[i].cols[col].x+0.05*cellsize, cgrid.rows[i].cols[col].y+0.05*cellsize))
                         matrix[i][col]= multigate[2]
                         
@@ -327,9 +339,11 @@ class CCell(FloatLayout):
             if currentcell != '':
                 self.remove_widget(self.gate)
             rowsconnected.append(row)
-            #gatetext=multigate[2]+'\n'+row_name[multigate[0]]+'->'+row_name[row]
-            #gatetext=multigate[2]+'\n'+str(rowsconnected)
-            gate=Gate_circuit(text=('--'+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+            if multigate[2] in ('SWAP'):
+                pref=''
+            else:
+                pref='--'
+            gate=Gate_circuit(text=(pref+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
             currentcell= multigate[2]
             
             self.gate=gate
@@ -392,7 +406,11 @@ class CRow(FloatLayout):
                                     cgrid.rows[num].cols[i].canvas.before.remove_group('multigate')
                                     cgrid.rows[num].cols[i].multigate_lines(j)
                                 else:
-                                    gatetext='--'+matrix[num][i]
+                                    if matrix[num][i] in ('SWAP'):
+                                        pref=''
+                                    else:
+                                        pref='--'
+                                    gatetext=pref+matrix[num][i]
                     else:
                         gatetext=matrix[num][i]
                         currentcell=matrix[num][i]
@@ -474,6 +492,8 @@ class CGrid(FloatLayout):
                     currentcell=matrix[i][j]
                     self.rows[i].cols[j].on_touch_up(touch)
                     matrix[i][j]=currentcell
+                    root.sm.screen1.QiskitConv()
+                    
                     
             #super(CGrid, self).on_touch_up(touch)
             
@@ -491,6 +511,7 @@ class CGrid(FloatLayout):
         for i in range(matrix.shape[0]):
             self.rows[i].pos= (0, self.scroll.y+(cellsize+space)*(matrix.shape[0]-i-1))
             self.rows[i].refresh_row(i)
+        root.sm.screen1.QiskitConv()
             
     
     def remove_col(self): #Remove column from matrix and rows
@@ -532,32 +553,53 @@ class CGrid(FloatLayout):
         global pressed
         global matrix
         global multigates
-        print(pressed)
-        print(matrix)
-        print(multigates)
-     
+        print(root.sm.screen1.problabel.text)
+       
+class WindowManager(ScreenManager):
+    screen1 = ObjectProperty(None)
+    pass 
 
 class QComp(App):
     def build(self):
-        return WindowManager()
+        global root
+        root=self
+        self.sm = WindowManager()
+        return self.sm
         
-class WindowManager(ScreenManager):
-     pass
+
 
 
 class Screen1(Screen):
-    #cgrid = ObjectProperty(None)
-    def QiskitConverter(self, *args):
+    problabel = ObjectProperty(None)
+    def QiskitConv(self, *args):
         global matrix
         global multigates
         global row_name
         global gates_2
-        QiskitConverter(matrix, multigates, row_name, gates_2)
-    
-    pass
-
-
         
+        
+        QiskitConverter(matrix, multigates, row_name, gates_2)
+        importlib.reload(QiskitCircuit)
+        
+        results=QiskitCircuit.GetStatevector()
+        
+        self.problabel.text=(GetResults(results))
+        
+
+def GetResults(args):
+    global results
+
+    results=args
+    probtext='|'+' '.join(reversed(row_name))+'>:  Prob, Phase\n\n'
+
+    for i in range(len(results)):
+        if abs(results[i]) > 0.001:
+            state = str(np.binary_repr(i, width=matrix.shape[0]))
+            probtext=probtext+'|'+state+'>'+':  '+'{0:.3g}'.format(np.absolute(results[i])**2*100)+'%, '\
+            +'{0:.3g}'.format(np.angle(results[i]))+'\n'
+            
+    return probtext
+    
     
 
 class Screen2(Screen):
