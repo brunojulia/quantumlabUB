@@ -34,9 +34,7 @@ pip install numpy==1.14.0
 pip install matplotlib==2.1.2
 
 pip install Kivy==1.10.0
-```
-    
-```
+
 pip install Kivy-Garden==0.1.4
 
 pip install kivy.deps.glew==0.1.9
