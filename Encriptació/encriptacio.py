@@ -11,6 +11,10 @@ from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import ScreenManager, Screen 
 from kivy.lang import Builder
 from kivy.properties import StringProperty
+from kivy.uix.widget import Widget
+from kivy.graphics import *
+from kivy.core.window import Window
+from kivy.clock import Clock
 import os
 
 with open("encriptacio1.kv", encoding='utf-8') as kv_file:
@@ -21,6 +25,7 @@ class encriptacioApp(App):
     #Iniciem l'aplicació
     title="Joc d'encriptació"
     def build(self):
+        #return GameWidget()
         return WindowManager()
  
     
@@ -480,14 +485,42 @@ def escriure(array0,array1):
     
     fw.close()
     
+    
+"Funcions del joc"
 
-        
+def collide(rect1,rect2):
+        r1x=rect1[0][0]
+        r1y=rect1[0][1]
+        r2x=rect2[0][0]
+        r2y=rect2[0][1]
+        r1w=rect1[1][0]
+        r1h=rect1[1][1]
+        r2w=rect2[1][0]
+        r2h=rect2[1][1]
+    
+        if (r1x<r2x+r2w and r1x+r1w>r2x and r1y<r2y+r2h and r1y+r1h>r2y):
+            return True
+        else: 
+            return False
+    
+
+def Bobresultats(llista1):
+    bits=('0','1')
+    llista1.append(random.choice(bits))
+    print(llista1)
+    return llista1
+    
+def arrowup(self):
+        if 'a' in self.keysPressed:
+            self.canvas.remove(self.player)
+            print("Pressed")
+    
 
 """_______________________Pantalles___________________"""
 
 class HomeScreen(Screen):
-    pass   
- 
+    pass
+        
 
 class Screen1(Screen):
 
@@ -561,7 +594,6 @@ class Screen2(Screen):
     
 class Screen3(Screen):
 
-
     def btn_array(self):
         dir0l,bit0l,dir1l,bit1l=arrays()
         array0,array1=enviament2(self.dir0.text,int(self.bit0.text),self.dir1.text,dir0l,bit0l,dir1l,bit1l)
@@ -610,20 +642,243 @@ class Publidir(Screen):
         self.array0.text= str(array0)
 
     '''
+class WindowManager(ScreenManager):
+    def __init__(self,**kwargs):
+        super(WindowManager, self).__init__(**kwargs)
+        self.get_screen('bobscreen').gpseudo_init()
+
+    
+"___________Joc_____________"
+
+class Bob(Screen):
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self._keyboard = Window.request_keyboard(self._on_keyboard_closed,self)
+        self._keyboard.bind(on_key_down=self._on_key_down)
+        self._keyboard.bind(on_key_up=self._on_key_up)
+        
+        with self.canvas:
+            self.player = Rectangle(pos=(Window.size[0]*0.7,Window.size[1]*0.5),size=(10,100)) #Es pot posar una imatge si es vol
+            #self.enemy = Rectangle(pos=(400,400),size=(60,60))
+            
+            
+        self.keysPressed = set()        
+        self._entities= set()
+        
+        Clock.schedule_interval(self.move_step,0) #El 0 és cada frame, pro si poses un 2 és cada 2 segons (oframes?)
+        
+        self.llista=[]
+        self.pause1=0
+        
+        arrowup(self)
+    #..................................................  
+    '''
+    def add_entity(self,entity):
+        self._entities.add(entity)
+        self.canvas.add(entity._instruction) #Per afegir-ho al canvas
+    
+    def remove_entity(self, entity):
+        if entity in self._entities:
+            self._entities.remove(entity)
+            self.canvas.remove(entity._instruction)
+            
+    def collides(self, e1, e2):#L'he tornat a definir aquí amb una "s"
+        r1x=e1.pos[0]
+        r1y=e1.pos[1]
+        r2x=e2.pos[0]
+        r2y=e2.pos[1]
+        r1w=e1.size[0]
+        r1h=e1.size[1]
+        r2w=e2.size[0]
+        r2h=e2.size[1]
+    
+        if (r1x<r2x+r2w and r1x+r1w>r2x and r1y<r2y+r2h and r1y+r1h>r2y):
+            return True
+        else: 
+            return False
+        
+    def colliding_entities(self,entity):
+        result= set()
+        for e in self._entities:
+            if self.collides(e,entitiy) and e == entity: #Si xoquen però no són el mateix
+                result.add(e)
+    
+    class Entity(object):
+        def __init__(self):
+            self._pos = (0,0)
+            self._size = (50,50)
+            self._instruction = Rectangle(pos= self._pos, size= self._size)
+
+    @property
+    def pos(self):
+        return self._pos
+    
+    @pos.setter
+    def pos(self,value):
+        self._pos = value
+        self._instructions.pos = self._pos
+        
+    @property
+    def size(self):
+        return self._size
+    
+    @size.setter
+    def size(self,value):
+        self.size =  value
+        self._instructions.size = self.size
+        
+    "Falta el source. Fins ara hem connectat "
+    
+    class Particle(Entity):
+        def __init__(self,pos, speed=300):
+            self._speed= speed
+            self._pos = pos
+            game.bind(on_frame= self.move_step)
+    
+    
+    
+    #..............................................
+    '''
+    
+    
+    
+    
+    
+    
+    
+    def _on_keyboard_closed(self):
+        self._keyboard.unbind(on_key_down=self._on_key_down)
+        self._keyboard.unbind(on_key_up=self._on_key_up)
+        self._keyboard = None
+        
+    def _on_key_down(self,keyboard,keycode,text,modifiers):
+        self.keysPressed.add(text)
+    
+    def _on_key_up(self,keyboard,keycode):
+        text = keycode[1] #es com esta definit
+        if text in self.keysPressed:
+            self.keysPressed.remove(text)
+            
+    def move_step(self,dt):#dt- quan fa des de l'últim frame (en segons)
+        currentx = self.player.pos[0]
+        currenty = self.player.pos[1]
+        
+        step_size = 400*dt #seria com la velocitat (?)
+        #Si vols moure més depressa, el 100 pot ser 200... 
+        
+        if ("w" in self.keysPressed) and (currenty<Window.size[1]-2*self.player.size[1]):
+            currenty+=step_size
+        if "s" in self.keysPressed and (currenty> self.player.size[1]):
+            currenty-=step_size  
+        #if "a" in self.keysPressed:
+            currentx-=step_size
+        #if "d" in self.keysPressed:
+            currentx+=step_size
+                    
+        self.player.pos = (currentx, currenty)
+        
+        #if collide((self.player.pos,self.player.size),(self.enemy.pos,self.enemy.size)):
+         #   print("Colliding")
+            
+
+#-------------- 
+    def play(self):    
+        '''Botó play'''
+        self.pause1==0
+        if self.pause1==0:
+                   
+            Clock.schedule_interval(self.particlemoving,0)
+            Clock.schedule_interval(self.newparticle,2)
+            
+            self.j=0
+            
+            with self.canvas:
+                self.particle = Ellipse(pos=(50,self.randomposition()),size=(10,10))
+            
+            self.randomposition()
+            
+        
+    def particlemoving(self,dt):
+        '''Moviment de la partícula'''
+        if self.j==0 and self.pause1==0:
+            partx=self.particle.pos[0]
+            party=self.particle.pos[1]
+        
+            step_size=300*dt
+        
+            if partx<10000:
+                partx+=step_size
+        
+            self.particle.pos = (partx,party)
+        
+        
+            if collide((self.player.pos,self.player.size),(self.particle.pos,self.particle.size)):
+                self.canvas.remove(self.particle)
+                if self.j==0:
+                    llista1=Bobresultats(self.llista)
+                    self.bit1.text= str(llista1)
+                    
+                self.j+=1
+            
+            if partx>Window.size[0]*0.8:
+                self.canvas.remove(self.particle)
+                pass
+            
+        
+            
+            
+    def newparticle(self,dt): 
+        '''Creació d'una partícula + moviment'''
+        self.j=0
+        if self.pause1==0:            
+            Clock.schedule_interval(self.particlemoving,0)
+            
+            with self.canvas:
+                self.particle = Ellipse(pos=(50,self.randomposition()),size=(10,10))
+            
+
+        
+    def randomposition(self):
+        '''Vull que em dongui una posició aleatòria de les y'''
+        
+        sizey=Window.size[1]
+        j=random.randint(self.player.size[1],sizey-self.player.size[1])
+        return j
+    
+    
+    
+    
+    def stop(self):
+        self.pause1=1
+        
+        
     
         
 
-class WindowManager(ScreenManager):
-    
+        
+        
+        
 
-    pass
-
+            
     
+            
+#---------------------------         
+    def gpseudo_init(self):
+        pass
+    #    self.main_canvas
+     #   self.main_canvas.draw()
+        
+
+
+
+
+
+
     
 if __name__ == "__main__":
     encriptacioApp().run()
 
 f.close()    
 #Ara crearé les diferents finestres:
-
+    
 

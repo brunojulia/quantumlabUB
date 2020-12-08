@@ -9,6 +9,7 @@
         array0_text: screen3.text
         array1_text2: screen3.text2
         arraydir_text3: screen3.text3
+    Bob:
     
 <Button>:
     #font_size: 30
@@ -56,6 +57,13 @@
             font_size: 20
             on_release:
                 app.root.current = "screen3"
+                root.manager.transition.direction = "left"
+        
+        Button:
+            text: "Bob"
+            font_size: 20
+            on_release:
+                app.root.current = "bobscreen"
                 root.manager.transition.direction = "left"
                 
         
@@ -429,3 +437,72 @@
                     app.root.current = "home"
                     root.manager.transition.direction = "right"
                
+
+<Bob>:
+    name: "bobscreen"
+    
+    bit1:bit1
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        
+        
+    
+        BoxLayout: 
+            orientation: 'horizontal'
+            size_hint: 1, 0.1
+            spacing: 100
+            padding: 5
+            #pos_hint: {'center_x':1}
+            #anchor_x: 'center'
+            
+            
+            Button: 
+                text: 'Home'           
+                
+                size_hint: 0.2, 0.5
+                #pos_hint: {"top":1}
+                background_color: 0,0.9,0.5,1
+                
+                on_press:
+                    app.root.current = "home"
+                    root.manager.transition.direction = "right"
+                
+            Button:
+                id: play
+                
+                text: 'Play'
+                
+                size_hint_x: 0.2
+                size_hint_y: 0.5
+                #pos_hint: {'bottom': 1, 'center_y':1}
+                background_color: (1,0.5,0,1)
+                
+                on_press: 
+                    root.play()
+                
+            Button:
+                text: 'Stop'
+                size_hint: 0.2, 0.5
+                
+                on_press:
+                    root.stop()
+               
+               
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.2,1
+            
+            Label:
+                text: 'Resultats'
+            Label:
+                id: bit1
+                text: ''
+           
+            
+        
+    
+            
+
+    
+    
