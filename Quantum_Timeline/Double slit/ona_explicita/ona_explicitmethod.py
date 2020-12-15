@@ -8,6 +8,7 @@ Created on Sun Nov  1 12:50:23 2020
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as ani
+import time
 
 e=np.e
 pi=np.pi
@@ -430,11 +431,14 @@ xo=50
 yo=50
 rao=(c*p/h)**2
 
+xo=50
+yo=50
+
 def p_s(t):
     val=10*np.sin(w*t)
     return val
 
-do8=0
+do8=1
 if do8==1:
         
     for k in range(11):
@@ -450,17 +454,24 @@ if do8==1:
     plt.imshow(sgm,vmin=0,origin='lower',extent=(0,10,0,10))
     plt.savefig('sigma.png')
     
-    for i in range(1,99):
-        for j in range(1,99):
-            s[50,50]=p_s(0)
-            A=a[i+1,j,0]+a[i,j+1,0]+a[i-1,j,0]+a[i,j-1,0]-4*a[i,j,0]+s[i,j]
-            a[i,j,1]=rao*A+a[i,j,0]
-            
-    for k in range(2,1001):
+    for i in range(101):
+        for j in range(101):
+            x=i*h
+            y=j*h
+            r=((x-xo)**2+(y-yo)**2)**(1/2)
+            if r < 0.5:
+                print(r)
+                a[i,j,0]=10*np.cos(pi*r)
+                A=a[i+1,j,0]+a[i,j+1,0]+a[i-1,j,0]+a[i,j-1,0]-4*a[i,j,0]
+                a[i,j,1]=a[i,j,0]+rao*A/2
+        print(r)
+             
+    plt.imshow(a[:,:,0],vmin=0,origin='lower',extent=(0,10,0,10))
+    plt.savefig('sigma.png')
+    
+    for k in range(2,501):
         for j in range(1,100):
             for i in range(1,100):
-                t=(k-1)*p
-                s[50,50]=p_s(t)
                 A=a[i+1,j,k-1]+a[i,j+1,k-1]+a[i-1,j,k-1]+a[i,j-1,k-1]\
                   -4*a[i,j,k-1]+s[i,j]
                 B=2*a[i,j,k-1]-a[i,j,k-2]
@@ -484,7 +495,7 @@ if do8==1:
                                    frames = 200, 
                                    blit = False, interval=200)
 
-    guarda8=0
+    guarda8=1
     if guarda8==1:
         anim8.save('ona_exp_esf_abscoef.mp4', writer=writer)
 
@@ -557,7 +568,7 @@ if do9==1:
 """
 Afegim escletxes i definim noves condicions de contorn
 """
-a=np.zeros((301,301,2001))
+a=np.zeros((301,301,1001))
 u=np.zeros((301,301))
 ut=np.zeros((301,301))
 g=np.zeros((301,301))
@@ -584,7 +595,7 @@ def p_s(t):
     val=amp*np.sin(w*t)
     return val
 
-do10=1
+do10=0
 if do10==1:
     
     #parets del detector amb coeficients d'absorció
@@ -610,8 +621,10 @@ if do10==1:
     
     plt.imshow(sgm[280:300,280:300])
 
-    
-    for k in range(1,2001):
+
+    start=time.time()
+
+    for k in range(1,1001):
         for j in range(0,301):
             t=(k-1)*p
             s[1,j]=p_s(t)
@@ -704,11 +717,13 @@ if do10==1:
                     C=sgm[i,j]/(2*p)
                     a[i,j,k]=(rao*A+B+C*a[i,j,k-2])/(1+C)
                     
+    elapsed_time=(time.time()-start)
+    print(elapsed_time)
+            
     def update10(frame):
         k=frame*5
         u=a[:,:,k]
-        ut=u.transpose()
-        plt.imshow(ut[0:201,100:201]
+        plt.imshow(u.transpose()[0:201,100:201]
                    ,vmax=10,vmin=-10,origin='lower',extent=(0,20,0,10))
     
     fig10 = plt.figure()
@@ -718,11 +733,13 @@ if do10==1:
     writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
     
     anim10 = ani.FuncAnimation(fig10, update10, 
-                                   frames = 400, 
-                                   blit = False, interval=200)
+                                   frames = int((1001-1)/5), 
+                                   blit = False, interval=100)
     
     guarda10=1
     if guarda10==1:
         anim10.save('ona_plana_2esceltxes.mp4', writer=writer)
+        
+
 
 
