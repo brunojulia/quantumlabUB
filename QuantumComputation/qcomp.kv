@@ -79,6 +79,7 @@
     circuit: circuit
     gatesgrid: gatesgrid
     problabel: problabel
+    plotbox: plotbox
     on_touch_up: self.cgrid.on_touch_up
     
     
@@ -119,31 +120,71 @@
                     
             pos_hint: {"right":1}
             size_hint: 0.3, 1
-            
-
-                   
-            Button:
-                id: button
-                visible: True
-                opacity: 1 if self.visible else 0
-                text: "Test"
-                size_hint: (0.8, 0.08)
-                pos_hint: {"x":0.1, "y": 0.9}
-                on_release: root.QiskitConv()
                 
                     
                 
             Button:
                 text: "Exit"
-                size_hint: (0.8, 0.08)
-                pos_hint: {"x":0.1, "y": 0.05}
+                size_hint: (0.8, 0.05)
+                pos_hint: {"x":0.1, "y": 0.01}
                 on_release:
                     App.get_running_app().stop()
                     
-            Label:
-                id: problabel
-                size_hint: (0.8, 0.65)
-                pos_hint: {"x":0.1, "y": 0.2}
+            ScrollView:
+                pos_hint: {"x":0.1, "y": 0.5}
+                size_hint: (0.8, 0.45)
+                do_scroll_X: False
+                do_scroll_y: True
+            
+                Label:
+                    id: problabel
+                    size_hint: None, None     
+                    size: self.texture_size
+                    pos_hint: {'x': 0}
+                    pos: root.pos
+                    
+            
+            BoxLayout:
+                id: plotbox
+                
+                size_hint: (1, 0.34)
+                pos_hint: {"x":0.02, "y": 0.16}
+                
+            Button:
+                text: 'Q sphere'
+                size_hint: (0.38, 0.03)
+                pos_hint: {"x":0.1, "y": 0.08}
+                on_release:
+                    root.ShowQSpehre()
+            
+            Button:
+                text: 'BlochSpheres'
+                size_hint: (0.38, 0.03)
+                pos_hint: {"x":0.52, "y": 0.08}
+                on_release:
+                    root.ShowBlochSpheres()
+            
+            Button:
+                text: 'Density Matrix'
+                size_hint: (0.29, 0.03)
+                pos_hint: {"x":0.1, "y": 0.12}
+                on_release:
+                    root.ShowDensityMatrix()
+                    
+            Button:
+                text: '2D'
+                size_hint: (0.08, 0.03)
+                pos_hint: {"x":0.4, "y": 0.12}
+                on_release:
+                    root.ShowDensityMatrix2D()
+                    
+            Button:
+                text: 'Probabilities'
+                size_hint: (0.38, 0.03)
+                pos_hint: {"x":0.52, "y": 0.12}
+                on_release:
+                    root.ShowHistogram()
+                    
                 
                     
         #PANEL DE PORTES         

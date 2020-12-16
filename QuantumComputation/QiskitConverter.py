@@ -7,11 +7,13 @@ def QiskitConverter(matrix, multigates, row_name, gates_2):
     s='    '
 
     File.write('from qiskit import * \n')
-    File.write('import matplotlib.pyplot as plt \n')
-    File.write('from qiskit.visualization import plot_histogram\n\n')
+    File.write('from qiskit.quantum_info import Statevector \n')
+    File.write('import matplotlib.pyplot as plt \n\n')
+    #File.write('from qiskit.visualization import plot_histogram\n\n')
 
     File.write('def GetStatevector():\n')
-
+    
+    #File.write(s+'global state \n')
     File.write(s+"backend = Aer.get_backend('statevector_simulator')\n")
     
     File.write(s+'qr = QuantumRegister({}) \n'.format(matrix.shape[0]))
@@ -38,6 +40,7 @@ def QiskitConverter(matrix, multigates, row_name, gates_2):
                     
                     
     File.write('\n'+s+'results = execute(circuit,backend).result().get_statevector()\n')
+    #File.write(s+'state = Statevector.from_instruction(circuit)\n')
     File.write(s+'return results')
 
 

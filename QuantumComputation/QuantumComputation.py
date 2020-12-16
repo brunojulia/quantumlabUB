@@ -33,7 +33,9 @@ import importlib
 
 from qiskit import * 
 import matplotlib.pyplot as plt 
-from qiskit.visualization import plot_histogram
+from qiskit.visualization import plot_histogram, plot_bloch_multivector,plot_state_qsphere, plot_state_city,plot_state_hinton
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+
 
 global matrix
 global row_name
@@ -437,14 +439,30 @@ class CRow(FloatLayout):
         if pressed=='multigate':
             cgrid.rows[0].cols[0].deletecurrent()
         num=row_name.index(self.name_label.text)
-        matrix=np.delete(matrix, num, axis=0)
+        
         row_name.pop(num)
         for i in range(len(row_name)-num):
             if row_name[i+num] == ('q'+str(i+num+1)):
                 row_name[i+num] = ('q'+str(i+num))
+        
+        for i in multigates:
+            for j in range(len(i)-1):
+                if i[j]==num:
+                    col=i[-1]
+                    for k in range(len(i)-1):
+                        
+                        matrix[i[k]][col]=''
+                        cell=cgrid.rows[i[k]].cols[col]
+                        cell.remove_widget(cell.gate)
+                    cgrid.rows[i[0]].cols[col].canvas.before.remove_group('multigate')
+    
+        
+        matrix=np.delete(matrix, num, axis=0)
         self.parent.parent.parent.rows.pop(num)
-        self.parent.parent.parent.refresh()
         self.parent.remove_widget(self)
+        
+        Clock.schedule_once(lambda dt:cgrid.refresh(), 0)
+        
         
     def reini(self, num):
         global row_name
@@ -492,7 +510,7 @@ class CGrid(FloatLayout):
                     currentcell=matrix[i][j]
                     self.rows[i].cols[j].on_touch_up(touch)
                     matrix[i][j]=currentcell
-                    root.sm.screen1.QiskitConv()
+        root.sm.screen1.QiskitConv()
                     
                     
             #super(CGrid, self).on_touch_up(touch)
@@ -553,7 +571,10 @@ class CGrid(FloatLayout):
         global pressed
         global matrix
         global multigates
-        print(root.sm.screen1.problabel.text)
+       # print(root.sm.screen1.problabel.text)
+        print(probabilities)
+        print(matrix)
+        print(multigates)
        
 class WindowManager(ScreenManager):
     screen1 = ObjectProperty(None)
@@ -571,11 +592,17 @@ class QComp(App):
 
 class Screen1(Screen):
     problabel = ObjectProperty(None)
+    plotbox = ObjectProperty(None)
+    
+    
     def QiskitConv(self, *args):
         global matrix
         global multigates
         global row_name
         global gates_2
+        global results
+        global state
+        global probabilities
         
         
         QiskitConverter(matrix, multigates, row_name, gates_2)
@@ -583,22 +610,69 @@ class Screen1(Screen):
         
         results=QiskitCircuit.GetStatevector()
         
-        self.problabel.text=(GetResults(results))
+        self.problabel.text, probabilities=(GetResults(results))
+        self.plotbox.clear_widgets()
         
+        
+        plt.barh(list(probabilities.keys()), list(probabilities.values()))
+        plt.xlim(0,100)
+        self.plotbox.add_widget(FigureCanvasKivyAgg(plt.gcf()))
+        plt.close()
+        
+        
+    def ShowQSpehre(self):
+        plot=plot_state_qsphere(results)
+        plt.show(plot)
+        
+    def ShowBlochSpheres(self):
+        plot=plot_bloch_multivector(results)
+        plt.show(plot)
+        
+    def ShowDensityMatrix(self):
+        plot=plot_state_city(results)
+        plt.show(plot)
+        
+    def ShowDensityMatrix2D(self):
+        plot=plot_state_hinton(results)
+        plt.show(plot)
+        
+    def ShowHistogram(self):
+        plot=plot_histogram(probabilities)
+        plt.show(plot)
+    
 
 def GetResults(args):
-    global results
 
     results=args
     probtext='|'+' '.join(reversed(row_name))+'>:  Prob, Phase\n\n'
+    probabilities={}
 
     for i in range(len(results)):
+        state = str(np.binary_repr(i, width=matrix.shape[0]))
+        angle=np.angle(results[i])
+        
         if abs(results[i]) > 0.001:
-            state = str(np.binary_repr(i, width=matrix.shape[0]))
+            probabilities[state]=np.absolute(results[i])**2*100
+            ratio=(angle/np.pi).as_integer_ratio()
+            if (abs(angle)>0.00001) and (abs(ratio[1])<10):
+                if ratio[0]==1:
+                    phase='pi'
+                elif ratio[0]==-1:
+                    phase='-pi'
+                else:
+                    phase=str(ratio[0])+'pi'
+                if ratio[1]==1:
+                    pass
+                else:
+                    phase=phase + '/'+str(ratio[1])
+            elif (abs(angle)>0.00001):
+                phase='{0:.3g}'.format(np.angle(results[i]))
+            else:
+                phase='0'
             probtext=probtext+'|'+state+'>'+':  '+'{0:.3g}'.format(np.absolute(results[i])**2*100)+'%, '\
-            +'{0:.3g}'.format(np.angle(results[i]))+'\n'
+            +phase+'\n'
             
-    return probtext
+    return probtext, probabilities
     
     
 

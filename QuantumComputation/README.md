@@ -67,3 +67,15 @@ pip install qiskit
 
 pip install qiskit[visualization]
 ```
+
+## Running the program
+---------------------
+To run the program, open the Anaconda Prompt in the program folder and activate the environment previously installed with
+```
+activate clavsqua_env
+```
+Then run the program with
+
+```
+python QuantumComputation.py
+```
