@@ -109,23 +109,33 @@ print("array rebuda",array1)
 
 #%% 
 def comparardir(array0,array1):
+    '''
+    Funció que compara les direccions de les dues arrays i es queda només amb les 
+    direccions que són iguals entre array0 i array1. 
+
+    Parameters
+    ----------
+    array0 : MATRIU DE DIRECCIONS I BITS DE L'ALICE
+    array1 : MATRIU DE DIRECCIONS I BITS DE'N BOB
+    Returns
+    -------
+    array02 : MATRIU QUE OBTÉ L'ALICE AMB LES DIRECCIONS COINCIDENTS
+    array12 : MATRIU QUE OBTÉ EN BOB AMB LES DIRECCIONS COINCIDENTS (ÉS LA MATEIXA)
+
+    '''
     array02=np.copy(array0)
     array12=np.copy(array1)
     n,m=np.shape(array0)
     for i in range(n):
         n1,m1=np.shape(array02)
         if i<n1:
-           # print('i:',i,'n1:',n1)
             endevant=0
             while(endevant==0):
                 n1,m1=np.shape(array02)
                 if i<n1:
                     if array02[i,0]!=array12[i,0]:
-                       # print('Abans0:',array02[i,0],'i:',i)
-                        #print('Abans1:',array12[i,0])
                         array02=np.delete(array02,i,0)
                         array12=np.delete(array12,i,0)
-                        #print('Després0:',array02)
                         endevant=0
                     else:
                         endevant=1
@@ -133,11 +143,6 @@ def comparardir(array0,array1):
                     endevant=1
                     break
                 
-                
-        else:
-           # print("Anem a fer break")
-            break
-        
     return array02,array12
 
 
@@ -146,6 +151,7 @@ arr1=np.array([['z',0],['x',0],['z',0],['z',1]])
 
 arrp,arrp2=comparardir(arr0, arr1)
 print("Va bé?",(arrp==arrp2).all())
+
 
 def escriure(array0,array1):
     
@@ -183,6 +189,22 @@ def escriure(array0,array1):
 "Vale, vull fer unes matrius arrays aleatòries d'una mida en concret"
 
 def createarrays(n):
+    '''
+    Funció que fa unes matrius aleatòries de la mida n,2
+
+    Parameters
+    ----------
+    n : TYPE
+        DESCRIPTION.
+
+    Returns
+    -------
+    array0 : TYPE
+        DESCRIPTION.
+    array1 : TYPE
+        DESCRIPTION.
+
+    '''
     
     array0=np.empty((n,2),dtype=str)
     array1=np.copy(array0)
@@ -202,13 +224,24 @@ def createarrays(n):
 #print("Matriu aleatòria", createarrays(15))
     
 
-
-
-
-
-
 #%%
 def mirarhack(array0,array1):
+    '''
+    Funció que et compara alguns elements de les matrius ja amb les direccions 
+    iguals per mirar si hi ha hagut un hacker o no. A més esborra els bits
+    publicats de les matrius que ens serveixen com a dades.
+
+    Parameters
+    ----------
+    array0 : ARRAY DE L'ALICE AMB LES DIRECCIONS IGUALS QUE LES DE'N BOB.
+    array1 : ARRAY DE'N BOB AMB LES DIRECCIONS IGUALS QUE LES DE L'ALICE.
+    Returns
+    -------
+    bool: RETORNA SI HI HA HAGUT HACKER - TRUE I SINÓ FALSE
+    publiA/B: MATRIU QUE PUBLICA L'ALICE O EN BOB AMB: LES POSICIONS QUE VOLEN 
+    COMPARAR AMB LA DIRECCIÓ I EL VALOR OBTINGUT A LA MESURA.
+    array0/1: MATRIU AMB ELS BITS PUBLICATS TRETS
+    '''
     if (np.shape(array0)==np.shape(array1)):
         pass
     else:
@@ -216,8 +249,7 @@ def mirarhack(array0,array1):
         
         
     n,m=np.shape(array0)
-    #Comparem els 10 primers bits de les arrays que ja s'hagin comparat
-    #les direccions
+    #Comparem els primer bits de les arrays a veure si coincideixen les seves direccions
     comptador=0
     '''
     if n<10:
@@ -225,32 +257,51 @@ def mirarhack(array0,array1):
     else:
         k=10
     '''
-    #Nombre de bits que comparo   
+    #Nombre de bits que comparo (un desè de bits)  
     k=n//10
     print("Valors comparats", k)
     
+    #Matriu que publicarà l'Alice
+    publiA=np.empty(([k,3]),dtype=object)
+    publiB=np.copy(publiA)
+    
     for i in range(k):
-        if array0[i,1]!=array1[i,1]:
-            comptador+=1
-           # print("Són iguals?",array0[i,1],array1[i,1])
-            print("comptador",comptador)
+        rand=random.randint(0,n-1)
+        while (rand==publiA[:,0].any()):
+            rand=random.randint(0,n-1)
+        
+        
             
+        publiA[i,0]=rand
+        publiB[i,0]=rand
+        publiA[i,1]=array0[rand,0]
+        publiA[i,2]=array0[rand,1]
+        publiB[i,1]=array1[rand,0]
+        publiB[i,2]=array1[rand,1]
+        
+        if array0[rand,1]!=array1[rand,1]:
+            comptador+=1
+            
+    #Eliminem els bits publicats
+    #Ordenem les posicions que hem de borrar
+    posicions=sorted(list(publiA[:,0]), reverse=True)
+    for i in posicions:
+        array0=np.delete(array0,i,0)
+        array1=np.delete(array1,i,0)
+                  
     if comptador>=k//4: #Em mira que 1/4 dels valors siguin iguals, sinó significa que hi ha un hacker!
-        print("Hi ha un hacker!")
-        return True
-        
-        
+        return True, publiA, publiB,array0,array1    
     else: 
-        return False
+        return False, publiA, publiB,array0,array1
+    
     
 arr2,arr3=createarrays(50)
 arr22=np.copy(arr2)
 
-boolean=mirarhack(arr2,arr3)
+boolean,A,B,A1,B1=mirarhack(arr2,arr3)
 print("Hi ha hacker?",boolean)
 
-
-print("----------Ara hi ha hacker?", mirarhack(arr2, arr22))    
+#print("----------Ara hi ha hacker?", mirarhack(arr2, arr22))    
 
 
 #%%
@@ -326,7 +377,7 @@ def randomprocess(nbits):
     print("S'han enviat",n,"bits dels quals",np.shape(arr02)[0],"ens han aportat informació.")
     #print(arr02)
     #print(arr12)
-   
+    
     key=arr02[:,1]
     print('--- Primers bits obtinguts ---')
     print(key)
@@ -362,13 +413,94 @@ def randomprocess(nbits):
     return finalkey, missatge
     
 
-clau,missatge=randomprocess(5)
+
+
+
+def randomprocesshack(nbits):
+    '''
+    Funció que a partir del missatge que vulguis enviar, fa tot el procés de
+    d'enviar partícules d'spin 1/2 (aleatòries) per tenir la clau de la mateixa
+    mida. 
+
+    Parameters
+    ----------
+    nbits : Nombre de bits que es necessiten per cada número (lletra passada a número)
+
+    Returns
+    -------
+    finalkey : TYPE
+        DESCRIPTION.
+    missatge : TYPE
+        DESCRIPTION.
+
+    '''
+
+    missatge=input("Escriu el missatge en majúscules: ")
+
+    longitud=len(missatge)   
+    print("La longitud del missatge és:", longitud)  
+    
+    lenkey=nbits*longitud
+    
+    #Si volem que es rebi una clau de longitud lenkey haurem d'enviar molts mes
+    n=int(lenkey*(5/2))
+    # n és el nombre de partícules que volem enviar
+    
+    ''' Per provar-ho, s'enviaran bits 0 o 1 aleatoris en direcció x o z aleatòria'''
+
+    posdir=['x','z']
+    posbit=['0','1']
+    
+    dir0l=[]
+    bit0l=[]
+    dir1l=[]
+    bit1l=[]
+    for i in range(n):        
+        arr0,arr1=enviament(random.choice(posdir),random.choice(posbit),random.choice(posdir),dir0l,bit0l,dir1l,bit1l)
+        
+    arr02,arr12=comparardir(arr0,arr1)
+    print("--- Procés d'enviament i rebuda de bits---")
+    print("S'han enviat",n,"bits dels quals",np.shape(arr02)[0],"ens han aportat informació.")
+
+    #Mirem si hi ha hacker
+    hack,publia,publib,arr03,arr13=mirarhack(arr02,arr12) 
+    
+    key=arr03[:,1]
+    print('--- Primers bits obtinguts ---')
+    print(key)
+    while len(key)<lenkey:
+        #Tornem-hi, hem d'enviar més bits
+        print("S'han d'enviar més bits!")
+        for i in range(lenkey):
+            arr0,arr1=enviament(random.choice(posdir),random.choice(posbit),random.choice(posdir),dir0l,bit0l,dir1l,bit1l)
+
+        arr02,arr12=comparardir(arr0,arr1)
+        hack,publia,publib,arr03,arr13=mirarhack(arr02,arr12)
+
+        key=arr03[:,1]
+        print("new key", key, type(key))
+        
+    finalkeyb=[]
+    for i in range(0,lenkey,5):
+        num=key[i]+key[i+1]+key[i+2]+key[i+3]+key[i+4]
+        finalkeyb.append(num)
+    
+    finalkey=[]
+    for i in finalkeyb:
+        finalkey.append(int(i,2) )
+        
+    print('-----Final key-----')
+    print("En binari:",finalkeyb)
+    print("Decimal:",finalkey)
+    return finalkey, missatge
+
+clau,missatge=randomprocesshack(5)
 
 #%%
 
 def Alice(n):
     
-    key,message=randomprocess(n)
+    key,message=randomprocesshack(n)
     
     ''' l'ascii en majúscules va del 65 al 90'''
     
@@ -377,23 +509,29 @@ def Alice(n):
     j=0
     for i in message:
         if ord(i)==32:
-            messagev=messagev+[(ord(i)-5+key[j])%27] #tindrà 27
-            message2=message2+[ord(i)-5]
+            messagev=messagev+[(ord(i)-6+key[j])%28] #tindrà 27
+            message2=message2+[ord(i)-6]
+        elif ord(i)==46:
+            messagev=messagev+[(ord(i)-19+key[j])%28] #tindrà 27
+            message2=message2+[ord(i)-19]
+            
         else: 
-            messagev=messagev+[(ord(i)-64+key[j])%27]
-            message2=message2+[ord(i)-64]
+            messagev=messagev+[(ord(i)-65+key[j])%28]
+            message2=message2+[ord(i)-65]
 
         j+=+1 
-    #print('HOLA:',message2)
-    #print(messagev)
+    print('HOLA:',message2)
+    print(messagev)
     message_en=""
     
     for i in messagev:
-        if (i==0):
+        if (i==26):
             message_en=message_en+chr(32)
             print('arroba?')
+        elif (i==27):
+            message_en=message_en+chr(46)
         else:
-            message_en=message_en+chr(i+64)
+            message_en=message_en+chr(i+65)
         
     print("---Missatge encriptat amb la clau---")
     print(message_en)
@@ -403,23 +541,43 @@ def Alice(n):
 encriptat,clau=Alice(5)
 
 #%%
+
 def Bob(message_en,key):
     message_out=''
     message_out2=[]
     
     j=0
     for i in message_en:
-        
-        valor=((27+ord(i)-64-key[j])%27)+64
-        if valor==64:
-            message_out=message_out+chr(valor-32)
+        if (ord(i)==32):
+            valor=((28+ord(i)-6-key[j])%28)+65
+            if valor==91:
+                message_out=message_out+chr(valor-59)
+            elif  valor==92:
+                message_out=message_out+chr(valor-46)
+            else:
+                message_out=message_out+chr(valor)  
+                
+        elif (ord(i)==46):
+            valor=((28+ord(i)-19-key[j])%28)+65
+            if valor==91:
+                message_out=message_out+chr(valor-59)
+            elif  valor==92:
+                message_out=message_out+chr(valor-46)
+            else:
+                message_out=message_out+chr(valor)
         else:
-            message_out=message_out+chr(valor)      
-        
-        
-        message_out2=message_out2+[(27+ord(i)-64-key[j])%27]
+            valor=((28+ord(i)-65-key[j])%28)+65
+            if valor==91:
+                message_out=message_out+chr(valor-59)
+            elif  valor==92: 
+                message_out=message_out+chr(valor-46)
+            else:
+                message_out=message_out+chr(valor)
+                 
+
+        message_out2=message_out2+[(28+ord(i)-64-key[j])%28]
         j+=1
-    #print('Missatge en numeruus',message_out2)
+    print('Missatge en numeruus',message_out2)
     print('---Recuperem el missatge inicial---')
     print(message_out)
     return message_out
