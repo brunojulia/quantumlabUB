@@ -78,7 +78,9 @@
     cgrid: cgrid
     circuit: circuit
     gatesgrid: gatesgrid
+    customgates: customgates
     problabel: problabel
+    probpanel: probpanel
     plotbox: plotbox
     on_touch_up: self.cgrid.on_touch_up
     
@@ -101,7 +103,7 @@
         
 #PANEL DE PROBABILITATS         
         FloatLayout: 
-            id: panel1
+            id: probpanel
             visible: False
             opacity: 1 if self.visible else 0
             disabled: not self.visible
@@ -216,6 +218,11 @@
                 pos_hint: {"top":0.9}
                 pos: 20, 0
                 id: gatesgrid
+                
+            CustomGrid:
+                pos_hint: {"top":0.5}
+                pos: 20, 0
+                id: customgates
             
         #PANEL DEL CIRCUIT         
         FloatLayout: 
@@ -245,16 +252,17 @@
             text: "Probabilities"
             size_hint: (0.15, 0.06)
             pos_hint: {"x": 0.54, "y":0.93}
-            on_release: root.cgrid.resize_panels(panel1.visible, panel2.visible)
+            on_release: root.cgrid.resize_panels(probpanel.visible, panel2.visible)
             on_release:
-                if panel1.visible == False: panel1.visible = True
-                elif panel1.visible == True: panel1.visible = False
+                if probpanel.visible == False: probpanel.visible = True
+                elif probpanel.visible == True: probpanel.visible = False
+                root.QiskitConv()
              
         Button:
             text: "Gates"
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.43, "y":0.93}
-            on_release: root.cgrid.resize_panels(panel1.visible, panel2.visible)
+            on_release: root.cgrid.resize_panels(probpanel.visible, panel2.visible)
             on_release:
                 if panel2.visible == False: panel2.visible = True
                 elif panel2.visible == True: panel2.visible = False
