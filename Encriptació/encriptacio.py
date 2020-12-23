@@ -430,13 +430,84 @@ def comparardir(array0,array1):
     array02=np.copy(array0)
     array12=np.copy(array1)
     n,m=np.shape(array0)
-    for i in range(n):
+    nn,mm=np.shape(array1)
+    if n<nn:
+        nf=nn
+    else:
+        nf=n
+    print('fins a',nf)
+    
+    n1,m1=np.shape(array02)
+    n2,m2=np.shape(array12)
+    
+    if n1>n2:
+        while(n1>n2):
+            n1,m1=np.shape(array02)
+            print('n1',n1)
+            if (n1<=n2):
+                break
+            array02=np.delete(array02,n2,0)
+            print('n2',n2,np.shape(array02),array02)
+            print('array1',array12)
+            
+    if n2>n1:
+        while(n2>n1):
+            n1,m1=np.shape(array02)
+            array12=np.delete(array12,n1,0)
+            print('n2',n2,np.shape(array02),array02)
+               
+                
+    for i in range(nf):
         n1,m1=np.shape(array02)
-        if i<n1:
+        n2,m2=np.shape(array12)
+        
+        
+                
+                
+                
+        if i<n1 and i<n2:
             endevant=0
             while(endevant==0):
                 n1,m1=np.shape(array02)
-                if i<n1:
+                n2,m2=np.shape(array12)
+                if i<n1 and i<n2:
+                    if array02[i,0]!=array12[i,0]:
+                        array02=np.delete(array02,i,0)
+                        array12=np.delete(array12,i,0)
+                        endevant=0
+                    else:
+                        endevant=1
+                else: 
+                    endevant=1
+                    break
+        
+                
+        n1,m1=np.shape(array02)
+        n2,m2=np.shape(array12)
+    
+        
+            
+        '''
+        if i<n1 and i>n2:
+            for j in range(i,n1):
+                array02=np.delete(array02,j,0)
+                print('estic fent delete:',j,np.shape(array02))
+                print(array02)
+            break 
+        if i>n1 and i<n2:
+            for j in range(i,n2):
+                array12=np.delete(array12,i,0)
+                #print('estic fent delete')
+            break
+            
+         '''   
+        #print('i',i, np.shape(array02),'.',np.shape(array12))
+        '''
+        while(i<n1 and i>n2):
+            endevant=0
+            while(endevant==0):
+                n1,m1=np.shape(array02)
+                if i<n1 and i<n2:
                     if array02[i,0]!=array12[i,0]:
                         array02=np.delete(array02,i,0)
                         array12=np.delete(array12,i,0)
@@ -447,10 +518,14 @@ def comparardir(array0,array1):
                     endevant=1
                     break
                 
-                
-        else:
-            break
-        
+            n1,m1=np.shape(array02)
+            array02=np.delete(array02,i,0)
+            
+        while( i>n1 and i<n2):
+            n2,m2=np.shape(array12)
+            array12=np.delete(array12,i,0)    
+            '''
+            
     return array02,array12
     
 def escriure(array0,array1):
@@ -504,16 +579,64 @@ def collide(rect1,rect2):
             return False
     
 
-def Bobresultats(llista1):
+def Bobresultats(direccio,llista1,llista2):
     bits=('0','1')
     llista1.append(random.choice(bits))
-    print(llista1)
-    return llista1
+    llista2.append(str(direccio))
+    return llista1,llista2
+
+def Bobresultats2(i,direccio,arr0,arr1):
+    '''Dona els resultats segons l'array de l'Alice'''
+    bits=('0','1')
     
-def arrowup(self):
-        if 'a' in self.keysPressed:
-            self.canvas.remove(self.player)
-            print("Pressed")
+    if i==0:
+        if direccio==arr0[i,0]:
+            arr1=np.array([[direccio,arr0[i,1]]])
+        else:
+            arr1=np.array([[direccio,random.choice(bits)]])
+
+    else:        
+        if direccio==arr0[i,0]:
+            arr1=np.append(arr1,[[direccio,arr0[i,1]]],axis=0)
+        else:
+            arr1=np.append(arr1,[[direccio,random.choice(bits)]],axis=0)
+    
+    i+=1
+    return i,arr1
+    
+
+    
+    
+def dadesb(nbits,missatge):
+    '''Crea les dades de l'Alice aleatòries'''
+    
+    longitud=len(missatge)   
+    print("La longitud del missatge és:", longitud)  
+    
+    lenkey=nbits*longitud
+    
+    #Si volem que es rebi una clau de longitud lenkey haurem d'enviar molts mes
+    n=int(lenkey*(5/2))
+    # n és el nombre de partícules que volem enviar
+    
+    ''' Per provar-ho, s'enviaran bits 0 o 1 aleatoris en direcció x o z aleatòria'''
+    posdir=['x','z']
+    posbit=['0','1']
+    
+    dir0l=[]
+    bit0l=[]
+    dir1l=[]
+    bit1l=[]
+    
+    arr0=np.empty((n,2),dtype=str)
+    for i in range(n):
+        arr0[i,0]=random.choice(posdir)
+        arr0[i,1]=random.choice(posbit)
+    #print ('arr0',arr0,'shape',np.shape(arr0))
+    return arr0
+    
+                
+    
     
 
 """_______________________Pantalles___________________"""
@@ -595,6 +718,7 @@ class Screen2(Screen):
 class Screen3(Screen):
 
     def btn_array(self):
+        '''Botó per imprimir per pantalla la direcció i el bit'''
         dir0l,bit0l,dir1l,bit1l=arrays()
         array0,array1=enviament2(self.dir0.text,int(self.bit0.text),self.dir1.text,dir0l,bit0l,dir1l,bit1l)
         self.array0.text= str(array0)
@@ -607,6 +731,7 @@ class Screen3(Screen):
     text3= StringProperty('')
     
     def change_text(self):
+        ''' Funció per passar la informació a la screen Publidir'''
         array0,array1=llegirarrays()
         self.text= str(array0)
         self.text2= str(array1)
@@ -642,6 +767,22 @@ class Publidir(Screen):
         self.array0.text= str(array0)
 
     '''
+    
+class Publidir2(Screen):
+    arr0_text= StringProperty('')
+    arr1_text2= StringProperty('')
+    arraydir_text3= StringProperty('')
+    
+    def comparar(self):
+        arr0=Bob.arr0
+        arr1=Bob.arr1
+        print('arr0',arr0,'arr1',arr1)
+        arr01,arr11=comparardir(arr0, arr1)
+        self.arr0.text= str(arr01)
+        self.arr1.text= str(arr11)
+
+
+        
 class WindowManager(ScreenManager):
     def __init__(self,**kwargs):
         super(WindowManager, self).__init__(**kwargs)
@@ -651,6 +792,13 @@ class WindowManager(ScreenManager):
 "___________Joc_____________"
 
 class Bob(Screen):
+    text= StringProperty('')
+    text2= StringProperty('')
+    text3= StringProperty('')
+    
+    arr0=dadesb(5,'H')
+    
+    
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
         self._keyboard = Window.request_keyboard(self._on_keyboard_closed,self)
@@ -658,19 +806,23 @@ class Bob(Screen):
         self._keyboard.bind(on_key_up=self._on_key_up)
         
         with self.canvas:
-            self.player = Rectangle(pos=(Window.size[0]*0.7,Window.size[1]*0.5),size=(10,100)) #Es pot posar una imatge si es vol
+            self.player = Rectangle(source="up.png",pos=(Window.size[0]*0.7,Window.size[1]*0.5),size=(50,100)) #Es pot posar una imatge si es vol
             #self.enemy = Rectangle(pos=(400,400),size=(60,60))
+            self.player_dir="z"
             
             
         self.keysPressed = set()        
         self._entities= set()
         
-        Clock.schedule_interval(self.move_step,0) #El 0 és cada frame, pro si poses un 2 és cada 2 segons (oframes?)
+        Clock.schedule_interval(self.move_step,0) #El 0 és cada frame, pro si poses un 2 és cada 2 segons (oframes?)        
         
-        self.llista=[]
-        self.pause1=0
+        self.llistaz=[]
+        self.llistax=[]
         
-        arrowup(self)
+        
+        self.pause1=0        
+        
+        
     #..................................................  
     '''
     def add_entity(self,entity):
@@ -738,74 +890,68 @@ class Bob(Screen):
     
     
     #..............................................
-    '''
+    '''    
     
-    
-    
-    
-    
-    
-    
+    '-------Per fer anar el teclat----------'
     def _on_keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_key_down)
         self._keyboard.unbind(on_key_up=self._on_key_up)
         self._keyboard = None
         
     def _on_key_down(self,keyboard,keycode,text,modifiers):
-        self.keysPressed.add(text)
+        #self.keysPressed.add(text)
+        self.keysPressed.add(keycode[1])
     
     def _on_key_up(self,keyboard,keycode):
         text = keycode[1] #es com esta definit
         if text in self.keysPressed:
             self.keysPressed.remove(text)
             
-    def move_step(self,dt):#dt- quan fa des de l'últim frame (en segons)
+    '----------Altres funcions--------------'      
+    def move_step(self,dt): #dt- quan fa des de l'últim frame (en segons)
+        ''' Funció per moure el player i per canviar-lo de direcció   '''
+        
         currentx = self.player.pos[0]
         currenty = self.player.pos[1]
         
         step_size = 400*dt #seria com la velocitat (?)
         #Si vols moure més depressa, el 100 pot ser 200... 
         
-        if ("w" in self.keysPressed) and (currenty<Window.size[1]-2*self.player.size[1]):
+        if ("w" in self.keysPressed) and (currenty<Window.size[1]-2*self.player.size[1]) and (self.pause1==0):
             currenty+=step_size
-        if "s" in self.keysPressed and (currenty> self.player.size[1]):
-            currenty-=step_size  
-        #if "a" in self.keysPressed:
-            currentx-=step_size
-        #if "d" in self.keysPressed:
-            currentx+=step_size
+        if "s" in self.keysPressed and (currenty> self.player.size[1])and (self.pause1==0):
+            currenty-=step_size 
                     
         self.player.pos = (currentx, currenty)
         
-        #if collide((self.player.pos,self.player.size),(self.enemy.pos,self.enemy.size)):
-         #   print("Colliding")
-            
-
-#-------------- 
-    def play(self):    
-        '''Botó play'''
-        self.pause1==0
-        if self.pause1==0:
-                   
-            Clock.schedule_interval(self.particlemoving,0)
-            Clock.schedule_interval(self.newparticle,2)
-            
-            self.j=0
+        #Part de canviar de direcció
+        if ("up" in self.keysPressed) and self.pause1==0:
+            self.player_dir="z"
             
             with self.canvas:
-                self.particle = Ellipse(pos=(50,self.randomposition()),size=(10,10))
+                self.canvas.remove(self.player)
+                self.player = Rectangle(source="up.png",pos=(currentx,currenty),size=(50,100))
             
-            self.randomposition()
+        if "right" in self.keysPressed and self.pause1==0:
+            self.player_dir="x"
             
+            with self.canvas:
+                self.canvas.remove(self.player)
+                self.player = Rectangle(source="right.png",pos=(currentx,currenty),size=(50,100))
+            
+                   
         
     def particlemoving(self,dt):
         '''Moviment de la partícula'''
+        
         if self.j==0 and self.pause1==0:
+            
             partx=self.particle.pos[0]
             party=self.particle.pos[1]
         
             step_size=300*dt
-        
+            #print('dt',dt, 'step_size',step_size)
+
             if partx<10000:
                 partx+=step_size
         
@@ -814,15 +960,34 @@ class Bob(Screen):
         
             if collide((self.player.pos,self.player.size),(self.particle.pos,self.particle.size)):
                 self.canvas.remove(self.particle)
+                
                 if self.j==0:
-                    llista1=Bobresultats(self.llista)
+                    '''
+                    llista1,llista2=Bobresultats(self.player_dir,self.llistaz,self.llistax)
                     self.bit1.text= str(llista1)
+                    self.bit2.text= str(llista2)
+                    '''
+                    if self.collides==0:
+                        self.arr1=np.zeros((1,2),dtype=str)
+
+                    self.collides,self.arr1=Bobresultats2(self.collides,self.player_dir,self.arr0, self.arr1)
+                    
+                    Bob.arr1=self.arr1
+                    
+                    #Passo els resultats a pantalla
+                    self.bit1.text=str(self.arr1[:,0])
+                    self.bit2.text=str(self.arr1[:,1])                    
+                    self.bitst+=1
+                    self.bits.text="Bits totals:  "+str(self.bitst)
                     
                 self.j+=1
-            
-            if partx>Window.size[0]*0.8:
+                
+            if partx>Window.size[0]*0.8 and self.canvas.indexof(self.particle)!=-1:
+                
+               # print('Què hi ha al canvas?', self.canvas.indexof(self.particle) )
                 self.canvas.remove(self.particle)
-                pass
+                self.j+=1
+                
             
         
             
@@ -830,7 +995,7 @@ class Bob(Screen):
     def newparticle(self,dt): 
         '''Creació d'una partícula + moviment'''
         self.j=0
-        if self.pause1==0:            
+        if self.pause1==0: 
             Clock.schedule_interval(self.particlemoving,0)
             
             with self.canvas:
@@ -846,10 +1011,59 @@ class Bob(Screen):
         return j
     
     
+    def change_text(self):
+        ''''''' Funció per passar la informació a la screen Publidir'''''''
+        print('Arr0',self.arr0)
+        self.text= str(self.arr0)
+        self.text2= str(self.arr1)
+        #arraydir=np.empty(np.shape(self.arr0),dtype=str)
+        #arraydir[:,0]=self.arr0[:,0]
+        #arraydir[:,1]=self.arr1[:,0]
+        self.text3= str('Hey')
+        self.manager.current= "Publidir2"
     
     
-    def stop(self):
-        self.pause1=1
+    '--------- Botons --------------'
+    def play(self):    
+        '''Botó play'''
+        self.llistaz=[]
+        self.llistax=[]
+        self.bit1.text=""
+        self.bit2.text=""
+        self.bits.text= "Bits totals: "
+        
+        self.bitst=0
+        self.arr0=Bob.arr0
+        print('Array ALice',self.arr0)
+        #Contador per les mesures
+        self.collides=0
+        
+        
+        self.pause1=0
+        self.init=0
+        if self.pause1==0:
+            
+            if self.init==0:
+                Clock.schedule_interval(self.particlemoving,0)
+                self.init=1
+                
+            Clock.schedule_interval(self.move_step,0)
+            Clock.schedule_interval(self.newparticle,2.5)
+            
+            self.j=0
+            
+            with self.canvas:
+                self.particle = Ellipse(pos=(50,self.randomposition()),size=(10,10))
+            
+            self.randomposition()
+    
+    def pause(self):
+        self.pause1+=1
+        if self.pause1==0:
+            self.pause1=1
+        if self.pause1==2:
+            self.pause1=0
+            
         
         
     
