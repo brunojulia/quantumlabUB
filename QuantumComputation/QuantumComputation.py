@@ -7,6 +7,7 @@ Created on Sun Oct 18 19:24:43 2020
 
 import kivy
 import numpy as np
+from  numpy import pi
 
 from kivy.app import App
 from kivy.lang import Builder
@@ -36,6 +37,11 @@ import matplotlib.pyplot as plt
 from qiskit.visualization import plot_histogram, plot_bloch_multivector,plot_state_qsphere, plot_state_city,plot_state_hinton
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 
+import CustomGates as cgates
+#from CustomGates import *
+import os
+import textwrap
+
 
 global matrix
 global row_name
@@ -46,12 +52,13 @@ File.close()
 
 import QiskitCircuit
 
-matrix =np.empty((0,0), dtype="<U5")
+matrix =np.empty((0,0), dtype="<U7")
 row_name=[]
 gates_list=['H', 'X', 'CX', 'CCX', 'SWAP', 'T', 'Y', 'RESET']
 gates_2={'CX': 2, 'CCX': 3, 'SWAP': 2}
 pressed=''
 multigates=[]
+customgates={}
 
 
 cellsize=50
@@ -107,6 +114,7 @@ class Gate_circuit(Button):
         global matrix
         global pressed
         global gates_2
+        global customgates
         global rowsconnected
         global multigate
         global prev
@@ -125,7 +133,7 @@ class Gate_circuit(Button):
         posx=self.x-cgrid.scroll.parent.scroll_x*(cgrid.scroll.width-cgrid.scroll.parent.width)
         posy=self.y-cgrid.scroll.parent.scroll_y*(cgrid.scroll.height-cgrid.scroll.parent.height)+cgrid.scroll.parent.y    
         
-        if matrix[self.matrix[0],self.matrix[1]] in gates_2:
+        if (matrix[self.matrix[0],self.matrix[1]] in gates_2) or (matrix[self.matrix[0],self.matrix[1]] in customgates):
             for i in multigates:
                 if i[-1]==self.matrix[1] and self.matrix[0] in i:
                     prev= i[:]
@@ -136,7 +144,10 @@ class Gate_circuit(Button):
                         matrix[j][self.matrix[1]]=''
                     cgrid.rows[prev[0]].cols[prev[-1]].canvas.before.remove_group('multigate')
                         
-                    multigate=(prev[0], prev[-1], pressed, gates_2[pressed])
+                    try:
+                        multigate=(prev[0], prev[-1], pressed, gates_2[pressed])
+                    except:
+                        multigate=(prev[0], prev[-1], pressed, customgates[pressed])
                     prev.pop(-1)
                     pressed = 'dragmulti'
                     multigates.remove(i)
@@ -167,29 +178,45 @@ class Gate_panel(Button):
     def __init__ (self, **kwargs):
         super(Gate_panel, self).__init__(**kwargs)
         self.always_release=True
-        self.bind(on_press=self.press)
-        self.bind(on_release=self.release)
         self.size_hint=(None,None)
         self.size= (cellsize,cellsize)
         self.background_down = self.background_normal
 
-    def press(self, *args):
-        global pressed
-        global cgrid
-        if pressed=='multigate':
-            cgrid.rows[0].cols[0].deletecurrent()
-            
-        pressed=self.text
-        cgrid.scatter =Gate_mouse(pos=(-100,-100))
-        cgrid.add_widget(cgrid.scatter)
-
-    def release(self, *args):
-        global pressed
-        pressed=''
-        cgrid.remove_widget(cgrid.scatter)
-        
     def on_touch_move(self, touch):
         cgrid.scatter.center=touch.pos
+        
+    def on_touch_down(self, touch):
+        global pressed
+        global cgrid
+        refx=self.x
+        refy=self.y
+        if (refy < touch.y <refy+cellsize) and (refx < touch.x <refx+cellsize): 
+            if pressed=='multigate':
+                cgrid.rows[0].cols[0].deletecurrent()
+            pressed=self.text
+            cgrid.scatter =Gate_mouse(text=pressed,pos=(-100,-100))
+            cgrid.add_widget(cgrid.scatter)
+            if touch.is_double_tap and self.text in customgates:
+                draw(self.text)
+                
+    def on_touch_up(self,touch):
+        global pressed
+        if pressed !='': 
+            cgrid.remove_widget(cgrid.scatter)
+        if pressed != 'multigate':
+            
+            pressed=''
+    
+def draw(gate):
+    nqubit=getattr(cgates, gate).qubitnumber()
+    drawcircuit = QuantumCircuit(nqubit)
+    gatestring=getattr(cgates, gate).gate()
+    gatestring=gatestring.replace('circuit','drawcircuit')
+    gatestring=textwrap.dedent(gatestring)
+    for k in range(customgates[gate]):
+        gatestring=gatestring.replace('q'+str(k), str(k))
+    exec(gatestring)
+    plt.show(drawcircuit.draw('mpl'))
     
     
 
@@ -201,8 +228,21 @@ class GatesGrid(GridLayout):
       
         for i in gates_list:
             self.add_widget(Gate_panel(text=i))
-            
-        
+           
+
+class CustomGrid(GridLayout):
+    def __init__(self, **kwargs):
+        global customgates
+        super(CustomGrid, self).__init__(**kwargs)
+        self.rows=1
+        self.spacing=10,10
+      
+        for filename in os.listdir('CustomGates'):
+            if filename.endswith(".py") and not filename.startswith("_"):
+                gatename = filename.split('.')[0]
+                self.add_widget(Gate_panel(text=gatename))
+                customgates[gatename]=getattr(cgates, gatename).qubitnumber()
+
 
 class CCell(FloatLayout):
     def __init__ (self, **kwargs):
@@ -221,6 +261,7 @@ class CCell(FloatLayout):
         global multigates
         global canvascell
      
+        
         scrollview=self.parent.parent.parent
         floatlay=self.parent.parent
         refx=self.x-scrollview.scroll_x*(floatlay.width-scrollview.width)
@@ -235,16 +276,26 @@ class CCell(FloatLayout):
                 if pressed == 'multigate':
                     self.secondclick(row,col)
                     
-                            
-                elif pressed in gates_2:
+                  
+                
+                elif (pressed in gates_2) or (pressed in customgates):
                     if currentcell != '':
                         self.remove_widget(self.gate)
-                    gate=Gate_circuit(text=(pressed), pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+                    gatetext=pressed
+                    if pressed in customgates:
+                        gatetext=pressed+'\n0'
+                    gate=Gate_circuit(text=(gatetext), pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
                     currentcell= pressed
                     self.gate=gate
                     self.add_widget(self.gate)
                     self.gate.matrix=(row,col)
-                    multigate=(row, col, pressed, gates_2[pressed])
+
+                    try:
+                        multigate=(row, col, pressed, gates_2[pressed])
+                    except:
+                        multigate=(row, col, pressed, customgates[pressed])
+                     
+                        
                     rowsconnected=[row]
                     Clock.schedule_once(lambda dt:self.multigate(), 0)
                     
@@ -259,12 +310,21 @@ class CCell(FloatLayout):
                             cgrid.rows[i].cols[col].remove_widget(cgrid.rows[i].cols[col].gate)
                         if prev.index(i)==0:
                             gatetext=multigate[2]
+                            if multigate[2] in customgates:
+                                gatetext=multigate[2]+'\n0'
                         else:
                             if multigate[2] in ('SWAP'):
                                 pref=''
+                                gatetext=pref+multigate[2]
+                
+                            elif multigate[2] in customgates:
+                                suf=str(prev.index(i))
+                                gatetext=(multigate[2]+'\n'+suf)
+                
                             else:
                                 pref='--'
-                            gatetext=pref+multigate[2]
+                                gatetext=pref+multigate[2]
+                            
                         gate=Gate_circuit(text=gatetext, pos=(cgrid.rows[i].cols[col].x+0.05*cellsize, cgrid.rows[i].cols[col].y+0.05*cellsize))
                         matrix[i][col]= multigate[2]
                         
@@ -290,6 +350,7 @@ class CCell(FloatLayout):
 
         
         super(CCell, self).on_touch_up(touch)
+        
     
     def multigate_lines(self, gaterows):
         global cgrid
@@ -318,9 +379,8 @@ class CCell(FloatLayout):
         
         for i in rowsconnected:
             cgrid.rows[i].cols[multigate[1]].remove_widget(cgrid.rows[i].cols[multigate[1]].gate)
-            #print('before:',matrix[i][col])
             matrix[i][multigate[1]]=''
-            #print(matrix[i][col])
+            
         pressed=''
         canvascell.canvas.before.remove_group('multigate')
         
@@ -343,9 +403,17 @@ class CCell(FloatLayout):
             rowsconnected.append(row)
             if multigate[2] in ('SWAP'):
                 pref=''
+                gate=Gate_circuit(text=(pref+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+
+            elif multigate[2] in customgates:
+                
+                suf=str(customgates[multigate[2]]-multigate[3]+1)
+                gate=Gate_circuit(text=(multigate[2]+'\n'+suf),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+
             else:
                 pref='--'
-            gate=Gate_circuit(text=(pref+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+                gate=Gate_circuit(text=(pref+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+
             currentcell= multigate[2]
             
             self.gate=gate
@@ -366,7 +434,7 @@ class CCell(FloatLayout):
             
             if multigate[3] > 1:
                 self.multigate()
-                
+            
             else:
                 rowsconnected.append(col)
                 multigates.append(rowsconnected)
@@ -399,20 +467,30 @@ class CRow(FloatLayout):
             self.add_widget(self.cols[i])
             if matrix[num][i] != '':
                     self.cols[i].remove_widget(self.cols[i].gate)
-                    if matrix[num][i] in gates_2:
+                    if (matrix[num][i] in gates_2) or (matrix[num][i] in customgates):
                         for j in multigates:
                             if j[-1]==i and num in j:
                                 if j.index(num)==0:
                                     gatetext=matrix[num][i]
+                                    if matrix[num][i] in customgates:
+                                        gatetext=matrix[num][i]+'\n0'
                                   
                                     cgrid.rows[num].cols[i].canvas.before.remove_group('multigate')
                                     cgrid.rows[num].cols[i].multigate_lines(j)
                                 else:
                                     if matrix[num][i] in ('SWAP'):
                                         pref=''
+                                        gatetext=pref+multigate[2]
+                        
+                                    elif matrix[num][i] in customgates:
+                                        #suf=str(customgates[multigate[2]]-multigate[3]+1)
+                                        suf=str(j.index(num))
+                                        gatetext=(multigate[2]+'\n'+suf)
+                        
                                     else:
                                         pref='--'
-                                    gatetext=pref+matrix[num][i]
+                                        gatetext=pref+multigate[2]
+                                    
                     else:
                         gatetext=matrix[num][i]
                         currentcell=matrix[num][i]
@@ -571,10 +649,12 @@ class CGrid(FloatLayout):
         global pressed
         global matrix
         global multigates
+        global customgates
        # print(root.sm.screen1.problabel.text)
-        print(probabilities)
+        print(customgates)
         print(matrix)
         print(multigates)
+        
        
 class WindowManager(ScreenManager):
     screen1 = ObjectProperty(None)
@@ -593,6 +673,7 @@ class QComp(App):
 class Screen1(Screen):
     problabel = ObjectProperty(None)
     plotbox = ObjectProperty(None)
+    probpanel = ObjectProperty(None)
     
     
     def QiskitConv(self, *args):
@@ -600,12 +681,15 @@ class Screen1(Screen):
         global multigates
         global row_name
         global gates_2
+        global customgates
         global results
         global state
         global probabilities
         
+        if self.probpanel.visible == False:
+            return
         
-        QiskitConverter(matrix, multigates, row_name, gates_2)
+        QiskitConverter(matrix, multigates, row_name, gates_2, customgates)
         importlib.reload(QiskitCircuit)
         
         results=QiskitCircuit.GetStatevector()
