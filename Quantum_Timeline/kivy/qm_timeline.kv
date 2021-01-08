@@ -1,0 +1,176 @@
+
+#:kivy 1.11.1
+#:import Factory kivy.factory.Factory
+
+<MyScreenManager>:
+    StartingScreen:
+    DiscoveriesScreen:
+    YoungSlitScreen:
+
+
+<StartingScreen>:
+    name: 'starting'
+    
+    BoxLayout:
+    #title, buttons and logo
+        orientation: 'vertical'
+        padding: [root.width/3,0]
+        
+        Label:
+            text: "Quantum Mechanics Timeline"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'vertical'
+            padding: [self.width/5, 0]
+            spacing: self.height/10
+            size_hint_y: 2
+            
+            Button:
+                id: s_to_dc
+                size_hint_y:1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: 'DISCOVERIES'
+                on_press: root.transition_SD()
+                canvas.before:
+                    Color:
+                        rgba: .5, .5, .5, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+
+<DiscoveriesScreen>:
+    name: 'Discoveries'
+    
+    BoxLayout:
+        orientation: 'vertical'
+        padding: [root.width/3,0]
+        
+        Label:
+            text: "DISCOVERIES"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'vertical'
+            padding: [self.width/5, 0]
+            spacing: self.height/10
+            size_hint_y: 2
+            
+            Button:
+                id: dc_to_ys
+                size_hint_y:1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "Young's slit experiment"
+                on_press: root.transition_DY()
+                canvas.before:
+                    Color:
+                        rgba: .5, .5, .5, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+
+<YoungSlitScreen>:
+    name: 'YoungSlit'
+    box1:box1_id
+    #:set color_labels 1,1,1,1
+    #:set black 0,0,0,1
+    
+    FloatLayout:
+        id:box1_id
+        orientation:'vertical'   
+        size_hint:1,1
+    
+    Label: 
+        color:'black'
+        text:"Young's interference experiment"
+        pos_hint:{'x':0.4,'y':0.9}
+        size_hint:0.3,0.1
+        
+
+        
+    Button:
+        id: change_source_state
+        text:'On/Off'
+        on_press:root.change_source_state()
+        pos_hint:{'x':0.5,'y':0}
+        size_hint:0.1,0.05
+    
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.,'y':0.8}
+        size_hint:0.2,0.1
+        
+        Label:
+            color: 'black'
+            text: "Slits"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'horizontal'
+            size_hint_x:1
+            
+            Button:
+                id: add_slit
+                size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "+"
+                on_press: root.add_slit()
+
+            
+            Button:
+                id: remove_slit
+                size_hint_x:0.5
+                pos_hint_x:0.1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "-"
+                on_press: root.remove_slit()
+                        
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.,'y':0.6}
+        size_hint:0.2,0.1
+        
+        Label:
+            color: 'black'
+            text: "Slits' width"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'horizontal'
+            size_hint_x:1
+            
+            Button:
+                id: inc_slit_width
+                size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "+"
+                on_press: root.inc_slt_width()
+
+            
+            Button:
+                id: dec_slit_width
+                size_hint_x:0.5
+                pos_hint_x:0.1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "-"
+                on_press: root.dec_slt_width()
+    
+    
+    
+    
+
+
+
+
+
+
+        
+

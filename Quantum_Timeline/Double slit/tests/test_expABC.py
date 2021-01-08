@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon Nov 30 17:56:33 2020
+Created on Sun Dec 20 11:17:37 2020
 
 @author: llucv
 """
+
 import numpy as np
 
 e=np.e
@@ -26,13 +27,13 @@ def reflection_coefficient(sgm_max,gruix_paret,m):
     c=1.4
     dt=0.05
     dl=0.1
-    w=2*pi
-    amp=2.5
+    w=6.5
+    amp=5
     rao=(c*dt/dl)**2
     
     for i in range(100-gruix_paret,100):
         for j in range(0,31):
-            sgm[i,j,:]=sgm_max*((i-99+gruix_paret)/gruix_paret)**m
+            sgm[i,j,:]=sgm_max*np.exp(-m*((i-99+gruix_paret)/gruix_paret))
     
     for k in range(2,301):
         t=(k-2)*dt
@@ -68,9 +69,9 @@ def reflection_coefficient(sgm_max,gruix_paret,m):
     ref_coef=amp_reflectida/amp_incident
     
     return(ref_coef)
-sgm_max=0.026
+sgm_max=0.012
 gruix_paret=10
-m=1.54
+m=1
 print(reflection_coefficient(sgm_max,gruix_paret,m))
 
 r_c=np.zeros((30,30))
@@ -81,8 +82,8 @@ file1.writelines(L)
 
 for i in range(30):
     for j in range(30):
-        sgm_max=0.02605+0.000005*i
-        m=1.53+0.0005*j
+        sgm_max=0.005+0.0005*i
+        m=0.05+0.005*j
         gruix_paret=10
         r_c[i,j]=reflection_coefficient(sgm_max,gruix_paret,m)
         L=[str(sgm_max)+" - ",str(gruix_paret)+" - ",
@@ -94,7 +95,3 @@ print(np.where(r_c==np.min(r_c)))
 
 
 file1.close()
-            
-        
-            
-    

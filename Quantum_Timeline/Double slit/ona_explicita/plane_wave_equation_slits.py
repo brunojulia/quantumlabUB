@@ -14,6 +14,13 @@ import time
 e=np.e
 pi=np.pi
 
+#integral per trapezis, on h és el pas, i f, una llista amb els valors de 
+#la funció a inetgrar, és una llista 3D d'una funció 2D amb dependència temps
+#i com que estem integrant en el temps ens retorna una llista 2D
+def trapezis(h,f):
+    val=(np.sum(f[:,:,0:-1],axis=2)+np.sum(f[:,:,1:],axis=2))*h/2
+    return val
+
 #dades del recinte i visualització
 Nx=301
 Ny=301
@@ -23,16 +30,16 @@ w_display=200
 
 #dades parets: detector i escletxes
 sgm=np.zeros((Nx,Ny))
-sgm_max=0.06
-m=4.1
+sgm_max=0.02615
+m=1.54
 
     #parets del detecor
 sgm_det=np.zeros((Nx,Ny))
-w_det=101
+w_det=51
 
     #sgm_wall dependra del temps, per afegir i treure escletxes
 sgm_wall=np.zeros((Nx,Ny))
-w_wall=25
+w_wall=10
 x_wall=105
 
 #sigma a les parets del detector, ho defineixo ja perquè no canviarà
@@ -49,19 +56,34 @@ a=np.zeros((Nx,Ny,Nt))
 s=np.zeros((Nx,Ny))
 
 #dades de l'ona
-w=5
+w=2*pi
 c=1.4
-amp=5
+amp=2.5
+tau=2*pi/w
+
+#font d'ones sinussoïdal (point_source)
+def p_s(t,amp,w):
+    val=amp*np.sin(w*t)
+    return val
 
 #dades de la discretització (intervals espacials i temporals)
 dl=0.1
 dt=0.05
 rao=(c*dt/dl)**2
 
-#font d'ones sinussoïdal (point_source)
-def p_s(t,amp,w):
-    val=amp*np.sin(w*t)
+#nombre de passos temporals en un període
+Ntau=int(tau/dt+1)
+
+#funció que calcula l'amplitud al quadrat de l'ona
+def amplitud2(psi):
+    val=(abs(psi))**2
     return val
+
+#llista que tindrà els valors de l'amplitud al quadrat en un període
+a2=np.zeros((Nx,Ny,Ntau))
+
+#llista amb els valors d'intensitat de l'ona
+inty=np.zeros((Nx,Ny,Nt))
 
 start=time.time()
 
@@ -70,8 +92,8 @@ for k in range(2,Nt):
     s[1,:]=p_s(t,amp,w)
     
     #dades que poden canviar en el temps (el jugador)  
-    Nslt=4
-    w_slt=4
+    Nslt=2
+    w_slt=8
     
     slt_i=np.zeros((Nslt+2),dtype=int)
     slt_f=np.zeros((Nslt+2),dtype=int)
@@ -105,6 +127,8 @@ for k in range(2,Nt):
     sgm_wall[x_wall-w_wall:x_wall,:]=wall_presence[:,:]\
                 *sgm_max*((wall_ny[:,:])/w_wall)**m
     
+    sgm_wall[x_wall,:]=wall_presence[0,:]*1000
+    
     sgm=sgm_wall+sgm_det
     
     #resolució de l'equació d'ones a cada temps a l'interior del recinte
@@ -129,43 +153,88 @@ for k in range(2,Nt):
                 +2*a[1:x_wall,Ny-1,k-1]-a[1:x_wall,Ny-1,k-2]\
                 +sgm[1:x_wall,Ny-1]*a[1:x_wall,Ny-1,k-2]/(2*dt))\
                 /(1+sgm[1:x_wall,Ny-1]/(2*dt))
+                
+    #calculs de la intensitat
+    a2[:,:,:-1]=a2[:,:,1:]
+    a2[:,:,Ntau-1]=a[:,:,k]*a[:,:,k]
+    
+    inty[:,:,k]=trapezis(dt,a2)/tau
+    
 
 elapsed_time=(time.time()-start)
 print(elapsed_time)
 
 #imatge sigmes
 sgma=sgm.transpose()
-plt.imshow(sgma[int((Ny-h_display)/2):int((Ny+h_display)/2),\
+im2=plt.imshow(sgma[int((Ny-h_display)/2):int((Ny+h_display)/2),\
                            0:w_display]\
-           ,vmin=0,origin='lower',\
+           ,vmax=0.03,origin='lower',\
             extent=(0,int(w_display*0.1),0,int(h_display*0.1)))
-plt.savefig(str(Nslt)+'slits_sigma.png')
+cbar=plt.colorbar(im2)
+cbar.set_label("Coeficient d'absorció")
+plt.savefig(str(Nslt)+'slits_sigma_display.png')
+
+
+im3=plt.imshow(sgma\
+           ,vmax=0.03,origin='lower',\
+            extent=(0,int(Nx*0.1),0,int(Ny*0.1)))
+
+plt.savefig(str(Nslt)+'slits_sigma_recint.png')
 
 #animació
 start=time.time()
 
-def update(frame):
+def update1(frame):
     k=frame*5
     at=a[:,:,k]
     plt.imshow(at.transpose()[int((Ny-h_display)/2):int((Ny+h_display)/2),\
                               0:w_display]
-               ,vmax=10,vmin=-10,origin='lower',\
-                extent=(0,int(w_display*0.1),0,int(h_display*0.1)))
+               ,vmax=4,vmin=-4,origin='lower',\
+                extent=(0,int(w_display*dl),0,int(h_display*dl)))
 
-fig = plt.figure()
-ax1 = plt.subplot()
+fig1,ax1 = plt.subplots()
 
 Writer = ani.writers['ffmpeg']
 writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 
-anim = ani.FuncAnimation(fig, update, 
+anim1 = ani.FuncAnimation(fig1, update1, 
                                frames = int((Nt-1)/5), 
                                blit = False, interval=100)
 
-anim.save(str(Nslt)+'slits_plane_wave.mp4', writer=writer)
+anim1.save(str(w_slt)+'width_'+str(Nslt)+'slits_plane_wave.mp4', writer=writer)
 
 elapsed_time=(time.time()-start)
 print(elapsed_time)
+
+start=time.time()
+
+def update2(frame):
+    k=frame*5
+    it=inty[:,:,k]
+    plt.imshow(it.transpose()[int((Ny-h_display)/2):int((Ny+h_display)/2),\
+                              0:w_display]
+               ,vmax=5,origin='lower',\
+                extent=(0,int(w_display*dl),0,int(h_display*dl)),cmap="gray")
+
+fig2,ax1 = plt.subplots()
+
+Writer = ani.writers['ffmpeg']
+writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+
+anim2 = ani.FuncAnimation(fig2, update2, 
+                               frames = int((Nt-1)/5), 
+                               blit = False, interval=100)
+
+anim2.save(str(w_slt)+'width_'+str(Nslt)+'slits_intensity.mp4', writer=writer)
+
+elapsed_time=(time.time()-start)
+print(elapsed_time)
+
+plt.figure(5)
+plt.plot(inty[200,50:250,900])
+plt.savefig(str(w_slt)+'width'+str(Nslt)+'slits_intensity_detector.png')
+
+
 
 
 
