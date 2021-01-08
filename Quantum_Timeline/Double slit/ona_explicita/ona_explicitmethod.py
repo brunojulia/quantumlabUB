@@ -427,12 +427,10 @@ c=1.4
 w=6
 p=0.05
 h=0.1
-xo=50
-yo=50
 rao=(c*p/h)**2
 
-xo=50
-yo=50
+xo=5
+yo=5
 
 def p_s(t):
     val=10*np.sin(w*t)
@@ -464,7 +462,6 @@ if do8==1:
                 a[i,j,0]=10*np.cos(pi*r)
                 A=a[i+1,j,0]+a[i,j+1,0]+a[i-1,j,0]+a[i,j-1,0]-4*a[i,j,0]
                 a[i,j,1]=a[i,j,0]+rao*A/2
-        print(r)
              
     plt.imshow(a[:,:,0],vmin=0,origin='lower',extent=(0,10,0,10))
     plt.savefig('sigma.png')
