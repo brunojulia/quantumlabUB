@@ -3,10 +3,17 @@
 
 <WindowManager>:
     id: screen_manager
-    screen1: screen1
-    Screen1:
-        id: screen1
-    Screen2:
+#    builderscreen: builderscreen
+    
+    MenuScreen:
+    
+#   BuilderScreen:
+ #      id: builderscreen
+       
+  # CustomScreen:
+   #    id: customscreen
+        
+    
     
     
     
@@ -73,21 +80,21 @@
     
 
 
-<Screen1>:
-    name: "Screen1"
+<BuilderScreen, CustomScreen>:
     cgrid: cgrid
     circuit: circuit
-    gatesgrid: gatesgrid
-    customgates: customgates
+    gatespanel: gatespanel
+    gatesscroll: gatesscroll
     problabel: problabel
     probpanel: probpanel
     plotbox: plotbox
-    on_touch_up: self.cgrid.on_touch_up
+    warning: warning
+    canva: canva
     
     
     
     FloatLayout:
-        
+        id: canva
         canvas:
             Color:
                 rgba: 0.7,0.7,0.7,1
@@ -123,18 +130,28 @@
             pos_hint: {"right":1}
             size_hint: 0.3, 1
                 
-                    
+            Label:
+                id: warning
+                opacity: 1
+                color: (0.9,0.1,0.1,1)
+                text: "Some measurements aren't\nin the Z direction"
+                size_hint: None, None     
+                size: (50, 22)
+                pos_hint: {'center_x': 0.5, "y": 0.51}
+                halign: 'center'
+                
                 
             Button:
-                text: "Exit"
+                text: "Menu"
                 size_hint: (0.8, 0.05)
                 pos_hint: {"x":0.1, "y": 0.01}
                 on_release:
-                    App.get_running_app().stop()
+                    root.Exit()
+    
                     
             ScrollView:
-                pos_hint: {"x":0.1, "y": 0.5}
-                size_hint: (0.8, 0.45)
+                pos_hint: {"x":0.1, "y": 0.55}
+                size_hint: (0.8, 0.4)
                 do_scroll_X: False
                 do_scroll_y: True
             
@@ -191,7 +208,7 @@
                     
         #PANEL DE PORTES         
         FloatLayout: 
-            id: panel2
+            id: gatespanel
             visible: False
             opacity: 1 if self.visible else 0
             disabled: not self.visible
@@ -214,15 +231,20 @@
             pos_hint: {"left":0, "bottom": 0}
             size_hint: 0.7, 0.3
             
-            GatesGrid:
-                pos_hint: {"top":0.9}
-                pos: 20, 0
-                id: gatesgrid
+            ScrollView:
+                pos_hint: {"x": 0.05, "top": 0.95}
+                size_hint: (0.9, 0.9)
+                do_scroll_X: False
+                do_scroll_y: True
                 
-            CustomGrid:
-                pos_hint: {"top":0.5}
-                pos: 20, 0
-                id: customgates
+                FloatLayout:
+                    id: gatesscroll
+                    size_hint_y: None
+                    size_hint_x: 1
+                    pos_hint: {"x": 0, "top": 1}
+                    
+                    
+
             
         #PANEL DEL CIRCUIT         
         FloatLayout: 
@@ -242,17 +264,12 @@
                     id: cgrid
                         
 
-            
-            
-            
-                
-                
              
         Button:
             text: "Probabilities"
             size_hint: (0.15, 0.06)
             pos_hint: {"x": 0.54, "y":0.93}
-            on_release: root.cgrid.resize_panels(probpanel.visible, panel2.visible)
+            on_release: root.cgrid.resize_panels(probpanel.visible, gatespanel.visible)
             on_release:
                 if probpanel.visible == False: probpanel.visible = True
                 elif probpanel.visible == True: probpanel.visible = False
@@ -262,10 +279,10 @@
             text: "Gates"
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.43, "y":0.93}
-            on_release: root.cgrid.resize_panels(probpanel.visible, panel2.visible)
+            on_release: root.cgrid.resize_panels(probpanel.visible, gatespanel.visible)
             on_release:
-                if panel2.visible == False: panel2.visible = True
-                elif panel2.visible == True: panel2.visible = False
+                if gatespanel.visible == False: gatespanel.visible = True
+                elif gatespanel.visible == True: gatespanel.visible = False
             
         Button:
             text: "TEST2"
@@ -274,12 +291,16 @@
             on_press: root.cgrid.add_element2(1,1)
             
         Button:
+            disabled: True
+            opacity: 0
             text: "+ Col"
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.1+0.11*0, "y":0.93-0.07*0}
             on_release: root.cgrid.add_col()
                 
         Button:
+            disabled: True
+            opacity: 0
             text: "- Col"
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.1+0.11*0, "y":0.93-0.07*1}
@@ -288,24 +309,308 @@
         Button:
             text: "Refresh"
             size_hint: (0.1, 0.06)
-            pos_hint: {"x": 0.1+0.11*2, "y":0.93-0.07*0}
+            pos_hint: {"x": 0.13, "y":0.93-0.07*0}
             on_release: root.cgrid.refresh()
             
         Button:
             text: "+ Row"
             size_hint: (0.1, 0.06)
-            pos_hint: {"x": 0.1+0.11*1, "y":0.93-0.07*0}
+            pos_hint: {"x": 0.02, "y":0.93-0.07*0}
             on_release: root.cgrid.add_row()
             
-    
+        Button:
+            text: "Measur. Dir."
+            size_hint: (0.1, 0.06)
+            pos_hint: {"x": 0.24, "y":0.93-0.07*0}
+            on_release: app.sm.current_screen.directpanel()
             
-                
-
+            
+            
     
-<Screen2>:
-    name: "Screen2"
+<FilePanel>:
+    fileselector: fileselector
+    FileSelector:
+        id: fileselector
+        size_hint: (0.7,0.7)
+        pos_hint: {"x": 0.15, "y":0.15}
+        multiselect: False
+        filter_dirs: True
+        filters: [root.fileselector.starts_with]
+        
+    Button:
+        text: "New"
+        size_hint: (0.126,0.08)
+        pos_hint: {"x":0.15, "y":0.05}
+        on_release:
+            root.fileselector.newgate()
     
     Button:
+        text: "Import"
+        size_hint: (0.132,0.08)
+        pos_hint: {"x":0.2935, "y":0.05}
+        on_release:
+            root.fileselector.importfile(root.fileselector.path, root.fileselector.selection)
+        
+    Button:
+        text: "Copy"
+        size_hint: (0.132,0.08)
+        pos_hint: {"x":0.437, "y":0.05}
+        on_release:
+            root.fileselector.copygate()
+        
+    Button:
+        text: "Menu"
+        size_hint: (0.132,0.08)
+        pos_hint: {"x":0.5805, "y":0.05}
+        on_release:
+            app.sm.current_screen.Exit()
+            
+    Button:
         text: "Back"
-        on_release: 
-            app.root.current = "Screen1"
+        size_hint: (0.132,0.08)
+        pos_hint: {"x":0.724, "y":0.05}
+         
+
+
+<GateNameWindow>:
+    errorlabel: errorlabel
+    textbox: textbox
+
+    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+    size_hint: (0.5, 0.4)
+    canvas:
+        Color:
+            rgba: 0,0,0,0.95
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            
+    Label:
+        pos_hint: {"center_x": 0.5, "center_y": 0.8}
+        size: (50, 15)
+        markup: True
+        text: "[size=18]Introduce a gate name[/size]"
+        
+    Label:
+        id: errorlabel
+        pos_hint: {"center_x": 0.5, "center_y": 0.65}
+        size: (50, 15)
+        markup: True
+        color: (0.9,0.1,0.1,1)
+        #text: "[size=14]This is a test error message.[/size]"
+            
+    TextInput:
+        id: textbox
+        multiline: False
+        focus: True
+        pos_hint: {"center_x": 0.5, "top": 0.5}
+        size_hint: (0.3, None)
+        size: (0, 30)
+        on_text_validate:
+            root.creategate()
+    
+    Button:
+        text: "Continue"
+        pos_hint: {"center_x": 0.3, "top": 0.25}
+        size_hint: (0.35, 0.2)
+        on_release:
+            root.creategate()
+        
+    Button:
+        text: "Cancel"
+        pos_hint: {"center_x": 0.7, "top": 0.25}
+        size_hint: (0.35, 0.2)
+        on_release:
+            root.cancel()
+        
+        
+<QubitDirection>:
+    slidertheta: slidertheta
+    sliderphi: sliderphi
+    qubit: qubit
+    canvas:
+        Color:
+            rgba: 1,0,0,0
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            
+            
+    size_hint: None, None
+    size: (app.sm.current_screen.width*0.8, app.sm.current_screen.height*0.15)
+    
+    Label:
+        id: qubit
+        pos_hint: {"x": 0.03, "center_y":0.2}
+        size_hint: None, None
+        size: (20,20)
+    
+    SliderTheta:
+        id: slidertheta
+        pos_hint: {"x":0.08, "center_y": 0.15}
+        size_hint: (0.3, 0.2)
+    Label:
+        text: "Theta = {0:.4g}".format(slidertheta.value)
+        pos_hint: {"center_x":0.23, "y": 0.55}
+        size_hint: None, None
+        size: (20,20)
+    SliderLabel:
+        angle: 'theta'
+        text: "0"
+        pos_hint: {"x":0.09, "y": 0.30}
+        size_hint: None, None
+        size: (15,20)
+    SliderLabel:
+        angle: 'theta'
+        text: "pi/2"
+        pos_hint: {"center_x":0.23, "y": 0.30}
+        size_hint: None, None
+        size: (25,20)
+    SliderLabel:
+        angle: 'theta'
+        text: "pi"
+        pos_hint: {"right":0.37, "y": 0.30}
+        size_hint: None, None
+        size: (15,20)
+        
+        
+    SliderPhi:
+        id: sliderphi
+        pos_hint: {"x":0.42, "center_y": 0.15}
+        size_hint: (0.3, 0.2)
+    Label:
+        text: "Phi = {0:.4g}".format(sliderphi.value)
+        pos_hint: {"center_x":0.57, "y": 0.55}
+        size_hint: None, None
+        size: (20,20) 
+    SliderLabel:
+        angle: 'phi'
+        text: "0"
+        pos_hint: {"x":0.43, "y": 0.30}
+        size_hint: None, None
+        size: (15,20)
+    SliderLabel:
+        angle: 'phi'
+        text: "pi/2"
+        pos_hint: {"center_x":0.495, "y": 0.30}
+        size_hint: None, None
+        size: (25,20)
+    SliderLabel:
+        angle: 'phi'
+        text: "pi"
+        pos_hint: {"center_x":0.57, "y": 0.30}
+        size_hint: None, None
+        size: (15,20)
+    SliderLabel:
+        angle: 'phi'
+        text: "3pi/2"
+        pos_hint: {"center_x":0.645, "y": 0.30}
+        size_hint: None, None
+        size: (30,20)
+    SliderLabel:
+        angle: 'phi'
+        text: "2pi"
+        pos_hint: {"right":0.71, "y": 0.30}
+        size_hint: None, None
+        size: (15,20)
+        
+    Button:
+        text: "X"
+        pos_hint: {"x":0.73, "center_y": 0.22}
+        size_hint: 0.06, 0.47
+        on_release:
+            root.xdirection()
+        
+    Button:
+        text: "Y"
+        pos_hint: {"x":0.795, "center_y": 0.22}
+        size_hint: 0.06, 0.47
+        on_release:
+            root.ydirection()
+        
+    Button:
+        text: "Z"
+        pos_hint: {"x":0.86, "center_y": 0.22}
+        size_hint: 0.06, 0.47
+        on_release:
+            root.zdirection()
+            
+    Button:
+        text: "Show"
+        pos_hint: {"x":0.935, "center_y": 0.22}
+        size_hint: 0.06, 0.47
+        on_release:
+            root.ShowDirection()
+
+        
+    
+        
+<DirectionPanel>:
+    scroll: scroll
+    pos_hint: {"x": 0.1, "y": 0.05}
+    size_hint: (0.8, 0.85)
+    canvas:
+        Color:
+            rgba: 0,0,0,0.95
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    ScrollView:
+        pos_hint: {"x": 0, "top": 1}
+        size_hint: (1, 0.9)
+        do_scroll_X: False
+        do_scroll_y: True
+        
+        FloatLayout:
+            id: scroll
+            size_hint_y: None
+            size_hint_x: None
+            pos_hint: {"x": 0, "top": 1}
+            
+            
+        
+    Button:
+        text: 'Close'
+        pos_hint: {"right": 0.98, "y": 0.02}
+        size_hint: (0.08, 0.05)
+        on_release:
+            root.close()
+
+
+
+
+    
+<MenuScreen>:
+    name: "MenuScreen"
+    
+        
+    FloatLayout:
+    
+        canvas:
+            Color:
+                rgba: 0.7,0.7,0.7,1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+            
+    
+        Button:
+            text: "Circuit Builder"
+            size_hint: (0.6, 0.1)
+            pos_hint: {"x": 0.2, "top":0.85}
+            on_release: 
+                root.Builder()
+                
+        Button:
+            text: "Custom Gates"
+            size_hint: (0.6, 0.1)
+            pos_hint: {"x": 0.2, "top":0.7}
+            on_release: 
+                root.Custom()
+                
+        Button:
+            text: "Exit"
+            size_hint: (0.6, 0.1)
+            pos_hint: {"x": 0.2, "top":0.2}
+            on_release: 
+                App.get_running_app().stop()
