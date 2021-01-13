@@ -3,5 +3,35 @@
 *.npy
 *.png
 .DS_Store
-doubleslit/kivy
-doubleslit/__pycache__
+QuantumComputation/.spyproject/
+QuantumComputation/__pycache__/QiskitConverter.cpython-36.pyc
+QuantumComputation/QiskitCircuit.py
+*.pyc
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (10).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (11).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (12).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (13).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (14).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (15).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (16).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (17).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (18).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (19).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (2).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (20).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (21).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (3).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (4).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (5).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (6).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (7).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (8).txt
+QuantumComputation/CustomGates/Nuevo documento de texto - copia (9).txt
+QuantumComputation/CustomGates/Nuevo documento de texto.txt
+QuantumComputation/ttt.py
+QuantumComputation/ttt.kv
+QuantumComputation/test.py
+QuantumComputation/QuantumComputation1.py
+QuantumComputation/CustomGates/test3.py
+QuantumComputation/CustomGates/Nuevo documento de texto - copia.txt
+QuantumComputation/.ipynb_checkpoints/README.md-checkpoint.ipynb
