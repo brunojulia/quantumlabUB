@@ -34,53 +34,35 @@ import importlib
 
 from qiskit import * 
 import matplotlib.pyplot as plt 
-from qiskit.visualization import plot_histogram, plot_bloch_multivector,plot_state_qsphere, plot_state_city,plot_state_hinton, plot_bloch_vector
+from qiskit.visualization import plot_histogram, plot_bloch_multivector,plot_state_qsphere, plot_state_city,plot_state_hinton
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 
 import CustomGates as cgates
-
+#from CustomGates import *
 import os
 import textwrap
-import sys
 
-from kivy.uix.filechooser import FileChooserListView, FileChooserIconView
-from kivy.uix.textinput import TextInput
-from kivy.uix.slider import Slider
-from GateConverter import ImportGate, UpdateGate
 
+global matrix
+global row_name
+global multigates
 
 File = open("QiskitCircuit.py","w")
 File.close()
 
 import QiskitCircuit
 
+matrix =np.empty((0,0), dtype="<U7")
+row_name=[]
+gates_list=['H', 'X', 'CX', 'CCX', 'SWAP', 'T', 'Y', 'RESET']
+gates_2={'CX': 2, 'CCX': 3, 'SWAP': 2}
+pressed=''
+multigates=[]
+customgates={}
 
-def InitValues():
-    global matrix
-    global row_name
-    global multigates
-    global gates_list
-    global gates_2
-    global pressed
-    global customgates
-    global cellsize
-    global space
-    global gridinit
-    global customgatename
-    
-    matrix =np.empty((0,0), dtype="<U7")
-    row_name=[]
-    gates_list=['H', 'X', 'CX', 'CCX', 'SWAP', 'ID','T', 'S', 'Tdg', 'Sdg','Y', 'RESET']
-    gates_2={'CX': 2, 'CCX': 3, 'SWAP': 2}
-    pressed=''
-    multigates=[]
-    customgates={}
-    gridinit=0
-    customgatename=[0, '']
-    
-    
-    cellsize=50
-    space=5
+
+cellsize=50
+space=5
     
 
 class Gate_mouse(Button):
@@ -124,10 +106,7 @@ class Gate_circuit(Button):
         Clock.unschedule(callback)
         if pressed != 'multigate':
             pressed=''
-        try:
-            cgrid.remove_widget(cgrid.scatter)
-        except:
-            pass
+        cgrid.remove_widget(cgrid.scatter)
         
         
     def long_press(self, *largs):
@@ -202,13 +181,9 @@ class Gate_panel(Button):
         self.size_hint=(None,None)
         self.size= (cellsize,cellsize)
         self.background_down = self.background_normal
-    
-                    
+
     def on_touch_move(self, touch):
-        try:
-            cgrid.scatter.center=self.to_window(*touch.pos)
-        except:
-            pass
+        cgrid.scatter.center=touch.pos
         
     def on_touch_down(self, touch):
         global pressed
@@ -249,7 +224,7 @@ class GatesGrid(GridLayout):
     def __init__(self, **kwargs):
         super(GatesGrid, self).__init__(**kwargs)
         self.rows=1
-        self.spacing=space,space
+        self.spacing=10,10
       
         for i in gates_list:
             self.add_widget(Gate_panel(text=i))
@@ -260,18 +235,12 @@ class CustomGrid(GridLayout):
         global customgates
         super(CustomGrid, self).__init__(**kwargs)
         self.rows=1
-        self.spacing=space,space
+        self.spacing=10,10
       
-        
-        #importlib.reload(cgates)
-        
-        
         for filename in os.listdir('CustomGates'):
             if filename.endswith(".py") and not filename.startswith("_"):
                 gatename = filename.split('.')[0]
                 self.add_widget(Gate_panel(text=gatename))
-                
-                
                 customgates[gatename]=getattr(cgates, gatename).qubitnumber()
 
 
@@ -428,7 +397,7 @@ class CCell(FloatLayout):
         if (multigate[1]!=col) or (row in rowsconnected):
             Clock.schedule_once(lambda dt:self.deletecurrent(), 0.05)
             
-        else:   
+        else:
             if currentcell != '':
                 self.remove_widget(self.gate)
             rowsconnected.append(row)
@@ -444,7 +413,6 @@ class CCell(FloatLayout):
             else:
                 pref='--'
                 gate=Gate_circuit(text=(pref+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
-                
 
             currentcell= multigate[2]
             
@@ -457,13 +425,12 @@ class CCell(FloatLayout):
             multigate=(multigate[0], multigate[1], multigate[2],multigate[3]-1)
             
             with canvascell.canvas.before:
-                Color(0,0,0,0.5)
-                canvascell.rect=Rectangle(group='multigate',size=canvascell.size,pos=self.pos)
-                canvascell.line=Line(
-                points= (canvascell.x+canvascell.width/2., canvascell.y+canvascell.height/2.,
-                         self.x+self.width/2., self.y+self.height/2.),
-                width= 1.5, cap= 'none', group='multigate')
-                
+                    Color(0,0,0,0.5)
+                    canvascell.rect=Rectangle(group='multigate',size=canvascell.size,pos=self.pos)
+                    canvascell.line=Line(
+                    points= (canvascell.x+canvascell.width/2., canvascell.y+canvascell.height/2.,
+                             self.x+self.width/2., self.y+self.height/2.),
+                    width= 1.5, cap= 'none', group='multigate')
             
             if multigate[3] > 1:
                 self.multigate()
@@ -499,10 +466,7 @@ class CRow(FloatLayout):
         for i in range(len(self.cols)):
             self.add_widget(self.cols[i])
             if matrix[num][i] != '':
-                    try:
-                        self.cols[i].remove_widget(self.cols[i].gate)
-                    except:
-                        pass
+                    self.cols[i].remove_widget(self.cols[i].gate)
                     if (matrix[num][i] in gates_2) or (matrix[num][i] in customgates):
                         for j in multigates:
                             if j[-1]==i and num in j:
@@ -516,16 +480,16 @@ class CRow(FloatLayout):
                                 else:
                                     if matrix[num][i] in ('SWAP'):
                                         pref=''
-                                        gatetext=pref+matrix[num][i]
+                                        gatetext=pref+multigate[2]
                         
                                     elif matrix[num][i] in customgates:
                                         #suf=str(customgates[multigate[2]]-multigate[3]+1)
                                         suf=str(j.index(num))
-                                        gatetext=(matrix[num][i]+'\n'+suf)
+                                        gatetext=(multigate[2]+'\n'+suf)
                         
                                     else:
                                         pref='--'
-                                        gatetext=pref+matrix[num][i]
+                                        gatetext=pref+multigate[2]
                                     
                     else:
                         gatetext=matrix[num][i]
@@ -603,46 +567,35 @@ class CGrid(FloatLayout):
     
     def __init__(self, **kwargs):
         global cgrid
-        global gridinit
         super(CGrid, self).__init__(**kwargs)
-
-        if gridinit==1:
-            self.rows=[]
-            for i in range(2):
-                Clock.schedule_once(lambda dt:self.add_row(), 0)
-            for i in range(12):
-                Clock.schedule_once(lambda dt:self.add_col(), 0)
-            Clock.schedule_once(lambda dt:self.resize_scroll(), 1.2)
-                
-            Window.bind(on_resize=Clock.schedule_once(lambda dt:self.resize_scroll(), 0))
-            Window.bind(on_resize=Clock.schedule_once(lambda dt:self.set_scroll(), 0))
+        self.rows=[]
+        for i in range(2):
+            Clock.schedule_once(lambda dt:self.add_row(), 0.5)
+        for i in range(12):
+            Clock.schedule_once(lambda dt:self.add_col(), 0.5)
+        Clock.schedule_once(lambda dt:self.resize_scroll(), 1.2)
             
-            cgrid=self
-            
-        gridinit=1
-        
-        
+        Window.bind(on_resize=Clock.schedule_once(lambda dt:self.resize_scroll(), 0))
+        Window.bind(on_resize=Clock.schedule_once(lambda dt:self.set_scroll(), 0))
+        cgrid=self
         
     def on_touch_up(self, touch):
         global matrix
         global currentcell
-        try:
-            if self.collide_point(*touch.pos):
-                for i in range(matrix.shape[0]):
-                    for j in range(matrix.shape[1]):
-                        currentcell=matrix[i][j]
-                        self.rows[i].cols[j].on_touch_up(touch)
-                        matrix[i][j]=currentcell
-            root.sm.current_screen.QiskitConv()
+        if self.collide_point(*touch.pos):
+            for i in range(matrix.shape[0]):
+                for j in range(matrix.shape[1]):
+                    currentcell=matrix[i][j]
+                    self.rows[i].cols[j].on_touch_up(touch)
+                    matrix[i][j]=currentcell
+        root.sm.screen1.QiskitConv()
                     
                     
             #super(CGrid, self).on_touch_up(touch)
-        except:
-            pass
+            
         
     def add_col(self): #Adds column to matrix and rows
         global matrix
-        
         matrix=np.append(matrix, np.empty((matrix.shape[0],1), str), axis=1)
         for i in range(matrix.shape[0]):
             self.rows[i].add_cell()
@@ -654,7 +607,7 @@ class CGrid(FloatLayout):
         for i in range(matrix.shape[0]):
             self.rows[i].pos= (0, self.scroll.y+(cellsize+space)*(matrix.shape[0]-i-1))
             self.rows[i].refresh_row(i)
-        root.sm.current_screen.QiskitConv()
+        root.sm.screen1.QiskitConv()
             
     
     def remove_col(self): #Remove column from matrix and rows
@@ -675,10 +628,7 @@ class CGrid(FloatLayout):
         self.scroll.add_widget(self.rows[-1])
         for i in range(matrix.shape[1]):
             self.rows[-1].add_cell()
-        
-        self.rows[-1].theta=0
-        self.rows[-1].phi=0
-        
+        self.refresh()
         Clock.schedule_once(lambda dt:self.refresh(), 0)
     
     def resize_scroll(self, *args):
@@ -694,28 +644,20 @@ class CGrid(FloatLayout):
         self.parent.parent.size_hint=(width, height)
         Clock.schedule_once(lambda dt:self.resize_scroll(), 0)
         Clock.schedule_once(lambda dt:self.set_scroll(), 0)
-        
-    def clear(self):
-        for i in range(matrix.shape[1]):
-            self.remove_col()
-        for i in range(matrix.shape[0]):
-            self.rows[-1].delete()
-        
 
     def add_element2(self, *args):
         global pressed
         global matrix
         global multigates
         global customgates
-       # print(root.sm.builderscreen.problabel.text)
+       # print(root.sm.screen1.problabel.text)
         print(customgates)
         print(matrix)
         print(multigates)
         
        
 class WindowManager(ScreenManager):
-    builderscreen = ObjectProperty(None)
-#    customscreen = ObjectProperty(None)
+    screen1 = ObjectProperty(None)
     pass 
 
 class QComp(App):
@@ -728,52 +670,10 @@ class QComp(App):
 
 
 
-class BuilderScreen(Screen):
+class Screen1(Screen):
     problabel = ObjectProperty(None)
     plotbox = ObjectProperty(None)
     probpanel = ObjectProperty(None)
-    gatespanel = ObjectProperty(None)
-    gatesscroll = ObjectProperty(None)
-    canva = ObjectProperty(None)
-    warning =ObjectProperty(None)
-    #cgrid = ObjectProperty(None)
-    
-    def __init__(self, **kwargs):
-        super(BuilderScreen, self).__init__(**kwargs)
-        gatespanel=self.gatespanel
-        self.gatesgrid = GatesGrid(pos_hint={"x":0, "top": 1}, size_hint=(None,None))
-        self.gatesscroll.add_widget(self.gatesgrid)
-        
-        self.customgrid = CustomGrid(pos_hint={"x":0})
-        self.gatesscroll.add_widget(self.customgrid)
-        
-        self.resize_gates
-        Window.bind(on_resize=Clock.schedule_once(lambda dt:self.resize_gates(), 0))
-        Window.bind(on_resize=Clock.schedule_once(lambda dt:self.resize_gates(), 0.05))
-        
-        
-        
-    def resize_gates(self):
-        gatecols=int((self.gatesscroll.width+space)/(cellsize+space))
-        gaterows=int(len(gates_list)/gatecols)+1
-        customrows=int(len(customgates)/gatecols)+1
-        
-        self.gatesgrid.rows=gaterows
-        self.gatesgrid.cols=gatecols
-        self.gatesgrid.size=self.gatesgrid.minimum_size
-        
-        if (root.sm.current != "CustomScreen"):
-            self.customgrid.rows=customrows
-            self.customgrid.cols=gatecols
-            self.customgrid.size=self.customgrid.minimum_size
-        
-            self.gatesscroll.height=self.gatesgrid.height+self.customgrid.height+cellsize/2
-            self.customgrid.y=-self.gatesscroll.height+cellsize
-        else:
-            self.gatesscroll.height=self.gatesgrid.height
-
-       
-        
     
     
     def QiskitConv(self, *args):
@@ -783,49 +683,16 @@ class BuilderScreen(Screen):
         global gates_2
         global customgates
         global results
-        global plotresults
         global state
         global probabilities
-        
-        if (root.sm.current == "CustomScreen") and (customgatename[0]==1):
-            UpdateGate(customgatename[1], matrix.shape[0], matrix, multigates, gates_2)
         
         if self.probpanel.visible == False:
             return
         
-        angles=[]
-        for i in range(matrix.shape[0]):
-            theta=cgrid.rows[i].theta
-            phi=cgrid.rows[i].phi
-            direction=[]
-            for j in (theta, phi):
-                ratio=(j/pi).as_integer_ratio()
-                if (j>0.00001) and (abs(ratio[1])<10):
-                    if ratio[0]==1:
-                        string='-pi'
-                    else:
-                        string=str(-ratio[0])+'*pi'
-                    if ratio[1]==1:
-                        pass
-                    else:
-                        string=string + '/'+str(ratio[1])
-                else:
-                    string='-{0:.4g}'.format(j)
-                
-                direction.append(string)
-            
-            angles.append(direction)
-        
-        screen=root.sm.current_screen.warning.opacity = 0
-        for i in angles:
-            if i != ['-0', '-0']:
-                screen=root.sm.current_screen.warning.opacity = 1
-        
-        
-        QiskitConverter(matrix, multigates, row_name, gates_2, customgates, angles)
+        QiskitConverter(matrix, multigates, row_name, gates_2, customgates)
         importlib.reload(QiskitCircuit)
         
-        results, plotresults=QiskitCircuit.GetStatevector()
+        results=QiskitCircuit.GetStatevector()
         
         self.problabel.text, probabilities=(GetResults(results))
         self.plotbox.clear_widgets()
@@ -842,7 +709,7 @@ class BuilderScreen(Screen):
         plt.show(plot)
         
     def ShowBlochSpheres(self):
-        plot=plot_bloch_multivector(plotresults)
+        plot=plot_bloch_multivector(results)
         plt.show(plot)
         
     def ShowDensityMatrix(self):
@@ -856,19 +723,6 @@ class BuilderScreen(Screen):
     def ShowHistogram(self):
         plot=plot_histogram(probabilities)
         plt.show(plot)
-        
-        
-    def Exit(self):
-        screen=root.sm.current_screen
-        root.sm.current = "MenuScreen"
-        root.sm.remove_widget(screen)
-        InitValues()
-        #importlib.reload(cgates)
-        
-    def directpanel(self):
-        self.directionpanel = DirectionPanel()
-        self.add_widget(self.directionpanel)
-        
     
 
 def GetResults(args):
@@ -904,255 +758,13 @@ def GetResults(args):
             
     return probtext, probabilities
     
-
-    
-    
-class GateNameWindow(FloatLayout):
-    errorlabel = ObjectProperty(None)
-    textbox = ObjectProperty(None)
-    
-    def creategate(self):
-        global customgatename
-        gatename=self.textbox.text
-        if gatename.upper() in gates_list:
-            error="Name used by other gate"
-            self.errorlabel.text= error
-        elif gatename.upper() in customgates:
-            error="Name used by other custom gate"
-            self.errorlabel.text= error
-        elif len(gatename)>7:
-            error="Name too long! (Maximum 7 characters)"
-            self.errorlabel.text= error
-        elif gatename=='':
-            error="Gate name empty"
-            self.errorlabel.text= error
-        else:
-            error=''
-            self.errorlabel.text= error
-            customgatename[0]= 1
-            customgatename[1]= gatename.lower()
-            
-            if copy ==1:
-                self.parent.importfile(self.parent.path, self.parent.selection)
-                
-            #root.sm.current_screen.remove_widget(root.sm.current_screen.filepanel)
-            self.parent.close()
-        
-    def cancel(self):
-        self.parent.remove_widget(self)
-        
-        
-class FilePanel(FloatLayout):
-    fileselector = ObjectProperty(None) 
     
 
-class FileSelector(FileChooserListView):
-    def __init__ (self, **kwargs):
-        super(FileSelector, self).__init__(**kwargs)
-        
-        
-    def starts_with(self, directory, filename):
-        file=filename.split("\\")
-        return not(file[-1].startswith('__'))
-    
-    def selected(self):
-        print(self.selection)
-        
-    def importfile(self, path, selection):
-        global matrix
-        global multigates
-        global customgatename
-        
-        if self.selection == []:
-            return
-        
-        select=selection[0].split("\\")
-        select=select[-1].split(".")
-        file=select[0]
-        
-        qubitnumber=getattr(cgates, file).qubitnumber()
-        string=getattr(cgates, file).gate()
-        
-        matrix, multigates=ImportGate(qubitnumber, string, cgrid, matrix, gates_2)
-        
-        if customgatename[0]==0:
-            customgatename[0]= 1
-            customgatename[1]= file.lower()
-        
-        self.close()
-        
-    def newgate(self):
-        global copy
-        self.gatename= GateNameWindow()
-        self.add_widget(self.gatename)
-        
-        copy = 0
-            
-        
-    def close(self):
-        screen=root.sm.current_screen
-        screen.canva.disabled= False
-        screen.remove_widget(screen.filepanel)
-        screen.canva.canvas.remove(screen.filepanel.background)
-        cgrid.refresh()
-        
-    def copygate(self):
-        global copy
-        
-        if self.selection != []:
-            self.gatename= GateNameWindow()
-            self.add_widget(self.gatename)
-            
-            copy = 1
-        
-
-class CustomScreen(BuilderScreen):
-    def __init__(self, **kwargs):
-        super(CustomScreen, self).__init__(**kwargs)
-        self.customgrid.clear_widgets()
-        self.remove_widget(self.customgrid)
-        
-        
-    def filelist(self):
-        screen=root.sm.current_screen
-        screen.canva.disabled= True
-                
-        screen.filepanel=FilePanel(size_hint=(1,1), pos_hint={"x":0, "y":0})
-        screen.add_widget(screen.filepanel)
-        path=os.path.dirname(os.path.realpath(__file__))+"\CustomGates"
-        screen.filepanel.fileselector.rootpath=path
-        with screen.canva.canvas:
-            Color(0,0,0,0.8)
-            screen.filepanel.background=Rectangle(size=(10000,10000), pos=(0,0))
-     
-            
-class SliderLabel(Label):
-    size_hint= (None, None)
-
-        
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            if self.angle=='theta':
-                self.parent.slidertheta.setvalue(self.text)
-            elif self.angle=='phi':
-                self.parent.sliderphi.setvalue(self.text)
-        
-class SliderTheta(Slider):
-    def __init__ (self, **kwargs):
-        super(SliderTheta, self).__init__(**kwargs)
-        self.range= (0, pi)
-        
-    def setvalue(self, value):
-        if value=='pi':
-            self.value=pi
-        elif value=='pi/2':
-            self.value=pi/2
-        elif type(value)==str:
-            self.value= float(value)
-        else:
-            self.value= value
-        
-class SliderPhi(Slider):
-    def __init__ (self, **kwargs):
-        super(SliderPhi, self).__init__(**kwargs)
-        self.range= (0, 2*pi)
-    
-    def setvalue(self, value):
-        if value=='pi':
-            self.value=pi
-        elif value=='pi/2':
-            self.value=pi/2
-        elif value=='3pi/2':
-            self.value=3*pi/2
-        elif value == '2pi':
-            self.value=2*pi
-        elif type(value)==str:
-            self.value= float(value)
-        else:
-            self.value= value
-
-            
-class QubitDirection(FloatLayout):
-    slidertheta=ObjectProperty(None)
-    sliderphi= ObjectProperty(None)
-    qubit= ObjectProperty(None)
-    
-    def qubitnumber(self, qnum):
-        self.qubit.text= 'q'+str(qnum)
-        
-    def xdirection(self):
-        self.slidertheta.value=pi/2
-        self.sliderphi.value=0
-        
-    def ydirection(self):
-        self.slidertheta.value=pi/2
-        self.sliderphi.value=pi/2
-        
-    def zdirection(self):
-        self.slidertheta.value=0
-        self.sliderphi.value=0
-        
-    def ShowDirection(self):
-        theta=self.slidertheta.value
-        phi=self.sliderphi.value
-        vector=[1, theta, phi]
-        plot=plot_bloch_vector(vector, coord_type='spherical')
-        plt.show(plot)
-           
-        
-class DirectionPanel(FloatLayout):
-    scroll=ObjectProperty(None)
-    def __init__ (self, **kwargs):
-        super(DirectionPanel, self).__init__(**kwargs)
-        self.qubit=[]
-        self.scroll.size= (self.width, root.sm.current_screen.height*0.15*matrix.shape[0])
-        self.scroll.pos_hint= {"x":0, "top":1}
-        
-        root.sm.current_screen.canva.disabled = True
-            
-        for i in range(matrix.shape[0]):
-            self.qubit.append(QubitDirection(pos= (0, self.scroll.height-root.sm.current_screen.height*0.15*(i+1))))
-            self.scroll.add_widget(self.qubit[i])
-            self.qubit[i].qubitnumber(i)
-            self.qubit[i].slidertheta.value=cgrid.rows[i].theta
-            self.qubit[i].sliderphi.value=cgrid.rows[i].phi
-
-        
-    def close(self):
-        for i in range(matrix.shape[0]):
-            cgrid.rows[i].theta=self.qubit[i].slidertheta.value
-            cgrid.rows[i].phi=self.qubit[i].sliderphi.value
-        
-        self.parent.remove_widget(self)
-        
-        root.sm.current_screen.canva.disabled = False
-        cgrid.refresh()
-    
-    
-    
-
-    
-class MenuScreen(Screen):
-    def Builder(self):
-        global gridinit
-        gridinit=1
-        root.sm.builderscreen= BuilderScreen(name="BuilderScreen")
-        root.sm.add_widget(root.sm.builderscreen)
-        root.sm.current = "BuilderScreen"
-        
-        
-    def Custom(self):
-        root.sm.customscreen= CustomScreen(name="CustomScreen")
-        root.sm.add_widget(root.sm.customscreen)
-        root.sm.current = "CustomScreen"
-        root.sm.current_screen.filelist()
-    
-    
-    
+class Screen2(Screen):
+    pass
 
 
         
 
 if __name__ =='__main__':
-    InitValues()
     QComp().run()

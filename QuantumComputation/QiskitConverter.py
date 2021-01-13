@@ -2,7 +2,7 @@
 import CustomGates as cgates
 
 
-def QiskitConverter(matrix, multigates, row_name, gates_2, customgates, angles):
+def QiskitConverter(matrix, multigates, row_name, gates_2, customgates):
     File = open("QiskitCircuit.py","w")
     s='    '
 
@@ -49,16 +49,11 @@ def QiskitConverter(matrix, multigates, row_name, gates_2, customgates, angles):
                             File.write(s+text)
                 else:
                     File.write(s+'circuit.{}(qr[{}]) \n'.format(matrix[i][j].lower(),i))
-    
-    File.write('\n'+s+'plotresults = execute(circuit,backend).result().get_statevector()\n')
-    for i in range(matrix.shape[0]):
-        string=angles[i][0]+', '+angles[i][1]+', 0, qr[{}])\n'.format(i)
-        File.write(s+'circuit.u3('+string)
                     
                     
-    File.write(s+'results = execute(circuit,backend).result().get_statevector()\n\n')
+    File.write('\n'+s+'results = execute(circuit,backend).result().get_statevector()\n')
     #File.write(s+'state = Statevector.from_instruction(circuit)\n')
-    File.write(s+'return results, plotresults')
+    File.write(s+'return results')
 
 
     File.close()
