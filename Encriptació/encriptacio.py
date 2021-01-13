@@ -15,6 +15,8 @@ from kivy.uix.widget import Widget
 from kivy.graphics import *
 from kivy.core.window import Window
 from kivy.clock import Clock
+from kivy.uix.popup import Popup
+from kivy.uix.floatlayout import FloatLayout
 import os
 
 with open("encriptacio1.kv", encoding='utf-8') as kv_file:
@@ -29,11 +31,12 @@ class encriptacioApp(App):
         return WindowManager()
  
     
-""" Funcions"""
+"""________________Funcions_____________________"""
 f=open("fitxerencriptacio.txt","w") #Si ja existeix el fitxer, afegeix al que ja hi ha
 
 fr=open("Guardarllistes.txt","w")
 fr.close()
+
  
 def key_encrypt(message,key):
     '''
@@ -64,7 +67,6 @@ def key_encrypt(message,key):
     print('Missatge encriptat en abc:', message_en)
     print('Missatge encriptat en binari:',messageb)
     return message_en, messageb    
-
 
 def create_key(message):
     '''
@@ -158,7 +160,6 @@ def key_desencrypt2(message,key):
     
     return message_out
 
-
 def guardar(direccio0,bit0,direccio1,bit1,dir0l,bit0l,dir1l,bit1l):    
     '''
     Funció que guarda les direccions i els bits i ho converteix tot en 
@@ -197,7 +198,6 @@ def guardar(direccio0,bit0,direccio1,bit1,dir0l,bit0l,dir1l,bit1l):
     
     return array0,array1
 
-
 def enviament(direccio0,bit0,direccio1,dir0l,bit0l,dir1l,bit1l):
     '''
     Funció que simila l'enviament dels bits i la transformació d'ells
@@ -234,7 +234,6 @@ def enviament(direccio0,bit0,direccio1,dir0l,bit0l,dir1l,bit1l):
     array0,array1=guardar(direccio0,bit0,direccio1,bit1,dir0l,bit0l,dir1l,bit1l)
 
     return array0,array1
-
 
 def guardar2(direccio0,bit0,direccio1,bit1,dir0l,bit0l,dir1l,bit1l):    
     '''
@@ -425,7 +424,6 @@ def llegirarrays():
         
     return array0, array1
 
-
 def comparardir(array0,array1):
     array02=np.copy(array0)
     array12=np.copy(array1)
@@ -435,7 +433,7 @@ def comparardir(array0,array1):
         nf=nn
     else:
         nf=n
-    print('fins a',nf)
+
     
     n1,m1=np.shape(array02)
     n2,m2=np.shape(array12)
@@ -443,28 +441,22 @@ def comparardir(array0,array1):
     if n1>n2:
         while(n1>n2):
             n1,m1=np.shape(array02)
-            print('n1',n1)
             if (n1<=n2):
                 break
             array02=np.delete(array02,n2,0)
-            print('n2',n2,np.shape(array02),array02)
-            print('array1',array12)
+
             
     if n2>n1:
         while(n2>n1):
             n1,m1=np.shape(array02)
-            array12=np.delete(array12,n1,0)
-            print('n2',n2,np.shape(array02),array02)
-               
+            if (n2<=n1):
+                break
+            array12=np.delete(array12,n1,0)               
                 
     for i in range(nf):
         n1,m1=np.shape(array02)
         n2,m2=np.shape(array12)
-        
-        
-                
-                
-                
+                        
         if i<n1 and i<n2:
             endevant=0
             while(endevant==0):
@@ -480,7 +472,6 @@ def comparardir(array0,array1):
                 else: 
                     endevant=1
                     break
-        
                 
         n1,m1=np.shape(array02)
         n2,m2=np.shape(array12)
@@ -604,19 +595,16 @@ def Bobresultats2(i,direccio,arr0,arr1):
     i+=1
     return i,arr1
     
-
-    
-    
 def dadesb(nbits,missatge):
     '''Crea les dades de l'Alice aleatòries'''
     
     longitud=len(missatge)   
     print("La longitud del missatge és:", longitud)  
-    
+    print('Missatge que es vol enviar:',missatge)
     lenkey=nbits*longitud
     
     #Si volem que es rebi una clau de longitud lenkey haurem d'enviar molts mes
-    n=int(lenkey*(5/2))
+    n=int(lenkey*(7/2)) #abans tenia int(7/2)
     # n és el nombre de partícules que volem enviar
     
     ''' Per provar-ho, s'enviaran bits 0 o 1 aleatoris en direcció x o z aleatòria'''
@@ -633,17 +621,312 @@ def dadesb(nbits,missatge):
         arr0[i,0]=random.choice(posdir)
         arr0[i,1]=random.choice(posbit)
     #print ('arr0',arr0,'shape',np.shape(arr0))
-    return arr0
+    return arr0,lenkey,n
+
+def mirarhack(array0,array1):
+    '''
+    Funció que et compara alguns elements de les matrius ja amb les direccions 
+    iguals per mirar si hi ha hagut un hacker o no. A més esborra els bits
+    publicats de les matrius que ens serveixen com a dades.
+
+    Parameters
+    ----------
+    array0 : ARRAY DE L'ALICE AMB LES DIRECCIONS IGUALS QUE LES DE'N BOB.
+    array1 : ARRAY DE'N BOB AMB LES DIRECCIONS IGUALS QUE LES DE L'ALICE.
+    Returns
+    -------
+    bool: RETORNA SI HI HA HAGUT HACKER - TRUE I SINÓ FALSE
+    publiA/B: MATRIU QUE PUBLICA L'ALICE O EN BOB AMB: LES POSICIONS QUE VOLEN 
+    COMPARAR AMB LA DIRECCIÓ I EL VALOR OBTINGUT A LA MESURA.
+    array0/1: MATRIU AMB ELS BITS PUBLICATS TRETS
+    '''
+    if (np.shape(array0)!=np.shape(array1)):
+        print("Les dues matrius no són compatibles")
+               
+    n,m=np.shape(array0)
+    #Comparem els primer bits de les arrays a veure si coincideixen les seves direccions
+    comptador=0
+    '''
+    if n<10:
+        k=n
+    else:
+        k=10
+    '''
+    #Nombre de bits que comparo (un desè de bits)
+    if n>8:
+        k=n//8
+    else:
+        k=1
+    print("Valors comparats", k)
     
+    #Matriu que publicarà l'Alice
+    publiA=np.empty(([k,3]),dtype=object)
+    publiB=np.copy(publiA)
+    
+    for i in range(k):
+        rand=random.randint(0,n-1)
+        #print(publiA)
+        while  np.any(publiA==rand):
+            rand=random.randint(0,n-1)
+                    
+        publiA[i,0]=rand
+        publiB[i,0]=rand
+        publiA[i,1]=array0[rand,0]
+        publiA[i,2]=array0[rand,1]
+        publiB[i,1]=array1[rand,0]
+        publiB[i,2]=array1[rand,1]
+        
+        if array0[rand,1]!=array1[rand,1]:
+            comptador+=1
+            
+    #Eliminem els bits publicats
+    #Ordenem les posicions que hem de borrar
+    posicions=sorted(list(publiA[:,0]), reverse=True)
+    for i in posicions:
+        array0=np.delete(array0,i,0)
+        array1=np.delete(array1,i,0)
+                  
+    #Ordeno les matrius publi
+    publiAlist=list()
+    for i in range(np.shape(publiA)[0]):
+        publiAlist.append((publiA[i,0],publiA[i,1],publiA[i,2]))
+    dtype= [('num', int), ('dir','U10'), ('bit','U10')]
+    publiA2=np.array(publiAlist,dtype=dtype)
+    publiA=np.sort(publiA2,order='num')
+    
+    publiBlist=list()
+    for i in range(np.shape(publiB)[0]):
+        publiBlist.append((publiB[i,0],publiB[i,1],publiB[i,2]))
+    publiB2=np.array(publiBlist,dtype=dtype)
+    publiB=np.sort(publiB2,order='num')
+    
+    if comptador>=k//4 and k//4!=0: #Em mira que 1/4 dels valors siguin iguals, sinó significa que hi ha un hacker!
+        print('Hacker?',True,'PubliA',publiA, 'publiB',publiB, 'Comptador',comptador,k//4) # "arrays",array0, array1 )
+        return True, publiA, publiB,array0,array1  
+    elif k//4==0 and comptador>1:
+        print('Hacker?',True,'PubliA',publiA, 'publiB',publiB, 'Comptador',comptador,k//4) # "arrays",array0, array1 )
+        return True, publiA, publiB,array0,array1 
+    else: 
+        print('Hacker?',False,'PubliA',publiA, 'publiB',publiB,'Comptador',comptador) # "arrays",array0, array1 )
+        return False, publiA, publiB,array0,array1
+    
+def clauobtinguda(array1):
+    "Funció que a apartir de l'array de bits, obtinguem la clau en bits o num"
+    finalkeyb=[]
+    for i in range(0,lenkey,5):
+        print('Clau obtinguda?',i, 'lenkey', lenkey)
+        num=array1[i]+array1[i+1]+array1[i+2]+array1[i+3]+array1[i+4]
+          
+        finalkeyb.append(num)
+    
+    finalkey=[]
+    for i in finalkeyb:
+        finalkey.append(int(i,2))
+    
+    return finalkeyb,finalkey
+
+def xifrarmissatge(key,message):
+    "Funció que a partir de la clau i el missatge, el xifra en majúscules '.' i ' ' "
+    
+    ''' l'ascii en majúscules va del 65 al 90'''
+    
+    messagev=[]
+    message2=[]
+    j=0
+    # Per mirar què falla
+    print('Missatge:',message,type(message))
+    print('Key', key, type(key))
+    
+    for i in message:
+        print('lletra missatge:',i, ord(i))
+        if ord(i)==32:
+            messagev=messagev+[(ord(i)-6+key[j])%28] #tindrà 27
+            message2=message2+[ord(i)-6]
+        elif ord(i)==46:
+            messagev=messagev+[(ord(i)-19+key[j])%28] #tindrà 27
+            message2=message2+[ord(i)-19]
+            
+        else: 
+            messagev=messagev+[(ord(i)-65+key[j])%28]
+            message2=message2+[ord(i)-65]
+
+        j+=+1 
+        
+    print('HOLA:',message2) #Em sembla que aquest no ens interessa
+    print(messagev)
+    message_en=""
+    
+    for i in messagev:
+        if (i==26):
+            message_en=message_en+chr(32)
+            print('arroba?')
+        elif (i==27):
+            message_en=message_en+chr(46)
+        else:
+            message_en=message_en+chr(i+65)
+        
+    print("---Missatge encriptat amb la clau---")
+    print(message_en)
+    
+    return message_en
+
+
+def desxifrarmissatge(message_en,key):
+    "És la funció Bob tal qual del fitxer enviamentclau.py."
+    "Desxifra el missatge encriptat amb la clau obtinguda."
+    message_out=''
+    message_out2=[]
+    
+    j=0
+    for i in message_en:
+        if (ord(i)==32):
+            valor=((28+ord(i)-6-key[j])%28)+65
+            if valor==91:
+                message_out=message_out+chr(valor-59)
+            elif  valor==92:
+                message_out=message_out+chr(valor-46)
+            else:
+                message_out=message_out+chr(valor)  
+                
+        elif (ord(i)==46):
+            valor=((28+ord(i)-19-key[j])%28)+65
+            if valor==91:
+                message_out=message_out+chr(valor-59)
+            elif  valor==92:
+                message_out=message_out+chr(valor-46)
+            else:
+                message_out=message_out+chr(valor)
+        else:
+            valor=((28+ord(i)-65-key[j])%28)+65
+            if valor==91:
+                message_out=message_out+chr(valor-59)
+            elif  valor==92: 
+                message_out=message_out+chr(valor-46)
+            else:
+                message_out=message_out+chr(valor)
+                 
+
+        message_out2=message_out2+[(28+ord(i)-64-key[j])%28]
+        j+=1
+    print('Missatge en numeruus',message_out2)
+    print('---Recuperem el missatge inicial---')
+    print(message_out)
+    return message_out
+
+'Funció Popup'
+
+class P1(FloatLayout):
+    def close(self):
+        show_popup.popupWindow1.dismiss()
+        
+    
+        
+class P2(FloatLayout):
+    
+    bits=StringProperty('')
+     
+    def close(self):
+        show_popup.popupWindow2.dismiss()
+
+    def change_text1(self):
+        ''''''' Funció per passar la informació a la screen Clau'''''''
+        '''
+        self.bits= str(Publidir2.arr1f[:,1])
+        print(self.bits)
+        
+        '''
+        '''
+        finalkeyb=[]
+        for i in range(0,lenkey,5):
+            num=key[i]+key[i+1]+key[i+2]+key[i+3]+key[i+4]
+            finalkeyb.append(num)
+        
+        finalkey=[]
+        for i in finalkeyb:
+            finalkey.append(int(i,2) )
+        '''
+        '''  
+        
+        '''
+        #Publidir2.change_text(Publidir2)
+        
+        
+class P3(FloatLayout):
+    def close(self):
+        show_popup.popupWindow3.dismiss()
+
+class P4(FloatLayout):
+    def close(self):
+        show_popup.popupWindow4.dismiss()
+        
+class P5(FloatLayout):    
+    def close(self):
+        show_popup.popupWindow5.dismiss()
+    
+class P6(FloatLayout):    
+    def close(self):
+        show_popup.popupWindow6.dismiss()
+        
+class P7(FloatLayout):
+    def close(self):
+        show_popup.popupWindow7.dismiss()
+        
+class P8(FloatLayout):
+    def close(self):
+        show_popup.popupWindow8.dismiss()
                 
     
-    
+def show_popup(self,valor):
+    "Funció que obra finestres popup"
+    "1:Yes right    2:Yes wrong     3:No right      4: No wrong"
+    if valor==1:
+        show = P1()
+        self.popupWindow1 = Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+        self.popupWindow1.open()
+    if valor==2:
+        show = P2()
+        self.popupWindow2 = Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+        self.popupWindow2.open()
+        
+    if valor==3:
+        show = P3()
+        self.popupWindow3 = Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+        #Es pot posar auto_dismiss=False
+        self.popupWindow3.open()    
+    if valor==4:
+            show = P2()
+            self.popupWindow4 = Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+            self.popupWindow4.open()
+    if valor==5:
+            show= P5()
+            self.popupWindow5 = Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+            self.popupWindow5.open()
+            
+    if valor==6:
+            show= P6()
+            self.popupWindow6 = Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+            self.popupWindow6.open()
+            
+    if valor==7:
+            show= P7()
+            self.popupWindow7 = Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+            self.popupWindow7.open()
+            
+    if valor==8:
+            show= P8()
+            self.popupWindow8 = Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+            self.popupWindow8.open()
+            
+        
+
 
 """_______________________Pantalles___________________"""
 
 class HomeScreen(Screen):
     pass
-        
+  
+class Keys(Screen):
+    pass      
 
 class Screen1(Screen):
 
@@ -677,8 +960,6 @@ class Screen1(Screen):
         self.mdxifrat.text="Missatge desxifrat:   "+mdencriptat
   
         
-
-
 class Screen2(Screen):
     
     def btnkey(self):
@@ -765,22 +1046,116 @@ class Publidir(Screen):
     def __init__(self,**kwargs):
         array0,array1=llegirarrays()
         self.array0.text= str(array0)
-
     '''
+
+   
     
 class Publidir2(Screen):
     arr0_text= StringProperty('')
     arr1_text2= StringProperty('')
-    arraydir_text3= StringProperty('')
+       
+    bits=StringProperty('')
+    clau1=StringProperty('')
+    
+    
+    
+    
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        self.continuar=0
+                
+        self.comparat=0 
+        Publidir2.comparat=self.comparat
+
     
     def comparar(self):
+        
         arr0=Bob.arr0
         arr1=Bob.arr1
-        print('arr0',arr0,'arr1',arr1)
+        #print('arr0',arr0,'arr1',arr1)
         arr01,arr11=comparardir(arr0, arr1)
-        self.arr0.text= str(arr01)
+        #Per passar-ho més tard
+        Publidir2.arr01=arr01
+        Publidir2.arr11=arr11
+        #Pantalla
+        self.arr0.text= str(arr01[:,0])
         self.arr1.text= str(arr11)
+        #Mirem si podrem fer el procés de hacker
+        ncomp=np.shape(arr01)[0]
+        bitsf=ncomp-int(ncomp//5+1)
+        print('dim',np.shape(arr01)[0])
+        if bitsf<lenkey: #No tenim prous dades
+            show_popup(show_popup,5)
+            self.comparat=self.comparat+1
+            Publidir2.comparat=self.comparat
+            
+            print('comparat',self.comparat)
+        
+    def findhacker(self):
+        arr0=Bob.arr0
+        arr1=Bob.arr1
+        arr01,arr11=comparardir(arr0, arr1)
+        global arr1f
+        self.boolean,publiAh,publiBh,self.arr0f,arr1f=mirarhack(arr01,arr11)
+        
+        #print('PubliAh',publiAh,type(publiAh))
+        
+        self.publiAh.text= str(publiAh)
+        self.publiBh.text= str(publiBh)
+        
+        
+    def hackeryes(self):
+        if self.boolean ==True:
+            show_popup(show_popup,1)
+        else:
+            show_popup(show_popup,2)
+            self.continuar=1
+    def hackerno(self):
+        if self.boolean== False:
+            show_popup(show_popup,3)
+            self.continuar=1
+        else:
+            show_popup(show_popup,4)
+            
 
+    def change_text(self):
+        ''''''' Funció per passar la informació a la screen Clau'''''''
+        #print('self',self)
+        #self.findhacker(self)
+        if self.continuar == 1:
+            
+            if np.shape(arr1f)[0]<lenkey:
+                show_popup(show_popup,5)
+            self.bits= str(arr1f[:,1])
+            
+            global key
+            finalkeyb,finalkey=clauobtinguda(arr1f[:,1])
+            print('finalkey',finalkey,type(finalkey))
+            finalkeytext=" "
+            for i in finalkey:
+                finalkeytext+=str(i)+" ; "
+            
+            key=finalkey
+            self.clau1= str(finalkeytext)
+            self.manager.current= "Clau"
+            
+        if self.continuar == 0:
+            show_popup(show_popup,8)
+        
+        
+class Clau(Screen):
+    bitsfinals_text= StringProperty('')
+    clau1_text=StringProperty('')
+    
+    def missatgexifrat(self):
+        self.missatge_en=xifrarmissatge(key, message)
+        self.message1.text=self.missatge_en
+        
+    def desxifrarmissatgekv(self):
+        print(self.missatge_en, self)
+        missatge_out=desxifrarmissatge(self.missatge_en,key)
+        self.messagef.text=missatge_out        
+    
 
         
 class WindowManager(ScreenManager):
@@ -791,12 +1166,22 @@ class WindowManager(ScreenManager):
     
 "___________Joc_____________"
 
+
+
 class Bob(Screen):
     text= StringProperty('')
     text2= StringProperty('')
     text3= StringProperty('')
     
-    arr0=dadesb(5,'H')
+    global lenkey
+    global message
+    global npart
+    message='HI'
+    arr0,lenkey,npart=dadesb(5,message)
+    #comparat=0
+    
+    
+    
     
     
     def __init__(self,**kwargs):
@@ -807,7 +1192,6 @@ class Bob(Screen):
         
         with self.canvas:
             self.player = Rectangle(source="up.png",pos=(Window.size[0]*0.7,Window.size[1]*0.5),size=(50,100)) #Es pot posar una imatge si es vol
-            #self.enemy = Rectangle(pos=(400,400),size=(60,60))
             self.player_dir="z"
             
             
@@ -820,10 +1204,12 @@ class Bob(Screen):
         self.llistax=[]
         
         
-        self.pause1=0        
+        self.pause1=0   
+        self.primeraparticula=False
         
+        self.nmesura_text="Has de mesurar més de "+str(lenkey*3)+" partícules per obtenir el missatge!"
         
-    #..................................................  
+    #Per si vull posar més d'una partícula a l'hora. Encara no sé com va 
     '''
     def add_entity(self,entity):
         self._entities.add(entity)
@@ -899,7 +1285,6 @@ class Bob(Screen):
         self._keyboard = None
         
     def _on_key_down(self,keyboard,keycode,text,modifiers):
-        #self.keysPressed.add(text)
         self.keysPressed.add(keycode[1])
     
     def _on_key_up(self,keyboard,keycode):
@@ -940,38 +1325,49 @@ class Bob(Screen):
                 self.player = Rectangle(source="right.png",pos=(currentx,currenty),size=(50,100))
             
                    
-        
+ 
     def particlemoving(self,dt):
-        '''Moviment de la partícula'''
+        '''"Moviment de la partícula"'''
+        
         
         if self.j==0 and self.pause1==0:
-            
+            #print('comparat',comparat)
             partx=self.particle.pos[0]
             party=self.particle.pos[1]
         
             step_size=300*dt
             #print('dt',dt, 'step_size',step_size)
 
-            if partx<10000:
-                partx+=step_size
+            partx+=step_size
         
             self.particle.pos = (partx,party)
         
-        
+            #Col·lisió
             if collide((self.player.pos,self.player.size),(self.particle.pos,self.particle.size)):
                 self.canvas.remove(self.particle)
+                print('Publidir2comp',Publidir2.comparat)
+                if self.j==0: #Perquè no ho faci més d'un cop
                 
-                if self.j==0:
-                    '''
-                    llista1,llista2=Bobresultats(self.player_dir,self.llistaz,self.llistax)
-                    self.bit1.text= str(llista1)
-                    self.bit2.text= str(llista2)
-                    '''
-                    if self.collides==0:
+                    if self.collides==0: #Això és per crear la primera matriu 
                         self.arr1=np.zeros((1,2),dtype=str)
-
-                    self.collides,self.arr1=Bobresultats2(self.collides,self.player_dir,self.arr0, self.arr1)
                     
+                    if Publidir2.comparat==0: #Si no hem publicat encara les dades cap cop
+                        self.collides,self.arr1=Bobresultats2(self.collides,self.player_dir,self.arr0, self.arr1)
+                    else: #Ja hem comparat les dades algun cop
+                        #Nous valors per l'array de l'Alice
+                        arr01,res,n2=dadesb(5,'H')
+                        arr02=np.concatenate((Publidir2.arr01,arr01),axis=0)
+                        self.arr0=np.concatenate((Publidir2.arr01,arr01),axis=0)
+                        self.arr1=Publidir2.arr11
+                        self.collides=np.shape(Publidir2.arr01)[0] #Això perquè torni a mirar un índex d'abans
+                        
+                        self.collides,self.arr1=Bobresultats2(self.collides,self.player_dir,self.arr0,self.arr1)
+                        global npart
+                        npart=npart+n2
+                        Publidir2.comparat=0
+                        
+                        
+                        
                     Bob.arr1=self.arr1
                     
                     #Passo els resultats a pantalla
@@ -979,29 +1375,35 @@ class Bob(Screen):
                     self.bit2.text=str(self.arr1[:,1])                    
                     self.bitst+=1
                     self.bits.text="Bits totals:  "+str(self.bitst)
+                    if self.bitst==1:
+                        self.primeraparticula=True
+                    if self.bitst==npart and Publidir2.comparat==0:
+                        self.pause1=1 #Abans hi havia un 3
+                        show_popup(show_popup,6)
+                        print('comparat',Publidir2.comparat)
+                    #if self.bitst==(npart+n2):
+                     #   self.pause1=1 #Abans hi havia un 3
+                      #  show_popup(show_popup,6)  
                     
                 self.j+=1
                 
             if partx>Window.size[0]*0.8 and self.canvas.indexof(self.particle)!=-1:
-                
+                #Si la partícula està dintre del canvas o no                
                # print('Què hi ha al canvas?', self.canvas.indexof(self.particle) )
                 self.canvas.remove(self.particle)
                 self.j+=1
                 
-            
-        
-            
-            
+
     def newparticle(self,dt): 
         '''Creació d'una partícula + moviment'''
         self.j=0
         if self.pause1==0: 
-            Clock.schedule_interval(self.particlemoving,0)
+            #Clock.schedule_interval(particlemoving(1/60),1/60*dt) #Hi havia un 0
             
             with self.canvas:
                 self.particle = Ellipse(pos=(50,self.randomposition()),size=(10,10))
-            
-
+                
+  
         
     def randomposition(self):
         '''Vull que em dongui una posició aleatòria de les y'''
@@ -1012,20 +1414,22 @@ class Bob(Screen):
     
     
     def change_text(self):
-        ''''''' Funció per passar la informació a la screen Publidir'''''''
-        print('Arr0',self.arr0)
-        self.text= str(self.arr0)
-        self.text2= str(self.arr1)
-        #arraydir=np.empty(np.shape(self.arr0),dtype=str)
-        #arraydir[:,0]=self.arr0[:,0]
-        #arraydir[:,1]=self.arr1[:,0]
-        self.text3= str('Hey')
-        self.manager.current= "Publidir2"
+        ''' Botó: Compartir dades. 
+        Funció per passar la informació a la screen Publidir.'''
+        if self.primeraparticula :
+            #print('Arr0',self.arr0)
+            #print('Arr1',self.arr1)
+            self.text= str(self.arr0[:,0])
+            self.text2= str(self.arr1)
+            self.manager.current= "Publidir2"
+        else:
+            show_popup(show_popup,7)
     
     
     '--------- Botons --------------'
-    def play(self):    
-        '''Botó play'''
+    def start(self):    
+        'Botó per començar a jugar/Tornar a rebre partícules'
+        print('comparat',Publidir2.comparat)
         self.llistaz=[]
         self.llistax=[]
         self.bit1.text=""
@@ -1034,28 +1438,32 @@ class Bob(Screen):
         
         self.bitst=0
         self.arr0=Bob.arr0
-        print('Array ALice',self.arr0)
+        print('Array Alice',self.arr0)
         #Contador per les mesures
         self.collides=0
-        
-        
+        #Control de si el joc està en pausa o si és l'inici
         self.pause1=0
         self.init=0
-        if self.pause1==0:
+       
+        '''
+        with self.canvas:
+            self.particle = Ellipse(pos=(50,self.randomposition()),size=(10,10))
             
-            if self.init==0:
-                Clock.schedule_interval(self.particlemoving,0)
-                self.init=1
-                
-            Clock.schedule_interval(self.move_step,0)
-            Clock.schedule_interval(self.newparticle,2.5)
-            
+        self.randomposition()
+        '''               
+        if self.pause1==0 and self.init==0:
+            self.init+=1
+            #Per la partícula inicial
+            Clock.schedule_once(self.newparticle)
+            #Creació de les altres partícules cada 3 segons
+            Clock.schedule_interval(self.newparticle,3)
+            #Moviment de la partícula 
+            Clock.schedule_interval(self.particlemoving,0)            
             self.j=0
             
-            with self.canvas:
-                self.particle = Ellipse(pos=(50,self.randomposition()),size=(10,10))
-            
-            self.randomposition()
+        if self.start1.text== "Start":
+            self.start1.text= "Start Again"
+        
     
     def pause(self):
         self.pause1+=1
@@ -1065,11 +1473,31 @@ class Bob(Screen):
             self.pause1=0
             
         
+    def acabaricompartir(self):
+        "Acaba de mesurar totes les partícules"
+        #Partícules que falten per mesurar           
         
-    
+        if self.primeraparticula :
+            #print('npart',npart)
+            n=npart-self.bitst
+            direccions=['z','x']
+                
+            for i in range(n):
+                #self.arr1=np.zeros((1,2),dtype=str)
         
-
-        
+                self.collides,self.arr1=Bobresultats2(self.collides,random.choice(direccions),self.arr0, self.arr1)
+                            
+                Bob.arr1=self.arr1
+                            
+                self.bit1.text=str(self.arr1[:,0])
+                self.bit2.text=str(self.arr1[:,1])                    
+                self.bitst+=1
+                self.bits.text="Bits totals:  "+str(self.bitst)
+                    
+                if self.bitst==npart:
+                    self.pause1=1
+                    print('dim.1',np.shape(self.arr0)[0])
+                    print('npart',npart)
         
         
 
