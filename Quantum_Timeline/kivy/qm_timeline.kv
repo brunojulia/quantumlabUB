@@ -85,8 +85,23 @@
     Label: 
         color:'black'
         text:"Young's interference experiment"
-        pos_hint:{'x':0.4,'y':0.9}
-        size_hint:0.3,0.1
+        pos_hint:{'x':0.45,'y':0.9}
+        size_hint:0.1,0.1
+        font_size:35
+        
+    Label: 
+        color:'black'
+        text:"Wave diagram"
+        pos_hint:{'x':0.35,'y':0.875}
+        size_hint:0.3,0.05
+        font_size:10
+    
+    Label: 
+        color:'black'
+        text:"Intensity of light diagram"
+        pos_hint:{'x':0.35,'y':0.455}
+        size_hint:0.3,0.05
+        font_size:10
         
 
         
@@ -96,6 +111,14 @@
         on_press:root.change_source_state()
         pos_hint:{'x':0.5,'y':0}
         size_hint:0.1,0.05
+        
+    Button:
+        id: clear_waves
+        text:'Clear recint'
+        on_press:root.clear_waves()
+        pos_hint:{'x':0.65,'y':0.02}
+        size_hint:0.15,0.025
+        background_color:'black'
     
     BoxLayout:
         orientation: 'vertical'
@@ -162,6 +185,30 @@
                 markup: True
                 text: "-"
                 on_press: root.dec_slt_width()
+                
+    Button:
+        id: inty_id
+        background_color: (0, 0, 0, 1)
+        markup: True
+        pos_hint:{'x':0.78,'y':0.8}
+        size_hint:0.2,0.05
+        text: 'Measure Intensity of Light'
+        font_size: 12
+        on_release: Factory.IntensityPopup().open()
+
+<IntensityPopup>:
+    name: 'IntensityPopup'
+    title: 'Intensity of Light'
+    box2:box2_id
+    #:set color_labels 1,1,1,1
+    #:set black 0,0,0,1
+    size_hint:0.6,0.6
+    
+    AnchorLayout:
+        id:box2_id   
+        size_hint:1,1
+        anchor_x: 'right'
+        anchor_y: 'top'
     
     
     
