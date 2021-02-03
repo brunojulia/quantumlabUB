@@ -16,6 +16,9 @@ from kivy.uix.button import Button
 from kivy.core.text import LabelBase
 from kivy.core.window import Window
 from functools import partial
+from kivy.graphics import Color, Ellipse,Line,Rectangle,InstructionGroup
+from kivy.core.window import Window
+from matplotlib.patches import Circle
 matplotlib.use('module://kivy.garden.matplotlib.backend_kivy')
 
 import numpy as np
@@ -23,6 +26,10 @@ import matplotlib.pyplot as plt
 
 pi=np.pi
 e=np.e
+
+Nx_inty=0
+Ny_inty=0
+intensitat_llum=0
 
 class qm_timelineApp(App):
     def build(self):
@@ -72,6 +79,7 @@ class YoungSlitScreen(Screen):
         super(YoungSlitScreen,self).__init__(**kwargs)
         
     def yspseudo_init(self):
+        
         #temps inicial (0, evidentment)
         self.t=0
         
@@ -80,6 +88,11 @@ class YoungSlitScreen(Screen):
         self.dl=2*self.dt
         self.Nx=301
         self.Ny=301
+        
+        global Nx_inty,Ny_inty
+        
+        Nx_inty=self.Nx
+        Ny_inty=self.Ny
         
         #visualització del recinte que apareix a l'App
         self.h_display=int(self.Ny/3)
@@ -118,6 +131,8 @@ class YoungSlitScreen(Screen):
         self.x_wall=int(self.Nx/4)
         self.w_wall=int(self.Nx/30)
         self.w_det=int(self.Nx/3)
+        self.slit_presence=np.zeros((self.Nx,self.Ny))
+        self.slit_presence[self.x_wall,:]=1
         
         #coef d'absorció a les parets del detector
         for k in range(self.w_det):
@@ -138,32 +153,56 @@ class YoungSlitScreen(Screen):
         self.main_canvas=FigureCanvasKivyAgg(self.main_fig)
         self.box1.add_widget(self.main_canvas,1)
         
+        
         #Plot de l'ona i de l'intensitat
         self.wave_visu=self.axs[0]
         self.inty_visu=self.axs[1]
+        
         
         self.at=self.a[:,:,2]
         self.it=self.inty[:,:,2]
         
         #Dibuix de les figures
+        self.cmap = plt.get_cmap('Reds')
+        self.cmap.set_under('k', alpha=0)
+        
+        #diagrama d'ones
         self.wave_visu_im=self.wave_visu.imshow(\
             self.at.transpose()[int((self.Ny-self.h_display)/2):\
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
                ,vmax=4,vmin=-4,origin='lower',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
-            
+        
+        #representació de la paret al diagrama d'ones
+        self.wave_slit_im=self.wave_visu.imshow(\
+            self.slit_presence.transpose()[int((self.Ny-self.h_display)/2):\
+                                int((self.Ny+self.h_display)/2),
+                                0:self.w_display]
+               ,vmax=1,vmin=0.5,origin='lower',cmap=self.cmap,
+        extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
+        
+        #diagrama d'intensitat
         self.inty_visu_im=self.inty_visu.imshow(\
             self.it.transpose()[int((self.Ny-self.h_display)/2):\
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
                ,vmax=5,origin='lower',cmap='gray',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
-        
-    
+
+        #representació de la paret al diagrama d'intensitat
+        self.inty_slit_im=self.inty_visu.imshow(\
+            self.slit_presence.transpose()[int((self.Ny-self.h_display)/2):\
+                                int((self.Ny+self.h_display)/2),
+                                0:self.w_display]
+               ,vmax=1,vmin=0.5,origin='lower',cmap=self.cmap,
+        extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
+
         self.main_canvas.draw()
         
         self.main_canvas.mpl_connect('resize_event',partial(self.resize_kivy))
+        
+        
         
     def resize_kivy(self,*largs):
         """Aquesta funció és trucada cada cop que la finestra canvia de tamany.
@@ -194,6 +233,7 @@ class YoungSlitScreen(Screen):
         val=(np.sum(f[:,:,0:-1],axis=2)+np.sum(f[:,:,1:],axis=2))*h/2
         return val
     
+    #funció de la font
     def p_s(self,t,amp,w):
         val=amp*np.sin(w*t)
         return val
@@ -240,7 +280,9 @@ class YoungSlitScreen(Screen):
         self.sgm_wall[self.x_wall-self.w_wall:self.x_wall,:]=wall_presence[:,:]\
                     *self.sgm_max*((wall_ny[:,:])/self.w_wall)**self.m
         
-        self.sgm_wall[self.x_wall,:]=wall_presence[0,:]*1000
+        #llista per a l'última capa de la paret, on l'amplitud d'ona és 0
+        self.wave_presence=np.ones((self.Nx,self.Ny))
+        self.wave_presence[self.x_wall,:]=(1-wall_presence[0,:])
         
         self.sgm=self.sgm_wall+self.sgm_det
         
@@ -251,7 +293,8 @@ class YoungSlitScreen(Screen):
         -4*self.a[1:-1,1:-1,k-1])+self.s[1:-1,1:-1]\
         +2*self.a[1:-1,1:-1,k-1]-self.a[1:-1,1:-1,k-2]\
         +self.sgm[1:-1,1:-1]*self.a[1:-1,1:-1,k-2]/(2*self.dt))\
-        /(1+self.sgm[1:-1,1:-1]/(2*self.dt))
+        /(1+self.sgm[1:-1,1:-1]/(2*self.dt))\
+        *self.wave_presence[1:-1,1:-1]
         
         #condicions periòdiques de contorn a les parets superior i inferior
         self.a[1:self.x_wall,0,k]=\
@@ -260,7 +303,8 @@ class YoungSlitScreen(Screen):
         -4*self.a[1:self.x_wall,0,k-1])+self.s[1:self.x_wall,0]\
         +2*self.a[1:self.x_wall,0,k-1]-self.a[1:self.x_wall,0,k-2]\
         +self.sgm[1:self.x_wall,0]*self.a[1:self.x_wall,0,k-2]/(2*self.dt))\
-        /(1+self.sgm[1:self.x_wall,0]/(2*self.dt))
+        /(1+self.sgm[1:self.x_wall,0]/(2*self.dt))\
+        *self.wave_presence[1:self.x_wall,0]
                     
         self.a[1:self.x_wall,self.Ny-1,k]=\
         (self.rao*(self.a[2:self.x_wall+1,self.Ny-1,k-1]\
@@ -271,7 +315,8 @@ class YoungSlitScreen(Screen):
         -self.a[1:self.x_wall,self.Ny-1,k-2]\
         +self.sgm[1:self.x_wall,self.Ny-1]\
         *self.a[1:self.x_wall,self.Ny-1,k-2]/(2*self.dt))\
-        /(1+self.sgm[1:self.x_wall,self.Ny-1]/(2*self.dt))
+        /(1+self.sgm[1:self.x_wall,self.Ny-1]/(2*self.dt))\
+        *self.wave_presence[1:self.x_wall,self.Ny-1]
                     
         #calculs de la intensitat
         self.a2[:,:,:-1]=self.a2[:,:,1:]
@@ -283,15 +328,22 @@ class YoungSlitScreen(Screen):
         self.a[:,:,:-1]=self.a[:,:,1:]
         self.t=self.t+self.dt
         
+        self.slit_presence=1-self.wave_presence
+        
         """Representació a cada pas"""
         #eliminar l'anterior
         self.wave_visu_im.remove()
+        self.wave_slit_im.remove()
         self.inty_visu_im.remove()
+        self.inty_slit_im.remove()
         
         #Posar el nou
         self.at=self.a[:,:,2]
         self.it=self.inty[:,:,2]
-
+        
+        global intensitat_llum
+        intensitat_llum=self.it
+        
         self.wave_visu_im=self.wave_visu.imshow(\
             self.at.transpose()[int((self.Ny-self.h_display)/2):\
                                 int((self.Ny+self.h_display)/2),
@@ -299,11 +351,25 @@ class YoungSlitScreen(Screen):
                ,vmax=4,vmin=-4,origin='lower',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
             
+        self.wave_slit_im=self.wave_visu.imshow(\
+            self.slit_presence.transpose()[int((self.Ny-self.h_display)/2):\
+                                int((self.Ny+self.h_display)/2),
+                                0:self.w_display]
+               ,vmax=1,vmin=0.5,origin='lower',cmap=self.cmap,
+        extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
+            
         self.inty_visu_im=self.inty_visu.imshow(\
             self.it.transpose()[int((self.Ny-self.h_display)/2):\
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
                ,vmax=5,origin='lower',cmap='gray',
+        extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
+            
+        self.inty_slit_im=self.inty_visu.imshow(\
+            self.slit_presence.transpose()[int((self.Ny-self.h_display)/2):\
+                                int((self.Ny+self.h_display)/2),
+                                0:self.w_display]
+               ,vmax=1,vmin=0.5,origin='lower',cmap=self.cmap,
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
         
         #I utilitzar-lo
@@ -343,6 +409,27 @@ class YoungSlitScreen(Screen):
             self.source_on=True
         else:
             self.source_on=False
+            
+    def clear_waves(self):
+        self.a=np.zeros((self.Nx,self.Ny,3))
+        
+        
+class IntensityPopup(Popup):
+    def __init__(self):
+        super(Popup, self).__init__()
+        
+        global intensitat_llum,Nx_inty,Ny_inty
+        
+        self.inty_fig=plt.figure()
+        self.inty_canvas=FigureCanvasKivyAgg(self.inty_fig)
+        self.box2.add_widget(self.inty_canvas,1)
+        self.visu=plt.axes()
+        self.inty_plot=self.visu.plot(intensitat_llum[int(Nx_inty/2),
+                                                           :Ny_inty])
+        
+        self.inty_canvas.draw()
+        
+
 
         
 if __name__ == '__main__':
