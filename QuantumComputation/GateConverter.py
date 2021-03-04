@@ -44,7 +44,7 @@ def ImportGate(qubitnumber, string, cgrid, matrix, gates_2):
     return matrix, multigates
 
 def UpdateGate(gatename, qubitnumber, matrix, multigates, gates_2):
-    File = open(os.path.dirname(os.path.realpath(__file__))+"\CustomGates\\"+gatename+'.py',"w")
+    File = open(os.path.dirname(os.path.realpath(__file__))+"\cgates\\"+gatename+'.py',"w")
     s='    '
 
     File.write('def qubitnumber():\n')

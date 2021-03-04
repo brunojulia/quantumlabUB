@@ -58,8 +58,30 @@ def QiskitConverter(matrix, multigates, row_name, gates_2, customgates, angles):
                     
     File.write(s+'results = execute(circuit,backend).result().get_statevector()\n\n')
     #File.write(s+'state = Statevector.from_instruction(circuit)\n')
-    File.write(s+'return results, plotresults')
+    File.write(s+'return results, plotresults\n\n')
 
+
+    File.write('def gatesmatrix():\n')
+    File.write(s+'matrix=[\n')
+    rows=[]
+    str1= ',\n'+s
+    str2="', '"
+    for i in matrix:
+        string="['"+str2.join(i)+"']"
+        rows.append(string)
+        
+    stringmatrix=s+str1.join(rows)+']\n\n'
+    File.write(stringmatrix)
+    File.write(s+'shape='+str(matrix.shape)+'\n\n')
+    
+    multi=[]
+    str3=', '
+    for i in multigates:
+        string="["+str3.join([str(elem) for elem in i])+"]"
+        multi.append(string)
+    File.write(s+'multigates=['+str3.join(multi)+']\n\n')
+    
+    File.write(s+'return shape, matrix, multigates\n')
 
     File.close()
     return
