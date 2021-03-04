@@ -7,19 +7,21 @@ Created on Mon Oct 26 18:42:50 2020
 import numpy as np
 import random
 from kivy.app import App
-from kivy.properties import ObjectProperty
+#from kivy.properties import ObjectProperty
 from kivy.uix.screenmanager import ScreenManager, Screen 
 from kivy.lang import Builder
 from kivy.properties import StringProperty
-from kivy.uix.widget import Widget
+#from kivy.uix.widget import Widget
 from kivy.graphics import *
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.uix.popup import Popup
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.button import Button
+#from kivy.uix.gridlayout import GridLayout
+#from kivy.uix.button import Button
 import os
+#Per fer el multiplayer online
+from network import Network
 
 with open("encriptacio1.kv", encoding='utf-8') as kv_file:
     Builder.load_string(kv_file.read())
@@ -938,6 +940,20 @@ def addnumpart(array):
 
 
 
+
+
+
+
+
+#Funcions per multiplayers
+def read_pos(str): #rebem string i ho passem a tupla
+    str=str.split(",")
+    return int(str[0]),int(str[1])
+
+def write_pos(tup): #rebem tupla i ho passem a string
+    return str(tup[0])+","+str(tup[1])
+    
+
 '------------------Funció Popup-----------------------------'
 
 class P1(FloatLayout):
@@ -1068,7 +1084,7 @@ class HomeScreen(Screen):
      def __init__(self,**kwargs):
         
         super(HomeScreen,self).__init__(**kwargs)
-        Window.fullscreen = 'auto'
+        #Window.fullscreen = 'auto'
 
   
 class Keys(Screen):
@@ -1353,19 +1369,21 @@ class Bob(Screen):
     
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
+        '''
         self._keyboard = Window.request_keyboard(self._on_keyboard_closed,self)
         self._keyboard.bind(on_key_down=self._on_key_down)
         self._keyboard.bind(on_key_up=self._on_key_up)
+        '''
         
         with self.canvas:
             self.player = Rectangle(source="up2.png",pos=(Window.size[0]*1.3,Window.size[1]*0.5),size=(50,100)) #Es pot posar una imatge si es vol
             self.player_dir="z"
             
-            
+        '''    
         self.keysPressed = set()        
         self._entities= set()
-        
-        Clock.schedule_interval(self.move_step,0) #El 0 és cada frame, pro si poses un 2 és cada 2 segons (oframes?)        
+        '''
+        #Clock.schedule_interval(self.move_step_bob,0) #El 0 és cada frame, pro si poses un 2 és cada 2 segons (oframes?)        
         
         self.llistaz=[]
         self.llistax=[]
@@ -1455,12 +1473,12 @@ class Bob(Screen):
         self.keysPressed.add(keycode[1])
     
     def _on_key_up(self,keyboard,keycode):
-        text = keycode[1] #es com esta definit
+        text = keycode[1] #es com esta definitkeyboard,keycode,text,modifiers
         if text in self.keysPressed:
             self.keysPressed.remove(text)
             
     '----------Altres funcions--------------'      
-    def move_step(self,dt): #dt- quan fa des de l'últim frame (en segons)
+    def move_step_bob(self,dt): #dt- quan fa des de l'últim frame (en segons)
         ''' Funció per moure el player i per canviar-lo de direcció   '''
         
         currentx = self.player.pos[0]
@@ -1624,7 +1642,7 @@ class Bob(Screen):
         
         global hack
 
-        hack=(random.choices([0,1],weights=(0.99,0.01)))[0]
+        hack=(random.choices([0,1],weights=(0.75,0.25)))[0]
         #0.75,0.25
         if hack==0:
             print(hack,'NO HI HA HACKER')
@@ -1641,6 +1659,10 @@ class Bob(Screen):
             event_ini1.cancel()
             event_ini2.cancel()
             event_mov.cancel()
+            
+        else:
+            Clock.schedule_interval(self.move_step_bob,0)  
+            #Si no ho poso aquí es va incrementant
        
         '''
         with self.canvas:
@@ -1648,7 +1670,18 @@ class Bob(Screen):
             
         self.randomposition()
         '''    
+        #TOT LO DEL TECLAAAT-------------------------
+        self._keyboard = Window.request_keyboard(self._on_keyboard_closed,self)
+        self._keyboard.bind(on_key_down=self._on_key_down)
+        self._keyboard.bind(on_key_up=self._on_key_up)
         
+        
+        
+        
+        self.keysPressed = set()        
+        self._entities= set()
+        
+        #-----------------------
            
         if self.pause1==0 and self.init==0:
             self.init+=1
@@ -1718,44 +1751,54 @@ class Bob(Screen):
 
         
 class Multiplayer(Screen):
-    
-    
-    
-
+    global n
+    n=Network() 
     
     def __init__(self,**kwargs):
         super().__init__(**kwargs)
-        self._keyboard = Window.request_keyboard(self._on_keyboard_closed,self)
-        self._keyboard.bind(on_key_down=self._on_key_down)
-        self._keyboard.bind(on_key_up=self._on_key_up)
+        '''
+        self._keyboard_multi = Window.request_keyboard(self._on_keyboard_closed,self)
+        self._keyboard_multi.bind(on_key_down=self._on_key_down)
+        self._keyboard_multi.bind(on_key_up=self._on_key_up)
+        '''
+        #per agafar la posició inicial dels dos jugadors, la demanem ja per xarxa
+        global n      
+        startPos= read_pos(n.getPos()) 
+        #print('posició inicial', startPos)
         
         with self.canvas:
-            self.player1 = Rectangle(source="up2.png",pos=(Window.size[0]*1.3,Window.size[1]*0.5),size=(50,100)) #Es pot posar una imatge si es vol com a en Bob
-            self.player1_dir="z"
-            self.player2=  Rectangle(source="up.png",pos=(Window.size[0]*0.2,Window.size[1]*0.5),size=(50,100))
+            self.player1 = Rectangle(source="up2.png",pos=startPos,size=(50,100)) #Es pot posar una imatge si es vol com a en Bob
+            #self.player1_dir="z"
+            self.player2=  Rectangle(source="up.png",pos=(Window.size[0]*0.7,Window.size[1]*0.5),size=(50,100))
             
-            
-        self.keysPressed = set()        
-        self._entities= set()
-        Clock.schedule_interval(self.move_step,0) #El 0 és cada frame, pro si poses un 2 és cada 2 segons (oframes?)    
+        '''    
+        self.keysPressed_multi = set()        
+        self._entities_multi= set()
+        '''
+        #Clock.schedule_interval(self.move_step,0) #El 0 és cada frame, pro si poses un 2 és cada 2 segons (oframes?)    
         self.pause1m=0
+        
+        #coses de network nse si haurien d'anar aquí
+        
+        
         
         '-------Per fer anar el teclat----------'
         
         
     def _on_keyboard_closed(self):
-        self._keyboard.unbind(on_key_down=self._on_key_down)
-        self._keyboard.unbind(on_key_up=self._on_key_up)
-        self._keyboard = None
+        self._keyboard_multi.unbind(on_key_down=self._on_key_down)
+        self._keyboard_multi.unbind(on_key_up=self._on_key_up)
+        self._keyboard_multi = None
         
     def _on_key_down(self,keyboard,keycode,text,modifiers):
-        self.keysPressed.add(keycode[1])
+        self.keysPressed_multi.add(keycode[1])
     
     def _on_key_up(self,keyboard,keycode):
         text = keycode[1] #es com esta definit
-        if text in self.keysPressed:
-            self.keysPressed.remove(text)
-    
+        if text in self.keysPressed_multi:
+            self.keysPressed_multi.remove(text)
+           
+        
             
     '----------Altres funcions--------------'   
     
@@ -1768,13 +1811,30 @@ class Multiplayer(Screen):
         step_size = 600*dt #seria com la velocitat (?)
         #Si vols moure més depressa, el 100 pot ser 200... 
         
-        if ("w" in self.keysPressed) and (currenty<Window.size[1]-2*self.player1.size[1]) and (self.pause1m==0):
+        
+        if ("w" in self.keysPressed_multi) and (currenty<Window.size[1]-2*self.player1.size[1]) and (self.pause1m==0):
             currenty+=step_size
-        if "s" in self.keysPressed and (currenty> self.player1.size[1])and (self.pause1m==0):
+            
+        if "s" in self.keysPressed_multi and (currenty> self.player1.size[1])and (self.pause1m==0):
             currenty-=step_size 
                     
         self.player1.pos = (currentx, currenty)
         
+        
+        
+        #Anem a enviar i rebre coses del network
+        #n = Network()
+        global n
+        #print('server',n.server)
+        
+        #print('Posició actual (el que s hauria d enviar)',((self.player1.pos[0],self.player1.pos[1])))
+        player2pos= read_pos(n.send(write_pos((int(self.player1.pos[0]),int(self.player1.pos[1])))))
+        #print('que rebem dspres d enviar',player2pos)
+        self.player2.pos=(player2pos[0],player2pos[1])
+        
+        #self.player2.pos[1]=player2pos[1]
+                
+        '''
         #Part de canviar de direcció
         if ("up" in self.keysPressed) and self.pause1m==0:
             self.player1_dir="z"
@@ -1790,8 +1850,26 @@ class Multiplayer(Screen):
                 self.canvas.remove(self.player1)
                 self.player1 = Rectangle(source="right2.2.png",pos=(currentx,currenty),size=(80,100))
         
+        
+        '''
+        
+        
+    def start_multi(self):
+        self._keyboard_multi = Window.request_keyboard(self._on_keyboard_closed,self)
+        self._keyboard_multi.bind(on_key_down=self._on_key_down)
+        self._keyboard_multi.bind(on_key_up=self._on_key_up)
+        
+        self.keysPressed_multi = set()        
+        self._entities_multi= set()
+        
+        
+        
+        
+        
+        Clock.schedule_interval(self.move_step,0)
+        
 
-
+      
 
 
     
