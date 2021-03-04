@@ -105,16 +105,18 @@
         
 
         
-    Button:
+    RoundedButton:
         id: change_source_state
-        text:'On/Off'
-        on_press:root.change_source_state()
-        pos_hint:{'x':0.5,'y':0}
-        size_hint:0.1,0.05
+        background_color: 'red' if root.is_source_on else 'gray'
+        on_press: root.change_source_state()
+        on_press: root.is_source_on = not root.is_source_on
+        pos_hint:{'x':0.5,'y':0.005}
+        size_hint:0.05,0.05
+        
         
     Button:
         id: clear_waves
-        text:'Clear recint'
+        text:'Clear precint'
         on_press:root.clear_waves()
         pos_hint:{'x':0.65,'y':0.02}
         size_hint:0.15,0.025
@@ -142,6 +144,7 @@
                 markup: True
                 text: "+"
                 on_press: root.add_slit()
+                on_press: root.slt_number=root.slt_number+1 if root.slt_number<5 else root.slt_number 
 
             
             Button:
@@ -152,6 +155,7 @@
                 markup: True
                 text: "-"
                 on_press: root.remove_slit()
+                on_press: root.slt_number=root.slt_number-1 if root.slt_number>0 else root.slt_number
                         
     BoxLayout:
         orientation: 'vertical'
@@ -185,6 +189,43 @@
                 markup: True
                 text: "-"
                 on_press: root.dec_slt_width()
+        
+    BoxLayout:
+        #slits separation (only when nslit=2)
+        orientation: 'vertical'
+        pos_hint:{'x':0.,'y':0.4}
+        size_hint:0.2,0.1
+        width: 120 if root.slt_number==2 else 0
+        hight: 120
+        opacity: 1 if root.slt_number==2 else 0
+        
+        Label:
+            color: 'black'
+            text: "Slits' separation"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'horizontal'
+            size_hint_x:1
+            
+            Button:
+                id: inc_slit_separation
+                size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "+"
+                on_press: root.inc_separation()
+
+            
+            Button:
+                id: dec_slit_separation
+                size_hint_x:0.5
+                pos_hint_x:0.1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "-"
+                on_press: root.dec_separation()
                 
     Button:
         id: inty_id
@@ -209,6 +250,15 @@
         size_hint:1,1
         anchor_x: 'right'
         anchor_y: 'top'
+        
+<RoundedButton@Button>:
+    background_color: (0,0,0,0)
+    background_normal: ''
+    canvas.before:
+        RoundedRectangle:
+            size: self.size
+            pos: self.pos
+            radius: [400,]
     
     
     
