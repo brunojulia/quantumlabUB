@@ -2,10 +2,12 @@
 #:set space 5
 
 <WindowManager>:
+    menuscreen: menuscreen
     id: screen_manager
 #    builderscreen: builderscreen
     
     MenuScreen:
+        id:menuscreen
     
 #   BuilderScreen:
  #      id: builderscreen
@@ -45,7 +47,9 @@
         
     
 <CGrid>:
-    scroll: scroll      
+    scroll: scroll  
+    removecolbutton: removecolbutton  
+    addcolbutton: addcolbutton  
     ScrollView:
         pos: root.pos
         size: root.size
@@ -60,6 +64,7 @@
             pos: root.pos
             
             Button:
+                id: removecolbutton
                 text: "- Col"
                 size_hint: (None, None)
                 size: cellsize, 0.5*cellsize
@@ -68,6 +73,7 @@
                 on_release: root.remove_col()
                 
             Button:
+                id: addcolbutton
                 text: "+ Col"
                 size_hint: (None, None)
                 size: cellsize, scroll.height-(cellsize*0.5+space*1.5)
@@ -80,7 +86,7 @@
     
 
 
-<BuilderScreen, CustomScreen>:
+<BuilderScreen, CustomScreen, DemoScreen>:
     cgrid: cgrid
     circuit: circuit
     gatespanel: gatespanel
@@ -90,6 +96,9 @@
     plotbox: plotbox
     warning: warning
     canva: canva
+    
+    probbutton: probbutton
+    gatesbutton: gatesbutton
     
     
     
@@ -236,6 +245,7 @@
                 size_hint: (0.9, 0.9)
                 do_scroll_X: False
                 do_scroll_y: True
+                scroll_type: ["bars"]
                 
                 FloatLayout:
                     id: gatesscroll
@@ -266,6 +276,7 @@
 
              
         Button:
+            id: probbutton
             text: "Probabilities"
             size_hint: (0.15, 0.06)
             pos_hint: {"x": 0.54, "y":0.93}
@@ -276,6 +287,7 @@
                 root.QiskitConv()
              
         Button:
+            id: gatesbutton
             text: "Gates"
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.43, "y":0.93}
@@ -289,6 +301,8 @@
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.1+0.11*2, "y":0.93-0.07*1}
             on_press: root.cgrid.add_element2(1,1)
+            on_release:
+                app.sm.current_screen.ShowDemoMenu()
             
         Button:
             disabled: True
@@ -366,10 +380,13 @@
             app.sm.current_screen.Exit()
             
     Button:
-        text: "Back"
+        text: "Delete"
         size_hint: (0.132,0.08)
         pos_hint: {"x":0.724, "y":0.05}
-         
+        background_color: 1, 0.2, 0.2, 1
+        on_release:
+            root.fileselector.deletegate(root.fileselector.path, root.fileselector.selection)
+            
 
 
 <GateNameWindow>:
@@ -422,6 +439,220 @@
         size_hint: (0.35, 0.2)
         on_release:
             root.cancel()
+        
+        
+<ArbitraryDirection>:
+    slidertheta: slidertheta
+    sliderphi: sliderphi
+    canvas:
+        Color:
+            rgba: 1,0,0,0
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            
+            
+    size_hint: None, None
+    size: (app.sm.current_screen.width*0.8, app.sm.current_screen.height*0.15)
+    
+    SliderTheta:
+        id: slidertheta
+        pos_hint: {"x":0.08, "center_y": 0.15}
+        size_hint: (0.4, 0.2)
+    Label:
+        text: "Theta = {0:.4g}".format(slidertheta.value)
+        pos_hint: {"center_x":0.28, "y": 0.55}
+        size_hint: None, None
+        size: (20,20)
+    SliderLabel:
+        angle: 'theta'
+        text: "0"
+        pos_hint: {"x":0.09, "y": 0.30}
+        size_hint: None, None
+        size: (15,20)
+    SliderLabel:
+        angle: 'theta'
+        text: "pi/2"
+        pos_hint: {"center_x":0.28, "y": 0.30}
+        size_hint: None, None
+        size: (25,20)
+    SliderLabel:
+        angle: 'theta'
+        text: "pi"
+        pos_hint: {"right":0.47, "y": 0.30}
+        size_hint: None, None
+        size: (15,20)
+        
+        
+    SliderPhi:
+        id: sliderphi
+        pos_hint: {"x":0.52, "center_y": 0.15}
+        size_hint: (0.4, 0.2)
+    Label:
+        text: "Phi = {0:.4g}".format(sliderphi.value)
+        pos_hint: {"center_x":0.72, "y": 0.55}
+        size_hint: None, None
+        size: (20,20) 
+    SliderLabel:
+        angle: 'phi'
+        text: "0"
+        pos_hint: {"x":0.53, "y": 0.30}
+        size_hint: None, None
+        size: (15,20)
+    SliderLabel:
+        angle: 'phi'
+        text: "pi/2"
+        pos_hint: {"center_x":0.62, "y": 0.30}
+        size_hint: None, None
+        size: (25,20)
+    SliderLabel:
+        angle: 'phi'
+        text: "pi"
+        pos_hint: {"center_x":0.72, "y": 0.30}
+        size_hint: None, None
+        size: (15,20)
+    SliderLabel:
+        angle: 'phi'
+        text: "3pi/2"
+        pos_hint: {"center_x":0.82, "y": 0.30}
+        size_hint: None, None
+        size: (30,20)
+    SliderLabel:
+        angle: 'phi'
+        text: "2pi"
+        pos_hint: {"right":0.91, "y": 0.30}
+        size_hint: None, None
+        size: (15,20)
+        
+        
+        
+<ArbitraryPanel>:
+    scroll: scroll
+    contrqbitlabel: contrqbitlabel
+    targqbitlabel: targqbitlabel
+    applybutton: applybutton
+    pos_hint: {"x": 0.1, "y": 0.05}
+    size_hint: (0.8, 0.85)
+    canvas:
+        Color:
+            rgba: 0,0,0,0.95
+        Rectangle:
+            pos: self.pos
+            size: self.size
+            
+    Label:
+        id: contrqbitlabel
+        pos_hint: {"right": 0.35, "center_y": 0.9}
+        size_hint: None, None
+        size: (160, 15)
+        markup: True
+        color: (0.6,0.9,0.6,1)
+        halign:'left'
+        text: "Control qubits: [b]0[/b]"
+        
+        
+    Label: 
+        id: targqbitlabel
+        pos_hint: {"right": 0.85, "center_y": 0.9}
+        size_hint: None, None
+        size: (160, 15)
+        markup: True
+        color: (0.6,0.9,0.6,1)
+        halign:'right'
+        text: "Target qubits: [b]1[/b]"
+    
+    
+    
+    CounterLabel:
+        qubittype: 'control'
+        text:"+"
+        size_hint: 0.025, 0.025
+        pos_hint: {"x": 0.35, "y": 0.9}
+        background_color: 0.6,0.6,0.6,1
+        canvas:
+            Color:
+                rgba: 1,1,1,0.6
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        
+    CounterLabel:
+        qubittype: 'control'
+        text:"-"
+        size_hint: 0.025, 0.025
+        pos_hint: {"x": 0.35, "top": 0.9}
+        background_color: 0.5,0.5,0.5,1
+        canvas:
+            Color:
+                rgba: 1,1,1,0.4
+            Rectangle:
+                pos: self.pos
+                size: self.size    
+        
+    CounterLabel:
+        qubittype: 'target'
+        text:"+"
+        size_hint: 0.025, 0.025
+        pos_hint: {"x": 0.85, "y": 0.9}
+        background_color: 0.6,0.6,0.6,1
+        canvas:
+            Color:
+                rgba: 1,1,1,0.6
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        
+        
+    CounterLabel:
+        qubittype: 'target'
+        text:"-"
+        size_hint: 0.025, 0.025
+        pos_hint: {"x": 0.85, "top": 0.9}
+        background_color: 0.5,0.5,0.5,1
+        canvas:
+            Color:
+                rgba: 1,1,1,0.4
+            Rectangle:
+                pos: self.pos
+                size: self.size
+            
+        
+ 
+            
+            
+    ScrollView:
+        pos_hint: {"x": 0, "top": 0.8}
+        size_hint: (1, 0.7)
+        do_scroll_X: False
+        do_scroll_y: True
+        
+        FloatLayout:
+            id: scroll
+            size_hint_y: None
+            size_hint_x: None
+            pos_hint: {"x": 0, "top": 1}
+     
+     
+    Button:
+        id: applybutton
+        visible: True
+        opacity: 1 if self.visible else 0
+        disabled: not self.visible
+        text: 'Apply'
+        pos_hint: {"right": 0.88, "y": 0.02}
+        size_hint: (0.08, 0.05)
+        on_release:
+            root.apply()
+            
+    Button:
+        text: 'Close'
+        pos_hint: {"right": 0.98, "y": 0.02}
+        size_hint: (0.08, 0.05)
+        on_release:
+            root.close()  
+    
+    
         
         
 <QubitDirection>:
@@ -541,8 +772,6 @@
         size_hint: 0.06, 0.47
         on_release:
             root.ShowDirection()
-
-        
     
         
 <DirectionPanel>:
@@ -577,7 +806,36 @@
             root.close()
 
 
-
+<DemoMenu>:
+    scroll: scroll
+    
+    pos_hint:{"x":0, "top":1}
+    size_hint:(1,1)
+    
+#    pos: app.sm.current_screen.pos
+ #   size: app.sm.current_screen.size
+    
+    FloatLayout:
+        canvas:
+            Color:
+                rgba: 0.7,0.7,0.7,1
+            Rectangle:
+                pos: self.pos
+                size: self.size
+        ScrollView:
+            size_hint: (0.6, 0.6)
+            pos: (root.x+root.width*0.2, root.y+root.height*0.2)
+            do_scroll_X: False
+            do_scroll_y: True
+            
+                   
+            FloatLayout:
+                id: scroll
+                size_hint_y: None
+                size_hint_x: None
+                pos_hint: {"x":0, "top":1}
+                
+                
 
     
 <MenuScreen>:
@@ -607,6 +865,13 @@
             pos_hint: {"x": 0.2, "top":0.7}
             on_release: 
                 root.Custom()
+                
+        Button:
+            text: "Demos"
+            size_hint: (0.6, 0.1)
+            pos_hint: {"x": 0.2, "top":0.55}
+            on_release: 
+                root.Demo()
                 
         Button:
             text: "Exit"
