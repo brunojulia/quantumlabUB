@@ -302,7 +302,7 @@
             pos_hint: {"x": 0.1+0.11*2, "y":0.93-0.07*1}
             on_press: root.cgrid.add_element2(1,1)
             on_release:
-                app.sm.current_screen.ShowDemoMenu()
+                app.sm.current_screen.cgrid.add_element2()
             
         Button:
             disabled: True

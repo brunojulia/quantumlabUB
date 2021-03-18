@@ -47,8 +47,22 @@ def QiskitConverter(matrix, multigates, row_name, gates_2, customgates, angles):
                             
                             
                             File.write(s+text)
-                else:
+                elif matrix[i][j] != 'CROT':
                     File.write(s+'circuit.{}(qr[{}]) \n'.format(matrix[i][j].lower(),i))
+                    
+        for i in multigates:
+            if type(i[2])==list and i[-1]==j:
+                if i[0]==[]:
+                    string=str(i[2][0])+', '+str(i[2][1])+', 0, qr[{}])\n'.format(i[1][0])
+                    File.write(s+'circuit.u3('+string)
+                    
+                else:
+                    File.write('\n'+s+'crot = QuantumCircuit(QuantumRegister({})) \n'.format(len(i[1])))
+                    
+                    string=str(i[2][0])+', '+str(i[2][1])+', 0, [{}])\n'.format('0')
+                    File.write(s+'crot.u3('+string)
+                    
+                    File.write(s+'circuit.mcmt(crot, {}, {})\n'.format((i[0]), (i[1])))
     
     File.write('\n'+s+'plotresults = execute(circuit,backend).result().get_statevector()\n')
     for i in range(matrix.shape[0]):

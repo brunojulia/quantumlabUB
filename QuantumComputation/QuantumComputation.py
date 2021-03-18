@@ -58,7 +58,7 @@ import QiskitCircuit
 global deletedgates
 global arbitrary
 deletedgates=[]
-arbitrary={'theta':0,'phi':0, 'control': 0, 'target':1, 'pressed':0}
+arbitrary={'theta':0,'phi':0, 'control': 0, 'target':1, 'pressed':0, 'name':'CROT'}
 
 
 def reload_module(package):
@@ -119,8 +119,8 @@ def InitValues():
     cellsize=50
     space=5
     
-    gates_angles={'H': (1,0,0),'X': (1,0,0),'CX': (2,0,0),'CCX': (3,0,0),'SWAP': (2,0,0),'ID': (1,0,0),'T': (1,0,0),
-                  'S': (1,0,0),'Tdg': (1,0,0),'Sdg': (1,0,0),'Y': (1,0,0),'Z': (1,0,0),}
+    gates_angles={'H': (1,0,0),'X': (1,0,0),'CX': (2,0,0),'CCX': (3,0,0),'SWAP': (2,0,0),'ID': (1,0,0),'T': (1,0,np.pi/4),
+                  'S': (1,0,np.pi/2),'Tdg': (1,0,-np.pi/4),'Sdg': (1,0,-np.pi/2),'Y': (1,0,0),'Z': (1,0,np.pi),}
     
 
 class Gate_mouse(Button):
@@ -275,7 +275,7 @@ class Gate_panel(Button):
                 cgrid.remove_widget(cgrid.scatter)
             except:
                 pass
-        if pressed != 'multigate' and pressed != 'arbitrary':
+        if pressed != 'multigate' and pressed != 'CROT':
             pressed=''
             arbitrary['pressed']=0
        
@@ -338,8 +338,9 @@ class CCell(FloatLayout):
         global pressed
         global multigate
         global rowsconnected
-        global prev
         global multigates
+        global multiplerows
+        global prev
         global canvascell
      
         
@@ -360,18 +361,27 @@ class CCell(FloatLayout):
                   
                 
                 elif (pressed in gates_2) or (pressed in customgates) or (pressed=='arbitrary'):
+                    rowsconnected=[]
                     if currentcell != '':
                         self.remove_widget(self.gate)
                     gatetext=pressed
                     if pressed in customgates:
                         gatetext=pressed+'\n0'
                     if arbitrary['pressed']==1:
+                        pressed='CROT'
+                        multiplerows=[]
                         if arbitrary['control']==0:
-                            gatetext=pressed
+                            gatetext=arbitrary['name']
                             arbitrary['tremaining']=arbitrary['tremaining']-1
+                            rowsconnected.append(multiplerows)
+                            multiplerows=[row]
                         else:
                             gatetext='-'+pressed
                             arbitrary['cremaining']=arbitrary['cremaining']-1
+                            multiplerows.append(row)
+                            if arbitrary['cremaining']==0:
+                                rowsconnected.append(multiplerows)
+                                multiplerows=[]
                     gate=Gate_circuit(text=(gatetext), pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
                     currentcell= pressed
                     self.gate=gate
@@ -381,18 +391,31 @@ class CCell(FloatLayout):
                     if arbitrary['pressed']==1 and arbitrary['tremaining']==0:
                         pressed=''
                         arbitrary['pressed']=0
+                        for i in gates_angles:
+                            if arbitrary['theta']==gates_angles[i][1] and arbitrary['phi']==gates_angles[i][2]:
+                                self.gate.text=i
+                                currentcell=i
+                                return
+                                
+                                
+                                
+                        rowsconnected.append(multiplerows)
+                        rowsconnected.append([arbitrary['theta'], arbitrary['phi'], arbitrary['name']])
+                        rowsconnected.append(col)
+                        multigates.append(rowsconnected)    
                         return
 
                     if arbitrary['pressed']==1:
                         multigate=(row,col, pressed, arbitrary['control']+arbitrary['target'])
                     else:
+                        rowsconnected=[row]
                         try:
                             multigate=(row, col, pressed, gates_2[pressed])
                         except:
                             multigate=(row, col, pressed, customgates[pressed])
                      
                         
-                    rowsconnected=[row]
+                    
                     Clock.schedule_once(lambda dt:self.multigate(), 0)
                     
                     canvascell=cgrid.rows[row].cols[col]
@@ -431,7 +454,7 @@ class CCell(FloatLayout):
                     prev.append(col)
                     multigates.append(prev)
                     
-                    cgrid.rows[prev[0]].cols[prev[-1]].multigate_lines(prev)
+                    cgrid.rows[prev[0]].cols[prev[-1]].multigate_lines(prev, prev[0])
                     
                 
                 else:
@@ -448,12 +471,23 @@ class CCell(FloatLayout):
         super(CCell, self).on_touch_up(touch)
         
     
-    def multigate_lines(self, gaterows):
+    def multigate_lines(self, gaterows, row):
         global cgrid
+        qubits=[]
+        for i in gaterows[0:-1]:
+            if type(i)==list:
+                if type(i[-1])!=str:
+                    for j in i:
+                        qubits.append(j)
+            else:
+                qubits.append(i)
+        qubits.remove(row)
+        
+        
         with self.canvas.before:
             Color(0,0,0,0.5)
             self.rect=Rectangle(group='multigate',size=self.size,pos=self.pos)
-            for i in gaterows[1:-1]:
+            for i in qubits:
                 canvascell2=cgrid.rows[i].cols[gaterows[-1]]
                 self.rect=Rectangle(group='multigate',size=canvascell2.size,pos=canvascell2.pos)
                 self.line=Line(
@@ -474,8 +508,13 @@ class CCell(FloatLayout):
         global canvascell
         
         for i in rowsconnected:
-            cgrid.rows[i].cols[multigate[1]].remove_widget(cgrid.rows[i].cols[multigate[1]].gate)
-            matrix[i][multigate[1]]=''
+            if type(i)==list:
+                for j in i:
+                    cgrid.rows[i].cols[multigate[1]].remove_widget(cgrid.rows[i].cols[multigate[1]].gate)
+                    matrix[i][multigate[1]]=''
+            else:
+                cgrid.rows[i].cols[multigate[1]].remove_widget(cgrid.rows[i].cols[multigate[1]].gate)
+                matrix[i][multigate[1]]=''
             
         pressed=''
         arbitrary['pressed']=0
@@ -489,9 +528,9 @@ class CCell(FloatLayout):
         global currentcell
         global pressed
         global rowsconnected
+        global multiplerows
         global canvascell
         
-        print(arbitrary)
         
         if (multigate[1]!=col) or (row in rowsconnected):
             Clock.schedule_once(lambda dt:self.deletecurrent(), 0.05)
@@ -499,28 +538,37 @@ class CCell(FloatLayout):
         else:   
             if currentcell != '':
                 self.remove_widget(self.gate)
-            rowsconnected.append(row)
-            if multigate[2] in ('SWAP'):
-                pref=''
-                gate=Gate_circuit(text=(pref+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
-
-            elif multigate[2] in customgates:
                 
-                suf=str(customgates[multigate[2]]-multigate[3]+1)
-                gate=Gate_circuit(text=(multigate[2]+'\n'+suf),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
-
-            elif arbitrary['pressed']==1:
+            if arbitrary['pressed']==1:
+                multiplerows.append(row)
                 if arbitrary['cremaining']>0:
-                    pref='-'
+                    gatetext='-CROT'
                     arbitrary['cremaining']=arbitrary['cremaining']-1
+                    if arbitrary['cremaining']==0:
+                        rowsconnected.append(multiplerows)
+                        multiplerows=[]
                 else:
-                    pref=''
+                    gatetext=arbitrary['name']
                     arbitrary['tremaining']=arbitrary['tremaining']-1
-                gate=Gate_circuit(text=(pref+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
-
+                    if arbitrary['tremaining']==0:
+                        rowsconnected.append(multiplerows)
+                        rowsconnected.append([arbitrary['theta'], arbitrary['phi'], arbitrary['name']])
+                gate=Gate_circuit(text=(gatetext),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+            
             else:
-                pref='--'
-                gate=Gate_circuit(text=(pref+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+                rowsconnected.append(row)
+                if multigate[2] in ('SWAP'):
+                    pref=''
+                    gate=Gate_circuit(text=(pref+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+    
+                elif multigate[2] in customgates:
+                    
+                    suf=str(customgates[multigate[2]]-multigate[3]+1)
+                    gate=Gate_circuit(text=(multigate[2]+'\n'+suf),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
+    
+                else:
+                    pref='--'
+                    gate=Gate_circuit(text=(pref+multigate[2]),pos=(self.x+0.05*cellsize, self.y+0.05*cellsize))
                 
 
             currentcell= multigate[2]
@@ -592,7 +640,7 @@ class CRow(FloatLayout):
                                         gatetext=matrix[num][i]+'\n0'
                                   
                                     cgrid.rows[num].cols[i].canvas.before.remove_group('multigate')
-                                    cgrid.rows[num].cols[i].multigate_lines(j)
+                                    cgrid.rows[num].cols[i].multigate_lines(j, num)
                                 else:
                                     if matrix[num][i] in ('SWAP'):
                                         pref=''
@@ -607,6 +655,21 @@ class CRow(FloatLayout):
                                         pref='--'
                                         gatetext=pref+matrix[num][i]
                                     
+                    elif matrix[num][i]=='CROT':
+                        for j in multigates:
+                            if j[-1]==i and type(j[2])==list:
+                                if num in j[1]:
+                                    gatetext=j[2][2]
+
+                                    if j[1][-1]==num:
+                                        cgrid.rows[num].cols[i].canvas.before.remove_group('multigate')
+                                        cgrid.rows[num].cols[i].multigate_lines(j, num)
+                                elif num in j[0]:
+                                    gatetext='+'
+                                    
+                                        
+                        
+                    
                     else:
                         gatetext=matrix[num][i]
                         currentcell=matrix[num][i]
@@ -1251,7 +1314,9 @@ class ArbitraryPanel(FloatLayout):
     targqbitlabel=ObjectProperty(None)
     applybutton=ObjectProperty(None)
     def __init__ (self, **kwargs):
+        global arbitrary
         super(ArbitraryPanel, self).__init__(**kwargs)
+        arbitrary['name']='CROT'
         
         self.scroll.pos_hint= {"x":0, "top":1}
         root.sm.current_screen.canva.disabled = True
@@ -1346,6 +1411,7 @@ class ArbitraryPanel(FloatLayout):
             self.scroll.add_widget(self.sliders)
             self.sliders.slidertheta.value=arbitrary['theta']
             self.sliders.sliderphi.value=arbitrary['phi']
+            
         
     def SetAngles(self, i, *args):
         self.sliders.slidertheta.value=gates_angles[i.text][1]
@@ -1359,6 +1425,12 @@ class ArbitraryPanel(FloatLayout):
         arbitrary['cremaining']=arbitrary['control']
         arbitrary['tremaining']=arbitrary['target']
         
+        arbitrary['phi']=self.sliders.sliderphi.value
+        arbitrary['theta']=self.sliders.slidertheta.value
+        
+        for k in gates_angles:
+            if arbitrary['theta']==gates_angles[k][1] and arbitrary['phi']==gates_angles[k][2]:
+                arbitrary['name']=k
         
         self.close()
         
@@ -1455,8 +1527,8 @@ class DemoScreen(BuilderScreen):
     def __init__(self, **kwargs):
         super(DemoScreen, self).__init__(**kwargs)
         
-        self.gatesbutton.disabled= True
-        self.gatesbutton.opacity=0
+        self.gatesbutton.disabled= False
+        self.gatesbutton.opacity=0.2
         self.probbutton.disabled= True
         self.probbutton.opacity= 0
         self.probpanel.visible=True
@@ -1517,7 +1589,7 @@ class DemoScreen(BuilderScreen):
         screen=root.sm.current_screen
         screen.canva.disabled= False
         
-        self.gatesbutton.disabled= True
+        self.gatesbutton.disabled= False
         self.probbutton.disabled= True
         self.cgrid.addcolbutton.disabled=True
         self.cgrid.removecolbutton.disabled=True
