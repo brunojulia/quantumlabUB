@@ -25,6 +25,8 @@
         clau1_text: publidir2.clau1
         
     Multiplayer:
+    
+    Aliceibob:
       
 
         
@@ -636,169 +638,169 @@
     pause_id: pause_id
     
     
-    
     BoxLayout:
-        orientation: 'vertical'
-        
-        Label:
-            id: nmesura
-            text: root.nmesura_text
-            size_hint: 1,0.08
-            
-        
-        
-    
+        orientation: 'horizontal'
         BoxLayout:
-            orientation: 'horizontal'
-            size_hint: 1,0.92
+            orientation: 'vertical'
+            size_hint: 0.8,1
             
-            
+            Label:
+                id: nmesura
+                text: root.nmesura_text
+                size_hint: 0.8,0.08
+                
         
-            BoxLayout: 
-                orientation: 'horizontal'
-                size_hint: 1, 0.2
-                spacing: 100
-                padding: 5
-                #pos_hint: {'center_x':1}
-                #anchor_x: 'center'
-                
-                
-                Button: 
-                    text: '[color=#FFC872]Inici[/color]'  
-                    markup: True         
-                    
-                    size_hint: 0.3, 0.5
-                    #pos_hint: {"top":1}
-                    background_color: [0,0,0,1]
-                        #0,0.9,0.5,1
-                    canvas.before:
-                        Color:
-                            rgba: 1,0.89,0.7,1
-                        Line:
-                            width: 1.5
-                            rectangle: self.x, self.y, self.width, self.height
-                            
-                    
-                    on_press:
-                        app.root.current = "home"
-                        root.manager.transition.direction = "right"
-                    
-                Button:
-                    id: start1
-                    
-                    text: 'Començar'
-                    
-                    color: [0.2,0.7,0.53,1] 
-                    size_hint_x: 0.35
-                    size_hint_y: 0.5
-                    #pos_hint: {'bottom': 1, 'center_y':1}
-                    background_color: [0,0,0,1]
-                    #(1,0.5,0,1)
-                    canvas.before:
-                        Color:
-                            rgba: 1,0.89,0.7,1
-                        Line:
-                            width: 1.5
-                            rectangle: self.x, self.y, self.width, self.height
-                    on_press: 
-                        root.start()
-                    
-                Button:
-                    id: pause_id
-                    
-                    text: '' #Oju que si canvio això també ho he de fer amb el codi .py (start)
-                    markup:True
-                    background_normal: 'pause1.jpg'
-                    #background_down: 'pause1.jpg'
-                    size_hint: 0.2, 0.5
-                    canvas.before:
-                        Color:
-                            rgba: 1,0.89,0.7,1
-                        Line:
-                            width: 2
-                            rectangle: self.x, self.y, self.width, self.height
-                            
-                    on_press:
-                        root.pause()
-                        
-                Button:
-                    text:'[color=#7ACE67]Acabar i compartir[/color]'
-                    markup: True
-                    size_hint: 0.6, 0.5 
-                    background_color: [0,0,0,1]
-                    canvas.before:
-                        Color:
-                            rgba: 1,0.89,0.7,1
-                        Line:
-                            width: 1.5
-                            rectangle: self.x, self.y, self.width, self.height
-                    
-                    on_press: 
-                        root.acabaricompartir()
-                        root.change_text()
-                        
-                Button:
-                    text: '[color=#7ACE67]Compartir dades[/color]'
-                    markup: True
-                    size_hint: 0.6, 0.5 
-                    background_color: [0,0,0,1]
-                    canvas.before:
-                        Color:
-                            rgba: 1,0.89,0.7,1
-                        Line:
-                            width: 1.5
-                            rectangle: self.x, self.y, self.width, self.height
-                    
-                    on_press:
-                        root.change_text()
-                        root.pause()
-                   
-                   
             BoxLayout:
-                orientation: 'vertical'
-                size_hint: 0.2,1
-                canvas.before:
-                    Rectangle:
-                        pos: self.pos
-                        size: self.size
-                        source: 'note.jpg'
-                        
-                Label:
-                    text: '[color=##000000][b]Resultats[/b][/color]'
-                    markup: True
-                    
-                Label:
-                    text:'Direccions'
-                    color: [0,0,0,1] 
+                orientation: 'horizontal'
+                size_hint: 1,0.92
+                
+                
             
-                ScrollView:
-                    scroll_x: 1
-                    Label:
-                        id: bit1
-                        text: ''
-                        text_size: 260, None
-                        halign: 'center'
-                        size_hint: None, None     
-                        size: self.texture_size
-                        color: [0,0,0,1]                  
+                BoxLayout: 
+                    orientation: 'horizontal'
+                    size_hint: 1, 0.2
+                    spacing: 100
+                    padding: 5
+                    #pos_hint: {'center_x':1}
+                    #anchor_x: 'center'
                     
+                    
+                    Button: 
+                        text: '[color=#FFC872]Inici[/color]'  
+                        markup: True         
+                        
+                        size_hint: 0.3, 0.5
+                        #pos_hint: {"top":1}
+                        background_color: [0,0,0,1]
+                            #0,0.9,0.5,1
+                        canvas.before:
+                            Color:
+                                rgba: 1,0.89,0.7,1
+                            Line:
+                                width: 1.5
+                                rectangle: self.x, self.y, self.width, self.height
+                                
+                        
+                        on_press:
+                            app.root.current = "home"
+                            root.manager.transition.direction = "right"
+                        
+                    Button:
+                        id: start1
+                        
+                        text: 'Començar'
+                        
+                        color: [0.2,0.7,0.53,1] 
+                        size_hint_x: 0.35
+                        size_hint_y: 0.5
+                        #pos_hint: {'bottom': 1, 'center_y':1}
+                        background_color: [0,0,0,1]
+                        #(1,0.5,0,1)
+                        canvas.before:
+                            Color:
+                                rgba: 1,0.89,0.7,1
+                            Line:
+                                width: 1.5
+                                rectangle: self.x, self.y, self.width, self.height
+                        on_press: 
+                            root.start()
+                        
+                    Button:
+                        id: pause_id
+                        
+                        text: '' #Oju que si canvio això també ho he de fer amb el codi .py (start)
+                        markup:True
+                        background_normal: 'pause1.jpg'
+                        #background_down: 'pause1.jpg'
+                        size_hint: 0.2, 0.5
+                        canvas.before:
+                            Color:
+                                rgba: 1,0.89,0.7,1
+                            Line:
+                                width: 2
+                                rectangle: self.x, self.y, self.width, self.height
+                                
+                        on_press:
+                            root.pause()
+                            
+                    Button:
+                        text:'[color=#7ACE67]Acabar i compartir[/color]'
+                        markup: True
+                        size_hint: 0.6, 0.5 
+                        background_color: [0,0,0,1]
+                        canvas.before:
+                            Color:
+                                rgba: 1,0.89,0.7,1
+                            Line:
+                                width: 1.5
+                                rectangle: self.x, self.y, self.width, self.height
+                        
+                        on_press: 
+                            root.acabaricompartir()
+                            root.change_text()
+                            
+                    Button:
+                        text: '[color=#7ACE67]Compartir dades[/color]'
+                        markup: True
+                        size_hint: 0.6, 0.5 
+                        background_color: [0,0,0,1]
+                        canvas.before:
+                            Color:
+                                rgba: 1,0.89,0.7,1
+                            Line:
+                                width: 1.5
+                                rectangle: self.x, self.y, self.width, self.height
+                        
+                        on_press:
+                            root.change_text()
+                            root.pause()
+                   
+                   
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint: 0.2,1
+            canvas.before:
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+                    source: 'note.jpg'
+                        
+            Label:
+                text: '[color=##000000][b]Resultats[/b][/color]'
+                markup: True
+                    
+            Label:
+                text:'Direccions'
+                color: [0,0,0,1] 
+            
+            ScrollView:
+                scroll_x: 1
                 Label:
-                    text:'Bits'
-                    color: [0,0,0,1]                 
-                ScrollView:
-                    Label:
-                        id:bit2
-                        text:''
-                        text_size: 260, None #perquè s'alinei
-                        halign: 'center'     #""
-                        size_hint: None, None   #perquè es pugui fer scroll view   
-                        size: self.texture_size#"" ""
-                        color: [0,0,0,1] 
+                    id: bit1
+                    text: ''
+                    text_size: 260, None
+                    halign: 'center'
+                    size_hint: None, None     
+                    size: self.texture_size
+                    color: [0,0,0,1]                  
+                    
+            Label:
+                text:'Bits'
+                color: [0,0,0,1]                 
+            ScrollView:
                 Label:
-                    id:bits
-                    text: 'Bits totals:  '
+                    id:bit2
+                    text:''
+                    text_size: 260, None #perquè s'alinei
+                    halign: 'center'     #""
+                    size_hint: None, None   #perquè es pugui fer scroll view   
+                    size: self.texture_size#"" ""
                     color: [0,0,0,1] 
-         
+            Label:
+                id:bits
+                text: 'Bits totals:  '
+                color: [0,0,0,1] 
+        
             
 <Publidir2>:
     name: "Publidir2"
@@ -1158,56 +1160,282 @@
                     app.root.current = "home"
                     root.manager.transition.direction = "right"
                     
-
 <Multiplayer>:
-    name: "multiplayer"
+    name: "multiplayer" 
+    waitingalice: waitingalice
+    waitingbob: waitingbob
     
-    AnchorLayout:
-        anchor_x: 'left'
-        anchor_y: 'bottom'
+    
+    BoxLayout:
+        orientation: 'vertical'           
+            
         
-        BoxLayout:
+        BoxLayout: 
+            orientation: 'vertical'
+            size_hint: 1, 0.8
+            spacing: 50
+            padding: 5
+            
+            Label:
+                text:'Esperant a que hi hagi dues persones connectades per començar :)'
+                    
+            GridLayout:
+                #orientation: 'horizontal'
+                size_hint:1, 0.8
+                spacing: 0
+                padding: 10
+                cols: 2
+                
+                Label: 
+                    text: 'Alice'
+                    font_size: 30
+                Label:
+                    text:'Bob'
+                    font_size: 30
+                Label:
+                    text:'Esperant a la seva connexió...'   
+                    id: waitingalice
+                Label:
+                    text: 'Esperant a la seva connexió...'
+                    id: waitingbob             
+        BoxLayout: 
             orientation: 'horizontal'
-            size_hint: 0.4, .05
+            size_hint: 1, 0.2
+            spacing: 100
+            padding: 5
+            #pos_hint: {'center_x':1}
+            #anchor_x: 'center'
             
             
-            Button:
-                background_color: 0,0,0,1
-                text: '[color=FFC872]Inici[/color]'
-                markup: True
+            Button: 
+                text: '[color=#FFC872]Inici[/color]'  
+                markup: True         
                 
-                canvas.before:
-                    Color:
-                        rgba: 1,0.89,0.7,1
-                    Line:
-                        width: 2
-                        rectangle: self.x, self.y, self.width, self.height
-                
-                on_press:
-                    app.root.current = "home"
-                    root.manager.transition.direction = "right"
-                    
-            Button:
-                id: start1
-                    
-                text: 'Començar'
-                    
-                color: [0.2,0.7,0.53,1] 
-                #size_hint_x: 0.35
-                #size_hint_y: 0.5
-                #pos_hint: {'bottom': 1, 'center_y':1}
+                size_hint: 0.3, 0.5
+                #pos_hint: {"top":1}
                 background_color: [0,0,0,1]
-                #(1,0.5,0,1)
+                    #0,0.9,0.5,1
                 canvas.before:
                     Color:
                         rgba: 1,0.89,0.7,1
                     Line:
                         width: 1.5
                         rectangle: self.x, self.y, self.width, self.height
-                on_press: 
-                    root.start_multi()
-
+                        
+                
+                on_press:
+                    app.root.current = "home"
+                    root.manager.transition.direction = "right"
+                    
+            Button:
+                text: "Connecta't"
+                color: [0.2,0.7,0.53,1]
+                markup: True
+                size_hint: 0.6, 0.5 
+                background_color: [0,0,0,1]
+                canvas.before:
+                    Color:
+                        rgba: 1,0.89,0.7,1
+                    Line:
+                        width: 1.5
+                        rectangle: self.x, self.y, self.width, self.height
+                
+                on_press:
+                    root.button()
+                
+                    
+            Button:
+                text: '[color=#7ACE67]Començar[/color]'
+                markup: True
+                size_hint: 0.6, 0.5 
+                background_color: [0,0,0,1]
+                canvas.before:
+                    Color:
+                        rgba: 1,0.89,0.7,1
+                    Line:
+                        width: 1.5
+                        rectangle: self.x, self.y, self.width, self.height
+                
+                on_press:
+                    #app.root.current = "aliceibob"
+                    root.continuar_btt()
+                    root.manager.transition.direction = "left"
+                    
+                    
+        
     
+    
+        
+<Aliceibob>:
+    name: 'aliceibob'
+    start1: start1
+    bit1: bit1
+    bit2: bit2
+    bits: bits
+    
+    BoxLayout:
+        orientation: 'vertical'
+        
+        #Label:
+          #  id: nmesura
+           # text: root.nmesura_text
+           # size_hint: 1,0.08
+            
+    
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1,0.92
+            
+            
+        
+            BoxLayout: 
+                orientation: 'horizontal'
+                size_hint: 1, 0.2
+                spacing: 100
+                padding: 5
+                #pos_hint: {'center_x':1}
+                #anchor_x: 'center'
+                
+                
+                Button: 
+                    text: '[color=#FFC872]Inici[/color]'  
+                    markup: True         
+                    
+                    size_hint: 0.3, 0.5
+                    #pos_hint: {"top":1}
+                    background_color: [0,0,0,1]
+                        #0,0.9,0.5,1
+                    canvas.before:
+                        Color:
+                            rgba: 1,0.89,0.7,1
+                        Line:
+                            width: 1.5
+                            rectangle: self.x, self.y, self.width, self.height
+                            
+                    
+                    on_press:
+                        app.root.current = "home"
+                        root.manager.transition.direction = "right"
+                    
+                Button:
+                    id: start1
+                    
+                    text: 'Començar'
+                    
+                    color: [0.2,0.7,0.53,1] 
+                    size_hint_x: 0.35
+                    size_hint_y: 0.5
+                    #pos_hint: {'bottom': 1, 'center_y':1}
+                    background_color: [0,0,0,1]
+                    #(1,0.5,0,1)
+                    canvas.before:
+                        Color:
+                            rgba: 1,0.89,0.7,1
+                        Line:
+                            width: 1.5
+                            rectangle: self.x, self.y, self.width, self.height
+                    on_press: 
+                        root.start_multi()
+                    
+                Button:
+                    id: pause_id
+                    
+                    text: ''
+                    markup:True
+                    background_normal: 'pause1.jpg'
+                    #background_down: 'pause1.jpg'
+                    size_hint: 0.2, 0.5
+                    canvas.before:
+                        Color:
+                            rgba: 1,0.89,0.7,1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                            
+                    on_press:
+                        root.pause()
+                        
+                Button:
+                    text:'[color=#7ACE67]Acabar i compartir[/color]'
+                    markup: True
+                    size_hint: 0.6, 0.5 
+                    background_color: [0,0,0,1]
+                    canvas.before:
+                        Color:
+                            rgba: 1,0.89,0.7,1
+                        Line:
+                            width: 1.5
+                            rectangle: self.x, self.y, self.width, self.height
+                    
+                    on_press: 
+                        root.acabaricompartir()
+                        root.change_text()
+                        
+                Button:
+                    text: '[color=#7ACE67]Compartir dades[/color]'
+                    markup: True
+                    size_hint: 0.6, 0.5 
+                    background_color: [0,0,0,1]
+                    canvas.before:
+                        Color:
+                            rgba: 1,0.89,0.7,1
+                        Line:
+                            width: 1.5
+                            rectangle: self.x, self.y, self.width, self.height
+                    
+                    on_press:
+                        root.change_text()
+                        root.pause()
+                   
+                   
+            BoxLayout:
+                orientation: 'vertical'
+                size_hint: 0.2,1
+                canvas.before:
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                        source: 'note.jpg'
+                        
+                Label:
+                    text: '[color=##000000][b]Resultats[/b][/color]'
+                    markup: True
+                    
+                Label:
+                    text:'Direccions'
+                    color: [0,0,0,1] 
+            
+                ScrollView:
+                    scroll_x: 1
+                    Label:
+                        id: bit1
+                        text: ''
+                        text_size: 260, None
+                        halign: 'center'
+                        size_hint: None, None     
+                        size: self.texture_size
+                        color: [0,0,0,1]                  
+                    
+                Label:
+                    text:'Bits'
+                    color: [0,0,0,1]                 
+                ScrollView:
+                    Label:
+                        id:bit2
+                        text:''
+                        text_size: 260, None #perquè s'alinei
+                        halign: 'center'     #""
+                        size_hint: None, None   #perquè es pugui fer scroll view   
+                        size: self.texture_size#"" ""
+                        color: [0,0,0,1] 
+                Label:
+                    id:bits
+                    text: 'Bits totals:  '
+                    color: [0,0,0,1] 
+    
+
+
+        
     
 
 # -------------------Finestres Popup------------------------

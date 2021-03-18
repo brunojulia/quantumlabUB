@@ -22,6 +22,7 @@ from kivy.uix.floatlayout import FloatLayout
 import os
 #Per fer el multiplayer online
 from network import Network
+from player import Player
 
 with open("encriptacio1.kv", encoding='utf-8') as kv_file:
     Builder.load_string(kv_file.read())
@@ -941,10 +942,6 @@ def addnumpart(array):
 
 
 
-
-
-
-
 #Funcions per multiplayers
 def read_pos(str): #rebem string i ho passem a tupla
     str=str.split(",")
@@ -953,6 +950,16 @@ def read_pos(str): #rebem string i ho passem a tupla
 def write_pos(tup): #rebem tupla i ho passem a string
     return str(tup[0])+","+str(tup[1])
     
+def read_pos2(str):
+    str=str.split(",")
+    pos=int(str[0]),int(str[1])
+    player=int(str[2])
+    return pos,player
+
+
+
+
+
 
 '------------------Funció Popup-----------------------------'
 
@@ -1281,7 +1288,7 @@ class Publidir2(Screen):
             if self.boolean ==True:
                 show_popup(show_popup,1)
             else:
-                show_popup(show_popup,4)
+                show_popup(show_popup,2)
                 self.continuar=1
         else:
             show_popup(show_popup,9)
@@ -1655,7 +1662,6 @@ class Bob(Screen):
         global event_mov
         
         if self.start1.text=='Tornar a començar':
-            
             event_ini1.cancel()
             event_ini2.cancel()
             event_mov.cancel()
@@ -1747,14 +1753,86 @@ class Bob(Screen):
 
 
 
-
-
-        
 class Multiplayer(Screen):
     global n
-    n=Network() 
+    n=Network()
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        global n
+        self.p=n.getP()
+        print('Player',self.p.nplayer)
+        print('Llest?',self.p.ready)
+        
+        Multiplayer.p=self.p
+        
+        self.p0ready=False
+        self.p1ready=False
+        
+        self.continuar=False
+        
+    def connection(self,dt):
+            #print('Intento enviar p:',self.p.nplayer)
+
+            self.p2=n.send(self.p)
+            
+            #print('Rebo el p:',self.p2.nplayer,'connectat?',self.p2.ready)
+            
+            if self.p.nplayer==0 and self.p2.ready:
+                self.p1ready=True
+                self.waitingbob.text= 'A punt'
+            elif self.p.nplayer==0 and self.p2.ready==False:
+                self.p1ready=False
+                self.waitingbob.text= 'Esperant connexió...'
+                
+            if self.p.nplayer==1 and self.p2.ready:
+                self.p0ready=True
+                self.waitingalice.text= 'A punt'
+            elif self.p.nplayer==1 and self.p2.ready==False:
+                self.p0ready=False
+                self.waitingalice.text= 'Esperant connexió...'
+                
+            if self.p0ready and self.p1ready:
+                self.continuar=True
+            else:
+                self.continuar= False
+                
+            
+    def button(self):
+        global n
+        
+        if self.p.nplayer==0:
+            self.waitingalice.text='A punt'
+            self.p0ready=True
+            self.conectat0=True
+        else:
+            self.waitingbob.text='A punt'
+            self.p1ready=True
+            self.conectat1= True
+        self.p.ready=True
+        
+        print('Player:',self.p.nplayer, 'Estàs a punt?', self.p.ready)
+        
+        self.event_connect=Clock.schedule_interval(self.connection,0)
+        
+            
+    
+    def continuar_btt(self):
+        ''''''' Funció per passar la informació a la screen Clau'''''''
+       
+        if self.continuar:
+            self.event_connect.cancel()
+            self.manager.current= "aliceibob"
+            
+
+    
+
+
+class Aliceibob(Screen):
+    #global n
+    #n=Network() 
     
     def __init__(self,**kwargs):
+       
         super().__init__(**kwargs)
         '''
         self._keyboard_multi = Window.request_keyboard(self._on_keyboard_closed,self)
@@ -1763,22 +1841,27 @@ class Multiplayer(Screen):
         '''
         #per agafar la posició inicial dels dos jugadors, la demanem ja per xarxa
         global n      
-        startPos= read_pos(n.getPos()) 
-        #print('posició inicial', startPos)
+        #self.p=n.getP()
+        self.p=Multiplayer.p
+        
+        print('Player',self.p.nplayer)
+        startPos=(self.p.x,self.p.y)
+        
+        #startPos=(100,100)
+        self.pause1m=0
+        self.init=0
+        self.j=0
         
         with self.canvas:
             self.player1 = Rectangle(source="up2.png",pos=startPos,size=(50,100)) #Es pot posar una imatge si es vol com a en Bob
-            #self.player1_dir="z"
-            self.player2=  Rectangle(source="up.png",pos=(Window.size[0]*0.7,Window.size[1]*0.5),size=(50,100))
+            self.player2=  Rectangle(pos=(Window.size[0]*0.7,Window.size[1]*0.5),size=(50,100))
             
         '''    
         self.keysPressed_multi = set()        
         self._entities_multi= set()
         '''
-        #Clock.schedule_interval(self.move_step,0) #El 0 és cada frame, pro si poses un 2 és cada 2 segons (oframes?)    
-        self.pause1m=0
         
-        #coses de network nse si haurien d'anar aquí
+        
         
         
         
@@ -1819,54 +1902,188 @@ class Multiplayer(Screen):
             currenty-=step_size 
                     
         self.player1.pos = (currentx, currenty)
+        self.p.x=currentx
+        self.p.y=currenty
         
-        
-        
-        #Anem a enviar i rebre coses del network
-        #n = Network()
-        global n
-        #print('server',n.server)
-        
-        #print('Posició actual (el que s hauria d enviar)',((self.player1.pos[0],self.player1.pos[1])))
-        player2pos= read_pos(n.send(write_pos((int(self.player1.pos[0]),int(self.player1.pos[1])))))
-        #print('que rebem dspres d enviar',player2pos)
-        self.player2.pos=(player2pos[0],player2pos[1])
-        
-        #self.player2.pos[1]=player2pos[1]
-                
-        '''
         #Part de canviar de direcció
-        if ("up" in self.keysPressed) and self.pause1m==0:
+        if ("up" in self.keysPressed_multi) and self.pause1m==0:
             self.player1_dir="z"
             
             with self.canvas:
                 self.canvas.remove(self.player1)
                 self.player1 = Rectangle(source="up2.png",pos=(currentx,currenty),size=(50,100))
             
-        if "right" in self.keysPressed and self.pause1m==0:
+        if "right" in self.keysPressed_multi and self.pause1m==0:
             self.player_dir="x"
             
             with self.canvas:
                 self.canvas.remove(self.player1)
                 self.player1 = Rectangle(source="right2.2.png",pos=(currentx,currenty),size=(80,100))
+                
+        if "spacebar" in self.keysPressed_multi and self.pause1m==0 and self.p.nplayer==0:
+            event_ini1=Clock.schedule_once(self.newparticle)
+            #Moviment de la partícula 
+            #
+            #self.j-=1    
+                
         
         
-        '''
+        #Anem a enviar i rebre coses del network
+        global n
+        self.p2=n.send(self.p)
+        #print('Posició actual (el que s hauria d enviar)',((self.player1.pos[0],self.player1.pos[1])))
+        #player2pos= read_pos(n.send(write_pos((int(self.player1.pos[0]),int(self.player1.pos[1])))))
+        #print('que rebem dspres d enviar',player2pos)
+        self.player2.pos=(self.p2.x,self.p2.y)
+        
+                
+        
+        
+    def particlemoving(self,dt):
+         '''"Moviment de la partícula"'''
+        
+        
+         if self.j==1 and self.pause1m==0:
+            #print('comparat',comparat)
+            partx=self.particle.pos[0]
+            party=self.particle.pos[1]
+        
+            step_size=300*dt
+            #print('dt',dt, 'step_size',step_size)
+
+            partx+=step_size
+        
+            self.particle.pos = (partx,party)
+        
+            #
+            if self.p.nplayer==0:
+                alice_pos=self.player1.pos
+                bob_pos=self.player2.pos
+            else:
+                alice_pos=self.player2.pos
+                bob_pos=self.player1.pos 
+                
+            #Col·lisió
+            
+            if collide((bob_pos,self.player1.size),(self.particle.pos,self.particle.size)):
+                self.canvas.remove(self.particle)
+                self.event_mov.cancel()  
+                if self.j==1: #Perquè no ho faci més d'un cop
+                
+                    if self.collides==0: #Això és per crear la primera matriu 
+                        self.arr1=np.zeros((1,2),dtype=str)
+                    
+                    if Publidir2.comparat==0: #Si no hem publicat encara les dades cap cop
+                        self.collides,self.arr1=Bobresultats2hack(self.collides,hack,self.player_dir,self.arr0, self.arr1)
+                    
+                    else: #Ja hem comparat les dades algun cop
+                    
+                        #Nous valors per l'array de l'Alice
+                        arr01,res,n2=dadesb(5,message)
+                        #arr02=np.concatenate((Publidir2.arr01,arr01),axis=0)
+                        print('publidir2',Publidir2.arr01)
+                        print('2na concanate',addnumpart(arr01))
+                        self.arr0=np.concatenate((Publidir2.arr01[:,1:3],arr01),axis=0) #Array de l'alice amb nous valors
+                        self.arr1=Publidir2.arr11[:,1:3]       #Array d'en Bob
+                       
+                        self.collides=np.shape(Publidir2.arr01)[0] #Això perquè torni a mirar un índex d'abans
+                        
+                        self.collides,self.arr1=Bobresultats2hack(self.collides,hack,self.player_dir,self.arr0,self.arr1)
+                        
+                        global npart
+                        npart=npart+n2
+                        Publidir2.comparat=0
+                        
+                        
+                        
+                    Bob.arr1=self.arr1
+                    Bob.arr0=self.arr0
+                    
+                    #Passo els resultats a pantalla
+                    
+                    self.bit1.text=str(addnumpart(self.arr1[:,0]))
+                    self.bit2.text=str(addnumpart(self.arr1[:,1]))                  
+                    self.bitst+=1
+                    self.bits.text="Bits totals:  "+str(self.bitst)
+                    if self.bitst==1:
+                        self.primeraparticula=True
+                    if self.bitst==npart and Publidir2.comparat==0:
+                        self.pause1=1 #Abans hi havia un 3
+                        self.pause_id.text='[color=#FFFFFF]Play[/color]'
+                        
+                        show_popup(show_popup,6)
+                        print('comparat',Publidir2.comparat)
+                    #if self.bitst==(npart+n2):
+                     #   self.pause1=1 #Abans hi havia un 3
+                      #  show_popup(show_popup,6)  
+                  
+                self.j-=1
+                
+            if partx>Window.size[0]*0.8 and self.canvas.indexof(self.particle)!=-1:
+                #Si la partícula està dintre del canvas o no                
+               # print('Què hi ha al canvas?', self.canvas.indexof(self.particle) )
+                self.canvas.remove(self.particle)
+                #self.j+=1  
+                self.event_mov.cancel()
+                self.j-=1
+        
+        
+    def newparticle(self,dt): 
+        '''Creació d'una partícula + moviment'''
+        
+        if self.pause1m==0 and self.j==0: 
+            self.j+=1
+            with self.canvas:
+               if self.p.nplayer==0:
+                   self.particle = Ellipse(pos=self.player1.pos,size=(10,10))
+                   
+               else:
+                   self.particle = Ellipse(pos=self.player2.pos,size=(10,10))
+                   
+            self.event_mov=Clock.schedule_interval(self.particlemoving,0) 
+            #self.j+=1
+        #self.j=0
+        
+        
+            
+        
         
         
     def start_multi(self):
+        #Coses del teclat
         self._keyboard_multi = Window.request_keyboard(self._on_keyboard_closed,self)
         self._keyboard_multi.bind(on_key_down=self._on_key_down)
         self._keyboard_multi.bind(on_key_up=self._on_key_up)
-        
         self.keysPressed_multi = set()        
         self._entities_multi= set()
         
+        #Inicialitzem el moviment del jugador
+        if self.start1.text=='Començar':
+            self.start1.text= 'Tornar a començar'
+            Clock.schedule_interval(self.move_step,0)
+            
+        if self.start1.text=='Tornar a començar':
+            #event_ini1.cancel()
+            #event_ini2.cancel()
+            #event_mov.cancel()
+            pass
+            
+            #Copiada totalmeeeent           
+        if self.pause1m==0 and self.init==0:
+            self.init+=1
+            #Per la partícula inicial
+            #event_ini1=Clock.schedule_once(self.newparticle)
+            #Creació de les altres partícules cada 3 segons
+            #event_ini2=Clock.schedule_interval(self.newparticle,3)
+            #Moviment de la partícula 
+            #event_mov=Clock.schedule_interval(self.particlemoving,0)            
+            self.j=0
+            
+            
+        self.collides=0
         
         
         
-        
-        Clock.schedule_interval(self.move_step,0)
         
 
       
