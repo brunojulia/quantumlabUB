@@ -16,6 +16,10 @@ class Player():
         self.y=y
         self.direccio='z'
         self.ready= False
+        self.particle=(False, self.x,self.y)
+        self.lenkey=0
+        #self.array=np.array([[1,None,None]])
+        self.hack=0
         
     
     #self.array=array
