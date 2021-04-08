@@ -636,7 +636,8 @@ def Bobresultats2(i,direccio,arr0,arr1):
 def Bobresultats2hack(i,hack, direccio,arr0,arr1):
     '''
     Dona els resultats segons l'array de l'Alice amb possibilitat de hacker!
-
+    Només per la pantalla de'n Bob sol
+    
     Parameters
     ----------
     i : COMPTADOR DE PARTÍCULES ENVIADES
@@ -674,6 +675,45 @@ def Bobresultats2hack(i,hack, direccio,arr0,arr1):
     i+=1
     return i,arr1
 
+def Bobresultatsmulti(i,hack, direccio,arr0,arr1):
+    '''
+    Per construir l'array de'n Bob a partir de la de l'Alice o aleatòria si hi 
+    ha un hacker.
+
+    Parameters
+    ----------
+    i : COMPTADOR DE LES PARTÍCULES ENVIADES (NO NOMÉS REBUDES)
+    hack : 0 - NO HI HA HACKER
+           1 - HI HA HACKER
+    direccio : DIRECCIÓ DE REBUDA DE'N BOB
+    arr0 : ARRAY DE L'ALICE
+    arr1 : ARRAY DE'N BOB
+    
+    Returns
+    -------
+    arr1: ARRAY DE'N BOB ACTUALITZADA
+
+    '''
+    bits=('0','1')
+    #print('hacker',hack)
+    if hack==0:        
+        if direccio==arr0[i,1]:
+            #print('Bit alice',arr0[i,2])
+            #arr1=np.append(arr1,[[int(i),direccio,arr0[i,2]]],axis=0)
+            arr1[i,0]=i
+            arr1[i,1]=direccio
+            arr1[i,2]=arr0[i,2]
+        else:
+            #print('Direccions no iguals',direccio, arr0[i,1])
+            #arr1=np.append(arr1,[[int(i),direccio,random.choice(bits)]],axis=0)
+            arr1[i,0]=i
+            arr1[i,1]=direccio
+            arr1[i,2]=random.choice(bits)
+    else:
+        arr1=np.append(arr1,[[int(i),direccio,random.choice(bits)]],axis=0)
+    #print('Array Alice', arr0)
+    #print('Array Bob',arr1)
+    return arr1
 
 def dadesb(nbits,missatge):
     '''Crea les dades de l'Alice aleatòries'''
@@ -691,17 +731,44 @@ def dadesb(nbits,missatge):
     posdir=['x','z']
     posbit=['0','1']
     
-    dir0l=[]
-    bit0l=[]
-    dir1l=[]
-    bit1l=[]
+    #dir0l=[]
+    #bit0l=[]
+    #dir1l=[]
+    #bit1l=[]
     
     arr0=np.empty((n,2),dtype=str)
     for i in range(n):
         arr0[i,0]=random.choice(posdir)
         arr0[i,1]=random.choice(posbit)
-    #print ('arr0',arr0,'shape',np.shape(arr0))
+        
     return arr0,lenkey,n
+
+def dades(nbits,longitud):
+    '''Inici del multiplayer'''
+    
+    #longitud=len(missatge)   
+    print("La longitud del missatge és:", longitud)  
+    #print('Missatge que es vol enviar:',missatge)
+    lenkey=nbits*longitud
+    
+    #Si volem que es rebi una clau de longitud lenkey haurem d'enviar molts mes
+    n=int(lenkey*(6/2)) #abans tenia int(6/2)
+    # n és el nombre de partícules que volem enviar
+    
+    arr0=np.empty((n,3),dtype=object)
+    for i in range(n):
+        arr0[i,0]=i
+        
+    arr1=np.copy(arr0)
+    return arr0,lenkey,n
+
+def arrays(jugador,array,part,direccio,bit):
+    'Guarda la informació a les arrays'
+    if jugador==0:        
+        array[part,1]=str(direccio)
+        array[part,2]=str(bit)
+        
+    return array
 
 def mirarhack(array0,array1):
     '''
@@ -1029,7 +1096,18 @@ class P9(FloatLayout):
       
 class P10(FloatLayout):
     def close(self):
-        show_popup.popupWindow10.dismiss()          
+        show_popup.popupWindow10.dismiss()
+        
+class P11(FloatLayout):
+    
+    def continua(self):
+        self.originalm=self.missatge.text
+        P11.missatge=self.originalm
+        print('Missatge que es vol enviar',self.originalm)
+        #show_popup.popupWindow11.dismiss()
+    
+    def close(self):
+        show_popup.popupWindow11.dismiss()            
     
 def show_popup(self,valor):
     "Funció que obra finestres popup"
@@ -1082,6 +1160,11 @@ def show_popup(self,valor):
             self.popupWindow10 = Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
             self.popupWindow10.open()
             
+    if valor==11:
+            show= P11()
+            self.popupWindow11= Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+            show_popup.popupWindow11=self.popupWindow11
+            self.popupWindow11.open()
         
 
 
@@ -1763,6 +1846,23 @@ class Multiplayer(Screen):
         print('Player',self.p.nplayer)
         print('Llest?',self.p.ready)
         
+        if self.p.nplayer==0:
+            #Hacker
+            global hack
+            hack=(random.choices([0,1],weights=(0.99,0.01)))[0]
+            #0.75,0.25
+            self.p.hack=hack
+            self.p2=n.send(self.p)
+            self.p2.hack=hack
+            print('S envia hack', hack)
+        elif self.p.nplayer==1:
+            self.p2=n.send(self.p)
+            self.p.hack=self.p2.hack
+            #global hack
+            hack=self.p.hack
+            
+            print('Es reb hack', self.p.hack)
+        
         Multiplayer.p=self.p
         
         self.p0ready=False
@@ -1771,39 +1871,45 @@ class Multiplayer(Screen):
         self.continuar=False
         
     def connection(self,dt):
-            #print('Intento enviar p:',self.p.nplayer)
+        'Es mira contínuament si l altra persona està connectada'
+        #print('Intento enviar p:',self.p.nplayer)
 
-            self.p2=n.send(self.p)
+        self.p2=n.send(self.p)
             
-            #print('Rebo el p:',self.p2.nplayer,'connectat?',self.p2.ready)
+        #print('Rebo el p:',self.p2.nplayer,'connectat?',self.p2.ready)
+    
+        if self.p.nplayer==0 and self.p2.ready:
+            self.p1ready=True
+            self.waitingbob.text= 'A punt'
             
-            if self.p.nplayer==0 and self.p2.ready:
-                self.p1ready=True
-                self.waitingbob.text= 'A punt'
-            elif self.p.nplayer==0 and self.p2.ready==False:
-                self.p1ready=False
-                self.waitingbob.text= 'Esperant connexió...'
+            
+        elif self.p.nplayer==0 and self.p2.ready==False:
+            self.p1ready=False
+            self.waitingbob.text= 'Esperant connexió...'
                 
-            if self.p.nplayer==1 and self.p2.ready:
-                self.p0ready=True
-                self.waitingalice.text= 'A punt'
-            elif self.p.nplayer==1 and self.p2.ready==False:
-                self.p0ready=False
-                self.waitingalice.text= 'Esperant connexió...'
+        if self.p.nplayer==1 and self.p2.ready:
+            self.p0ready=True
+            self.waitingalice.text= 'A punt'
                 
-            if self.p0ready and self.p1ready:
-                self.continuar=True
-            else:
-                self.continuar= False
+        elif self.p.nplayer==1 and self.p2.ready==False:
+            self.p0ready=False
+            self.waitingalice.text= 'Esperant connexió...'
+                
+        if self.p0ready and self.p1ready:
+            self.continuar=True
+        else:
+            self.continuar= False
                 
             
     def button(self):
+        'Funció del botó'
         global n
         
         if self.p.nplayer==0:
             self.waitingalice.text='A punt'
             self.p0ready=True
             self.conectat0=True
+            show_popup(self,11)
         else:
             self.waitingbob.text='A punt'
             self.p1ready=True
@@ -1828,8 +1934,6 @@ class Multiplayer(Screen):
 
 
 class Aliceibob(Screen):
-    #global n
-    #n=Network() 
     
     def __init__(self,**kwargs):
        
@@ -1843,15 +1947,20 @@ class Aliceibob(Screen):
         global n      
         #self.p=n.getP()
         self.p=Multiplayer.p
-        
+        self.p.direccio='z'
+        self.p.particle=(False, self.p.x, self.p.y)
         print('Player',self.p.nplayer)
         startPos=(self.p.x,self.p.y)
         
-        #startPos=(100,100)
+        
+        
+        
+        #Comptadors
         self.pause1m=0
         self.init=0
         self.j=0
         
+                
         with self.canvas:
             self.player1 = Rectangle(source="up2.png",pos=startPos,size=(50,100)) #Es pot posar una imatge si es vol com a en Bob
             self.player2=  Rectangle(pos=(Window.size[0]*0.7,Window.size[1]*0.5),size=(50,100))
@@ -1894,6 +2003,9 @@ class Aliceibob(Screen):
         step_size = 600*dt #seria com la velocitat (?)
         #Si vols moure més depressa, el 100 pot ser 200... 
         
+        global n 
+        #self.p2=n.send(self.p)
+        
         
         if ("w" in self.keysPressed_multi) and (currenty<Window.size[1]-2*self.player1.size[1]) and (self.pause1m==0):
             currenty+=step_size
@@ -1907,36 +2019,51 @@ class Aliceibob(Screen):
         
         #Part de canviar de direcció
         if ("up" in self.keysPressed_multi) and self.pause1m==0:
-            self.player1_dir="z"
-            
+            #self.player1_dir="z"
+            self.p.direccio="z"
             with self.canvas:
                 self.canvas.remove(self.player1)
                 self.player1 = Rectangle(source="up2.png",pos=(currentx,currenty),size=(50,100))
             
         if "right" in self.keysPressed_multi and self.pause1m==0:
-            self.player_dir="x"
+            #self.player1_dir="x"
+            self.p.direccio="x"
             
             with self.canvas:
                 self.canvas.remove(self.player1)
                 self.player1 = Rectangle(source="right2.2.png",pos=(currentx,currenty),size=(80,100))
                 
-        if "spacebar" in self.keysPressed_multi and self.pause1m==0 and self.p.nplayer==0:
+        #La tecla d'espai és "spacebar"     
+        if "0" in self.keysPressed_multi and self.pause1m==0 and self.p.nplayer==0:
+            self.bit='0'
+            #Crea la partícula
             event_ini1=Clock.schedule_once(self.newparticle)
-            #Moviment de la partícula 
-            #
-            #self.j-=1    
+            '''
+            self.p.particle=(True,self.p.x,self.p.y)
+            print('Envio que he creat partícula',self.p.particle)
+            self.p2=n.send(self.p) 
+            '''
                 
+        if "1" in self.keysPressed_multi and self.pause1m==0 and self.p.nplayer==0:
+            self.bit='1'
+            event_ini1=Clock.schedule_once(self.newparticle)
+           
+        
         
         
         #Anem a enviar i rebre coses del network
-        global n
+        
         self.p2=n.send(self.p)
+        #print('--', self.p.particle)
         #print('Posició actual (el que s hauria d enviar)',((self.player1.pos[0],self.player1.pos[1])))
         #player2pos= read_pos(n.send(write_pos((int(self.player1.pos[0]),int(self.player1.pos[1])))))
         #print('que rebem dspres d enviar',player2pos)
         self.player2.pos=(self.p2.x,self.p2.y)
         
-                
+        if (self.p2.particle[0]==True and self.p.nplayer==1 ): #or ( self.p.particle[0] and self.p2.nplayer==1):
+            self.p.particle=self.p2.particle 
+            print('Ha funcionat',self.p2.particle)
+            event_ini1=Clock.schedule_once(self.newparticle)         
         
         
     def particlemoving(self,dt):
@@ -1944,18 +2071,15 @@ class Aliceibob(Screen):
         
         
          if self.j==1 and self.pause1m==0:
-            #print('comparat',comparat)
             partx=self.particle.pos[0]
             party=self.particle.pos[1]
-        
+            #Velocitat i increment de la posició de la partícula
             step_size=300*dt
-            #print('dt',dt, 'step_size',step_size)
-
-            partx+=step_size
-        
+            partx+=step_size        
             self.particle.pos = (partx,party)
-        
-            #
+            #print('Posició 0', self.player1.pos)
+            #print('Posició 1', self.player2.pos)
+
             if self.p.nplayer==0:
                 alice_pos=self.player1.pos
                 bob_pos=self.player2.pos
@@ -1966,16 +2090,31 @@ class Aliceibob(Screen):
             #Col·lisió
             
             if collide((bob_pos,self.player1.size),(self.particle.pos,self.particle.size)):
+    
                 self.canvas.remove(self.particle)
                 self.event_mov.cancel()  
+                
+                
+                self.p.particle=(False,self.p.x,self.p.y)
+                self.p2=n.send(self.p)
+                self.p2.particle=self.p.particle
+                print('Ho posem fals', self.p2.particle[0])
+                
+                
                 if self.j==1: #Perquè no ho faci més d'un cop
                 
-                    if self.collides==0: #Això és per crear la primera matriu 
-                        self.arr1=np.zeros((1,2),dtype=str)
-                    
                     if Publidir2.comparat==0: #Si no hem publicat encara les dades cap cop
-                        self.collides,self.arr1=Bobresultats2hack(self.collides,hack,self.player_dir,self.arr0, self.arr1)
-                    
+                        if self.p.nplayer==1:
+                            
+                            self.p2=n.send(self.p)
+                            print('Index alla on afegeixo',self.nparticles)
+                            
+                            self.p.array=Bobresultatsmulti(self.nparticles-1, hack,self.p.direccio,self.p2.array, self.p.array)
+                            
+                        
+                        self.collides+=1
+                        
+                    '''
                     else: #Ja hem comparat les dades algun cop
                     
                         #Nous valors per l'array de l'Alice
@@ -1993,18 +2132,17 @@ class Aliceibob(Screen):
                         global npart
                         npart=npart+n2
                         Publidir2.comparat=0
-                        
-                        
-                        
-                    Bob.arr1=self.arr1
-                    Bob.arr0=self.arr0
                     
+                        
+                     '''   
+                
                     #Passo els resultats a pantalla
                     
-                    self.bit1.text=str(addnumpart(self.arr1[:,0]))
-                    self.bit2.text=str(addnumpart(self.arr1[:,1]))                  
+                    self.bit1.text=str(self.p.array[:self.nparticles,:2])
+                    self.bit2.text=str(self.p.array[:self.nparticles,:3:2])      
                     self.bitst+=1
                     self.bits.text="Bits totals:  "+str(self.bitst)
+                    '''
                     if self.bitst==1:
                         self.primeraparticula=True
                     if self.bitst==npart and Publidir2.comparat==0:
@@ -2016,9 +2154,9 @@ class Aliceibob(Screen):
                     #if self.bitst==(npart+n2):
                      #   self.pause1=1 #Abans hi havia un 3
                       #  show_popup(show_popup,6)  
-                  
+                '''
                 self.j-=1
-                
+            
             if partx>Window.size[0]*0.8 and self.canvas.indexof(self.particle)!=-1:
                 #Si la partícula està dintre del canvas o no                
                # print('Què hi ha al canvas?', self.canvas.indexof(self.particle) )
@@ -2026,28 +2164,58 @@ class Aliceibob(Screen):
                 #self.j+=1  
                 self.event_mov.cancel()
                 self.j-=1
+                
+                #self.p.particle=(False,self.p.x,self.p.y)
+                self.p2=n.send(self.p)
+                self.p2.particle=self.p.particle
+                #print('Ho posem fals', self.p2.particle[0])
         
         
     def newparticle(self,dt): 
-        '''Creació d'una partícula + moviment'''
-        
+        '''Creació d'una partícula + moviment'''        
         if self.pause1m==0 and self.j==0: 
             self.j+=1
-            with self.canvas:
-               if self.p.nplayer==0:
-                   self.particle = Ellipse(pos=self.player1.pos,size=(10,10))
-                   
-               else:
-                   self.particle = Ellipse(pos=self.player2.pos,size=(10,10))
-                   
-            self.event_mov=Clock.schedule_interval(self.particlemoving,0) 
-            #self.j+=1
-        #self.j=0
-        
-        
+            self.primeraparticula=True
+            #Variable per compartir
+            if self.p.nplayer==0 or self.p.nplayer==1:
+                self.p.particle=(True,self.p.x,self.p.y)
+                print('Envio que he creat partícula',self.p.particle)
+                self.p2=n.send(self.p)
             
-        
-        
+            #Per tema arrays
+            
+            #print('Abans',self.arr0)
+            if self.p.nplayer==0:
+                self.p.array=arrays(0,self.p.array,self.nparticles,self.p.direccio,self.bit)
+                #self.arr0=arrays(0,self.arr0,self.nparticles,self.p.direccio,self.bit)
+                #print('Després', self.arr0)
+                print('Després...', self.p.array, 'jugador',self.p.nplayer)
+            elif self.p.nplayer==1:
+                #self.arr0=arrays
+                pass
+            
+            self.nparticles+=1
+            print('nparticles',self.nparticles)
+            print('New particle')
+            print('Player?',self.p.nplayer)
+            if (self.p2.particle[0] or self.p.particle[0]):
+                with self.canvas:
+                   if self.p.nplayer==0:
+                       self.particle = Ellipse(pos=self.player1.pos,size=(10,10))                       
+                   else: 
+                       self.particle = Ellipse(pos=self.player2.pos,size=(10,10))
+            #per moure la partícula       
+            self.event_mov=Clock.schedule_interval(self.particlemoving,0) 
+            
+            self.p.particle=(False,self.p.x,self.p.y)
+            '''
+            
+            self.p2=n.send(self.p)
+            self.p2.particle=self.p.particle
+            print('Ho posem fals', self.p2.particle[0])
+            '''
+            
+   
         
     def start_multi(self):
         #Coses del teclat
@@ -2056,6 +2224,42 @@ class Aliceibob(Screen):
         self._keyboard_multi.bind(on_key_up=self._on_key_up)
         self.keysPressed_multi = set()        
         self._entities_multi= set()
+        
+        
+        #Variables
+        
+        
+        #Tot tema arrays
+        if self.p.nplayer==0: 
+            missatge=P11.missatge            
+            print('Missatge',missatge)
+            self.p.lenkey=len(missatge)
+            self.p2=n.send(self.p)
+            
+        self.p2=n.send(self.p)
+        if self.p.nplayer==1:
+            self.p.lenkey=self.p2.lenkey
+            print('rebo i lenkey=',self.p.lenkey)
+            
+        self.p.array,lenkey2,self.p.npart=dades(5,self.p.lenkey)
+        
+        #self.p2=n.getP()
+        
+        #self.p2.npart=self.p.npart
+        print('Partícules totals',self.p.npart)
+        
+        
+        
+            
+        #Inicialitzem variables:
+        self.nparticles=0
+        self.collides=0
+        self.primeraparticula=False
+        
+        self.bit1.text=""
+        self.bit2.text=""
+        self.bits.text= "Bits totals: "        
+        self.bitst=0
         
         #Inicialitzem el moviment del jugador
         if self.start1.text=='Començar':
@@ -2079,8 +2283,66 @@ class Aliceibob(Screen):
             #event_mov=Clock.schedule_interval(self.particlemoving,0)            
             self.j=0
             
+        global hack
+        #Tema hacker
+        if self.p.hack==0:
+            print(hack,'NO HI HA HACKER')
+        else:
+            print(hack,'HACKER!!!')
             
-        self.collides=0
+            
+            
+    def acabaricompartir(self):
+        '''
+        Acaba de mesurar totes les partícules: Fa aleatori l'array de l'Alice
+        i també aleatòria les direccions de'n Bob.
+
+        Returns
+        -------
+        None.
+
+        '''
+        
+        #Partícules que falten per mesurar         
+        if self.primeraparticula :
+            direccions=['z','x']
+            bits=['0','1']
+            
+            if self.p.nplayer==0:    
+                for i in range(self.bitst, self.p.npart):
+                    self.p.array[i,1]=random.choice(direccions)
+                    self.p.array[i,2]=random.choice(bits)
+                    
+                print('Array Alice acabada', self.p.array)
+            
+            self.p2=n.send(self.p)
+            
+            if self.p.nplayer==1:  
+                print('Array ALice', self.p2.array)
+                print('Bitst que porto',self.bitst)
+                print('Particules totals',self.p.npart)
+                for i in range(self.bitst, self.p.npart):
+                    self.p.array=Bobresultatsmulti(i,hack,random.choice(direccions),self.p2.array, self.p.array)
+                print('Array Bob acabada',self.p.array)
+            if self.p.nplayer==0:
+                Aliceibob.arr1=self.p2.array
+                Aliceibob.arr0=self.p.array
+                #print('Array Bob acabada', self.p2.array)
+               
+            self.bit1.text=str(self.p.array[:self.nparticles,:2])
+            self.bit2.text=str(self.p.array[:self.nparticles,:3:2])      
+            self.bitst+=1
+            self.bits.text="Bits totals:  "+str(self.bitst)
+                 
+            if int(self.bitst)==self.p.npart:
+                self.pause1=1
+                self.pause_id.background_normal= 'play1.jpg'
+                #self.pause_id.text='[color=#FFFFFF]Reprendre[/color]'
+                
+    
+      
+              
+        
         
         
         

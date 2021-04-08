@@ -14,7 +14,7 @@ import sys
 import pickle
 from player import Player
 
-server="192.168.0.23" #Això és per network local, suposo per la meva wifi
+server="192.168.0.28" #Això és per network local, suposo per la meva wifi
 port= 5555
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

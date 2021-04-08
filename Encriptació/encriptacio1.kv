@@ -1369,7 +1369,7 @@
                     
                     on_press: 
                         root.acabaricompartir()
-                        root.change_text()
+                        #root.change_text()
                         
                 Button:
                     text: '[color=#7ACE67]Compartir dades[/color]'
@@ -1410,10 +1410,10 @@
                     Label:
                         id: bit1
                         text: ''
-                        text_size: 260, None
+                        #text_size: 260, None
                         halign: 'center'
-                        size_hint: None, None     
-                        size: self.texture_size
+                        #size_hint: None, None     
+                        #size: self.texture_size
                         color: [0,0,0,1]                  
                     
                 Label:
@@ -1584,9 +1584,30 @@
         size_hint: 0.6, 0.2
         pos_hint: {"x":0.2, "top":1}
 
-        
-    
+
+<P11>:
+    missatge: missatge
+
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint: {"x":0.2, "top":1}
+        spacing: 20
+        Label:
+            text:"Quin missatge vols enviar? Escriu-lo en MAJÚSCULES"
+            size_hint: 0.6, 0.2
             
+        TextInput:
+            id: missatge
+            multiline: False
+            size_hint: 0.6, 0.1
+        
+        Button:
+            text: "Continua"
+            size_hint: 0.6, 0.05
+            on_press:
+                root.continua()
+                #app.root.current="aliceibob"
+                root.close()            
 
     
     
