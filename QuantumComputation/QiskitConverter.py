@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import CustomGates as cgates
+import cgates
 
 
 def QiskitConverter(matrix, multigates, row_name, gates_2, customgates, angles):

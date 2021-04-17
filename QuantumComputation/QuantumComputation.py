@@ -27,6 +27,7 @@ from kivy.graphics import *
 from kivy.factory import Factory
 from kivy.uix.scatter import Scatter
 from functools import partial
+from kivy.uix.image import Image
 
 from QiskitConverter import QiskitConverter
 import importlib
@@ -747,6 +748,7 @@ class CGrid(FloatLayout):
     scroll=ObjectProperty(None)
     addcolbutton =ObjectProperty(None)
     removecolbutton =ObjectProperty(None)
+    circuitslider =ObjectProperty(None)
     
     def __init__(self, **kwargs):
         global cgrid
@@ -766,6 +768,8 @@ class CGrid(FloatLayout):
             
             cgrid=self
             
+            
+            
         gridinit=1
         
         
@@ -781,7 +785,9 @@ class CGrid(FloatLayout):
                         self.rows[i].cols[j].on_touch_up(touch)
                         matrix[i][j]=currentcell
             root.sm.current_screen.QiskitConv()
-                    
+            
+            
+            
                     
             #super(CGrid, self).on_touch_up(touch)
         except:
@@ -794,13 +800,18 @@ class CGrid(FloatLayout):
         for i in range(matrix.shape[0]):
             self.rows[i].add_cell()
         self.resize_scroll()
+        
+        if self.circuitslider.value==self.circuitslider.max-1:
+            self.circuitslider.value=self.circuitslider.max
+        
+        
         return matrix
 
     def refresh(self): #Refresh buttons
         self.resize_scroll()
         for i in range(matrix.shape[0]):
 
-            self.rows[i].pos= (0, self.scroll.y+(cellsize+space)*(matrix.shape[0]-i-1))
+            self.rows[i].pos= (0, self.scroll.y+(cellsize+space)*(matrix.shape[0]-i-0.25))
             self.rows[i].refresh_row(i)
         root.sm.current_screen.QiskitConv()
             
@@ -836,7 +847,12 @@ class CGrid(FloatLayout):
         Clock.schedule_once(lambda dt:self.refresh(), 0)
     
     def resize_scroll(self, *args):
-        self.scroll.size=(cellsize*(matrix.shape[1]+1.5)+70,(cellsize+space)*(matrix.shape[0]+0.5))
+        self.scroll.size=(cellsize*(matrix.shape[1]+1.5)+70,(cellsize+space)*(matrix.shape[0]+1.25))
+        self.circuitslider.range=(0,matrix.shape[1])
+        
+        self.slidercanva()
+       
+       
     
     def set_scroll(self): #Necessary to avoid problems when resizing
         self.scroll.parent.scroll_x=0.0
@@ -848,6 +864,7 @@ class CGrid(FloatLayout):
         self.parent.parent.size_hint=(width, height)
         Clock.schedule_once(lambda dt:self.resize_scroll(), 0)
         Clock.schedule_once(lambda dt:self.set_scroll(), 0)
+        
         
     def clear(self):
         for i in range(matrix.shape[1]):
@@ -865,6 +882,18 @@ class CGrid(FloatLayout):
         print(customgates)
         print(matrix)
         print(multigates)
+        
+    def slidercanva(self, *args):
+        try:
+            self.scroll.canvas.after.clear()
+            with self.scroll.canvas.after:
+                    Color(0,0,0,0.15)
+                    self.canvaslider=Rectangle(
+                        size=(cellsize*(self.circuitslider.max-self.circuitslider.value), (cellsize+space)*matrix.shape[0]), 
+                        pos=(self.scroll.x+cellsize*(0.5+self.circuitslider.value)+70, self.scroll.y+self.circuitslider.height),
+                        group='slider')
+        except:
+            pass
         
        
 class WindowManager(ScreenManager):
@@ -894,7 +923,9 @@ class BuilderScreen(Screen):
     warning =ObjectProperty(None)
     probbutton =ObjectProperty(None)
     gatesbutton =ObjectProperty(None)
-    #cgrid = ObjectProperty(None)
+    docuscroll = ObjectProperty(None)
+    docuimage =ObjectProperty(None)
+    docupanel =ObjectProperty(None)
     
     def __init__(self, **kwargs):
         super(BuilderScreen, self).__init__(**kwargs)
@@ -908,6 +939,13 @@ class BuilderScreen(Screen):
         self.resize_gates
         Window.bind(on_resize=Clock.schedule_once(lambda dt:self.resize_gates(), 0))
         Window.bind(on_resize=Clock.schedule_once(lambda dt:self.resize_gates(), 0.5))
+        Clock.schedule_once(lambda dt:self.screen_elements(), 0.5)
+        
+        
+    def screen_elements(self):
+        if root.sm.current in ("CustomScreen", "BuilderScreen"):
+            self.docupanel.clear_widgets()
+            self.remove_widget(self.docupanel)
         
     
         
@@ -920,15 +958,22 @@ class BuilderScreen(Screen):
         self.gatesgrid.cols=gatecols
         self.gatesgrid.size=self.gatesgrid.minimum_size
         
-        if (root.sm.current != "CustomScreen"):
+        if (root.sm.current == "DemoScreen"):
+            self.docuscroll.height=self.docuscroll.width*self.docuimage.height/self.docuimage.width
+        
+        elif (root.sm.current != "CustomScreen"):
             self.customgrid.rows=customrows
             self.customgrid.cols=gatecols
             self.customgrid.size=self.customgrid.minimum_size
         
             self.gatesscroll.height=self.gatesgrid.height+self.customgrid.height+cellsize/2
             self.customgrid.y=-self.gatesscroll.height+cellsize
+            
         else:
             self.gatesscroll.height=self.gatesgrid.height
+            
+            
+        
 
        
     def test(self):
@@ -988,8 +1033,9 @@ class BuilderScreen(Screen):
             if i != ['-0', '-0']:
                 screen=root.sm.current_screen.warning.opacity = 1
         
-        #self.test()
-        QiskitConverter(matrix, multigates, row_name, gates_2, customgates, angles)
+        
+        slidermatrix=matrix[:,range(int(cgrid.circuitslider.value))]
+        QiskitConverter(slidermatrix, multigates, row_name, gates_2, customgates, angles)
         importlib.reload(QiskitCircuit)
         
         results, plotresults=QiskitCircuit.GetStatevector()
@@ -1533,12 +1579,21 @@ class DemoScreen(BuilderScreen):
         self.probbutton.opacity= 0
         self.probpanel.visible=True
         
+        
         self.cgrid.resize_panels(True, True)
         
         self.cgrid.addcolbutton.disabled=True
         self.cgrid.addcolbutton.opacity=0
         self.cgrid.removecolbutton.disabled=True
         self.cgrid.removecolbutton.opacity=0
+        
+        
+        self.gatespanel.clear_widgets()
+        self.remove_widget(self.gatespanel)
+        
+        
+        
+        
         
         
         
@@ -1611,7 +1666,7 @@ class DemoScreen(BuilderScreen):
         cgrid.resize_scroll()
         cgrid.refresh()
         
-        
+        self.docuimage.source= 'demos/'+file.id+'.png'
         
         
 
