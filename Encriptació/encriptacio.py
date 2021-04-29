@@ -760,7 +760,7 @@ def dades(nbits,longitud):
         arr0[i,0]=i
         
     arr1=np.copy(arr0)
-    return arr0,lenkey,n
+    return arr0,arr1,lenkey,n
 
 def arrays(jugador,array,part,direccio,bit):
     'Guarda la informació a les arrays'
@@ -1106,9 +1106,18 @@ class P11(FloatLayout):
         print('Missatge que es vol enviar',self.originalm)
         #show_popup.popupWindow11.dismiss()
     
-    def close(self):
-        show_popup.popupWindow11.dismiss()            
     
+    def close(self):
+        show_popup.popupWindow11.dismiss()   
+         
+class P12(FloatLayout):
+    def close(self):
+        show_popup.popupWindow12.dismiss()
+        
+class P13(FloatLayout):
+    def close(self):
+        show_popup.popupWindow13.dismiss()
+        
 def show_popup(self,valor):
     "Funció que obra finestres popup"
     "1:Yes right    2:Yes wrong     3:No right      4: No wrong"
@@ -1165,6 +1174,17 @@ def show_popup(self,valor):
             self.popupWindow11= Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
             show_popup.popupWindow11=self.popupWindow11
             self.popupWindow11.open()
+            
+    if valor==12:
+            show= P12()
+            self.popupWindow12= Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+           # show_popup.popupWindow12=self.popupWindow12
+            self.popupWindow12.open()
+    
+    if valor==13:
+            show= P13()
+            self.popupWindow13= Popup(title=' ',content=show, size_hint=(None,None),size=(400,400))
+            self.popupWindow13.open()
         
 
 
@@ -1175,6 +1195,8 @@ class HomeScreen(Screen):
         
         super(HomeScreen,self).__init__(**kwargs)
         #Window.fullscreen = 'auto'
+        #global pantalla
+        #pantalla=0
 
   
 class Keys(Screen):
@@ -1273,6 +1295,8 @@ class Screen3(Screen):
         arraydir[:,1]=array1[:,0]
         self.text3= str(arraydir)
         self.manager.current= "Publidir"
+        
+        
     
 
 
@@ -1412,7 +1436,9 @@ class Publidir2(Screen):
             
         if self.continuar == 0:
             show_popup(show_popup,8)
-        
+            
+            
+
         
 class Clau(Screen):
     bitsfinals_text= StringProperty('')
@@ -1875,7 +1901,7 @@ class Multiplayer(Screen):
         #print('Intento enviar p:',self.p.nplayer)
 
         self.p2=n.send(self.p)
-            
+           
         #print('Rebo el p:',self.p2.nplayer,'connectat?',self.p2.ready)
     
         if self.p.nplayer==0 and self.p2.ready:
@@ -1899,7 +1925,8 @@ class Multiplayer(Screen):
             self.continuar=True
         else:
             self.continuar= False
-                
+            
+                        
             
     def button(self):
         'Funció del botó'
@@ -1910,6 +1937,7 @@ class Multiplayer(Screen):
             self.p0ready=True
             self.conectat0=True
             show_popup(self,11)
+            
         else:
             self.waitingbob.text='A punt'
             self.p1ready=True
@@ -1923,17 +1951,28 @@ class Multiplayer(Screen):
             
     
     def continuar_btt(self):
-        ''''''' Funció per passar la informació a la screen Clau'''''''
+        ' Funció per passar la informació a la screen D aliceibob'
+        
+        if self.p.nplayer==0: 
+            missatge=P11.missatge            
+            print('Missatge',missatge)
+            self.p.lenkey=len(missatge)
+            self.p2=n.send(self.p)
+            
+            print('Envio que l alice tingui', self.p.lenkey)
        
         if self.continuar:
             self.event_connect.cancel()
             self.manager.current= "aliceibob"
-            
+            print('Rellotge connect parat')
 
     
 
 
 class Aliceibob(Screen):
+    text= StringProperty('')
+    text2= StringProperty('')
+    text3= StringProperty('')
     
     def __init__(self,**kwargs):
        
@@ -1948,28 +1987,22 @@ class Aliceibob(Screen):
         #self.p=n.getP()
         self.p=Multiplayer.p
         self.p.direccio='z'
+        self.p.acabar=False
         self.p.particle=(False, self.p.x, self.p.y)
         print('Player',self.p.nplayer)
         startPos=(self.p.x,self.p.y)
         
-        
-        
+        Aliceibob.p=self.p
         
         #Comptadors
         self.pause1m=0
         self.init=0
         self.j=0
         
-                
+              
         with self.canvas:
             self.player1 = Rectangle(source="up2.png",pos=startPos,size=(50,100)) #Es pot posar una imatge si es vol com a en Bob
-            self.player2=  Rectangle(pos=(Window.size[0]*0.7,Window.size[1]*0.5),size=(50,100))
-            
-        '''    
-        self.keysPressed_multi = set()        
-        self._entities_multi= set()
-        '''
-        
+            self.player2=  Rectangle(pos=(Window.size[0]*0.7,Window.size[1]*0.5),size=(50,100))    
         
         
         
@@ -2062,7 +2095,6 @@ class Aliceibob(Screen):
         
         if (self.p2.particle[0]==True and self.p.nplayer==1 ): #or ( self.p.particle[0] and self.p2.nplayer==1):
             self.p.particle=self.p2.particle 
-            print('Ha funcionat',self.p2.particle)
             event_ini1=Clock.schedule_once(self.newparticle)         
         
         
@@ -2079,7 +2111,6 @@ class Aliceibob(Screen):
             self.particle.pos = (partx,party)
             #print('Posició 0', self.player1.pos)
             #print('Posició 1', self.player2.pos)
-
             if self.p.nplayer==0:
                 alice_pos=self.player1.pos
                 bob_pos=self.player2.pos
@@ -2090,30 +2121,28 @@ class Aliceibob(Screen):
             #Col·lisió
             
             if collide((bob_pos,self.player1.size),(self.particle.pos,self.particle.size)):
-    
                 self.canvas.remove(self.particle)
                 self.event_mov.cancel()  
-                
                 
                 self.p.particle=(False,self.p.x,self.p.y)
                 self.p2=n.send(self.p)
                 self.p2.particle=self.p.particle
-                print('Ho posem fals', self.p2.particle[0])
-                
-                
+                #print('Ho posem fals', self.p2.particle[0])
+                             
                 if self.j==1: #Perquè no ho faci més d'un cop
                 
                     if Publidir2.comparat==0: #Si no hem publicat encara les dades cap cop
                         if self.p.nplayer==1:
                             
                             self.p2=n.send(self.p)
-                            print('Index alla on afegeixo',self.nparticles)
+                            #print('Index alla on afegeixo',self.nparticles)
                             
-                            self.p.array=Bobresultatsmulti(self.nparticles-1, hack,self.p.direccio,self.p2.array, self.p.array)
+                            self.p.array=Bobresultatsmulti(self.nparticles, hack,self.p.direccio,self.p2.array, self.p.array)
                             
                         
                         self.collides+=1
-                        
+                        self.nparticles+=1
+            
                     '''
                     else: #Ja hem comparat les dades algun cop
                     
@@ -2132,8 +2161,6 @@ class Aliceibob(Screen):
                         global npart
                         npart=npart+n2
                         Publidir2.comparat=0
-                    
-                        
                      '''   
                 
                     #Passo els resultats a pantalla
@@ -2179,7 +2206,7 @@ class Aliceibob(Screen):
             #Variable per compartir
             if self.p.nplayer==0 or self.p.nplayer==1:
                 self.p.particle=(True,self.p.x,self.p.y)
-                print('Envio que he creat partícula',self.p.particle)
+                #print('Envio que he creat partícula',self.p.particle)
                 self.p2=n.send(self.p)
             
             #Per tema arrays
@@ -2187,17 +2214,17 @@ class Aliceibob(Screen):
             #print('Abans',self.arr0)
             if self.p.nplayer==0:
                 self.p.array=arrays(0,self.p.array,self.nparticles,self.p.direccio,self.bit)
-                #self.arr0=arrays(0,self.arr0,self.nparticles,self.p.direccio,self.bit)
-                #print('Després', self.arr0)
-                print('Després...', self.p.array, 'jugador',self.p.nplayer)
+                
+                #print('Després...', self.p.array, 'jugador',self.p.nplayer)
             elif self.p.nplayer==1:
-                #self.arr0=arrays
+                
                 pass
             
-            self.nparticles+=1
-            print('nparticles',self.nparticles)
-            print('New particle')
-            print('Player?',self.p.nplayer)
+            #self.nparticles+=1
+            
+            #print('nparticles',self.nparticles)
+            #print('New particle')
+            #print('Player?',self.p.nplayer)
             if (self.p2.particle[0] or self.p.particle[0]):
                 with self.canvas:
                    if self.p.nplayer==0:
@@ -2238,10 +2265,19 @@ class Aliceibob(Screen):
             
         self.p2=n.send(self.p)
         if self.p.nplayer==1:
+            self.p2=n.send(self.p)
+            print('La de l alice hauria de ser',self.p2.lenkey )
             self.p.lenkey=self.p2.lenkey
             print('rebo i lenkey=',self.p.lenkey)
             
-        self.p.array,lenkey2,self.p.npart=dades(5,self.p.lenkey)
+        self.p.array,self.p2.array,lenkey2,self.p.npart=dades(5,self.p.lenkey)
+        
+        if self.p.nplayer==0:
+            print('Array Alice', self.p.array)
+        else:   
+            print('Array Bob',self.p.array)
+        self.p2=n.send(self.p)
+        
         
         #self.p2=n.getP()
         
@@ -2260,11 +2296,12 @@ class Aliceibob(Screen):
         self.bit2.text=""
         self.bits.text= "Bits totals: "        
         self.bitst=0
+        self.p.acabar=False
         
         #Inicialitzem el moviment del jugador
         if self.start1.text=='Començar':
             self.start1.text= 'Tornar a començar'
-            Clock.schedule_interval(self.move_step,0)
+            self.event_move_step=Clock.schedule_interval(self.move_step,0)
             
         if self.start1.text=='Tornar a començar':
             #event_ini1.cancel()
@@ -2290,7 +2327,8 @@ class Aliceibob(Screen):
         else:
             print(hack,'HACKER!!!')
             
-            
+        'Miro tota l estona si algu vol acabar'
+        self.event_acabar=Clock.schedule_interval(self.acabar,0)
             
     def acabaricompartir(self):
         '''
@@ -2308,22 +2346,43 @@ class Aliceibob(Screen):
             direccions=['z','x']
             bits=['0','1']
             
-            if self.p.nplayer==0:    
+            if self.p.nplayer==0:  
+                self.p.acabar=True
+                
                 for i in range(self.bitst, self.p.npart):
                     self.p.array[i,1]=random.choice(direccions)
                     self.p.array[i,2]=random.choice(bits)
                     
                 print('Array Alice acabada', self.p.array)
+                
+                #Miro que en Bob estiqui connectat
+                
+                if self.p2.acabar==False:
+                    show_popup(show_popup,12)
+                    #self.event_acabar=Clock.schedule_interval(self.acabar,0)
+                
+                 
             
             self.p2=n.send(self.p)
             
-            if self.p.nplayer==1:  
+            if self.p.nplayer==1:                  
+                
+                self.p2=n.send(self.p)
+                
                 print('Array ALice', self.p2.array)
                 print('Bitst que porto',self.bitst)
                 print('Particules totals',self.p.npart)
+                
                 for i in range(self.bitst, self.p.npart):
                     self.p.array=Bobresultatsmulti(i,hack,random.choice(direccions),self.p2.array, self.p.array)
                 print('Array Bob acabada',self.p.array)
+                
+                self.p2=n.send(self.p)
+                self.p.acabar=True
+                
+                #Canvio de pantalla
+                self.change_text()
+                
             if self.p.nplayer==0:
                 Aliceibob.arr1=self.p2.array
                 Aliceibob.arr0=self.p.array
@@ -2339,12 +2398,278 @@ class Aliceibob(Screen):
                 self.pause_id.background_normal= 'play1.jpg'
                 #self.pause_id.text='[color=#FFFFFF]Reprendre[/color]'
                 
+               
+    def change_text(self):
+        ''' Botó: Compartir dades. 
+        Funció per passar la informació a la screen Publidir3.'''
+        if self.primeraparticula :
+            #print('Arr0',self.arr0)
+            #print('Arr1',self.arr1)
+            self.event_move_step.cancel()
+            if self.p.nplayer==0:
+                self.p2=n.send(self.p)   
+                print('Array Bob', self.p2.array)
+                        
+                if self.p2.acabar:
+                    P12.close(P12)
+                    self.event_acabar.cancel()                    
+                    self.text= str(self.p.array[:,:2])
+                    self.text2= str(self.p2.array[:,:2])
+                    
+                    Aliceibob.arr1=self.p2.array
+                    Aliceibob.arr0=self.p.array
+                    #Aliceibob.p0=self.p2
+                    Aliceibob.p=self.p
+                    self.manager.current= "Publidir3"
+                    
+                    self.event_acabar.cancel()
+            else:
+                self.p2=n.send(self.p)
+                if self.p2.acabar==False:
+                        show_popup(show_popup,12)
+                        #while self.p2.acabar==False:                    
+                            #self.p2=n.send(self.p)
+                    
+                    
+                if self.p2.acabar:
+                    
+                    self.text= str(self.p2.array[:,:2])
+                    self.text2= str(self.p.array[:,:2])
+                    Aliceibob.arr1=self.p.array
+                    Aliceibob.arr0=self.p2.array
+                    Aliceibob.p=self.p
+                    #Aliceibob.p1=self.p
+                
+                    self.manager.current= "Publidir3"
+                    
+                    self.event_acabar.cancel()
+                    
+        else:
+            show_popup(show_popup,7)
+            
+        
+                
+    def acabar(self,dt):
+        'Es mira contínuament si l altra persona ha volgut acabar'
+        self.p2=n.send(self.p)
+        
+        if self.p.nplayer==0:
+            if self.p.acabar and self.p2.acabar:
+                             
+                self.change_text()
+                
+            if self.p.acabar==False and self.p2.acabar:
+                show_popup(show_popup, 13)
+        
+        
+         
     
+        
+class Publidir3(Screen):
+    
+    
+    arr0_text= StringProperty('')
+    arr1_text2= StringProperty('')
+       
+    bits=StringProperty('')
+    clau1=StringProperty('')
+    
+    global n 
+       
+    def __init__(self,**kwargs):
+        super().__init__(**kwargs)
+        
+        global n 
+        
+        #self.p=Multiplayer.p
+        
+        self.continuar=0                
+        self.comparat=0 
+        Publidir3.comparat=self.comparat
+        self.findhacker_i=0
+        self.comparat2=0      
+        
+        #self.p=Aliceibob.p
+        
+ 
+        
+        #self.p.publica=False
+        
+
+    
+    def comparar(self):
+        self.comparat2=1 #per poder continuar i fer findhacker
+        
+        arr0=Aliceibob.arr0
+        arr1=Aliceibob.arr1
+        #print('arr0',arr0,'arr1',arr1)
+        arr01,arr11=comparardir(arr0, arr1)
+        #Per passar-ho més tard
+        Publidir3.arr01=arr01
+        Publidir3.arr11=arr11
+        #Pantalla
+        self.arr0.text= str(arr01[:,0:2])
+        self.arr1.text= str(arr11[:,0:2])
+        #Mirem si podrem fer el procés de hacker
+        ncomp=np.shape(arr01)[0]
+        bitsf=ncomp-int(ncomp//5+1)
+        if bitsf<lenkey: #No tenim prous dades
+            show_popup(show_popup,5)
+            self.comparat=self.comparat+1
+            Publidir3.comparat=self.comparat
+            
+            print('comparat',self.comparat)
+            
+        #Inici jugadors
+        self.p=Aliceibob.p
+        print('Hem inicialitzat jugadors')
+        self.p.publica=False
+        self.p.publicat=False
+        self.p.publiA=False
+        self.p.publiB=False
+        self.p.arr0f=False
+        self.p.arr1f=False
+
+        print('Publica?',self.p.nplayer, self.p.publica)
+        
+    def findhacker(self):
+        'Botó Publica' 
+        #global n
+        self.findhacker_i=1
+        
+        print('COMPARAT',self.comparat2)
+        if self.comparat2==0:
+            show_popup(show_popup,10)
+            
+        else:
+            self.p.publica=True
+            
+            self.event_publicar=Clock.schedule_interval(self.publicar,0)
+            
+            arr0=Aliceibob.arr0
+            arr1=Aliceibob.arr1
+            self.arr01,self.arr11=comparardir(arr0, arr1) 
+            
+            #global arr1f
+            #self.boolean,publiAh,publiBh,self.arr0f,arr1f=mirarhack(arr01,arr11)
+                
+            
+            #self.publiAh.text= str(publiAh)
+            #self.publiBh.text= str(publiBh)
+            
+    def publicar(self,dt): 
+        print('executant la funció publicar')
+        #global n
+        self.p2=n.send(self.p)
+        #print('p2', self.p2.nplayer)
+        #print('player2',self.p2.nplayer)
+        print('player2,publica', self.p2.publica)
+        print('p publicat',self.p.publicat)
+        #Si jo sóc el primer en publicar
+        if self.p.publica and self.p2.publica==False and self.p.publicat==False:
+            print('He sigut el primer en publicar')
+            
+            self.boolean,publiAh,publiBh,arr0f,arr1f=mirarhack(self.arr01,self.arr11)
+            print('publiAh',publiAh)
+            self.p.publiA=publiAh
+            print('publiA',self.p.publiA)
+            self.p.publiB=publiBh
+            self.p.arr0f=arr0f
+            self.p.arr1f=arr1f
+            
+            #Guardem qui ha publicat primer
+            self.p.publicat=self.p.nplayer
+            #self.p2=n.send(self.p)
+            self.p2.publicat=self.p.nplayer
+            
+            print('El primer en publicar',self.p2.publicat)
+            
+            
+            self.arr0.text= str(arr0f[:,0:2])
+            self.arr1.text= str(arr1f[:,0:2])
+            
+            self.publiAh.text= str(publiAh)
+            self.publiBh.text= str(publiBh)
+            
+            #self.p2=n.send(self.p)
+            
+            #self.event_publicar.cancel()
+        #self.p2=n.send(self.p)
+            
+        #Si sóc el segon en publicar    
+        if self.p.nplayer!=self.p.publicat and self.p.publica:
+            print('No he sigut el primer en publicar')
+            #self.p2=n.send(self.p) #Si ho poso, em dona un error de la pagina multiplayer?
+            print(self.p2.publiA)
+            self.p.publiA=self.p2.publiA
+            self.p.publiB=self.p2.publiB
+            self.p.arr0f=self.p2.arr0f
+            self.p.arr1f=self.p2.arr1f
+            
+            self.arr0.text= str(self.p.arr0f[:,0:2])
+            self.arr1.text= str(self.p.arr1f[:,0:2])
+            
+            self.publiAh.text= str(self.p.publiA)
+            self.publiBh.text= str(self.p.publiB)
+            
+            
+    
+ 
+            
+        
+    def hackeryes(self):
+        
+        if self.findhacker_i==1:
+            self.event_publicar.cancel()
+            if self.boolean ==True:
+                show_popup(show_popup,1)
+            else:
+                show_popup(show_popup,2)
+                self.continuar=1
+        else:
+            show_popup(show_popup,9)
+                
+    def hackerno(self):
+        
+        if self.findhacker_i==1:
+            self.event_publicar.cancel()
+            if self.boolean== False:
+                show_popup(show_popup,3)
+                self.continuar=1
+            else:
+                show_popup(show_popup,4)
+        else:
+            show_popup(show_popup,9)
+            
+
+    def change_text(self):
+        ''''''' Funció per passar la informació a la screen Clau'''''''
+        #print('self',self)
+        #self.findhacker(self)
+        if self.continuar == 1:
+            
+            if np.shape(arr1f)[0]<lenkey:
+                show_popup(show_popup,5)
+        
+            self.bits= str(arr1f[:,2])
+            
+            print('array per anar a clau',arr1f)
+            global key
+            finalkeyb,finalkey=clauobtinguda(arr1f[:,2])
+            print('finalkey',finalkey,type(finalkey))
+            finalkeytext=" "
+            for i in finalkey:
+                finalkeytext+=str(i)+" ; "
+            
+            key=finalkey
+            self.clau1= str(finalkeytext)
+            self.manager.current= "Clau"
+            
+        if self.continuar == 0:
+            show_popup(show_popup,8)
+                
+
       
-              
-        
-        
-        
         
         
 

@@ -21,6 +21,14 @@ class Player():
         #self.array=np.array([[1,None,None]])
         self.hack=0
         
+        
+        #Per provar
+        self.publica=False
+        self.publicat=False
+        self.publiA=False
+        self.publiB=False
+        self.arr0f=False
+        self.arr1f=False
     
     #self.array=array
         
