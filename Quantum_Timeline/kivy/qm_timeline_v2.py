@@ -4,7 +4,7 @@ Created on Sat Dec 19 12:13:39 2020
 
 @author: llucv
 """
-import matplotlib
+
 from kivy.app import App 
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.clock import Clock
@@ -14,7 +14,6 @@ from kivy.uix.popup import Popup
 from functools import partial
 from kivy.properties import ObjectProperty,ReferenceListProperty,\
     NumericProperty,StringProperty,ListProperty,BooleanProperty
-matplotlib.use('module://kivy.garden.matplotlib.backend_kivy')
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -26,7 +25,7 @@ Nx_inty=0
 Ny_inty=0
 intensitat_llum=0
 
-class qm_timelineApp(App):
+class qm_timeline_v2App(App):
     def build(self):
         self.title='quantum physics timeline'
         return MyScreenManager()
@@ -152,7 +151,15 @@ class YoungSlitScreen(Screen):
         ##########################PRIMER DIBUIX###################
         
         #creem la figura recipient del plot imshow
-        self.main_fig,self.axs=plt.subplots(2, sharex=True, sharey=True)
+        self.main_fig,self.axs=plt.subplots(2)
+        self.axs[0].set(xlim=[0, int(self.w_display*self.dl)], 
+                        ylim=[0, int(self.h_display*self.dl)], 
+                        adjustable='box',aspect=1)
+        self.axs[1].set(xlim=[0, int(self.w_display*self.dl)], 
+                        ylim=[0, int(self.h_display*self.dl)], 
+                        adjustable='box',aspect=1)
+        #self.axs[0].set_aspect
+
         
         #L'associem amb kivy
         self.main_canvas=FigureCanvasKivyAgg(self.main_fig)
@@ -176,8 +183,11 @@ class YoungSlitScreen(Screen):
             self.at.transpose()[int((self.Ny-self.h_display)/2):\
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
-               ,vmax=2*self.amp,vmin=-2*self.amp,origin='lower',
+                ,vmax=2*self.amp,vmin=-2*self.amp,origin='lower',
+                interpolation='gaussian',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
+        
+        print(int(self.w_display*self.dl))
         
         #representació de la paret al diagrama d'ones
         self.wave_slit_im=self.wave_visu.imshow(\
@@ -185,6 +195,7 @@ class YoungSlitScreen(Screen):
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
                ,vmax=1,vmin=0.5,origin='lower',cmap=self.cmap,
+               interpolation='gaussian',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
         
         #diagrama d'intensitat
@@ -192,7 +203,8 @@ class YoungSlitScreen(Screen):
             self.it.transpose()[int((self.Ny-self.h_display)/2):\
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
-               ,vmax=self.amp*self.amp*0.8,origin='lower',cmap='gray',
+                ,vmax=self.amp*self.amp*0.8,origin='lower',cmap='gray',
+                interpolation='gaussian',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
 
         #representació de la paret al diagrama d'intensitat
@@ -201,6 +213,7 @@ class YoungSlitScreen(Screen):
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
                ,vmax=1,vmin=0.5,origin='lower',cmap=self.cmap,
+               interpolation='gaussian',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
 
         self.main_canvas.draw()
@@ -379,6 +392,7 @@ class YoungSlitScreen(Screen):
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
                ,vmax=2*self.amp,vmin=-2*self.amp,origin='lower',
+               interpolation='gaussian',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
             
         self.wave_slit_im=self.wave_visu.imshow(\
@@ -386,13 +400,15 @@ class YoungSlitScreen(Screen):
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
                ,vmax=1,vmin=0.5,origin='lower',cmap=self.cmap,
+               interpolation='gaussian',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
             
         self.inty_visu_im=self.inty_visu.imshow(\
             self.it.transpose()[int((self.Ny-self.h_display)/2):\
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
-               ,vmax=self.amp*self.amp*0.8,origin='lower',cmap='gray',
+        ,vmax=self.amp*self.amp*0.8,origin='lower',cmap='gray',
+        interpolation='gaussian',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
             
         self.inty_slit_im=self.inty_visu.imshow(\
@@ -400,6 +416,7 @@ class YoungSlitScreen(Screen):
                                 int((self.Ny+self.h_display)/2),
                                 0:self.w_display]
                ,vmax=1,vmin=0.5,origin='lower',cmap=self.cmap,
+               interpolation='gaussian',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
         
         #I utilitzar-lo
@@ -474,4 +491,4 @@ class IntensityPopup(Popup):
 
         
 if __name__ == '__main__':
-    qm_timelineApp().run()
+    qm_timeline_v2App().run()

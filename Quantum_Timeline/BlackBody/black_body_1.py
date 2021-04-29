@@ -11,6 +11,7 @@ from numpy.random import randint
 from numpy.random import rand
 import matplotlib.pyplot as plt
 import numba
+from scipy import special
 from numba import jit
 
 seed(1111111111)
@@ -63,10 +64,14 @@ def Max_Boltz(ground,energy,temp):
 def acc_reb_MB(ground,temp):
     energy=rand(1)*ground
     kT=kb*temp
-    b=rand(1)*Max_Boltz(0, kT/2, temp)
+    Ef=((hbar**2)*(3*(pi**2)/V_atom)**(2/3))/(2*m_e)
+    mu=Ef*(1-((pi*kT/Ef)**2)/12)
+    mu=0
+    e_max=kT*(special.lambertw(np.exp(mu/kT-1))+1)
+    b=rand(1)*Max_Boltz(0, e_max, temp)
     while b > Max_Boltz(ground,energy,temp):
         energy=rand(1)*ground
-        b=rand(1)*Max_Boltz(0, kT/2, temp)
+        b=rand(1)*Max_Boltz(0, e_max, temp)
     return energy
 
 @jit 
@@ -234,14 +239,14 @@ print("hello")
     
 T=3000
 
-A=bb_start(32,1,1,T)
+A=bb_start(64,1,1,T)
 
 plt.imshow(A[:,:,3],cmap="inferno",vmin=-1,vmax=0)
 plt.show()
 
 p_nu_e=A[:,:,4]
 p_nu_l=ph_wavelenght(p_nu_e)
-radiance_wavelenght(p_nu_l,"hst_bb_0_FD",100,T)
+radiance_wavelenght(p_nu_l,"hst_bb_0_FD",50,T)
 
 print("estat inicial")
 for k in range(1):
@@ -251,7 +256,7 @@ plt.imshow(A[:,:,3],cmap="inferno",vmin=-1,vmax=0)
 plt.show()
 p_nu_e=A[:,:,4]
 p_nu_l=ph_wavelenght(p_nu_e)
-radiance_wavelenght(p_nu_l,"hst_bb_200pas",100,T)
+radiance_wavelenght(p_nu_l,"hst_bb_200pas",50,T)
 
 
 

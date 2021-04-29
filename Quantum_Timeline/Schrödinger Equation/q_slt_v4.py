@@ -25,27 +25,31 @@ psi=np.zeros((Nx,Ny,3),dtype=np.complex128)
 V=np.zeros((Nx,Ny))
 
 dt=1/100
-dl=np.sqrt(dt/4)
-Nr=4
-r=dt/(Nr*dl**2)
+dl=7*dt
+r=dt/(4*dl*dl)
 
 
 @jit(nopython=True)
-def tridiag (A,B,C,D):
-    N=len(D)
-    x=np.zeros((N),dtype=np.complex128)
-    
-    for i in range(1,N):
-        W=A[i]/B[i-1]
-        B[i] = B[i] - W * C[i - 1]
-        D[i] = D[i] - W * D[i - 1]
-    
-    x[N-1]=D[N-1]/B[N-1]
-    
-    for j in range(N-2):
-        i=N-2-j
-        x[i] = (D[i] - C[i] * x[i + 1]) / B[i]
-        
+def tridiag (a,b,c,d):
+    n = len(a)
+
+    cp = np.zeros(n, dtype = np.complex128)
+    dp = np.zeros(n, dtype = np.complex128)
+    cp[0] = c[0]/b[0]
+    dp[0] = d[0]/b[0]
+
+    for i in range(1,n):
+        m = (b[i]-a[i]*cp[i-1])
+        cp[i] = c[i]/m
+        dp[i] = (d[i] - a[i]*dp[i-1])/m
+
+    x = np.zeros(n, dtype = np.complex128)
+    x[n-1] = dp[n-1]
+
+    for j in range(1,n):
+        i = (n-1)-j
+        x[i] = dp[i]-cp[i]*x[i+1]
+
     return x
 
 @jit
@@ -208,43 +212,33 @@ def Potential_slits_gauss(max_V,x_wall,separation,w_slt,dev,Nslt,dl,Nx,Ny):
     print(V[x_wall,10])
 
     return V
-
-@jit
-def trapezis_2D(f,h):
-    f_shape=np.shape(f)
-    suma=0
-    for i in range(f_shape[0]-1):
-        suma=((np.sum(f[i+1,0:-1])+np.sum(f[i+1,1:]))*h/2\
-             +(np.sum(f[i,0:-1])+np.sum(f[i,1:]))*h/2)*h/2+\
-                 suma
         
-    return suma
-
 
 Nt=400
 prob=np.zeros((Nx,Ny,Nt))
 V=np.zeros((Nx,Ny))
-x0_i=int(Nx/4)
+x0_i=int(Nx/6)
 y0_j=int(Ny/2)
 x0=x0_i*dl
 y0=y0_j*dl
 px0=10
-py0=10
-Ndev=20
-dev=Ndev*dl
+py0=0
+dev=6*dl
 
 print('som-hi')
     
 
 
-Nslt=2
+Nslt=0
 w_slt=15
 separation=32
 x_wall=int(w_display/2)
-max_V=0
-devV=dl
+max_V=10
+max_V_det=100
+devV=dl*3
 
 V=Potential_slits_gauss(max_V,x_wall,separation,w_slt,devV,Nslt,dl,Nx,Ny)
+V=np.zeros((Nx,Ny),dtype=np.complex128)
 
 
 print("let's animate!")
@@ -253,14 +247,12 @@ start=time.time()
 psi[:,:,0]=psi_0(Nx,Ny,x0,y0,px0,py0,dev,dl,dt)
 prob[:,:,0]=prob_dens(psi[:,:,0])
 print(np.sum(prob[:,:,0]))
-prob_k=np.zeros((Nx,Ny))
 
 for k in range(Nt):
     print(k)
     psi=psi_ev_ck(psi,V,r,dl,dt)
     prob[:,:,k]=prob_dens(psi[:,:,0])
-    prob_k[:,:]=prob[:,:,k]
-    print(trapezis_2D(prob_k,dl))
+    print(np.sum(prob[:,:,k]))
     
 print(time.time()-start)
     
@@ -268,29 +260,22 @@ comap = plt.get_cmap('Reds')
 comap.set_under('k', alpha=0)
 Pot=np.real(V)
 Pot_max=np.max(Pot)
-if Pot_max > 0.1:
-    opac=0.5/1
-    
-if Pot_max < 0.1:
-    opac=0/1
 
 print("let's animate!")
-
-Nvisu=2
 def update9(frame):
-    k=frame*8
+    k=frame*4
     print(frame)
     normk=prob[:,:,k]
     plt.imshow(normk.transpose()[int((Ny-h_display)/2):\
                                 int((Ny+h_display)/2),
                                 0:w_display],origin='lower',cmap="Blues",
-               vmax=prob[x0_i,y0_j,0]/Nvisu,vmin=0,alpha=1,
+               vmax=prob[x0_i,y0_j,0]/10,vmin=0,alpha=1,
         extent=(0,int(w_display*dl),0,int(h_display*dl)))
-    
+        
     plt.imshow(Pot.transpose()[int((Ny-h_display)/2):\
                                 int((Ny+h_display)/2),
                                 0:w_display],
-               origin='lower',cmap=comap,vmin=Pot_max*0.5,alpha=opac,
+               origin='lower',cmap=comap,vmin=0.5*Pot_max,alpha=0,
         extent=(0,int(w_display*dl),0,int(h_display*dl)))
     
 
@@ -301,16 +286,14 @@ Writer = ani.writers['ffmpeg']
 writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 
 anim9 = ani.FuncAnimation(fig9, update9, 
-                               frames = int(Nt/8)-1, 
+                               frames = int(Nt/4)-1, 
                                blit = False, interval=200)
 
 guarda9=1
 if guarda9==1:
-    anim9.save('maxV'+str(max_V)+'_px'+str(px0)+'_py'+str(py0)\
-               +'_Nslits'+str(Nslt)+'_dev'+str(Ndev)+'_r'+str(Nr)\
-               +'_Sch_v2.mp4', writer=writer)
+    anim9.save(str(Nslt)+'_slits_Sch_v4_2r.mp4', writer=writer)
     
 V=np.real(V)
 print(V)
 plt.imshow(np.transpose(V))
-plt.savefig(str(Nslt)+"V_slits_r.png")
+plt.savefig(str(Nslt)+"V_slits_2r.png")

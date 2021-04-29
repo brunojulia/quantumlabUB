@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Thu Apr 22 18:23:28 2021
+
+@author: llucv
+"""
+
+# -*- coding: utf-8 -*-
+"""
 Created on Mon Apr 12 07:45:28 2021
 
 @author: llucv
@@ -11,7 +18,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as ani
 import time
 
-Nx=200
+Nx=400
 Ny=200
 
 h_display=int(Ny)
@@ -21,17 +28,17 @@ h_slits=int(Ny/3)
 hbar=1
 pi=np.pi
 
-psi=np.zeros((Nx,Ny,3),dtype=np.complex128)
-V=np.zeros((Nx,Ny))
+central=1
 
-dt=1/100
-dl=np.sqrt(dt/4)
-Nr=4
+dt=1/(30*(abs(central-1)+central*10))
+dl=np.sqrt(dt/2)
+print(dl)
+Nr=8
 r=dt/(Nr*dl**2)
 
 
 @jit(nopython=True)
-def tridiag (A,B,C,D):
+def tridiag(A,B,C,D):
     N=len(D)
     x=np.zeros((N),dtype=np.complex128)
     
@@ -42,79 +49,82 @@ def tridiag (A,B,C,D):
     
     x[N-1]=D[N-1]/B[N-1]
     
-    for j in range(N-2):
-        i=N-2-j
+    for j in range(1,N):
+        i=N-1-j
         x[i] = (D[i] - C[i] * x[i + 1]) / B[i]
         
     return x
 
 @jit
-def psi_ev_ck(psi,V,r,dl,dt):
-    box_shape=(np.shape(psi))
+def psi_ev_ck(psip,V,r,dl,dt):
+    box_shape=(np.shape(psip))
+    psi=np.zeros((box_shape[0],box_shape[1],3),dtype=np.complex128)
+    psi[:,:,0]=psip[:,:]
     
     """primer mig pas de temps"""        
     #calcul de la psi passat el primer mig pas
+    #vector D
+    D=np.zeros((box_shape[0],box_shape[1]),dtype=np.complex128)
+    
+    D[:,0]=psi[:,0,0]*(1-2*1j*r-1j*dt*V[:,0]/4)+1j*r*(psi[:,1,0])
+    
+    D[:,box_shape[1]-1]=psi[:,box_shape[1]-1,0]*(1-1j*2*r-1j*dt*\
+                            V[:,box_shape[1]-1]/4)+\
+                            1j*r*(psi[:,box_shape[1]-2,0])
+                            
+    D[:,1:box_shape[1]-1]=psi[:,1:box_shape[1]-1,0]*\
+        (1-1j*2*r-1j*dt*V[:,1:box_shape[1]-1]/4)+\
+        1j*r*(psi[:,0:box_shape[1]-2,0]+psi[:,2:box_shape[1],0])
+    
+    #altres vectors (coeficients)
+    A=np.zeros((box_shape[0]),dtype=np.complex128)
+    A[1:]=-1j*r
+    A[0]=0.
+    
+    C=np.zeros((box_shape[0]),dtype=np.complex128)
+    C[0:-1]=-1j*r
+    C[box_shape[0]-1]=0.
+    
+    B=np.zeros((box_shape[0],box_shape[1]),dtype=np.complex128)
+    B[:,:]=1+1j*2*r+1j*dt*V[:,:]/4
+    
     for j in range(box_shape[1]):
-        #vector D
-        D=np.zeros((box_shape[0],box_shape[1]),dtype=np.complex128)
+        psi[:,j,1]=tridiag(A,B[:,j],C,D[:,j])
         
-        D[:,0]=psi[:,0,0]*(1-2*1j*r-1j*dt*V[:,0]/4)+1j*r*(psi[:,1,0])
-        
-        D[:,box_shape[1]-1]=psi[:,box_shape[1]-1,0]*(1-1j*2*r-1j*dt*\
-                                V[:,box_shape[1]-1]/4)+\
-                                1j*r*(psi[:,box_shape[1]-1,0])
-                                
-        D[:,1:box_shape[1]-1]=psi[:,1:box_shape[1]-1,0]*\
-            (1-1j*2*r-1j*dt*V[:,1:box_shape[1]-1]/4)+\
-            1j*r*(psi[:,0:box_shape[1]-2,0]+psi[:,2:box_shape[1],0])
-        
-        #altres vectors (coeficients)
-        A=np.zeros((box_shape[0]),dtype=np.complex128)
-        A[1:]=-1j*r
-        
-        C=np.zeros((box_shape[0]),dtype=np.complex128)
-        C[0:-1]=-1j*r
-        
-        B=np.zeros((box_shape[0]),dtype=np.complex128)
-        B[:]=1+1j*2*r+1j*dt*V[:,j]/4
-        
-        psi[:,j,1]=tridiag(A,B,C,D[:,j])
-        
+    
     """segon mig pas de temps"""
     
     #calcul de la psi passat el segon mig pas
-    for j in range(box_shape[0]):
-        #vector D
-        D=np.zeros((box_shape[0],box_shape[1]),dtype=np.complex128)
-        
-        D[0,:]=psi[0,:,1]*(1-1j*2*r-1j*dt*V[0,:]/4)+1j*r*(psi[1,:,1])
-        
-        D[box_shape[0]-1,:]=psi[box_shape[0]-1,:,1]*(1-1j*2*r-1j*dt*\
-                            V[box_shape[0]-1,:]/4)+\
-                            1j*r*(psi[box_shape[0]-1,:,1])
-
-        D[1:box_shape[0]-1,:]=psi[1:box_shape[0]-1,:,1]*\
-                (1-1j*2*r-1j*dt*V[1:box_shape[0]-1,:]/4)+\
-                1j*r*(psi[0:box_shape[0]-2,:,1]+psi[2:box_shape[0],:,1])
-        
-        #altres vectors (coeficients A,B i C)
-        A=np.zeros((box_shape[1]),dtype=np.complex128)
-        A[1:]=-1j*r
-        A[0]=0
-        
-        C=np.zeros((box_shape[1]),dtype=np.complex128)
-        C[0:-1]=-1j*r
-        C[box_shape[1]-1]=0
-        
-        B=np.zeros((box_shape[1]),dtype=np.complex128)
-        B[:]=1+1j*2*r+1j*dt*V[j,:]/4
-        
-        psi[j,:,2]=tridiag(A,B,C,D[j,:])
+    #vector D
+    D=np.zeros((box_shape[0],box_shape[1]),dtype=np.complex128)
     
-    psi[:,:,0]=psi[:,:,2]
-    psi[:,:,1]=0
-    psi[:,:,2]=0
-    return psi
+    D[0,:]=psi[0,:,1]*(1-1j*2*r-1j*dt*V[0,:]/4)+1j*r*(psi[1,:,1])
+    
+    D[box_shape[0]-1,:]=psi[box_shape[0]-1,:,1]*(1-1j*2*r-1j*dt*\
+                        V[box_shape[0]-1,:]/4)+\
+                        1j*r*(psi[box_shape[0]-2,:,1])
+
+    D[1:box_shape[0]-1,:]=psi[1:box_shape[0]-1,:,1]*\
+            (1-1j*2*r-1j*dt*V[1:box_shape[0]-1,:]/4)+\
+            1j*r*(psi[0:box_shape[0]-2,:,1]+psi[2:box_shape[0],:,1])
+    
+    #altres vectors (coeficients A,B i C)
+    A=np.zeros((box_shape[1]),dtype=np.complex128)
+    A[1:]=-1j*r
+    A[0]=0.
+    
+    C=np.zeros((box_shape[1]),dtype=np.complex128)
+    C[0:-1]=-1j*r
+    C[box_shape[1]-1]=0.
+    
+    B=np.zeros((box_shape[0],box_shape[1]),dtype=np.complex128)
+    B[:,:]=1+1j*2*r+1j*dt*V[:,:]/4
+    
+    for i in range(box_shape[0]):
+        psi[i,:,2]=tridiag(A,B[i,:],C,D[i,:])
+    
+    psip[:,:]=psi[:,:,2]
+    return psip
 
 
 def psi_0(Nx,Ny,x0,y0,px0,py0,dev,dl,dt):
@@ -220,17 +230,50 @@ def trapezis_2D(f,h):
         
     return suma
 
+@jit
+def normalize(psi,box_shape,dl):
+    prob=np.zeros((box_shape[0],box_shape[1]),dtype=np.complex128)
+    prob[:,:]=prob_dens(psi[:,:])
+    psi=psi/trapezis_2D(psi,1)
+    return psi
+    
+def coulomb_pot(Nx,Ny,dl,x0,y0,Z,sign):
+    V=np.zeros((Nx,Ny),dtype=np.complex128)
 
-Nt=400
-prob=np.zeros((Nx,Ny,Nt))
+    x=np.linspace(0,Nx,Nx,endpoint=False,dtype=np.complex128)
+    y=np.linspace(0,Ny,Ny,endpoint=False,dtype=np.complex128)
+    
+    x=x*dl
+    y=y*dl
+    
+    alpha=1
+    
+    r_a=3.11*(10**(-3))*((2*Z)**(1/3))
+    
+    for i in range(Nx):
+        for j in range(Ny):
+            r=np.sqrt((x[i]-x0)**2+(y[j]-y0)**2)
+            if r<r_a:
+                V[i,j]=1000
+            else:
+                V[i,j]=sign*alpha*Z/r
+    
+    return V
+            
+
+
+psi=np.zeros((Nx,Ny),dtype=np.complex128)
 V=np.zeros((Nx,Ny))
-x0_i=int(Nx/4)
+
+Nt=10000
+prob=np.zeros((Nx,Ny,Nt))
+x0_i=int(0.45*Nx)
 y0_j=int(Ny/2)
 x0=x0_i*dl
 y0=y0_j*dl
-px0=10
-py0=10
-Ndev=20
+px0=0.5
+py0=0
+Ndev=10
 dev=Ndev*dl
 
 print('som-hi')
@@ -241,44 +284,92 @@ Nslt=2
 w_slt=15
 separation=32
 x_wall=int(w_display/2)
-max_V=0
+
+#potencial
+xv0_i=int(0.55*Nx)
+yv0_j=int(Ny/2)
+xv0=xv0_i*dl
+yv0=yv0_j*dl
+max_V=100
+Z=10
+sign=-1
 devV=dl
 
-V=Potential_slits_gauss(max_V,x_wall,separation,w_slt,devV,Nslt,dl,Nx,Ny)
+if central==0:
+    opac_k=1
+    V=Potential_slits_gauss(max_V,x_wall,separation,w_slt,devV,Nslt,dl,Nx,Ny)
+
+if central==1:
+    opac_k=0.05
+    V=coulomb_pot(Nx,Ny,dl,xv0,yv0,Z,sign)
 
 
-print("let's animate!")
+print("let's compute!")
 start=time.time()
 
-psi[:,:,0]=psi_0(Nx,Ny,x0,y0,px0,py0,dev,dl,dt)
-prob[:,:,0]=prob_dens(psi[:,:,0])
+psi[:,:]=psi_0(Nx,Ny,x0,y0,px0,py0,dev,dl,dt)
+prob[:,:,0]=prob_dens(psi[:,:])
 print(np.sum(prob[:,:,0]))
 prob_k=np.zeros((Nx,Ny))
 
 for k in range(Nt):
     print(k)
     psi=psi_ev_ck(psi,V,r,dl,dt)
-    prob[:,:,k]=prob_dens(psi[:,:,0])
+    prob[:,:,k]=prob_dens(psi[:,:])
     prob_k[:,:]=prob[:,:,k]
     print(trapezis_2D(prob_k,dl))
     
 print(time.time()-start)
-    
-comap = plt.get_cmap('Reds')
-comap.set_under('k', alpha=0)
+
 Pot=np.real(V)
-Pot_max=np.max(Pot)
+
+"""
+for i in range(Nx):
+    for j in range(Ny):
+        if Pot[i,j]-1000==0:
+            Pot[i,j]=0.
+"""
+
+print('dl')
+print(dl)
+
+print('potencial0')
+print(np.max(Pot))
+print(np.min(Pot))
+
+if central==0:   
+    comap = plt.get_cmap('Reds')
+    comap.set_under('k', alpha=0)
+    Pot_max=np.max(Pot)
+
+    
+if central==1:
+    
+    if np.max(Pot)<=0:
+        comap = plt.get_cmap('Reds')
+        Pot=-Pot
+        Pot_max=np.max(Pot)
+    
+    else:
+        comap = plt.get_cmap('Reds')
+        Pot_max=np.max(Pot)
+
+
+
+print('potencial')
+print(Pot_max)
 if Pot_max > 0.1:
-    opac=0.5/1
+    opac=0.5/1*opac_k
     
 if Pot_max < 0.1:
     opac=0/1
 
 print("let's animate!")
 
-Nvisu=2
+Nvisu=1
+Nden=50
 def update9(frame):
-    k=frame*8
+    k=frame*Nden
     print(frame)
     normk=prob[:,:,k]
     plt.imshow(normk.transpose()[int((Ny-h_display)/2):\
@@ -290,7 +381,7 @@ def update9(frame):
     plt.imshow(Pot.transpose()[int((Ny-h_display)/2):\
                                 int((Ny+h_display)/2),
                                 0:w_display],
-               origin='lower',cmap=comap,vmin=Pot_max*0.5,alpha=opac,
+               origin='lower',vmax=Pot_max*opac_k,cmap=comap,alpha=opac,
         extent=(0,int(w_display*dl),0,int(h_display*dl)))
     
 
@@ -301,14 +392,19 @@ Writer = ani.writers['ffmpeg']
 writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 
 anim9 = ani.FuncAnimation(fig9, update9, 
-                               frames = int(Nt/8)-1, 
+                               frames = int(Nt/Nden)-1, 
                                blit = False, interval=200)
-
-guarda9=1
-if guarda9==1:
-    anim9.save('maxV'+str(max_V)+'_px'+str(px0)+'_py'+str(py0)\
-               +'_Nslits'+str(Nslt)+'_dev'+str(Ndev)+'_r'+str(Nr)\
-               +'_Sch_v2.mp4', writer=writer)
+save=1
+if save==1:
+    if central==0:
+        anim9.save('Nx'+str(Nx)+'_Ny'+str(Ny)+'_maxV'+str(max_V)\
+                   +'_px'+str(px0)+'_py'+str(py0)\
+                   +'_Nslits'+str(Nslt)+'_dev'+str(Ndev)+'_r'+str(Nr)\
+                   +'_Sch_v5.mp4', writer=writer)
+    if central==1:
+        anim9.save('Nx'+str(Nx)+'_Ny'+str(Ny)+'_Z'+str(Z)\
+                   +str(sign)+'_central_pot'\
+                   +'_Sch_v5.mp4', writer=writer)
     
 V=np.real(V)
 print(V)
