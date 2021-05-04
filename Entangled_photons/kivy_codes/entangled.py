@@ -7,6 +7,8 @@ from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
+from kivy.garden.knob import Knob
+from kivy.graphics import Rectangle, Color
 
 from kivy.properties import ObjectProperty, NumericProperty
 import math
@@ -17,6 +19,7 @@ class entangledscreen(BoxLayout):
 	n_label=ObjectProperty()  #ara n és una propietat de entangledscreen i farem self. bla bla
 	label_s1=ObjectProperty()
 	label_s2=ObjectProperty()
+	s_label=ObjectProperty()
 	def __init__(self, *args, **kwargs):
 		super(entangledscreen, self).__init__()
 		self.experiment = entangledEXP()
@@ -32,8 +35,18 @@ class entangledscreen(BoxLayout):
 
 		table1 = self.experiment.expqua()
 		s=self.experiment.scalc(table1)
-		print(s)
-		return(s)
+		sigma=self.experiment.sigma(table1)
+		print(s,"±",sigma)
+		rounder=sigma
+		factorcounter=0
+		while rounder<1:
+			rounder=rounder*10
+			factorcounter+=1
+
+		sr=round(s,factorcounter)
+		sigmar=round(sigma, factorcounter)
+		self.s_label.text='[font=Digital-7][color=000000][size=34] S='+str(sr)+'[/font]'+'±'+'[font=Digital-7]'+str(sigmar)+'[/color][/font][/size]'
+		return(sr," ± ",sigmar)
 	pass
 
 class entangledApp(App):

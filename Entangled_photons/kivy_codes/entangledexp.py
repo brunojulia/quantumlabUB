@@ -5,11 +5,11 @@ class entangledEXP(object):
 	#aqui posem totes les propietats del entangledEXP que escriurem com self. el que sigui
 	def __init__(self,n = 1000, alpha=0, beta=0, theta_l=math.pi/4, phi=26*math.pi/180,photons=1000):
 		self.n = n
-		self.alpha = alpha
-		self.beta = beta
+		self.alpha = alpha-180
+		self.beta = beta-180
 		self.tl = theta_l
-		self.phi=phi
-		self.photons=photons
+		self.phi = phi
+		self.photons = photons
 
 	def addphotons(self, n=None):
 		changed=False
@@ -83,5 +83,27 @@ class entangledEXP(object):
 		# Agafem els angles a=-45, a'=0 i b=22.5, b'=-22.5
 		# print(Elist)
 		S = Elist[0] - Elist[1] + Elist[2] + Elist[3]
+
 		return (S)
 
+	def sigma(self,table1):
+		# Nc=llista de coincidències, agafa la última columna de la taula
+		Nc = []
+		for result in table1:
+			Nc.append(result[4])
+		# posicions en la llista de coincidències de E(alpha,beta).
+		posab = [0, 1, 4, 5]
+		##################
+		# Càlcul de la desviació estàndard
+		##################
+		suma = []
+		for i in posab:
+			# calcula la derivada de E segons la posició de E(alpha,beta) de la llista de coincidències
+			# derivades
+			dEi1 = 2 * (Nc[i + 2] + Nc[i + 8]) / (Nc[i] + Nc[i + 10] + Nc[i + 2] + Nc[i + 8]) ** 2
+			dEi2 = -2 * (Nc[i] + Nc[i + 10]) / (Nc[i] + Nc[i + 10] + Nc[i + 2] + Nc[i + 8]) ** 2
+
+			suma.append(dEi1 ** 2 * (Nc[i] + Nc[i + 10]) + dEi2 ** 2 * (Nc[i + 2] + Nc[i + 8]))
+
+		sigma = math.sqrt(sum(suma))
+		return(sigma)
