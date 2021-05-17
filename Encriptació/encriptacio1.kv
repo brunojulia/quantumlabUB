@@ -20,6 +20,11 @@
         arr0_text : bob.text
         arr1_text2 : bob.text2
         
+    Publidir3:
+        id: publidir3
+        arr0_text: aliceibob.text
+        arr1_text2: aliceibob.text2
+            
     Clau:
         bitsfinals_text: publidir2.bits
         clau1_text: publidir2.clau1
@@ -27,12 +32,10 @@
     Multiplayer:
     
     Aliceibob:
-      
-
+        id: aliceibob
         
     
-    
-        
+                
 
 <Button>:
     #font_size: 30
@@ -998,7 +1001,202 @@
                     root.manager.transition.direction = "left"
                             
                     
+<Publidir3>:
+    name: "Publidir3"
+    
+    arr0: arr0
+    arr1: arr1
+
+    publiAh: publiAh
+    publiBh: publiBh
+    
+    GridLayout:
+        cols:3
+        padding:100
+        spacing:50
+        size_hint: 1, 0.8
+        pos_hint: {'top':1}
+        
+        Label:
+            text:''
+            size_hint: 0.2, 0.2
+            
+        Label:
+            text:'[b]Alice[/b]'
+            markup: True
+            font_size: 40
+            
+        Label:
+            text:'[b]Bob[/b]'
+            markup: True
+            font_size: 40
+            
+        GridLayout:
+            rows:2
+            size_hint: 0.2,1
+            Label:
+                text:'Publicació de les direccions'
+                width: 20
+            Button:
+                text:'Compara'
+                color: [1,1,1,1]
+                background_color: [0,0,0,1]
+                canvas.before:
+                    Color:
+                        rgba: 1,0.89,0.7,1
+                    Line:
+                        width: 1.5
+                        rectangle: self.x, self.y, self.width, self.height
+                on_press:
+                    root.comparar()
+        ScrollView:
+            Label:
+                id: arr0
+                text: root.arr0_text
+                font_size: 16
+                size_hint: None, None     
+                size: self.texture_size
+                text_size: 550, None #perquè s'alinei
+                halign: 'center'     #""
+        ScrollView:
+            Label:
+                id: arr1
+                text: root.arr1_text2  
+                font_size: 16
+                size_hint: None, None     
+                size: self.texture_size
+                text_size: 550, None #perquè s'alinei
+                halign: 'center'
+        GridLayout:
+            rows:2
+            size_hint: 0.2,1
+            Label:
+                text:'Publicació per hacker'
+            Button:
+                text:'Publica'
+                color: [1,1,1,1]
+                background_color: [0,0,0,1]
+                canvas.before:
+                    Color:
+                        rgba: 1,0.89,0.7,1
+                    Line:
+                        width: 1.5
+                        rectangle: self.x, self.y, self.width, self.height
+                on_press:
+                    root.findhacker()
+        ScrollView:
+            Label:
+                text: ""
+                id: publiAh
+                font_size: 16
+                size_hint: None, None     
+                size: self.texture_size
+                text_size: 550, 100 
+                halign: 'center'
+                valign: 'center'
+        ScrollView:
+            Label:
+                text: ""
+                id: publiBh
+                font_size: 16
+                size_hint: None, None     
+                size: self.texture_size
+                text_size: 550, 100
+                halign: 'center'
+                valign: 'center'
+    
+    GridLayout:
+        #orientation: 'horizontal'
+        cols:3 
+        size_hint: 0.4,0.05
+        
+        padding_x:300
+        padding_y:100
+        spacing:50
+        pos_hint: {'center_x':0.5,'top':0.2}
+        
+        Label:
+            text:'Hi ha hacker?' 
+        Button: 
+            text:'Sí'
+            color: [1,1,1,1]
+            background_color: [0,0,0,1]
+            canvas.before:
+                Color:
+                    rgba: 1,0.89,0.7,1
+                Line:
+                    width: 1.5
+                    rectangle: self.x, self.y, self.width, self.height
+            on_press:
+                root.hackeryes()
+        Button:
+            text:'No'
+            color: [1,1,1,1]
+            background_color: [0,0,0,1]
+            canvas.before:
+                Color:
+                    rgba: 1,0.89,0.7,1
+                Line:
+                    width: 1.5
+                    rectangle: self.x, self.y, self.width, self.height
+            on_press:
+                root.hackerno()
+   
+   
+   
+   
+                
+        
+    AnchorLayout:
+        #anchor_x: 'center'
+        anchor_y: 'bottom'
+        
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, 0.06
+            spacing: 1200
+            Button:
+                text: '[color=#FFC872]Inici[/color]'
+                markup: True  
+                size_hint: 0.5,1
+                size: self.texture_size
+                pos_hint: {"x":0}
+                background_color: [0,0,0,1]
+                canvas.before:
+                    Color:
+                        rgba: 1,0.89,0.7,1
+                    Line:
+                        width: 1.5
+                        rectangle: self.x, self.y, self.width, self.height
+                            
+                
+                on_press:
+                    app.root.current = "home"
+                    root.manager.transition.direction = "right"
                     
+
+               
+            Button:
+                text: 'Continuar'
+                color: [1,1,1,1]
+                pos_hint: {"x":1}
+                size: self.texture_size
+                background_color: [0,0,0,1]
+                                                       
+                #background_normal: 'continuar.png'
+                size_hint: 0.5, 1
+                canvas.before:
+                    Color:
+                        rgba: 1,0.89,0.7,1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+                
+                on_press:
+                    root.change_text()
+                    root.manager.transition.direction = "left"
+                            
+                                        
                     
     
 <Clau>:
@@ -1609,5 +1807,15 @@
                 #app.root.current="aliceibob"
                 root.close()            
 
+<P12>:
+    Label:
+        text:"Per continuar, has d'esperar que en l'altre jugador acabi de mesurar"
+        size_hint: 0.6, 0.2
+        pos_hint: {"x":0.2, "top":1}
+        
     
-    
+<P13>:
+    Label:
+        text:"En Bob, vol acabar i compartir. Prem 'Acaba i comparteix' per passar al següent pas"
+        size_hint: 0.6, 0.2
+        pos_hint: {"x":0.2, "top":1}

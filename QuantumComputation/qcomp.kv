@@ -50,6 +50,8 @@
     scroll: scroll  
     removecolbutton: removecolbutton  
     addcolbutton: addcolbutton  
+    circuitslider: circuitslider
+    
     ScrollView:
         pos: root.pos
         size: root.size
@@ -62,6 +64,10 @@
             size_hint_x: None
             size: root.width+200, root.height
             pos: root.pos
+            canvas:
+                Color:
+                    rgba: 0,0,0,0
+                
             
             Button:
                 id: removecolbutton
@@ -76,10 +82,26 @@
                 id: addcolbutton
                 text: "+ Col"
                 size_hint: (None, None)
-                size: cellsize, scroll.height-(cellsize*0.5+space*1.5)
+                size: cellsize, scroll.height-(cellsize*1.25+space*2.25)
                 pos_hint: {}
-                pos: scroll.right-cellsize, scroll.y
+                pos: scroll.right-cellsize, scroll.y+(cellsize+space)*0.75
                 on_release: root.add_col()
+                
+            Slider:
+                id: circuitslider
+                pos_hint: {}
+                size_hint: (None, None)
+                pos: cellsize*0.5+70-self.cursor_width/2, scroll.y
+                size: scroll.width-cellsize*1.5-70+self.cursor_width, 0.75*cellsize
+                step: 1
+                on_touch_up: 
+                    root.slidercanva()
+                    app.sm.current_screen.QiskitConv()
+                on_touch_move: 
+                    root.slidercanva()
+                    #app.sm.current_screen.QiskitConv()
+                    
+                
 
 
 
@@ -96,6 +118,9 @@
     plotbox: plotbox
     warning: warning
     canva: canva
+    docuscroll:docuscroll
+    docupanel: docupanel
+    docuimage: docuimage
     
     probbutton: probbutton
     gatesbutton: gatesbutton
@@ -238,7 +263,7 @@
                     size: (self.width, 6)
                     
             pos_hint: {"left":0, "bottom": 0}
-            size_hint: 0.7, 0.3
+            size_hint: 0.7, 0.38
             
             ScrollView:
                 pos_hint: {"x": 0.05, "top": 0.95}
@@ -252,6 +277,36 @@
                     size_hint_y: None
                     size_hint_x: 1
                     pos_hint: {"x": 0, "top": 1}
+        
+              
+        FloatLayout: 
+            id: docupanel
+            pos_hint: {"left":0, "bottom": 0}
+            size_hint: 0.7, 0.38
+                   
+            ScrollView:
+                pos_hint: {"x": 0.05, "top": 0.95}
+                size_hint: (0.9, 0.9)
+                do_scroll_X: False
+                do_scroll_y: True
+                scroll_type: ["bars"] 
+                
+                FloatLayout:
+                    id: docuscroll
+                    size_hint_y: None
+                    size_hint_x: 1
+                    pos_hint: {"x": 0, "top": 1}
+                        
+                    Image:
+                        id: docuimage
+                        source: ''
+                        pos_hint: {'top':1, 'x':0}
+                        size_hint: 1, None
+                        size: 1000,1000
+                        allow_stretch: False
+                        
+        
+        
                     
                     
 
@@ -264,8 +319,8 @@
                         
             BoxLayout:
                 
-                pos_hint: {"top":0.9,"x":0}
-                size_hint: 0.95,0.85
+                pos_hint: {"top":1,"x":0}
+                size_hint: 0.98,0.85
                 
                 
                

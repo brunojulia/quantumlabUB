@@ -14,7 +14,22 @@ import sys
 import pickle
 from player import Player
 
-server="192.168.0.28" #Això és per network local, suposo per la meva wifi
+#provaserver=input("Introdueix la IP del server:")
+'''
+hostname = socket.gethostname()
+print('hostname', hostname)
+ip=socket.gethostbyname(hostname)
+print('ip',ip)
+'''
+def get_ip_address():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    return s.getsockname()[0]
+
+print('Adreça IP del server:',get_ip_address())
+
+#server="192.168.0.26" #Això és per network local, suposo per la meva wifi
+server=get_ip_address()
 port= 5555
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
