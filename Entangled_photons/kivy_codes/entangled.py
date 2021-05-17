@@ -90,7 +90,7 @@ class AngleKnob(Knob):
 
 class entangledApp(App):
 
-	#hi ha un proboema quan poso això
+	#hi ha un proboema quan poso això :(
 	#screen = entangledscreen()
 	def build(self):
 
