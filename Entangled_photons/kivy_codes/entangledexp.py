@@ -1,15 +1,20 @@
 #En aquest document aniran totes les coses relacionades amb el càlcul de l'experiment per després importar-lo en el "entangled".
 import math
+import numpy as np
+from mpl_toolkits.mplot3d import Axes3D
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator
 
 class entangledEXP(object):
 	#aqui posem totes les propietats del entangledEXP que escriurem com self. el que sigui
-	def __init__(self,n = 1000, alpha=0, beta=0, theta_l=math.pi/4, phi=26*math.pi/180,photons=1000):
+	def __init__(self,n = 10000, theta_l=math.pi/4, phi=26*math.pi/180,photons=10000, b1=5*math.pi/36, b2=math.pi/2):
 		self.n = n
-		self.alpha = alpha-180
-		self.beta = beta-180
 		self.tl = theta_l
 		self.phi = phi
 		self.photons = photons
+		self.b1 = b1
+		self.b2 = b2
 
 	def addphotons(self, n=None):
 		changed=False
@@ -40,21 +45,21 @@ class entangledEXP(object):
 			  (1 / 4) * math.sin(2 * a1) * math.sin(2 * b1) * math.sin(2 * self.tl) * math.cos(self.phi)
 		return (Phh)
 
-	def expqua(self):
+	def expqua(self, alpha, beta):
 		# creem les llistes dels angles que posarem als polaritzadors per poder calcular S
 		# fem que els angles estiguin entre -pi i pi
 		pol1 = []
 		pol2 = []
 		for i in range(0, 4):
-			if (self.alpha + i * math.pi / 4) > math.pi:
-				pol1.append(self.alpha + i * math.pi / 4 - 2 * math.pi)
+			if (alpha + i * math.pi / 4) > math.pi:
+				pol1.append(alpha + i * math.pi / 4 - 2 * math.pi)
 			else:
-				pol1.append(self.alpha + i * math.pi / 4)
+				pol1.append(alpha + i * math.pi / 4)
 		for i in range(0, 4):
-			if self.beta + i * math.pi / 4 > math.pi:
-				pol2.append(self.beta + i * math.pi / 4 - 2 * math.pi)
+			if beta + i * math.pi / 4 > math.pi:
+				pol2.append(beta + i * math.pi / 4 - 2 * math.pi)
 			else:
-				pol2.append(self.beta + i * math.pi / 4)
+				pol2.append(beta + i * math.pi / 4)
 		table1 = []
 		for a1 in pol1:
 			for b1 in pol2:
@@ -68,7 +73,9 @@ class entangledEXP(object):
 
 		return (table1)
 
-	def scalc(self,table1):
+
+	def scalc(self, alpha, beta):
+		table1=self.expqua(alpha, beta)
 		Elist = []
 		# Nc=llista de coincidències, agafa la última columna de la taula
 		Nc = []
@@ -84,10 +91,12 @@ class entangledEXP(object):
 		# print(Elist)
 		S = Elist[0] - Elist[1] + Elist[2] + Elist[3]
 
-		return (S)
+		return (float(S))
 
-	def sigma(self,table1):
+	scalcvec=np.vectorize(scalc)
+	def sigma(self, alpha, beta):
 		# Nc=llista de coincidències, agafa la última columna de la taula
+		table1=self.expqua(alpha, beta)
 		Nc = []
 		for result in table1:
 			Nc.append(result[4])
@@ -107,3 +116,36 @@ class entangledEXP(object):
 
 		sigma = math.sqrt(sum(suma))
 		return(sigma)
+
+
+	def sweepS(self):
+		res = []
+		# we take the lowest of b1 and b2
+		angle = 0
+		alphalist = np.linspace(0, 2 * np.pi, 200)
+		if self.b1 > self.b2:
+			angle1 = self.b2
+			angle2 = self.b1
+		else:
+			angle1 = self.b1
+			angle2 = self.b2
+		# WARNING: max beta linspace points ~ 50
+		betalist = np.linspace(angle1, angle2, 50)
+
+		# create 2d x,y grid (both X and Y will be 2d)
+		X, Y = np.meshgrid(alphalist, betalist, sparse=True)
+		# repeat Z to make it a 2d grid
+		Z = self.scalcvec(X, Y)
+
+		mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
+		mappable.set_array(Z)
+		fig = plt.figure()
+		ax = Axes3D(fig)
+		ax.plot_surface(X, Y, Z, cmap=mappable.cmap, linewidth=0.01)
+		ax.set_xlabel('Alpha (rad)')
+		ax.set_ylabel('Beta (rad)')
+		ax.set_zlabel('S')
+		cbar = fig.colorbar(mappable)
+		cbar.set_label('S', rotation=0)
+		plt.savefig('test.pdf')
+		plt.show()

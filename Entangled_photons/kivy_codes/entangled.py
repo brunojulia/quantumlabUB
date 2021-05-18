@@ -30,24 +30,28 @@ class entangledscreen(BoxLayout):
 	s_label=ObjectProperty()
 	table_checkbox=ObjectProperty()
 	table_popup=ObjectProperty()
+	graph_checkbox=ObjectProperty()
+	select_button=ObjectProperty()
+	delete_button=ObjectProperty()
 
 	def __init__(self, *args, **kwargs):
 		super(entangledscreen, self).__init__()
 		self.experiment = entangledEXP()
 		self.table_checkbox.bind(active=self.on_checkbox_Active)#lliga la checkbox amb la funció
+		self.graph_checkbox.bind(active=self.on_graph_checkbox_Active)  # lliga la checkbox amb la funció
 
 	def add_photons(self,a):
 		self.experiment.addphotons(n=self.experiment.n+a) #suma 1000 als fotons a llençar
 		self.n_label.text=str(self.experiment.n)
 
 	def runexp(self):
-		self.experiment.alpha=int(self.label_s1.text)*math.pi/180#convertim a radians i assignem els parametres per poder fer l'experiment
-		self.experiment.beta = int(self.label_s2.text)*math.pi/180
+		alpha = int(self.label_s1.text)*math.pi/180#convertim a radians i assignem els parametres per poder fer l'experiment
+		beta = int(self.label_s2.text)*math.pi/180
 		self.experiment.photons=int(self.n_label.text)
 
-		table1 = self.experiment.expqua()
-		s=self.experiment.scalc(table1)
-		sigma=self.experiment.sigma(table1)
+		#table1 = self.experiment.expqua(alpha, beta)
+		s=self.experiment.scalc(alpha, beta)
+		sigma=self.experiment.sigma(alpha, beta)
 		print(s,"±",sigma)
 		rounder=sigma
 		factorcounter=0
@@ -77,6 +81,14 @@ class entangledscreen(BoxLayout):
 	def on_checkbox_Active(self, checkboxInstance, isActive):
 		if isActive:
 			self.open_table_popup()
+
+	def on_graph_checkbox_Active(self, checkboxInstance, isActive):
+		if isActive:
+			self.select_button.disabled = False
+			self.delete_button.disabled = False
+		if isActive==False:
+			self.select_button.disabled = True
+			self.delete_button.disabled = True
 	pass
 class AngleKnob(Knob):
 
