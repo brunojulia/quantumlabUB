@@ -15,7 +15,6 @@
 <entangledscreen>:
 
     n_label: n_label #MOLT IMPORTANT AIXÒ, SI NO EL PROGRAMA NO SAP DE Q ÉS
-    #slider1:slider1
     label_s1:label_s1
     label_s2:label_s2
     table_checkbox:table_checkbox
@@ -23,6 +22,11 @@
     s_label:s_label
     delete_button:delete_button
     select_button:select_button
+    clear_btn:clear_btn
+    plot_btn:plot_btn
+    b1_label:b1_label
+    b2_label:b2_label
+
 
 	orientation: "vertical"
     padding: 10
@@ -207,7 +211,7 @@
 			        	FloatLayout:
 				        	CheckBox:
 				        		id: graph
-				        		size_hint:(0.15,0.15)
+				        		size_hint:(0.2,0.2)
 				        		pos_hint:{'x': 0, 'y':0.4}
 				        	Label:
 				        		text: "Generate 3D S-plot"
@@ -220,12 +224,12 @@
 				                    id: select_button
 				                    text: "Select angle"
 				                    disabled: True
-				                    #on_release:
+				                    on_release:root.select_angle()
 				                Button:
 				                    id: delete_button
 				                    disabled: True
 				                    text: "Delete angle"
-				                    #on_release:
+				                    on_release:root.delete_angle()
 				            BoxLayout:
 				                orientation: "vertical"
 				                BoxLayout:
@@ -262,12 +266,26 @@
                                                 pos: self.pos[0] , self.pos[1]
                                                 size: (self.width, self.height*0.9)
                                                 id: b2_rect
+                        BoxLayout:
+                            orientation: "horizontal"
+                            Button:
+                                id:plot_btn
+                                text: "Plot"
+                                size_hint: (0.9,0.7)
+                                disabled: True
+                                on_release:root.gen_graph()
+                            Button:
+                                id:clear_btn
+                                text: "Clear"
+                                size_hint: (0.9,0.7)
+                                disabled: True
+                                on_release:root.clear_angles()
 		        	BoxLayout:
 			        	orientation: "horizontal"
 			        	FloatLayout:
 				        	CheckBox:
 				        		id: table_checkbox
-				        		size_hint:(0.15,0.15)
+				        		size_hint:(0.2,0.2)
 				        		pos_hint:{'x': 0, 'y':0.4}
 
 				        	Label:

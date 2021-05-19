@@ -20,7 +20,7 @@ from entangledexp import entangledEXP  #importa les funcions que tenen a veure a
 class TablePopup(FloatLayout):
 	g_rectangle = ObjectProperty()
 
-	def __init__(self, *args, **kwargs):
+	def __init__(self,*args, **kwargs ):
 		super(TablePopup, self).__init__(*args, **kwargs)
 
 class entangledscreen(BoxLayout):
@@ -33,9 +33,17 @@ class entangledscreen(BoxLayout):
 	graph_checkbox=ObjectProperty()
 	select_button=ObjectProperty()
 	delete_button=ObjectProperty()
+	plot_btn=ObjectProperty()
+	clear_btn=ObjectProperty()
+	b1_label=ObjectProperty()
+	b2_label=ObjectProperty()
+	b1_val=NumericProperty()
+	b2_val=NumericProperty()
 
-	def __init__(self, *args, **kwargs):
+
+	def __init__(self,angle_count = 0):
 		super(entangledscreen, self).__init__()
+		self.angle_count = angle_count
 		self.experiment = entangledEXP()
 		self.table_checkbox.bind(active=self.on_checkbox_Active)#lliga la checkbox amb la funció
 		self.graph_checkbox.bind(active=self.on_graph_checkbox_Active)  # lliga la checkbox amb la funció
@@ -86,9 +94,54 @@ class entangledscreen(BoxLayout):
 		if isActive:
 			self.select_button.disabled = False
 			self.delete_button.disabled = False
+			self.clear_btn.disabled = False
+			self.plot_btn.disabled = False
 		if isActive==False:
 			self.select_button.disabled = True
 			self.delete_button.disabled = True
+			self.clear_btn.disabled = True
+			self.plot_btn.disabled = True
+			self.angle_count = 0
+			self.b1_label.text = ' '
+			self.b2_label.text = ' '
+
+	def select_angle(self):
+		self.angle_count+=1
+
+		if self.angle_count==1:
+			self.delete_button.disabled = False
+			self.b1_label.text='[font=Digital-7][color=000000][size=20] '+self.label_s2.text+' [/color][/font][/size]'
+			self.b1_val = float(self.label_s1.text)
+		if self.angle_count==2:
+			self.delete_button.disabled = False
+			self.b2_label.text='[font=Digital-7][color=000000][size=20] '+self.label_s2.text+' [/color][/font][/size]'
+			self.b2_val=float(self.label_s2.text)
+			self.select_button.disabled=True
+
+	def delete_angle(self):
+		if self.angle_count>0:
+			if self.angle_count == 1:
+				self.b1_label.text = ' '
+				self.delete_button.disabled=True
+				self.select_button.disabled = False
+			if self.angle_count == 2:
+				self.b2_label.text = ' '
+				self.select_button.disabled = True
+				self.select_button.disabled = False
+			self.angle_count-=1
+	def gen_graph(self):
+		self.experiment.b1 = self.b1_val*math.pi/180
+		self.experiment.b2 = self.b2_val*math.pi/180
+		self.experiment.sweepS()
+
+	def clear_angles(self):
+		self.b1_label.text = ' '
+		self.b2_label.text = ' '
+		self.delete_button.disabled = True
+		self.select_button.disabled = False
+		self.angle_count = 0
+
+
 	pass
 class AngleKnob(Knob):
 

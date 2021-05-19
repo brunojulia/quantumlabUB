@@ -5,6 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 class entangledEXP(object):
 	#aqui posem totes les propietats del entangledEXP que escriurem com self. el que sigui
@@ -91,9 +92,10 @@ class entangledEXP(object):
 		# print(Elist)
 		S = Elist[0] - Elist[1] + Elist[2] + Elist[3]
 
-		return (float(S))
+		return (S)
 
 	scalcvec=np.vectorize(scalc)
+
 	def sigma(self, alpha, beta):
 		# Nc=llista de coincidències, agafa la última columna de la taula
 		table1=self.expqua(alpha, beta)
@@ -130,22 +132,25 @@ class entangledEXP(object):
 			angle1 = self.b1
 			angle2 = self.b2
 		# WARNING: max beta linspace points ~ 50
-		betalist = np.linspace(angle1, angle2, 50)
+		betalist = np.linspace(angle1, angle2, 100)
 
 		# create 2d x,y grid (both X and Y will be 2d)
 		X, Y = np.meshgrid(alphalist, betalist, sparse=True)
 		# repeat Z to make it a 2d grid
-		Z = self.scalcvec(X, Y)
+
+		Z = self.scalcvec(self,X, Y)
 
 		mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
 		mappable.set_array(Z)
 		fig = plt.figure()
 		ax = Axes3D(fig)
 		ax.plot_surface(X, Y, Z, cmap=mappable.cmap, linewidth=0.01)
+
 		ax.set_xlabel('Alpha (rad)')
 		ax.set_ylabel('Beta (rad)')
 		ax.set_zlabel('S')
-		cbar = fig.colorbar(mappable)
+
+		cbar = fig.colorbar(mappable,shrink=0.5)
 		cbar.set_label('S', rotation=0)
-		plt.savefig('test.pdf')
+		plt.savefig('test.png')
 		plt.show()
