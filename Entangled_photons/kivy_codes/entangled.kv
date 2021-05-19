@@ -15,17 +15,21 @@
 <entangledscreen>:
 
     n_label: n_label #MOLT IMPORTANT AIXÒ, SI NO EL PROGRAMA NO SAP DE Q ÉS
-    #slider1:slider1
     label_s1:label_s1
     label_s2:label_s2
     table_checkbox:table_checkbox
-    knoblay:knoblay
+    graph_checkbox:graph
     s_label:s_label
-    #I1:I1
-    #I2:I2
+    delete_button:delete_button
+    select_button:select_button
+    clear_btn:clear_btn
+    plot_btn:plot_btn
+    b1_label:b1_label
+    b2_label:b2_label
+
 
 	orientation: "vertical"
-    padding: 20
+    padding: 10
     spacing: 10
     # Adding image from the system
 
@@ -101,13 +105,13 @@
 	        				Button:
 	        					text:"-"
 	        					size_hint: (0.3,0.2)
-	        					pos_hint:{'x': 1.2, 'y':.7}
-	        					on_release: root.add_photons(-1000)
+	        					pos_hint:{'x': 1.3, 'y':.7}
+	        					on_release: root.add_photons(-10000)
         				FloatLayout:
         					pos_hint:{'x': 0, 'y':.0}
 	        				Label:
 	        				    id: n_label
-	        					text: "1000"
+	        					text: "10000"
 	        					markup: True
 	        					size_hint: (0.3,0.2)
 	        					pos_hint:{'x': 0.7, 'y':.7}
@@ -117,7 +121,7 @@
 	        					text: "+"
 	        					size_hint: (0.3,0.2)
 	        					pos_hint:{'x': .2, 'y':.7}
-	        					on_release: root.add_photons(1000)
+	        					on_release: root.add_photons(10000)
 
 	        		FloatLayout:
                         Label:
@@ -203,21 +207,85 @@
 		        BoxLayout:
 		        	orientation:"vertical"
 		        	BoxLayout:
-			        	orientation: "horizontal"
+			        	orientation: "vertical"
 			        	FloatLayout:
 				        	CheckBox:
 				        		id: graph
-				        		size_hint:(00.1,0.1)
+				        		size_hint:(0.2,0.2)
 				        		pos_hint:{'x': 0, 'y':0.4}
 				        	Label:
-				        		text: "Generate graph:\n coincidences vs \u03B2"
+				        		text: "Generate 3D S-plot"
 				        		pos_hint:{'x': -0.1, 'y':0}
+				        BoxLayout:
+				            orientation: "horizontal"
+				            BoxLayout:
+				                orientation: "vertical"
+				                Button:
+				                    id: select_button
+				                    text: "Select angle"
+				                    disabled: True
+				                    on_release:root.select_angle()
+				                Button:
+				                    id: delete_button
+				                    disabled: True
+				                    text: "Delete angle"
+				                    on_release:root.delete_angle()
+				            BoxLayout:
+				                orientation: "vertical"
+				                BoxLayout:
+				                    orientation: "horizontal"
+                                    Label:
+                                        text:"\u03B2"+"1:"
+                                    Label:
+                                        id: b1_label
+                                        text:'[font=Digital-7][color=000000][size=20] 180 [/color][/font][/size]'
+                                        markup:True
+                                        canvas:
+                                        canvas.before:
+                                            Color:
+                                                rgba: 255, 255, 255, 1
+
+                                            Rectangle:
+                                                pos: self.pos[0] , self.pos[1]
+                                                size: (self.width, self.height*0.9)
+                                                id: b1_rect
+                                BoxLayout:
+				                    orientation: "horizontal"
+                                    Label:
+                                        text:"\u03B2"+"2:"
+                                    Label:
+                                        id: b2_label
+                                        text:'[font=Digital-7][color=000000][size=20] 180 [/color][/font][/size]'
+                                        markup:True
+                                        canvas:
+                                        canvas.before:
+                                            Color:
+                                                rgba: 255, 255, 255, 1
+
+                                            Rectangle:
+                                                pos: self.pos[0] , self.pos[1]
+                                                size: (self.width, self.height*0.9)
+                                                id: b2_rect
+                        BoxLayout:
+                            orientation: "horizontal"
+                            Button:
+                                id:plot_btn
+                                text: "Plot"
+                                size_hint: (0.9,0.7)
+                                disabled: True
+                                on_release:root.gen_graph()
+                            Button:
+                                id:clear_btn
+                                text: "Clear"
+                                size_hint: (0.9,0.7)
+                                disabled: True
+                                on_release:root.clear_angles()
 		        	BoxLayout:
 			        	orientation: "horizontal"
 			        	FloatLayout:
 				        	CheckBox:
 				        		id: table_checkbox
-				        		size_hint:(0.1,0.1)
+				        		size_hint:(0.2,0.2)
 				        		pos_hint:{'x': 0, 'y':0.4}
 
 				        	Label:
