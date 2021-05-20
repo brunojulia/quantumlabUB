@@ -50,6 +50,9 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.slider import Slider
 from GateConverter import ImportGate, UpdateGate
 
+from kivy.uix.recycleview import RecycleView
+
+#Window.fullscreen = 'auto'
 
 File = open("QiskitCircuit.py","w")
 File.close()
@@ -327,6 +330,7 @@ class CustomGrid(GridLayout):
                     
 
 class CCell(FloatLayout):
+    button= ObjectProperty(None)
     def __init__ (self, **kwargs):
         super(CCell, self).__init__(**kwargs)
         
@@ -845,6 +849,7 @@ class CGrid(FloatLayout):
         self.rows[-1].phi=0
         
         Clock.schedule_once(lambda dt:self.refresh(), 0)
+        Clock.schedule_once(lambda dt:self.refresh(), 1)
     
     def resize_scroll(self, *args):
         self.scroll.size=(cellsize*(matrix.shape[1]+1.5)+70,(cellsize+space)*(matrix.shape[0]+1.25))
@@ -858,9 +863,12 @@ class CGrid(FloatLayout):
         self.scroll.parent.scroll_x=0.0
         self.scroll.parent.scroll_y=1.0
     
-    def resize_panels(self, prob, gates):
+    def resize_panels(self, prob, gates, demo):
         width=0.7 if prob else 1
         height=0.62 if gates else 0.92
+        if demo==True:
+            height=0.5
+        
         self.parent.parent.size_hint=(width, height)
         Clock.schedule_once(lambda dt:self.resize_scroll(), 0)
         Clock.schedule_once(lambda dt:self.set_scroll(), 0)
@@ -885,7 +893,7 @@ class CGrid(FloatLayout):
         
     def slidercanva(self, *args):
         try:
-            self.scroll.canvas.after.clear()
+            self.scroll.canvas.after.remove_group('slider')
             with self.scroll.canvas.after:
                     Color(0,0,0,0.15)
                     self.canvaslider=Rectangle(
@@ -894,6 +902,23 @@ class CGrid(FloatLayout):
                         group='slider')
         except:
             pass
+        
+    def highlight(self, grid):
+        try:
+            self.scroll.canvas.after.remove_group('highlight')
+            with self.scroll.canvas.after:
+                Color(0.8,0.4,0,0.3)
+                for i in range(grid.shape[0]):
+                    for j in range(grid.shape[1]):
+                        if grid[i,j]==1:            
+                            self.canvahh=Rectangle(
+                                size=(cellsize, cellsize+space), 
+                                pos=(self.scroll.x+cellsize*(0.5+j)+70, self.scroll.y+(cellsize+space)*(matrix.shape[0]-i-1)+self.circuitslider.height),
+                                group='highlight')
+                            
+        except:
+            pass
+        
         
        
 class WindowManager(ScreenManager):
@@ -923,9 +948,13 @@ class BuilderScreen(Screen):
     warning =ObjectProperty(None)
     probbutton =ObjectProperty(None)
     gatesbutton =ObjectProperty(None)
-    docuscroll = ObjectProperty(None)
+    title =ObjectProperty(None)
+
     docuimage =ObjectProperty(None)
     docupanel =ObjectProperty(None)
+    pagelabel= ObjectProperty(None)
+    
+    datatest=ObjectProperty(None)
     
     def __init__(self, **kwargs):
         super(BuilderScreen, self).__init__(**kwargs)
@@ -959,7 +988,7 @@ class BuilderScreen(Screen):
         self.gatesgrid.size=self.gatesgrid.minimum_size
         
         if (root.sm.current == "DemoScreen"):
-            self.docuscroll.height=self.docuscroll.width*self.docuimage.height/self.docuimage.width
+            self.docuimage.size=self.docupanel.size
         
         elif (root.sm.current != "CustomScreen"):
             self.customgrid.rows=customrows
@@ -1040,12 +1069,18 @@ class BuilderScreen(Screen):
         
         results, plotresults=QiskitCircuit.GetStatevector()
         
-        self.problabel.text, probabilities=(GetResults(results))
+        self.problabel.text, probabilities, results_dict=(GetResults(results))
+        
+        self.datatest.data= [{'states': str(x['states']), 'probability': str(x['probability']), 'phases': str(x['phases'])} for x in results_dict]
+        
         self.plotbox.clear_widgets()
         
-        
-        plt.barh(list(probabilities.keys()), list(probabilities.values()))
+        plt.figure(facecolor=(0, 0, 0, 0)) 
+        ax = plt.axes() 
+        ax.set_facecolor((1,1,1, 0.3)) 
+        plt.barh(list(probabilities.keys()), list(probabilities.values()), color=(0.8, 0.4, 0, 1))
         plt.xlim(0,100)
+        
         self.plotbox.add_widget(FigureCanvasKivyAgg(plt.gcf()))
         plt.close()
         
@@ -1095,13 +1130,20 @@ class BuilderScreen(Screen):
         self.directionpanel = DirectionPanel()
         self.add_widget(self.directionpanel)
         
-    
+class TestRecycle(BoxLayout):
+    pass
 
 def GetResults(args):
 
     results=args
     probtext='|'+' '.join(reversed(row_name))+'>:  Prob, Phase\n\n'
     probabilities={}
+    
+    results_dict={}
+    states=[]
+    probability=[]
+    phases=[]
+    datarows=[]
 
     for i in range(len(results)):
         state = str(np.binary_repr(i, width=matrix.shape[0]))
@@ -1128,7 +1170,17 @@ def GetResults(args):
             probtext=probtext+'|'+state+'>'+':  '+'{0:.3g}'.format(np.absolute(results[i])**2*100)+'%, '\
             +phase+'\n'
             
-    return probtext, probabilities
+            datarows.append({'states': ('|'+state+'>'), 'probability': ('{0:.3g}'.format(np.absolute(results[i])**2*100)+'%'), 'phases': phase})
+            states.append('|'+state+'>')
+            probability.append('{0:.3g}'.format(np.absolute(results[i])**2*100)+'%')
+            phases.append(phase)
+            
+    results_dict['states']=states
+    results_dict['probability']=probability
+    results_dict['phases']=phases
+    
+            
+    return probtext, probabilities, datarows
     
 
     
@@ -1221,6 +1273,9 @@ class FileSelector(FileChooserListView):
     def close(self):
         screen=root.sm.current_screen
         screen.canva.disabled= False
+        for i in range(matrix.shape[0]):
+            for j in range(matrix.shape[1]):
+                screen.cgrid.rows[i].cols[j].button.disabled=True
         screen.remove_widget(screen.filepanel)
         screen.canva.canvas.remove(screen.filepanel.background)
         cgrid.refresh()
@@ -1487,6 +1542,9 @@ class ArbitraryPanel(FloatLayout):
         
         self.parent.remove_widget(self)
         root.sm.current_screen.canva.disabled = False
+        for i in range(matrix.shape[0]):
+            for j in range(matrix.shape[1]):
+                screen.cgrid.rows[i].cols[j].button.disabled=True
         cgrid.refresh()
     
             
@@ -1564,6 +1622,9 @@ class DirectionPanel(FloatLayout):
         self.parent.remove_widget(self)
         
         root.sm.current_screen.canva.disabled = False
+        for i in range(matrix.shape[0]):
+            for j in range(matrix.shape[1]):
+                root.sm.current_screen.cgrid.rows[i].cols[j].button.disabled=True
         cgrid.refresh()
     
 class DemoMenu(FloatLayout):
@@ -1573,14 +1634,14 @@ class DemoScreen(BuilderScreen):
     def __init__(self, **kwargs):
         super(DemoScreen, self).__init__(**kwargs)
         
-        self.gatesbutton.disabled= False
-        self.gatesbutton.opacity=0.2
+        self.gatesbutton.disabled= True
+        self.gatesbutton.opacity=0
         self.probbutton.disabled= True
         self.probbutton.opacity= 0
         self.probpanel.visible=True
         
         
-        self.cgrid.resize_panels(True, True)
+        self.cgrid.resize_panels(True, True, True)
         
         self.cgrid.addcolbutton.disabled=True
         self.cgrid.addcolbutton.opacity=0
@@ -1643,8 +1704,9 @@ class DemoScreen(BuilderScreen):
         self.remove_widget(self.demomenu)
         screen=root.sm.current_screen
         screen.canva.disabled= False
+        screen.cgrid.rows[0].cols[0].disabled=True
         
-        self.gatesbutton.disabled= False
+        self.gatesbutton.disabled= True
         self.probbutton.disabled= True
         self.cgrid.addcolbutton.disabled=True
         self.cgrid.removecolbutton.disabled=True
@@ -1654,8 +1716,16 @@ class DemoScreen(BuilderScreen):
     def ImportDemo(self, file):
         global matrix
         global multigates
+        global img_num
+        global page
+        global fileid
+        
+        fileid=file.id
         
         shape, gatesmatrix, multigates=getattr(demos, file.id).gatesmatrix()
+        img_num=getattr(demos, file.id).img_num()
+        page=1
+        self.pagelabel.text='1/'+str(img_num)
         
         for i in range(shape[0]-1):
             cgrid.add_row()
@@ -1666,7 +1736,35 @@ class DemoScreen(BuilderScreen):
         cgrid.resize_scroll()
         cgrid.refresh()
         
-        self.docuimage.source= 'demos/'+file.id+'.png'
+        
+        
+        self.docuimage.source= 'demos/'+file.id+'/'+file.id+'_1.png'
+        self.docuimage.texture.mag_filter= 'linear'
+        
+        
+        getattr(demos, file.id).customize(self)
+        
+    def next_img(self):
+        global page
+        if page<img_num:
+            page=page+1
+            self.docuimage.source= 'demos/'+fileid+'/'+fileid+'_'+str(page)+'.png'
+            
+            self.pagelabel.text=str(page)+'/'+str(img_num)
+            self.pageupdate()
+            
+        
+        
+    def prev_img(self):
+        global page
+        if page>1:
+            page=page-1
+            self.docuimage.source= 'demos/'+fileid+'/'+fileid+'_'+str(page)+'.png'
+            self.pagelabel.text=str(page)+'/'+str(img_num)
+            self.pageupdate()
+            
+    def pageupdate(self):
+        self.cgrid.highlight(getattr(demos, fileid).highlight(page))
         
         
 

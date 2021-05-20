@@ -49,3 +49,14 @@ def gatesmatrix():
 
 def name():
     return "QUANTUM FOURIER TRANSFORM (3 QUBITS)"
+
+def img_num():
+    return 1
+
+
+def highlight(page):
+    grid=np.zeros((3,12))
+    return(grid)
+    
+def customize(screen):
+    screen.title.text="Quantum Fourier Transform (3 Qubits)"

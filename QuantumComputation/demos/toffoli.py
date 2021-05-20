@@ -50,3 +50,14 @@ def gatesmatrix():
 
 def name():
     return 'TOFFOLI GATE'
+
+def img_num():
+    return 1
+
+
+def highlight(page):
+    grid=np.zeros((3,20))
+    return(grid)
+    
+def customize(screen):
+    screen.title.text="Toffoli Gate"

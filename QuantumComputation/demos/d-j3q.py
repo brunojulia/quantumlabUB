@@ -47,3 +47,22 @@ def gatesmatrix():
 
 def name():
     return "DEUTSCH-JOZSA ALGORITHM (3 QUBITS)"
+
+
+def img_num():
+    return 8
+
+
+def highlight(page):
+    grid=np.zeros((4,12))
+    if page==5:
+        grid[:,0:2]=1   
+    elif page==6 or page==7:
+        grid[:,3:6]=1
+    elif page==8:
+        grid[:,7]=1
+    
+    return(grid)
+    
+def customize(screen):
+    screen.title.text='Deutsh-Jozsa Agorithm (3 Qubits)'
