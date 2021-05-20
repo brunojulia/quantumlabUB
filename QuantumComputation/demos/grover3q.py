@@ -60,3 +60,16 @@ def gatesmatrix():
 
 def name():
     return "GROVER'S ALGORITHM (3 QUBITS)"
+
+
+
+def img_num():
+    return 1
+
+
+def highlight(page):
+    grid=np.zeros((3,12))
+    return(grid)
+    
+def customize(screen):
+    screen.title.text="Grover's Agorithm (3 Qubits)"

@@ -16,10 +16,24 @@
    #    id: customscreen
         
     
+<TestRecycle>:
+    orientation: 'horizontal'
+    states: 'states'
+    probability: 'probability'
+    phases: 'phases'
     
-    
+    Label:
+        id: states
+        text: root.states
+    Label:
+        id: probability
+        text: root.probability
+    Label:
+        id: phases
+        text: root.phases
     
 <CCell>:
+    button: button
     size_hint: None, None
     size: cellsize, cellsize
     pos_hint: {"y":0}
@@ -32,6 +46,7 @@
             cap: 'none'
     
     Button:
+        id: button
         opacity: 0.3
         size_hint: None, None
         size: cellsize,cellsize
@@ -118,13 +133,17 @@
     plotbox: plotbox
     warning: warning
     canva: canva
-    docuscroll:docuscroll
     docupanel: docupanel
     docuimage: docuimage
+    title: title
     
     probbutton: probbutton
     gatesbutton: gatesbutton
     
+    pagelabel: pagelabel
+    
+    datatest:datatest
+
     
     
     FloatLayout:
@@ -136,7 +155,7 @@
                 pos: self.pos
                 size: self.size
             Color:
-                rgba: 0.3,0.3,0.3,1
+                rgba: 0.8,0.4,0,1
             Rectangle:
                 pos: (0, self.height/1.087)
                 size: (self.width, self.height/12.5)
@@ -184,6 +203,10 @@
     
                     
             ScrollView:
+                opacity: 0
+                #size_hint: (1, 0.34)
+                #pos_hint: {"x":0.02, "y": 0.16}
+                
                 pos_hint: {"x":0.1, "y": 0.55}
                 size_hint: (0.8, 0.4)
                 do_scroll_X: False
@@ -202,6 +225,21 @@
                 
                 size_hint: (1, 0.34)
                 pos_hint: {"x":0.02, "y": 0.16}
+                
+            RecycleView:
+                id: datatest
+                pos_hint: {"x":0.1, "y": 0.55}
+                size_hint: (0.8, 0.4)
+                
+                viewclass: 'TestRecycle'
+                
+                RecycleBoxLayout:
+                    default_size: None, dp(56)
+                    default_size_hint: 1, None
+                    size_hint_y: None
+                    height: self.minimum_height
+                    orientation: 'vertical'
+                
                 
             Button:
                 text: 'Q sphere'
@@ -282,28 +320,51 @@
         FloatLayout: 
             id: docupanel
             pos_hint: {"left":0, "bottom": 0}
-            size_hint: 0.7, 0.38
-                   
-            ScrollView:
-                pos_hint: {"x": 0.05, "top": 0.95}
-                size_hint: (0.9, 0.9)
-                do_scroll_X: False
-                do_scroll_y: True
-                scroll_type: ["bars"] 
+            size_hint: 0.7, 0.5
+            
+            
+#            canvas:
+ #               Color:
+  #                  rgba: 1,0,0,0.5
+   #             Rectangle:
+    #                pos: self.pos
+     #               size: self.size
+                    
+            
+                             
+            Image:
+                id: docuimage
+                source: ''
+                mipmap: True
+                pos_hint: {'top':1, 'x':0}
+                size_hint: 1,None
+                size: self.size
+                allow_stretch: False
                 
-                FloatLayout:
-                    id: docuscroll
-                    size_hint_y: None
-                    size_hint_x: 1
-                    pos_hint: {"x": 0, "top": 1}
+                
+            Label:
+                id: pagelabel
+                text: ''
+                bold: True
+                color: (0,0,0,1)
+                size_hint: 0.06, 0.06
+                pos_hint: {"top":0.98, "right":0.88}
+                
+            Button:
+                text: '<'
+                size_hint: 0.04, 0.06
+                pos_hint: {"top":0.98, "right":0.93}
+                on_release:
+                    root.prev_img()
+                
+            Button:
+                text: '>'
+                size_hint: 0.04, 0.06
+                pos_hint: {"top":0.98, "right":0.98}
+                on_release:
+                    root.next_img()
+                
                         
-                    Image:
-                        id: docuimage
-                        source: ''
-                        pos_hint: {'top':1, 'x':0}
-                        size_hint: 1, None
-                        size: 1000,1000
-                        allow_stretch: False
                         
         
         
@@ -335,7 +396,8 @@
             text: "Probabilities"
             size_hint: (0.15, 0.06)
             pos_hint: {"x": 0.54, "y":0.93}
-            on_release: root.cgrid.resize_panels(probpanel.visible, gatespanel.visible)
+            background_color: 1,1,1, 1
+            on_release: root.cgrid.resize_panels(probpanel.visible, gatespanel.visible, False)
             on_release:
                 if probpanel.visible == False: probpanel.visible = True
                 elif probpanel.visible == True: probpanel.visible = False
@@ -346,18 +408,13 @@
             text: "Gates"
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.43, "y":0.93}
-            on_release: root.cgrid.resize_panels(probpanel.visible, gatespanel.visible)
+            background_color: 0.9, 0.9, 0.9, 1
+            on_release: root.cgrid.resize_panels(probpanel.visible, gatespanel.visible, False)
             on_release:
                 if gatespanel.visible == False: gatespanel.visible = True
                 elif gatespanel.visible == True: gatespanel.visible = False
             
-        Button:
-            text: "TEST2"
-            size_hint: (0.1, 0.06)
-            pos_hint: {"x": 0.1+0.11*2, "y":0.93-0.07*1}
-            on_press: root.cgrid.add_element2(1,1)
-            on_release:
-                app.sm.current_screen.cgrid.add_element2()
+        
             
         Button:
             disabled: True
@@ -376,22 +433,39 @@
             on_release: root.cgrid.remove_col()
             
         Button:
-            text: "Refresh"
+            text: "Add Qubit"
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.13, "y":0.93-0.07*0}
+            background_color: 0.9, 0.9, 0.9, 1
+            on_release: root.cgrid.add_row()
+            
+        Button:
+            text: "Refresh"
+            size_hint: (0.1, 0.06)
+            pos_hint: {"x": 0.02, "y":0.93-0.07*1}
             on_release: root.cgrid.refresh()
             
         Button:
-            text: "+ Row"
+            text: "Menu"
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.02, "y":0.93-0.07*0}
-            on_release: root.cgrid.add_row()
+            background_color: 0.9, 0.9, 0.9, 1
+            on_release: 
+                app.sm.current_screen.Exit()
             
         Button:
             text: "Measur. Dir."
             size_hint: (0.1, 0.06)
             pos_hint: {"x": 0.24, "y":0.93-0.07*0}
+            background_color: 0.9, 0.9, 0.9, 1
             on_release: app.sm.current_screen.directpanel()
+            
+        Label:
+            id: title
+            text: ''
+            bold: True
+            size_hint: (0.1, 0.06)
+            pos_hint: {"x": 0.5, "y":0.93}
             
             
             
