@@ -21,14 +21,16 @@ class Player():
         #self.array=np.array([[1,None,None]])
         self.hack=0
         
+        #per acabar a la pantalla Alice i Bob
+        self.acabar=False
         
         #Per provar
         self.publica=False
         self.publicat=False
-        self.publiA=False
-        self.publiB=False
-        self.arr0f=False
-        self.arr1f=False
+        self.publiA=None
+        self.publiB=None
+        self.arr0f=None
+        self.arr1f=None
     
     #self.array=array
         
