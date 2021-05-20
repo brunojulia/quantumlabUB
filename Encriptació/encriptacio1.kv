@@ -209,6 +209,7 @@
         
 <Screen1>:
     name: "screen1"
+    #Clau senzilla
     
     mxifrar: mxifrar
     clau: clau
@@ -218,104 +219,150 @@
     mdxifrat: mdxifrat
     
 
+    BoxLayout:
+        orientation: "vertical"
+        spacing:20
+        padding: 20
         
-    GridLayout:
-        cols:2
-            
-        BoxLayout:
-            orientation: "vertical"
-            spacing:50
-            padding:50
-            
-            GridLayout:
-                cols:2
-                
-                Label:
-                    text: "Missatge per xifrar:"
-                
-                TextInput:
-                    id: mxifrar
-                    multiline: False
-                Label:
-                    text: "Clau:"
-                    
-                TextInput:
-                    id: clau
-                    multiline: False
-                
-            Button:
-                text: "Codificar"
-                color: 1,1,1,1
-                #anchor_x: 'center'
-                size_hint: 0.5,0.3
-                pos_hint: {'center_x':0.5}
-                background_color: 0,0,0,1
-                
-                canvas.before:
-                    Color:
-                        rgba: 1,0.89,0.7,1
-                    Line:
-                        width: 2
-                        rectangle: self.x, self.y, self.width, self.height
-                
-                on_press: root.btn()
-                    
-            Label:
-                id: mxifrat
-                text: "Missatge xifrat:  "
         
-   
-        #------------------------------------- 
-        BoxLayout:
-            orientation: "vertical"
-            spacing:50
-            padding:50
+        Image:
+            source: 'Clausenzilla1.PNG'
+            #size: self.texture_size
+            size_hint: 1,0.3
+        #Label:
+            #size_hint: 1,0.5
+            #text:
+                #"En aquesta pantalla entendràs com es xifra un missatge amb una clau senzilla! \nQuè has de fer? Pensa't un missatge i escriu-lo a la casella de Missatge per xifrar amb MAJÚSCULES. A continuació, pensa't un número i escriu-lo a la casella.\nQuè passa si es prem el botó de Xifrar missatge? L'ordinador mourà l'abecedari el número de vegades que hagis posat a la clau, de manera que cada lletra del \nteu missatge correspondrà a una altra que estiguia x posicions més endavant de l'abecedari.\n \nPots provar que posant de clau 0 el missatge es queda igual, i posant 1 cada lletra és la següent de l'abecedari del teu missatge original. Som-hi!"
+           # text: ''
+           # multiline: True
+            #font_size: 18
+            #background_normal: 'Clausenzilla1.PNG'
 
-            GridLayout:
-                cols:2
+
+        GridLayout:
+            cols:2
+                
+            BoxLayout:
+                orientation: "vertical"
+                spacing:50
+                padding:50
                 
                 Label:
-                    text: "Missatge per desxifrar:"
-                
-                Label: 
-                    id: mxifrat2
-                    #multiline: False
+                    text: 'XIFRAR'
+                    size_hint: 1,0.2
+                    font_size: 22
+                    
+                GridLayout:
+                    cols:2
+                    spacing:50
+                    
+                    
+                    Label:
+                        text: "Missatge per xifrar:"
+                        font_size: 20
+                    TextInput:
+                        id: mxifrar
+                        multiline: False
+                        #size_hint: 0.5,0.5
+                        
+                    Label:
+                        text: "Clau:"
+                        font_size: 20
+                    TextInput:
+                        id: clau
+                        multiline: False
+                    
+                Button:
+                    text: "Xifrar"
+                    color: 1,1,1,1
+                    #anchor_x: 'center'
+                    size_hint: 0.5,0.3
+                    pos_hint: {'center_x':0.5}
+                    background_color: 0,0,0,1
+                    font_size: 20
+                    
+                    canvas.before:
+                        Color:
+                            rgba: 1,0.89,0.7,1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    
+                    on_press: root.btn()
+                        
                 Label:
-                    text: "Clau:"
-                
-                TextInput:
-                    id: clau2
-                    multiline: False
+                    id: mxifrat
+                    text: "Missatge xifrat:  "
+                    font_size: 20
             
-            Button:
-                text: "Descodificar"
-                color: 1,1,1,1
-                size_hint: 0.5,0.3
-                pos_hint: {'center_x':0.5}
+       
+            #------------------------------------- 
+            BoxLayout:
+                orientation: "vertical"
+                spacing:50
+                padding:50
+    
+                Label:
+                    text:'DESXIFRAR'
+                    size_hint: 1,0.2
+                    font_size: 22
+                    
+                GridLayout:
+                    cols:2
+                    
+                    Label:
+                        text: "Missatge per desxifrar:"
+                        font_size: 20
+                    
+                    Label: 
+                        id: mxifrat2
+                        #multiline: False
+                        font_size: 20
+                    Label:
+                        text: "Clau:"
+                        font_size: 20
+                    
+                    TextInput:
+                        id: clau2
+                        multiline: False
                 
-                background_color: 0,0,0,1
-                
-                canvas.before:
-                    Color:
-                        rgba: 1,0.89,0.7,1
-                    Line:
-                        width: 2
-                        rectangle: self.x, self.y, self.width, self.height
-                
-                on_press: root.btn1()
-                
-            Label:
-                id: mdxifrat
-                text: "Missatge desxifrat:  "
-                
-                #-------------------
+                Button:
+                    text: "Desxifrar"
+                    color: 1,1,1,1
+                    size_hint: 0.5,0.3
+                    pos_hint: {'center_x':0.5}
+                    font_size: 20
+                    
+                    background_color: 0,0,0,1
+                    
+                    canvas.before:
+                        Color:
+                            rgba: 1,0.89,0.7,1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    
+                    on_press: root.btn1()
+                    
+                Label:
+                    id: mdxifrat
+                    text: "Missatge desxifrat:  "
+                    font_size: 20
+                    
+                    #-------------------
     AnchorLayout:
         anchor_x: 'left'
         anchor_y: 'bottom'
-        
+            
         BoxLayout:
             orientation: 'horizontal'
-            size_hint: 0.15, .05
+            #size_hint: 0.15, .05
+            #spacing: 1800
+            
+            size_hint: 1, 0.05
+            spacing: 1500
+            padding: 5
+            
             Button:
                 background_color: 0,0,0,1
                 text: '[color=FFC872]Inici[/color]'
@@ -327,18 +374,27 @@
                     Line:
                         width: 2
                         rectangle: self.x, self.y, self.width, self.height
-                
+                    
                 on_press:
                     app.root.current = "home"
                     root.manager.transition.direction = "right"
-    
-           
+        
                
-           # Button:
-            #    text: 'Clau llarga'
-             #   on_press: 
-              #      app.root.current = "screen2"
-               #     root.manager.transition.direction = "left"
+                   
+            Button:
+                text: '[color=31B189]Clau llarga[/color]'
+                markup: True
+                background_color: 0,0,0,1
+                on_press: 
+                    app.root.current = "screen2"
+                    root.manager.transition.direction = "left"
+                    
+                canvas.before:
+                    Color:
+                        rgba: 1,0.89,0.7,1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
                 
 <Screen2>:
     name: "screen2"
@@ -350,93 +406,135 @@
     mxifrat2: mxifrat2
     mdxifrat: mdxifrat
         
-    GridLayout:
-        cols:2
+    
+    BoxLayout:
+        orientation: "vertical"
+        spacing:20
+        padding: 20
         
-        BoxLayout:
-            orientation: "vertical"
-            spacing:50
-            padding:50
-            
-            GridLayout:
-                cols:2
-                
-                Label:
-                    text: "Missatge per xifrar:"
-                
-                TextInput:
-                    id: mxifrar
-                    multiline: False
-                    
-            Button: 
-                id: randomkey
-                text: "Genera una clau aleatoria"  
-                color:1,1,1,1
-                background_color: 0,0,0,1
-                canvas.before:
-                    Color:
-                        rgba: 1,0.89,0.7,1
-                    Line:
-                        width: 2
-                        rectangle: self.x, self.y, self.width, self.height  
-                on_press: root.btnkey()       
-                
-            Label:
-                id: randomkeytxt
-                text: "Clau generada:"
-                multiline: True
-                
-            
-            Button:
-                text: "Codificar"
-                color: 1,1,1,1
-                background_color: 0,0,0,1
-                
-                canvas.before:
-                    Color:
-                        rgba: 1,0.89,0.7,1
-                    Line:
-                        width: 2
-                        rectangle: self.x, self.y, self.width, self.height
-                on_press: root.btn2()
-                
-            Label:
-                id: mxifrat
-                text: "Missatge xifrat:  "
         
-        #------------------------------------- 
-        BoxLayout:
-            orientation: "vertical"
-            spacing:50
-            padding:50
+        Image:
+            source: 'Claullarga.PNG'
+            #size: self.texture_size
+            size_hint: 1,0.2
 
-            GridLayout:
-                cols:2
+            
+            
+        GridLayout:
+            cols:2
+        
+            BoxLayout:
+                orientation: "vertical"
+                spacing:50
+                padding:50
                 
                 Label:
-                    text: "Missatge per desxifrar:"
+                    text: 'XIFRAR'
+                    size_hint: 1,0.2
+                    font_size: 22
                 
-                Label: 
-                    id: mxifrat2
-                    #multiline: False
-                
-            Button:
-                text: "Descodificar amb la mateixa clau"
-                color: 1,1,1,1
-                background_color: 0,0,0,1
-                
-                canvas.before:
-                    Color:
-                        rgba: 1,0.89,0.7,1
-                    Line:
-                        width: 2
-                        rectangle: self.x, self.y, self.width, self.height
+                GridLayout:
+                    cols:2
+                    size_hint: 1,0.2
+                    Label:
+                        text: "Missatge per xifrar:"
+                        font_size: 20
+                    
+                    TextInput:
+                        id: mxifrar
+                        multiline: False
                         
-                on_press: root.btn3()
+                Button: 
+                    id: randomkey
+                    text: "Genera una clau aleatoria"  
+                    color:1,1,1,1
+                    size_hint: 0.5,0.3
+                    pos_hint: {'center_x':0.5}
+                    font_size: 20
+                    
+                    background_color: 0,0,0,1
+                    canvas.before:
+                        Color:
+                            rgba: 1,0.89,0.7,1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height  
+                    on_press: root.btnkey()       
+                    
+                Label:
+                    id: randomkeytxt
+                    text: "Clau generada:"
+                    multiline: True
+                    font_size: 20
+                    
                 
-            Label:
-                id: mdxifrat
-                text: "Missatge desxifrat:  "
+                Button:
+                    text: "Xifrar"
+                    color: 1,1,1,1
+                    size_hint: 0.5,0.3
+                    pos_hint: {'center_x':0.5}
+                    font_size: 20
+                    
+                    background_color: 0,0,0,1
+                    
+                    canvas.before:
+                        Color:
+                            rgba: 1,0.89,0.7,1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                    on_press: root.btn2()
+                    
+                Label:
+                    id: mxifrat
+                    text: "Missatge xifrat:  "
+                    font_size: 20
+            
+        #------------------------------------- 
+            BoxLayout:
+                orientation: "vertical"
+                spacing:50
+                padding:50
+    
+                Label:
+                    text:'DESXIFRAR'
+                    size_hint: 1,0.2
+                    font_size: 22
+                    
+                GridLayout:
+                    cols:2
+                    
+                    Label:
+                        text: "Missatge per desxifrar:"
+                        font_size: 20
+                    
+                    Label: 
+                        id: mxifrat2
+                        #multiline: False
+                        font_size: 20
+                    
+                Button:
+                    text: "Desxifrar amb la mateixa clau"
+                    color: 1,1,1,1
+                    size_hint: 0.5,0.3
+                    pos_hint: {'center_x':0.5}
+                    font_size: 20
+                    
+                    background_color: 0,0,0,1
+                    
+                    canvas.before:
+                        Color:
+                            rgba: 1,0.89,0.7,1
+                        Line:
+                            width: 2
+                            rectangle: self.x, self.y, self.width, self.height
+                            
+                    on_press: root.btn3()
+                    
+                Label:
+                    id: mdxifrat
+                    text: "Missatge desxifrat:  "
+                    font_size: 20
     #-----------------------
     AnchorLayout:
         anchor_x: 'center'
@@ -444,7 +542,9 @@
         
         BoxLayout:
             orientation: 'horizontal'
-            size_hint: 0.2, .05
+            size_hint: 1, .05
+            padding: 5
+            spacing: 1500
             Button:
                 background_color: 0,0,0,1
                 text: '[color=FFC872]Inici[/color]'
@@ -461,11 +561,20 @@
                     app.root.current = "home"
                     root.manager.transition.direction = "right"
                
-            #Button:
-              #  text: 'Clau senzilla'
-               # on_press: 
-                #    app.root.current = "screen1"
-                 #   root.manager.transition.direction = "left"
+            Button:
+                text: '[color=7ACE67]Clau senzilla[/color]'
+                markup: True
+                background_color: 0,0,0,1
+                canvas.before:
+                    Color:
+                        rgba: 1,0.89,0.7,1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+                
+                on_press: 
+                    app.root.current = "screen1"
+                    root.manager.transition.direction = "right"
                     
 <Screen3>:
     name: "screen3"
@@ -1362,6 +1471,7 @@
     name: "multiplayer" 
     waitingalice: waitingalice
     waitingbob: waitingbob
+    ip:ip
     
     
     BoxLayout:
@@ -1376,6 +1486,18 @@
             
             Label:
                 text:'Esperant a que hi hagi dues persones connectades per començar :)'
+            
+            GridLayout:
+                cols: 2
+                padding: 20
+                spacing: 20
+                size_hint: 0.9,0.5
+                Label: 
+                    text: "IP:"
+                    font_size: 18
+                TextInput:
+                    id: ip
+                    #size_hint: 0.7,0.7
                     
             GridLayout:
                 #orientation: 'horizontal'
