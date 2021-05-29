@@ -1,0 +1,586 @@
+
+#:kivy 1.10.0
+#:import Factory kivy.factory.Factory
+
+<MyScreenManager>:
+    StartingScreen:
+    DiscoveriesScreen:
+    YoungSlitScreen:
+    SchroSlitScreen:
+
+
+<StartingScreen>:
+    name: 'starting'
+    
+    BoxLayout:
+    #title, buttons and logo
+        orientation: 'vertical'
+        padding: [root.width/3,0]
+        
+        Label:
+            text: "Quantum Mechanics Timeline"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'vertical'
+            padding: [self.width/5, 0]
+            spacing: self.height/10
+            size_hint_y: 2
+            
+            Button:
+                id: s_to_dc
+                size_hint_y:1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: 'DISCOVERIES'
+                on_press: root.transition_SD()
+                canvas.before:
+                    Color:
+                        rgba: .5, .5, .5, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+
+<DiscoveriesScreen>:
+    name: 'Discoveries'
+    
+    BoxLayout:
+        orientation: 'vertical'
+        padding: [root.width/3,0]
+        
+        Label:
+            text: "DISCOVERIES"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'vertical'
+            padding: [self.width/5, 0]
+            spacing: self.height/10
+            size_hint_y: 2
+            
+            Button:
+                id: dc_to_ys
+                size_hint_y:0.5
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "Young's slit experiment"
+                on_press: root.transition_DY()
+                canvas.before:
+                    Color:
+                        rgba: .5, .5, .5, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+            
+            Button:
+                id: dc_to_ss
+                size_hint_y:0.5
+                pos_hint_y:0.5
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "Quantum slits"
+                on_press: root.transition_DSS()
+                canvas.before:
+                    Color:
+                        rgba: .5, .5, .5, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+
+<YoungSlitScreen>:
+    name: 'YoungSlit'
+    box1:box1_id
+    #:set color_labels 1,1,1,1
+    #:set black 0,0,0,1
+    
+    FloatLayout:
+        id:box1_id
+        orientation:'vertical'   
+        size_hint:1,1
+    
+    Label: 
+        color:(0,0,0,1)
+        text:"Young's interference experiment"
+        pos_hint:{'x':0.45,'y':0.9}
+        size_hint:0.1,0.1
+        font_size:35
+        
+    Label: 
+        color:(0,0,0,1)
+        text:"Wave diagram"
+        pos_hint:{'x':0.35,'y':0.875}
+        size_hint:0.3,0.05
+        font_size:10
+    
+    Label: 
+        color:(0,0,0,1)
+        text:"Intensity of light diagram"
+        pos_hint:{'x':0.35,'y':0.455}
+        size_hint:0.3,0.05
+        font_size:10
+        
+
+        
+    Button:
+        id: change_source_state
+        background_color: (255,0,0,1) if root.is_source_on else (0,0,0,0.5)
+        on_press: root.change_source_state()
+        on_press: root.is_source_on = not root.is_source_on
+        pos_hint:{'x':0.5,'y':0.005}
+        size_hint:0.05,0.05
+        
+        
+    Button:
+        id: clear_waves
+        text:'Clear precint'
+        on_press:root.clear_waves()
+        pos_hint:{'x':0.65,'y':0.02}
+        size_hint:0.15,0.025
+        background_color:(0,0,0,1)
+    
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.,'y':0.8}
+        size_hint:0.2,0.1
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Slits"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'horizontal'
+            size_hint_x:1
+            
+            Button:
+                id: add_slit
+                size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "+"
+                on_press: root.add_slit()
+                on_press: root.slt_number=root.slt_number+1 if root.slt_number<5 else root.slt_number 
+
+            
+            Button:
+                id: remove_slit
+                size_hint_x:0.5
+                pos_hint_x:0.1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "-"
+                on_press: root.remove_slit()
+                on_press: root.slt_number=root.slt_number-1 if root.slt_number>0 else root.slt_number
+                        
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.,'y':0.6}
+        size_hint:0.2,0.1
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Slits' width"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'horizontal'
+            size_hint_x:1
+            
+            Button:
+                id: inc_slit_width
+                size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "+"
+                on_press: root.inc_slt_width()
+
+            
+            Button:
+                id: dec_slit_width
+                size_hint_x:0.5
+                pos_hint_x:0.1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "-"
+                on_press: root.dec_slt_width()
+        
+    BoxLayout:
+        #slits separation (only when nslit=2)
+        orientation: 'vertical'
+        pos_hint:{'x':0.,'y':0.4}
+        size_hint:0.2,0.1
+        width: 120 if root.slt_number==2 else 0
+        hight: 120
+        opacity: 1 if root.slt_number==2 else 0
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Slits' separation"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'horizontal'
+            size_hint_x:1
+            
+            Button:
+                id: inc_slit_separation
+                size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "+"
+                on_press: root.inc_separation()
+
+            
+            Button:
+                id: dec_slit_separation
+                size_hint_x:0.5
+                pos_hint_x:0.1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "-"
+                on_press: root.dec_separation()
+                
+    Button:
+        id: inty_id
+        background_color: (0, 0, 0, 1)
+        markup: True
+        pos_hint:{'x':0.78,'y':0.8}
+        size_hint:0.2,0.05
+        text: 'Measure Intensity of Light'
+        font_size: 12
+        on_release: Factory.IntensityPopup().open()
+
+<IntensityPopup>:
+    name: 'IntensityPopup'
+    title: 'Intensity of Light'
+    box2:box2_id
+    #:set color_labels 1,1,1,1
+    #:set black 0,0,0,1
+    size_hint:0.6,0.6
+    
+    AnchorLayout:
+        id:box2_id   
+        size_hint:1,1
+        anchor_x: 'right'
+        anchor_y: 'top'
+
+<SchroSlitScreen>:
+    name: 'SchroSlit'
+    box1:box1_id
+    #:set color_labels 1,1,1,1
+    #:set black 0,0,0,1
+    
+    FloatLayout:
+        id:box1_id
+        orientation:'vertical'   
+        size_hint:1,1
+    
+    Label: 
+        color:(0,0,0,1)
+        text:"Quantum slits"
+        pos_hint:{'x':0.45,'y':0.9}
+        size_hint:0.1,0.1
+        font_size:35
+        
+    Label: 
+        color:(0,0,0,1)
+        text:"Wave function diagram"
+        pos_hint:{'x':0.35,'y':0.875}
+        size_hint:0.3,0.05
+        font_size:10
+    
+    Label: 
+        color:(0,0,0,1)
+        text:"Probability density diagram"
+        pos_hint:{'x':0.35,'y':0.455}
+        size_hint:0.3,0.05
+        font_size:10
+        
+
+        
+    Button:
+        id: reset_psi
+        text: "End setup" if root.is_setup_on==True else "Start setup"
+        on_press: root.reset_psi()
+        on_press: root.is_setup_on = not root.is_setup_on
+        on_press: root.is_compute_on = not root.is_compute_on
+        on_press: root.start_stop()
+        pos_hint:{'x':0.42,'y':0.005}
+        size_hint:0.16,0.05
+        
+        
+    Button:
+        id: start_stop
+        text:'Stop' if root.is_compute_on==True else "Resume"
+        on_press:root.is_compute_on = not root.is_compute_on
+        on_press:root.start_stop()
+        pos_hint:{'x':0.65,'y':0.02}
+        size_hint:0.1,0.025
+        width:120 if root.is_setup_on==True else 0
+        opacity: 1 if root.is_setup_on==False else 0
+        background_color:(0,0,0,1)
+    
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.,'y':0.8}
+        size_hint:0.2,0.1
+        width:120 if root.is_setup_on==True else 0
+        opacity: 1 if root.is_setup_on==True else 0
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Slits"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'horizontal'
+            size_hint_x:1
+            
+            Button:
+                id: add_slit
+                size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "+"
+                on_press: root.add_slit()
+                on_press: root.slt_number=root.slt_number+1 if root.slt_number<5 else root.slt_number 
+
+            
+            Button:
+                id: remove_slit
+                size_hint_x:0.5
+                pos_hint_x:0.1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "-"
+                on_press: root.remove_slit()
+                on_press: root.slt_number=root.slt_number-1 if root.slt_number>0 else root.slt_number
+                        
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.,'y':0.6}
+        size_hint:0.2,0.1
+        width:120 if root.is_setup_on==True else 0
+        opacity: 1 if root.is_setup_on==True else 0
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Slits' width"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'horizontal'
+            size_hint_x:1
+            
+            Button:
+                id: inc_slit_width
+                size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "+"
+                on_press: root.inc_slt_width()
+
+            
+            Button:
+                id: dec_slit_width
+                size_hint_x:0.5
+                pos_hint_x:0.1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "-"
+                on_press: root.dec_slt_width()
+        
+    BoxLayout:
+        #slits separation (only when nslit=2)
+        orientation: 'vertical'
+        pos_hint:{'x':0.,'y':0.4}
+        size_hint:0.2,0.1
+        width: 120 if root.slt_number==2 and root.is_setup_on==True else 0
+        hight: 120
+        opacity: 1 if root.slt_number==2 and root.is_setup_on==True else 0
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Slits' separation"
+        
+        BoxLayout:
+        #buttons
+            orientation: 'horizontal'
+            size_hint_x:1
+            
+            Button:
+                id: inc_slit_separation
+                size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "+"
+                on_press: root.inc_separation()
+
+            
+            Button:
+                id: dec_slit_separation
+                size_hint_x:0.5
+                pos_hint_x:0.1
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "-"
+                on_press: root.dec_separation()
+    
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.8,'y':0.8}
+        size_hint:0.2,0.1
+        width:120 if root.is_setup_on==True else 0
+        opacity: 1 if root.is_setup_on==True else 0
+        x0_slider: x0_slider_id
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Position x"
+
+            
+        Slider:
+            id:x0_slider_id
+            orientation:'horizontal'
+            size_hint:1,0.9
+            min:0
+            max:root.Nx_ss
+            value:int(root.Nx_ss/4)
+            on_touch_up:
+                root.change_x0(self.value)
+    
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.8,'y':0.65}
+        size_hint:0.2,0.1
+        width:120 if root.is_setup_on==True else 0
+        opacity: 1 if root.is_setup_on==True else 0
+        y0_slider: y0_slider_id
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Position y"
+
+            
+        Slider:
+            id:y0_slider_id
+            orientation:'horizontal'
+            size_hint:1,0.9
+            min:0
+            max:root.Ny_ss
+            value:int(root.Ny_ss/2)
+            on_touch_up:
+                root.change_y0(self.value)
+            
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.8,'y':0.5}
+        size_hint:0.2,0.1
+        width:120 if root.is_setup_on==True else 0
+        opacity: 1 if root.is_setup_on==True else 0
+        px0_slider: px0_slider_id
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Momentum x"
+
+            
+        Slider:
+            id:px0_slider_id
+            orientation:'horizontal'
+            size_hint:1,0.9
+            min:-15
+            max:15
+            value:0
+            on_touch_up:
+                root.change_px0(self.value)
+                
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.8,'y':0.35}
+        size_hint:0.2,0.1
+        width:120 if root.is_setup_on==True else 0
+        opacity: 1 if root.is_setup_on==True else 0
+        py0_slider: py0_slider_id
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Momentum y"
+
+            
+        Slider:
+            id:py0_slider_id
+            orientation:'horizontal'
+            size_hint:1,0.9
+            min:-15
+            max:15
+            value:0
+            on_touch_up:
+                root.change_py0(self.value)
+                
+    BoxLayout:
+        orientation: 'vertical'
+        pos_hint:{'x':0.8,'y':0.2}
+        size_hint:0.2,0.1
+        width:120 if root.is_setup_on==True else 0
+        opacity: 1 if root.is_setup_on==True else 0
+        dev_slider: dev_slider_id
+        
+        Label:
+            color: (0,0,0,1)
+            text: "Deviation"
+
+            
+        Slider:
+            id:dev_slider_id
+            orientation:'horizontal'
+            size_hint:1,0.9
+            min:2.5
+            max:20
+            value:7.5
+            on_touch_up:
+                root.change_dev(self.value)
+                
+    Button:
+        id: show_real
+        text:'show real'
+        on_press:root.showing_re = not root.showing_re
+        on_press:root.real_visu()
+        pos_hint:{'x':0.0,'y':0.35}
+        size_hint:0.1,0.025
+        background_color:(0,0,0,1) if root.showing_re==False else (0,0,0,0.2)
+        
+    Button:
+        id: show_imag
+        text:'show imaginary'
+        on_press:root.showing_im = not root.showing_im
+        on_press:root.imag_visu()
+        pos_hint:{'x':0.0,'y':0.2}
+        size_hint:0.1,0.025
+        background_color:(0,0,0,1) if root.showing_im==False else (0,0,0,0.2)
+                
+    
+                
+                
+
+
+
+        
+    
+    
+    
+    
+
+
+
+
+
+
+        
+

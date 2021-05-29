@@ -17,6 +17,7 @@ from kivy.properties import ObjectProperty,ReferenceListProperty,\
 
 import numpy as np
 import matplotlib.pyplot as plt
+import schro_gauss_packet as sch
 
 pi=np.pi
 e=np.e
@@ -114,7 +115,6 @@ class YoungSlitScreen(Screen):
         self.inty=np.zeros((self.Nx,self.Ny,3))
         
         self.sgm=np.zeros((self.Nx,self.Ny))
-        self.sgm_wall=np.zeros((self.Nx,self.Ny))
         self.sgm_det=np.zeros((self.Nx,self.Ny))
         
         #font
@@ -122,11 +122,11 @@ class YoungSlitScreen(Screen):
         
         #slits
         self.Nslt=0
-        self.w_slt=8
+        self.w_slt=4
         
         #gruix i posició de les parets
         self.x_wall=int(self.Nx/5)
-        self.w_wall=int(self.Nx/30)
+        self.w_wall=int(self.Nx/25)
         self.w_det=int(self.Nx/3)
         
         global w_det_ys
@@ -146,6 +146,14 @@ class YoungSlitScreen(Screen):
                 self.sgm_max*((self.w_det-k)/self.w_det)**self.m
             self.sgm_det[self.x_wall:self.Nx-k,self.Ny-1-k]=\
                 self.sgm_max*((self.w_det-k)/self.w_det)**self.m
+                
+        self.wall_presence=sch.young_slit_wall(self.Nslt,self.w_slt,
+                                               self.separation,
+                                               self.h_display,self.Ny)
+        self.sgm_wall,self.wave_presence=sch.young_slit_sgm(self.wall_presence,
+                                         self.w_wall,self.x_wall,
+                                         self.sgm_max,self.m,
+                                         self.Nx,self.Ny)
         
 
         ##########################PRIMER DIBUIX###################
@@ -242,7 +250,7 @@ class YoungSlitScreen(Screen):
                 
     def ys_schedule_fired(self):
         "Ara, definim l'update, a partir d'aqui farem l'animació"
-        self.schedule=Clock.schedule_interval(self.plotysev,self.dt)
+        self.schedule=Clock.schedule_interval(self.plotysev,1/18)
         
     #integral per trapezis, on h és el pas, i f, una llista amb els valors de 
     #la funció a inetgrar, és una llista 3D d'una funció 2D amb dependència temps
@@ -268,61 +276,6 @@ class YoungSlitScreen(Screen):
         
         
         """càlculs que fa el programa a cada pas"""
-        
-        
-        slt_i=np.zeros((self.Nslt+2),dtype=int)
-        slt_f=np.zeros((self.Nslt+2),dtype=int)
-        slt_n=np.linspace(1,self.Nslt,self.Nslt,dtype=int)
-        wall_presence=np.zeros((self.Ny),dtype=int)
-        
-        if self.Nslt==2:
-            #posicio del final i l'inici de cada escletxa, ara amb separació variable
-            slt_i[1]=int(self.Ny/2)-int(self.separation/2)-\
-                int(self.w_slt/2)
-            slt_i[2]=int(self.Ny/2)+int(self.separation/2)-\
-                int(self.w_slt/2)
-            slt_f[1]=int(self.Ny/2)-int(self.separation/2)+\
-                int(self.w_slt/2)
-            slt_f[2]=int(self.Ny/2)+int(self.separation/2)+\
-                int(self.w_slt/2)
-
-            slt_f[0]=0
-            slt_f[self.Nslt+1]=self.Ny
-            slt_i[self.Nslt+1]=self.Ny
-        
-        else:
-            #posicio del final i l'inici de cada escletxa
-            slt_i[1:self.Nslt+1]=int(self.Ny/2)-int(self.h_display/2)-\
-                int(self.w_slt/2)+slt_n[:]*int(self.h_display/(1+self.Nslt))
-            slt_f[1:self.Nslt+1]=int(self.Ny/2)-int(self.h_display/2)+\
-                int(self.w_slt/2)+slt_n[:]*int(self.h_display/(1+self.Nslt))
-            slt_f[0]=0
-            slt_f[self.Nslt+1]=self.Ny
-            slt_i[self.Nslt+1]=self.Ny
-        
-               
-        #les escletxes van de splt_i a splt_f-1, en aquests punts no hi ha paret,
-        # a slpt_f ja hi ha paret
-        for n in range(1,self.Nslt+2):
-            wall_presence[slt_f[n-1]:slt_i[n]]=1
-            wall_presence[slt_i[n]:slt_f[n]]=0
-        
-        # matriu que, amb el gruix de la paret com a nombre de files, ens diu si 
-        # hi ha paret o escletxes a cada una de les y(representades en les columnes)
-        wall_presence=np.tile(np.array([wall_presence],dtype=int),
-                              (self.w_wall,1))
-    
-        #matriu que diu com de "dins" som a la paret
-        wall_n=np.linspace(1,self.w_wall,self.w_wall)
-        wall_ny=np.tile(np.array([wall_n],dtype=int).transpose(),(1,self.Ny))
-    
-        #valors de coeficient d'absorció a les parets
-        self.sgm_wall[self.x_wall-self.w_wall:self.x_wall,:]=wall_presence[:,:]\
-                    *self.sgm_max*((wall_ny[:,:])/self.w_wall)**self.m
-        
-        #llista per a l'última capa de la paret, on l'amplitud d'ona és 0
-        self.wave_presence=np.ones((self.Nx,self.Ny))
-        self.wave_presence[self.x_wall,:]=(1-wall_presence[0,:])
         
         self.sgm=self.sgm_wall+self.sgm_det
         
@@ -432,24 +385,56 @@ class YoungSlitScreen(Screen):
             self.Nslt+=1
         else:
             pass
+        
+        self.wall_presence=sch.young_slit_wall(self.Nslt,self.w_slt,
+                                               self.separation,
+                                               self.h_display,self.Ny)
+        self.sgm_wall,self.wave_presence=sch.young_slit_sgm(self.wall_presence,
+                                         self.w_wall,self.x_wall,
+                                         self.sgm_max,self.m,
+                                         self.Nx,self.Ny)
     
     def remove_slit(self):
         if self.Nslt>0:
             self.Nslt-=1
         else:
             pass
+        
+        self.wall_presence=sch.young_slit_wall(self.Nslt,self.w_slt,
+                                               self.separation,
+                                               self.h_display,self.Ny)
+        self.sgm_wall,self.wave_presence=sch.young_slit_sgm(self.wall_presence,
+                                         self.w_wall,self.x_wall,
+                                         self.sgm_max,self.m,
+                                         self.Nx,self.Ny)
     
     def inc_slt_width(self):
         if (self.Nslt*self.w_slt)<self.h_display:
             self.w_slt+=2
         else:
             pass
+        
+        self.wall_presence=sch.young_slit_wall(self.Nslt,self.w_slt,
+                                               self.separation,
+                                               self.h_display,self.Ny)
+        self.sgm_wall,self.wave_presence=sch.young_slit_sgm(self.wall_presence,
+                                         self.w_wall,self.x_wall,
+                                         self.sgm_max,self.m,
+                                         self.Nx,self.Ny)
     
     def dec_slt_width(self):
         if self.w_slt>0:
             self.w_slt-=2
         else:
             pass
+        
+        self.wall_presence=sch.young_slit_wall(self.Nslt,self.w_slt,
+                                               self.separation,
+                                               self.h_display,self.Ny)
+        self.sgm_wall,self.wave_presence=sch.young_slit_sgm(self.wall_presence,
+                                         self.w_wall,self.x_wall,
+                                         self.sgm_max,self.m,
+                                         self.Nx,self.Ny)
         
     def change_source_state(self):
         self.t=0
@@ -466,12 +451,28 @@ class YoungSlitScreen(Screen):
             self.separation+=2
         else:
             pass
+        
+        self.wall_presence=sch.young_slit_wall(self.Nslt,self.w_slt,
+                                               self.separation,
+                                               self.h_display,self.Ny)
+        self.sgm_wall,self.wave_presence=sch.young_slit_sgm(self.wall_presence,
+                                         self.w_wall,self.x_wall,
+                                         self.sgm_max,self.m,
+                                         self.Nx,self.Ny)
     
     def dec_separation(self):
         if self.separation>0:
             self.separation-=2
         else:
             pass
+        
+        self.wall_presence=sch.young_slit_wall(self.Nslt,self.w_slt,
+                                               self.separation,
+                                               self.h_display,self.Ny)
+        self.sgm_wall,self.wave_presence=sch.young_slit_sgm(self.wall_presence,
+                                         self.w_wall,self.x_wall,
+                                         self.sgm_max,self.m,
+                                         self.Nx,self.Ny)
         
         
 class IntensityPopup(Popup):
