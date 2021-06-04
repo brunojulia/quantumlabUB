@@ -14,10 +14,14 @@ from kivy.uix.popup import Popup
 from functools import partial
 from kivy.properties import ObjectProperty,ReferenceListProperty,\
     NumericProperty,StringProperty,ListProperty,BooleanProperty
+from kivy.lang import Builder
 
 import numpy as np
 import matplotlib.pyplot as plt
-import schro_gauss_packet as sch
+import file.schro_gauss_packet as sch
+
+with open("file\\qm_timeline_v3.kv", encoding='utf-8') as kv_file:
+    Builder.load_string(kv_file.read())
 
 pi=np.pi
 e=np.e

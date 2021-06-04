@@ -14,30 +14,10 @@ Created on Mon Apr 12 07:45:28 2021
 
 from numba import jit
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as ani
-import time
 
-               #Tree('C:\\Users\\llucv\\Desktop\\fisica\\7è semestre\\Physics Game\\Quantum_Timeline\\exe\\schro_gauss_packet.py'),
-               #Tree('C:\\Users\\llucv\\Desktop\\fisica\\7è semestre\\Physics Game\\Quantum_Timeline\\exe\\qm_timeline_v4.kv'),
-
-Nx=300
-Ny=150
-
-h_display=int(Ny)
-w_display=int(Nx)
-h_slits=int(Ny/3)
 
 hbar=1
 pi=np.pi
-
-central=0
-
-dt=1/(18*(abs(central-1)+central*10))
-dl=np.sqrt(dt/2)
-print(dl)
-Nr=8
-r=dt/(Nr*dl**2)
 
 
 @jit(nopython=True)
@@ -139,6 +119,11 @@ def psi_0(Nx,Ny,x0,y0,px0,py0,dev,dl,dt):
     x=x*dl
     y=y*dl
     
+    x0=x0*dl
+    y0=y0*dl
+    
+    dev=dev*dl
+    
     const=(1/(2*pi*dev**2))**(1/4)
     gauss_x[:]=const*np.exp(-(((x[:]-x0)**2)/(dev**2))/4+\
                                1j*px0*(x[:]-x0/2)/hbar)
@@ -155,10 +140,12 @@ def prob_dens(psi):
     return prob
 
 
-def Potential_slits_gauss(max_V,x_wall,separation,w_slt,dev,Nslt,dl,Nx,Ny):
+def Potential_slits_gauss(max_V,x_wall,h_slits,
+                          separation,w_slt,dev,Nslt,dl,Nx,Ny):
     slt_i=np.zeros((Nslt+2),dtype=int)
     slt_f=np.zeros((Nslt+2),dtype=int)
     slt_n=np.linspace(1,Nslt,Nslt,dtype=int)
+    dev=dev*dl
     
     if Nslt==2:
         #posicio del final i l'inici de cada escletxa, ara amb separació variable
@@ -215,13 +202,10 @@ def Potential_slits_gauss(max_V,x_wall,separation,w_slt,dev,Nslt,dl,Nx,Ny):
         V_y[Ny-1]=alpha/beta
         V_y[Ny-2]=alpha/beta
 
-    
-    plt.plot(np.real(V_y))
-    plt.savefig('V_y.png')
     V=np.tensordot(V_x,V_y,axes=0)
 
-    return V
 
+    return V
 
 
 def mirror_pot(Nx,Ny,x0,y0,dl,pot_max,lenght):
@@ -231,6 +215,9 @@ def mirror_pot(Nx,Ny,x0,y0,dl,pot_max,lenght):
     x=x*dl
     y=y*dl
     dev=dl
+    
+    x0=x0*dl
+    y0=y0*dl
     
     beta=dev*np.sqrt(2*pi)
     alpha=beta*np.sqrt(pot_max)
@@ -291,229 +278,70 @@ def coulomb_pot(Nx,Ny,dl,x0,y0,Z,sign):
     
     return V
 
-
-            
-
-
-psi=np.zeros((Nx,Ny),dtype=np.complex128)
-V=np.zeros((Nx,Ny))
-
-for i in range(100):
-    px0=i
-    x0=int(Nx/2)*dl
-    y0=int(Ny/2)*dl
-    py0=0
-    dev=30*dl
-    psi_0(Nx, Ny, x0, y0, px0, py0, dev, dl, dt)
+@jit
+def young_slit_wall(Nslt,w_slt,separation,h_display,Ny):
+    slt_i=np.zeros((Nslt+2))
+    slt_f=np.zeros((Nslt+2))
+    slt_n=np.linspace(1,Nslt,Nslt)
+    wall_presence=np.zeros((Ny))
     
+    if Nslt==2:
+        #posicio del final i l'inici de cada escletxa, ara amb separació variable
+        slt_i[1]=int(Ny/2)-int(separation/2)-\
+            int(w_slt/2)
+        slt_i[2]=int(Ny/2)+int(separation/2)-\
+            int(w_slt/2)
+        slt_f[1]=int(Ny/2)-int(separation/2)+\
+            int(w_slt/2)
+        slt_f[2]=int(Ny/2)+int(separation/2)+\
+            int(w_slt/2)
 
-
-
-
-Nt=250
-prob=np.zeros((Nx,Ny,Nt))
-x0_i=int(0.125*Nx)
-y0_j=int(0.2*Ny)
-x0=x0_i*dl
-y0=y0_j*dl
-px0=7.75*np.sqrt(2)
-py0=7.75*np.sqrt(2)
-Ndev=7.5
-dev=Ndev*dl
-
-print('som-hi')
-    
-
-
-Nslt=2
-w_slt=16
-separation=42
-x_wall=int(w_display/2)
-
-#potencial
-xv0_i=int(0.7*Nx)
-yv0_j=int(Ny/2)
-xv0=xv0_i*dl
-yv0=yv0_j*dl
-max_V=100
-Z=1
-sign=+1
-devV=dl
-
-if central==0:
-    opac_k=1
-    V=Potential_slits_gauss(0,x_wall,separation,w_slt,devV,Nslt,dl,Nx,Ny)
-    
-    xv0_i=int(0.25*Nx)
-    yv0_j=int(Ny/2)
-    xv0=xv0_i*dl
-    yv0=yv0_j*dl
-    pot_max=25
-    lenght=int(Nx/3)
-    V1=mirror_pot(Nx, Ny, xv0, yv0, dl, pot_max, lenght)
-    
-    xv0_i=int(0.5*Nx)
-    yv0_j=int(Ny*0.1)
-    xv0=xv0_i*dl
-    yv0=yv0_j*dl
-    pot_max=100
-    lenght=int(Nx*0.5)
-    V2=mirror_pot(Nx, Ny, xv0, yv0, dl, pot_max, lenght)
-    
-    xv0_i=int(0.5*Nx)
-    yv0_j=int(Ny*0.9)
-    xv0=xv0_i*dl
-    yv0=yv0_j*dl
-    pot_max=100
-    lenght=int(Nx*0.5)
-    V3=mirror_pot(Nx, Ny, xv0, yv0, dl, pot_max, lenght)
-    
-    V=V1+V2+V3
-
-if central==1:
-    opac_k=0.25
-    V=coulomb_pot(Nx,Ny,dl,xv0,yv0,Z,sign)
-
-
-print("let's compute!")
-start=time.time()
-
-
-"""
-prob_k=np.zeros((Nx,Ny))
-for i in range(30):
-    print("changeo")
-    px0=7+i*0.05
-    psi[:,:]=psi_0(Nx,Ny,x0,y0,px0,py0,dev,dl,dt)
-    uo=0
-    for k in range(Nt):
-        #print(k)
-        psi=psi_ev_ck(psi,V,r,dl,dt)
-        prob[:,:,k]=prob_dens(psi[:,:])
-        prob_k[:,:]=prob[:,:,k]
-        if np.sum(prob_k[int(Nx*0.9),:])>0.1 and uo==0:
-            print('px i temps')
-            print(px0)
-            print(k)
-            uo=1
-            
-        #print(trapezis_2D(prob_k,dl))
-    
-"""
-psi[:,:]=psi_0(Nx,Ny,x0,y0,px0,py0,dev,dl,dt)
-print("max and mins")
-print(np.max(np.real(psi)))
-print(np.min(np.real(psi)))
-print(np.max(np.imag(psi)))
-print(np.min(np.imag(psi)))
-
-prob[:,:,0]=prob_dens(psi[:,:])
-print(np.sum(prob[:,:,0]))
-prob_k=np.zeros((Nx,Ny))
-
-for k in range(Nt):
-    #print(k)
-    psi=psi_ev_ck(psi,V,r,dl,dt)
-    prob[:,:,k]=prob_dens(psi[:,:])
-    prob_k[:,:]=prob[:,:,k]
-    #print(trapezis_2D(prob_k,dl))
-
-
-print(time.time()-start)
-
-print("max inf i sup")
-print(np.max(prob[:,:int(Ny/2),:200]))
-print(np.max(prob[:,int(Ny/2):,:200]))
-Pot=np.real(V)
-
-"""
-for i in range(Nx):
-    for j in range(Ny):
-        if Pot[i,j]-1000==0:
-            Pot[i,j]=0.
-"""
-
-print('dl')
-print(dl)
-
-print('potencial0')
-print(np.max(Pot))
-print(np.min(Pot))
-
-if central==0:   
-    comap = plt.get_cmap('Reds')
-    comap.set_under('k', alpha=0)
-    Pot_max=np.max(Pot)
-
-    
-if central==1:
-    
-    if np.max(Pot)<=0:
-        comap = plt.get_cmap('Reds')
-        Pot=-Pot
-        Pot_max=np.max(Pot)
+        slt_f[0]=0
+        slt_f[Nslt+1]=Ny
+        slt_i[Nslt+1]=Ny
     
     else:
-        comap = plt.get_cmap('Reds')
-        Pot_max=np.max(Pot)
-
-
-
-print('potencial')
-print(Pot_max)
-if Pot_max > 0.1:
-    opac=0.5/1*opac_k
+        #posicio del final i l'inici de cada escletxa
+        slt_i[1:Nslt+1]=int(Ny/2)-int(h_display/2)-\
+            int(w_slt/2)+slt_n[:]*int(h_display/(1+Nslt))
+        slt_f[1:Nslt+1]=int(Ny/2)-int(h_display/2)+\
+            int(w_slt/2)+slt_n[:]*int(h_display/(1+Nslt))
+        slt_f[0]=0
+        slt_f[Nslt+1]=Ny
+        slt_i[Nslt+1]=Ny
     
-if Pot_max < 0.1:
-    opac=0/1
+           
+    #les escletxes van de splt_i a splt_f-1, en aquests punts no hi ha paret,
+    # a slpt_f ja hi ha paret
+    for n in range(1,Nslt+2):
+        wall_presence[slt_f[n-1]:slt_i[n]]=1
+        wall_presence[slt_i[n]:slt_f[n]]=0
+    
+    return wall_presence
 
-print("let's animate!")
 
-Nvisu=3
-Nden=(100/Nt)
-print(Nden)
-def update9(frame):
-    k=int(frame/Nden)
-    print(frame)
-    print(k)
-    normk=prob[:,:,k]
-    plt.imshow(normk.transpose()[int((Ny-h_display)/2):\
-                                int((Ny+h_display)/2),
-                                0:w_display],origin='lower',cmap="Blues",
-               vmax=prob[x0_i,y0_j,0]/Nvisu,vmin=0,alpha=1,
-        extent=(0,int(w_display*dl),0,int(h_display*dl)))
+def young_slit_sgm(wall_presence,w_wall,x_wall,sgm_max,m,Nx,Ny):
+    sgm_wall=np.zeros((Nx,Ny))
+    # matriu que, amb el gruix de la paret com a nombre de files, ens diu si 
+    # hi ha paret o escletxes a cada una de les y(representades en les columnes)
+    wall_presence=np.tile(np.array([wall_presence]),
+                          (w_wall,1))
+
+    #matriu que diu com de "dins" som a la paret
+    wall_n=np.linspace(1,w_wall,w_wall)
+    wall_ny=np.tile(np.array([wall_n]).transpose(),(1,Ny))
+
+    #valors de coeficient d'absorció a les parets
+    sgm_wall[x_wall-w_wall:x_wall,:]=wall_presence[:,:]\
+                *sgm_max*((wall_ny[:,:])/w_wall)**m
+    
+            
+    #llista per a l'última capa de la paret, on l'amplitud d'ona és 0
+    wave_presence=np.ones((Nx,Ny))
+    wave_presence[x_wall,:]=(1-wall_presence[0,:])
+                
+    return sgm_wall,wave_presence
     
     
-    plt.imshow(Pot.transpose()[int((Ny-h_display)/2):\
-                                int((Ny+h_display)/2),
-                                0:w_display],
-               origin='lower',vmax=Pot_max*opac_k,vmin=Pot_max*0.05,
-               cmap=comap,alpha=opac,
-        extent=(0,int(w_display*dl),0,int(h_display*dl)))
+        
     
-
-fig9 = plt.figure()
-ax1 = plt.subplot()
-
-Writer = ani.writers['ffmpeg']
-writer = Writer(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-
-anim9 = ani.FuncAnimation(fig9, update9, 
-                               frames = int(Nt*Nden)-1, 
-                               blit = False, interval=200)
-save=0
-if save==1:
-    if central==0:
-        anim9.save('Nx'+str(Nx)+'_Ny'+str(Ny)+'_maxV'+str(max_V)\
-                   +'_px'+str(px0)+'_py'+str(py0)\
-                   +'_Nslits'+str(Nslt)+'_dev'+str(Ndev)+'_r'+str(Nr)\
-                   +'Mirror_Sch_v5.mp4', writer=writer)
-    if central==1:
-        anim9.save('Nx'+str(Nx)+'_Ny'+str(Ny)+'_Z'+str(Z)\
-                   +str(sign)+'_central_pot'\
-                   +'_Sch_v5.mp4', writer=writer)
-    
-V=np.real(V)
-print(V)
-plt.imshow(np.transpose(V))
-plt.savefig(str(Nslt)+"V_slits_r.png")

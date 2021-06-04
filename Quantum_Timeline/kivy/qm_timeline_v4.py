@@ -94,7 +94,7 @@ class YoungSlitScreen(Screen):
         super(YoungSlitScreen,self).__init__(**kwargs)
         
     def yspseudo_init(self):
-        self.frame_t=1/18
+        self.frame_t=1/30
         
         #temps inicial (0, evidentment)
         self.t=0
@@ -122,7 +122,6 @@ class YoungSlitScreen(Screen):
         self.tau=2*pi/self.w
         self.Ntau=int(1+self.tau/self.dt)
         self.rao=(self.c*self.dt/self.dl)**2
-        print(self.rao)
         
         #variables paret
         self.sgm_max=0.02615
@@ -215,7 +214,6 @@ class YoungSlitScreen(Screen):
                 interpolation='gaussian',
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
         
-        print(int(self.w_display*self.dl))
         
         #representació de la paret al diagrama d'ones
         self.wave_slit_im=self.wave_visu.imshow(\
@@ -271,6 +269,14 @@ class YoungSlitScreen(Screen):
     def ys_schedule_fired(self):
         "Ara, definim l'update, a partir d'aqui farem l'animació"
         self.schedule=Clock.schedule_interval(self.plotysev,self.frame_t)
+        
+    def ys_schedule_cancel(self):
+        self.schedule.cancel()
+        
+    def transition_YSD(self,*largs):
+        self.ys_schedule_cancel()
+        self.manager.transition=FadeTransition()
+        self.manager.current='Discoveries'
         
     #integral per trapezis, on h és el pas, i f, una llista amb els valors de 
     #la funció a inetgrar, és una llista 3D d'una funció 2D amb dependència temps
@@ -395,10 +401,6 @@ class YoungSlitScreen(Screen):
         #I utilitzar-lo
         self.main_canvas.draw()
         
-
-    def ys_schedule_cancel(self):
-        self.schedule.cancel()
-        
     def add_slit(self):
         if self.Nslt<5:
             self.Nslt+=1
@@ -514,23 +516,27 @@ class IntensityPopup(Popup):
 class SchroSlitScreen(Screen):
     slt_number = NumericProperty(0)
     is_setup_on = BooleanProperty(True)
-    is_compute_on = BooleanProperty(False)
+    is_compute_on = BooleanProperty(True)
     Nx_ss = NumericProperty(300)
     Ny_ss = NumericProperty(150)
     showing_re = BooleanProperty(True)
-    showing_im = BooleanProperty(True)
+    x0_val=NumericProperty(75)
+    y0_val=NumericProperty(75)
+    px0_val=NumericProperty(0)
+    py0_val=NumericProperty(0)
+    dev_val=NumericProperty(7.5)
     
     def __init__(self,**kwargs):
         super(SchroSlitScreen,self).__init__(**kwargs)
         
     def sspseudo_init(self):
-        self.frame_t=1/18
-        self.compute=False
+        self.frame_t=1/30
+        self.compute=True
         self.psi_setup=True
         
         self.Nx=300
         self.Ny=150
-        self.dt=1/20
+        self.dt=1/18
         self.dl=np.sqrt(self.dt/2)
         self.r=self.dt/(8*self.dl**2)
     
@@ -545,10 +551,10 @@ class SchroSlitScreen(Screen):
         
         self.max_V=100
         self.x_wall=int(self.w_display/2)
-        self.h_slits=int(self.h_display/2)
+        self.h_slits=int(self.h_display*0.4)
         self.Nslt=0
-        self.separation=40
-        self.w_slt=16
+        self.separation=20
+        self.w_slt=10
         self.devV=1
         
         self.psi=np.zeros((self.Nx,self.Ny),dtype=np.complex128)
@@ -571,11 +577,7 @@ class SchroSlitScreen(Screen):
         self.re_psi=np.real(self.psi)
         self.re_max=np.max(self.re_psi)
         self.re_min=np.min(self.re_psi)
-        
-        print(self.re_max)
-        print(self.im_max)
-        print(self.re_min)
-        print(self.im_min)
+
         
                 ##########################PRIMER DIBUIX###################
         self.re_show=1
@@ -604,18 +606,15 @@ class SchroSlitScreen(Screen):
         self.cmap = plt.get_cmap('Greys')
         self.cmap.set_under('k', alpha=0)
         
-        
-        self.wave_im=self.wave_visu.imshow(self.im_psi.transpose()\
+        self.wave_re=self.wave_visu.imshow((self.re_show)*\
+                                           self.re_psi.transpose()\
             [int((self.Ny-self.h_display)/2):int((self.Ny+self.h_display)/2),
-             0:self.w_display],origin='lower',cmap="seismic",
-             vmax=0.5,vmin=-0.5,alpha=self.im_show*0.5,
-        extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
-        
-        
-        self.wave_re=self.wave_visu.imshow(self.re_psi.transpose()\
+             0:self.w_display]+
+            (1-self.re_show)*self.im_psi.transpose()\
             [int((self.Ny-self.h_display)/2):int((self.Ny+self.h_display)/2),
-             0:self.w_display],origin='lower',cmap="PuOr",
-             vmax=0.5,vmin=-0.5,alpha=self.re_show*0.5,
+             0:self.w_display],
+            origin='lower',cmap="seismic",interpolation="gaussian",
+             vmax=0.5,vmin=-0.5,alpha=1,
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
         
         self.wave_slit=self.wave_visu.imshow(self.pot.transpose()\
@@ -666,7 +665,8 @@ class SchroSlitScreen(Screen):
     def plotssev(self,dt):
         """ càlculs """
         
-        if self.compute==True:
+        if self.compute==True and self.psi_setup==False:
+            self.psi=sch.psi_ev_ck(self.psi,self.V,self.r,self.dl,self.dt)
             self.psi=sch.psi_ev_ck(self.psi,self.V,self.r,self.dl,self.dt)
         
         else:
@@ -678,25 +678,21 @@ class SchroSlitScreen(Screen):
         self.re_psi=np.real(self.psi)
         
         """ representació """
-        self.wave_im.remove()
         self.wave_re.remove()
         self.wave_slit.remove()
         self.prob_slit.remove()
         self.prob_prob.remove()
         
         #new frame
-        self.wave_im=self.wave_visu.imshow(self.im_psi.transpose()\
+        self.wave_re=self.wave_visu.imshow((self.re_show)*\
+                                           self.re_psi.transpose()\
             [int((self.Ny-self.h_display)/2):int((self.Ny+self.h_display)/2),
-             0:self.w_display],origin='lower',cmap="seismic",
-             vmax=0.5,vmin=-0.5,alpha=self.im_show*0.5,
-             interpolation='gaussian',
-        extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
-        
-        self.wave_re=self.wave_visu.imshow(self.re_psi.transpose()\
+             0:self.w_display]+
+            (1-self.re_show)*self.im_psi.transpose()\
             [int((self.Ny-self.h_display)/2):int((self.Ny+self.h_display)/2),
-             0:self.w_display],origin='lower',cmap="PuOr",
-             vmax=0.3,vmin=-0.3,alpha=self.re_show*0.5,
-             interpolation='gaussian',
+             0:self.w_display],
+            origin='lower',cmap="seismic",interpolation="gaussian",
+             vmax=0.5,vmin=-0.5,alpha=1,
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
         
         self.wave_slit=self.wave_visu.imshow(self.pot.transpose()\
@@ -721,17 +717,47 @@ class SchroSlitScreen(Screen):
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
             
         self.main_canvas.draw()
+        
+    def reset_conditions(self):
+        self.x0=int(self.Nx/4)
+        self.y0=int(self.Ny/2)
+        self.px0=0
+        self.py0=0
+        self.dev=7.5
+        
+        self.max_V=100
+        self.x_wall=int(self.w_display/2)
+        self.h_slits=int(self.h_display*0.4)
+        self.Nslt=0
+        self.separation=20
+        self.w_slt=10
+        self.devV=1
+        
+        self.psi=np.zeros((self.Nx,self.Ny),dtype=np.complex128)
+        self.psi=sch.psi_0(self.Nx,self.Ny,
+                            self.x0,self.y0,self.px0,self.py0,self.dev,
+                            self.dl,self.dt)
+        
+        self.V=sch.Potential_slits_gauss(self.max_V,self.x_wall,self.h_slits,
+                                         self.separation,self.w_slt,self.devV,
+                                         self.Nslt,self.dl,self.Nx,self.Ny)
+        self.pot=np.real(self.V)
+        
+        self.prob=sch.prob_dens(self.psi)
+        self.prob_max=np.max(self.prob)
+        
     
     def ss_schedule_cancel(self):
         self.schedule.cancel()
         
-    def start_stop(self):
-        if self.compute==True:
-            self.compute=False
+    def transition_SSD(self,*largs):
+        self.reset_conditions()
+        self.ss_schedule_cancel()
+        self.manager.transition=FadeTransition()
+        self.manager.current='Discoveries'
         
-        else:
-            self.compute=True
-            self.psi=sch.psi_ev_ck(self.psi,self.V,self.r,self.dl,self.dt)
+    def start_stop(self):
+        self.compute = not self.compute
         
     
     def add_slit(self):
@@ -803,6 +829,7 @@ class SchroSlitScreen(Screen):
             
         else:
             self.psi_setup=False
+            
 
     
     def change_px0(self,value_px0,*largs):
@@ -834,13 +861,6 @@ class SchroSlitScreen(Screen):
         self.psi=sch.psi_0(self.Nx,self.Ny,
                     self.x0,self.y0,self.px0,self.py0,self.dev,
                     self.dl,self.dt)
-    
-    def imag_visu(self):
-        if self.im_show==0:
-            self.im_show=1
-        
-        else:
-            self.im_show=0
             
     def real_visu(self):
         if self.re_show==0:
@@ -851,18 +871,17 @@ class SchroSlitScreen(Screen):
           
 class SchroMirrorScreen(Screen):
     is_setup_on = BooleanProperty(True)
-    is_compute_on = BooleanProperty(False)
+    is_compute_on = BooleanProperty(True)
     Nx_ss = NumericProperty(300)
     Ny_ss = NumericProperty(150)
     showing_re = BooleanProperty(True)
-    showing_im = BooleanProperty(True)
     
     def __init__(self,**kwargs):
         super(SchroMirrorScreen,self).__init__(**kwargs)
         
     def smpseudo_init(self):
-        self.frame_t=1/18
-        self.compute=False
+        self.frame_t=1/30
+        self.compute=True
         self.psi_setup=True
         
         self.Nx=300
@@ -875,15 +894,20 @@ class SchroMirrorScreen(Screen):
         self.w_display=self.Nx
         
         self.x0=int(self.Nx*0.125)
-        self.y0=int(self.Ny*0.125)
-        self.px0=7.5
-        self.py0=7.5
+        self.y0=int(self.Ny*0.2)
+        self.px0=7.75*np.sqrt(2)
+        self.py0=7.75*np.sqrt(2)
         self.dev=7.5
         
-        self.max_V1=13.5
-        self.x01=int(self.Nx/3)
+        self.max_V1=25.75
+        self.x01=int(self.Nx/4)
         self.y01=int(self.Ny/2)
-        self.lenght1=int(self.Nx/3)
+        self.lenght1=int(self.Nx/2)
+        
+        self.max_V4=25.75
+        self.x04=int(self.Nx*3/4)
+        self.y04=int(self.Ny/2)
+        self.lenght4=int(self.Nx/2)
         
         self.max_V=100
         
@@ -913,7 +937,11 @@ class SchroMirrorScreen(Screen):
                                self.x03,self.y03,self.dl,
                                self.max_V,self.lenght3)
         
-        self.V=self.V1+self.V2+self.V3
+        self.V4=sch.mirror_pot(self.Nx,self.Ny,
+                               self.x04,self.y04,self.dl,
+                               self.max_V4,self.lenght4)
+        
+        self.V=self.V1+self.V2+self.V3+self.V4
         
         self.pot=np.real(self.V)
         
@@ -927,11 +955,6 @@ class SchroMirrorScreen(Screen):
         self.re_psi=np.real(self.psi)
         self.re_max=np.max(self.re_psi)
         self.re_min=np.min(self.re_psi)
-        
-        print(self.re_max)
-        print(self.im_max)
-        print(self.re_min)
-        print(self.im_min)
         
                 ##########################PRIMER DIBUIX###################
         self.re_show=1
@@ -961,17 +984,15 @@ class SchroMirrorScreen(Screen):
         self.cmap.set_under('k', alpha=0)
         
         
-        self.wave_im=self.wave_visu.imshow(self.im_psi.transpose()\
+        self.wave_re=self.wave_visu.imshow((self.re_show)*\
+                                           self.re_psi.transpose()\
             [int((self.Ny-self.h_display)/2):int((self.Ny+self.h_display)/2),
-             0:self.w_display],origin='lower',cmap="seismic",
-             vmax=0.5,vmin=-0.5,alpha=self.im_show*0.5,
-        extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
-        
-        
-        self.wave_re=self.wave_visu.imshow(self.re_psi.transpose()\
+             0:self.w_display]+
+            (1-self.re_show)*self.im_psi.transpose()\
             [int((self.Ny-self.h_display)/2):int((self.Ny+self.h_display)/2),
-             0:self.w_display],origin='lower',cmap="PuOr",
-             vmax=0.5,vmin=-0.5,alpha=self.re_show*0.5,
+             0:self.w_display],
+            origin='lower',cmap="seismic",interpolation="gaussian",
+             vmax=0.5,vmin=-0.5,alpha=1,
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
         
         self.wave_slit=self.wave_visu.imshow(self.pot.transpose()\
@@ -1022,7 +1043,8 @@ class SchroMirrorScreen(Screen):
     def plotsmev(self,dt):
         """ càlculs """
         
-        if self.compute==True:
+        if self.compute==True and self.psi_setup==False:
+            self.psi=sch.psi_ev_ck(self.psi,self.V,self.r,self.dl,self.dt)
             self.psi=sch.psi_ev_ck(self.psi,self.V,self.r,self.dl,self.dt)
         
         else:
@@ -1034,25 +1056,21 @@ class SchroMirrorScreen(Screen):
         self.re_psi=np.real(self.psi)
         
         """ representació """
-        self.wave_im.remove()
         self.wave_re.remove()
         self.wave_slit.remove()
         self.prob_slit.remove()
         self.prob_prob.remove()
         
         #new frame
-        self.wave_im=self.wave_visu.imshow(self.im_psi.transpose()\
+        self.wave_re=self.wave_visu.imshow((self.re_show)*\
+                                           self.re_psi.transpose()\
             [int((self.Ny-self.h_display)/2):int((self.Ny+self.h_display)/2),
-             0:self.w_display],origin='lower',cmap="seismic",
-             vmax=0.5,vmin=-0.5,alpha=self.im_show*0.5,
-             interpolation='gaussian',
-        extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
-        
-        self.wave_re=self.wave_visu.imshow(self.re_psi.transpose()\
+             0:self.w_display]+
+            (1-self.re_show)*self.im_psi.transpose()\
             [int((self.Ny-self.h_display)/2):int((self.Ny+self.h_display)/2),
-             0:self.w_display],origin='lower',cmap="PuOr",
-             vmax=0.3,vmin=-0.3,alpha=self.re_show*0.5,
-             interpolation='gaussian',
+             0:self.w_display],
+            origin='lower',cmap="seismic",interpolation="gaussian",
+             vmax=0.5,vmin=-0.5,alpha=1,
         extent=(0,int(self.w_display*self.dl),0,int(self.h_display*self.dl)))
         
         self.wave_slit=self.wave_visu.imshow(self.pot.transpose()\
@@ -1078,16 +1096,74 @@ class SchroMirrorScreen(Screen):
             
         self.main_canvas.draw()
     
-    def ss_schedule_cancel(self):
+    def sm_schedule_cancel(self):
         self.schedule.cancel()
         
-    def start_stop(self):
-        if self.compute==True:
-            self.compute=False
+    def reset_conditions(self):
+        self.x0=int(self.Nx*0.125)
+        self.y0=int(self.Ny*0.2)
+        self.px0=7.75*np.sqrt(2)
+        self.py0=7.75*np.sqrt(2)
+        self.dev=7.5
         
-        else:
-            self.compute=True
-            self.psi=sch.psi_ev_ck(self.psi,self.V,self.r,self.dl,self.dt)
+        self.max_V1=25.75
+        self.x01=int(self.Nx/4)
+        self.y01=int(self.Ny/2)
+        self.lenght1=int(self.Nx/2)
+        
+        self.max_V4=25.75
+        self.x04=int(self.Nx*3/4)
+        self.y04=int(self.Ny/2)
+        self.lenght4=int(self.Nx/2)
+        
+        self.max_V=100
+        
+        self.x02=int(self.Nx/2)
+        self.y02=int(self.Ny*0.9)
+        self.lenght2=int(self.Nx*0.5)
+        
+        self.x03=int(self.Nx/2)
+        self.y03=int(self.Ny*0.1)
+        self.lenght3=int(self.Nx*0.5)
+        
+        
+        self.psi=np.zeros((self.Nx,self.Ny),dtype=np.complex128)
+        self.psi=sch.psi_0(self.Nx,self.Ny,
+                            self.x0,self.y0,self.px0,self.py0,self.dev,
+                            self.dl,self.dt)
+        
+        self.V1=sch.mirror_pot(self.Nx,self.Ny,
+                               self.x01,self.y01,self.dl,
+                               self.max_V1,self.lenght1)
+        
+        self.V2=sch.mirror_pot(self.Nx,self.Ny,
+                               self.x02,self.y02,self.dl,
+                               self.max_V,self.lenght2)
+        
+        self.V3=sch.mirror_pot(self.Nx,self.Ny,
+                               self.x03,self.y03,self.dl,
+                               self.max_V,self.lenght3)
+        
+        self.V4=sch.mirror_pot(self.Nx,self.Ny,
+                               self.x04,self.y04,self.dl,
+                               self.max_V4,self.lenght4)
+        
+        self.V=self.V1+self.V2+self.V3+self.V4
+        
+        self.pot=np.real(self.V)
+        
+        self.prob=sch.prob_dens(self.psi)
+        self.prob_max=np.max(self.prob)
+        
+        
+    def transition_SMD(self,*largs):
+        self.reset_conditions()
+        self.sm_schedule_cancel()
+        self.manager.transition=FadeTransition()
+        self.manager.current='Discoveries'
+        
+    def start_stop(self):
+        self.compute = not self.compute
 
             
     def reset_psi(self):
@@ -1108,7 +1184,7 @@ class SchroMirrorScreen(Screen):
                                self.x02,self.y02,self.dl,
                                self.max_V,self.lenght2)
         
-        self.V=self.V1+self.V2+self.V3
+        self.V=self.V1+self.V2+self.V3+self.V4
         
     def change_y03(self,value_y03,*largs):
         self.y03=value_y03
@@ -1118,14 +1194,25 @@ class SchroMirrorScreen(Screen):
                                self.x03,self.y03,self.dl,
                                self.max_V,self.lenght3)
         
-        self.V=self.V1+self.V2+self.V3
-          
-    def imag_visu(self):
-        if self.im_show==0:
-            self.im_show=1
+        self.V=self.V1+self.V2+self.V3+self.V4
+    
+    def change_V1(self,value_V1,*largs):
+        self.max_V1=value_V1
+
+        self.V1=sch.mirror_pot(self.Nx,self.Ny,
+                               self.x01,self.y01,self.dl,
+                               self.max_V1,self.lenght1)
         
-        else:
-            self.im_show=0
+        self.V=self.V1+self.V2+self.V3+self.V4
+        
+    def change_V4(self,value_V4,*largs):
+        self.max_V4=value_V4
+
+        self.V4=sch.mirror_pot(self.Nx,self.Ny,
+                               self.x04,self.y04,self.dl,
+                               self.max_V4,self.lenght4)
+        
+        self.V=self.V1+self.V2+self.V3+self.V4
             
     def real_visu(self):
         if self.re_show==0:
