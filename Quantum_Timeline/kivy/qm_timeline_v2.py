@@ -14,6 +14,7 @@ from kivy.uix.popup import Popup
 from functools import partial
 from kivy.properties import ObjectProperty,ReferenceListProperty,\
     NumericProperty,StringProperty,ListProperty,BooleanProperty
+from kivy.lang import Builder
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,6 +25,9 @@ e=np.e
 Nx_inty=0
 Ny_inty=0
 intensitat_llum=0
+
+with open("file\\qm_timeline_v2.kv", encoding='utf-8') as kv_file:
+    Builder.load_string(kv_file.read())
 
 class qm_timeline_v2App(App):
     def build(self):

@@ -7,7 +7,6 @@
     DiscoveriesScreen:
     YoungSlitScreen:
     SchroSlitScreen:
-    SchroMirrorScreen:
 
 
 <StartingScreen>:
@@ -61,7 +60,7 @@
             
             Button:
                 id: dc_to_ys
-                size_hint_y:0.333
+                size_hint_y:0.5
                 background_color: (0, 0, 0, 1)
                 markup: True
                 text: "Young's slit experiment"
@@ -75,27 +74,12 @@
             
             Button:
                 id: dc_to_ss
-                size_hint_y:0.333
-                pos_hint_y:0.333
+                size_hint_y:0.5
+                pos_hint_y:0.5
                 background_color: (0, 0, 0, 1)
                 markup: True
                 text: "Quantum slits"
                 on_press: root.transition_DSS()
-                canvas.before:
-                    Color:
-                        rgba: .5, .5, .5, 1
-                    Line:
-                        width: 2
-                        rectangle: self.x, self.y, self.width, self.height
-                        
-            Button:
-                id: dc_to_sm
-                size_hint_y:0.333
-                pos_hint_y:0.666
-                background_color: (0, 0, 0, 1)
-                markup: True
-                text: "Quantum mirrors"
-                on_press: root.transition_DSM()
                 canvas.before:
                     Color:
                         rgba: .5, .5, .5, 1
@@ -140,7 +124,6 @@
     Button:
         id: change_source_state
         background_color: (255,0,0,1) if root.is_source_on else (0,0,0,0.5)
-        text: 'On' if root.is_source_on else 'Off'
         on_press: root.change_source_state()
         on_press: root.is_source_on = not root.is_source_on
         pos_hint:{'x':0.5,'y':0.005}
@@ -154,15 +137,6 @@
         pos_hint:{'x':0.65,'y':0.02}
         size_hint:0.15,0.025
         background_color:(0,0,0,1)
-        
-    Button:
-        id: back_YSD
-        text:'Back'
-        on_press:root.transition_YSD()
-        pos_hint:{'x':0.0,'y':0.00}
-        size_hint:0.15,0.025
-        background_color:(0,0,0,1)
-    
     
     BoxLayout:
         orientation: 'vertical'
@@ -299,18 +273,6 @@
     #:set color_labels 1,1,1,1
     #:set black 0,0,0,1
     
-    #root.x0_val:75
-    #root.y0_val:75
-    #root.px0_val:0
-    #root.py0_val:0
-    #root.dev_val:7.5
-    
-    #on_press:root.change_x0(int(root.x0_val))
-    #on_press:root.change_y0(int(root.y0_val))
-    #on_press:root.change_px0(root.px0_val)
-    #on_press:root.change_py0(root.py0_val)
-    #on_press:root.change_dev(root.dev_val)
-    
     FloatLayout:
         id:box1_id
         orientation:'vertical'   
@@ -341,51 +303,24 @@
         
     Button:
         id: reset_psi
-        text: "Stop editing" if root.is_setup_on==True else "Start editing"
+        text: "End setup" if root.is_setup_on==True else "Start setup"
         on_press: root.reset_psi()
         on_press: root.is_setup_on = not root.is_setup_on
+        on_press: root.is_compute_on = not root.is_compute_on
+        on_press: root.start_stop()
         pos_hint:{'x':0.42,'y':0.005}
         size_hint:0.16,0.05
         
         
     Button:
         id: start_stop
-        text:'Stop' if root.is_compute_on==True else "Start"
+        text:'Stop' if root.is_compute_on==True else "Resume"
         on_press:root.is_compute_on = not root.is_compute_on
         on_press:root.start_stop()
         pos_hint:{'x':0.65,'y':0.02}
         size_hint:0.1,0.025
         width:120 if root.is_setup_on==True else 0
         opacity: 1 if root.is_setup_on==False else 0
-        background_color:(0,0,0,1)
-    
-    Button:
-        id: back_SSD
-        text:'Back'
-        on_press:root.transition_SSD()
-        on_press:x0_slider_id.value=75
-        on_press:y0_slider_id.value=75
-        on_press:px0_slider_id.value=0
-        on_press:py0_slider_id.value=0
-        on_press:dev_slider_id.value=7.5
-        on_press:root.slt_number=0
-        on_press:root.reset_conditions()
-        pos_hint:{'x':0.0,'y':0.00}
-        size_hint:0.15,0.025
-        background_color:(0,0,0,1)
-        
-    Button:
-        id: reset_ss
-        text:'Reset conditions'
-        on_press:x0_slider_id.value=75
-        on_press:y0_slider_id.value=75
-        on_press:px0_slider_id.value=0
-        on_press:py0_slider_id.value=0
-        on_press:dev_slider_id.value=7.5
-        on_press:root.reset_conditions()
-        on_press:root.slt_number=0
-        pos_hint:{'x':0.8,'y':0.00}
-        size_hint:0.2,0.025
         background_color:(0,0,0,1)
     
     BoxLayout:
@@ -516,7 +451,7 @@
             size_hint:1,0.9
             min:0
             max:root.Nx_ss
-            value:int(root.x0_val)
+            value:int(root.Nx_ss/4)
             on_touch_up:
                 root.change_x0(self.value)
     
@@ -539,7 +474,7 @@
             size_hint:1,0.9
             min:0
             max:root.Ny_ss
-            value:int(root.y0_val)
+            value:int(root.Ny_ss/2)
             on_touch_up:
                 root.change_y0(self.value)
             
@@ -560,9 +495,9 @@
             id:px0_slider_id
             orientation:'horizontal'
             size_hint:1,0.9
-            min:-7.75
-            max:7.75
-            value:root.px0_val
+            min:-15
+            max:15
+            value:0
             on_touch_up:
                 root.change_px0(self.value)
                 
@@ -583,9 +518,9 @@
             id:py0_slider_id
             orientation:'horizontal'
             size_hint:1,0.9
-            min:-7.75
-            max:7.75
-            value:root.py0_val
+            min:-15
+            max:15
+            value:0
             on_touch_up:
                 root.change_py0(self.value)
                 
@@ -599,7 +534,7 @@
         
         Label:
             color: (0,0,0,1)
-            text: "Uncertainty"
+            text: "Deviation"
 
             
         Slider:
@@ -608,203 +543,30 @@
             size_hint:1,0.9
             min:2.5
             max:20
-            value:root.dev_val
+            value:7.5
             on_touch_up:
                 root.change_dev(self.value)
                 
     Button:
         id: show_real
-        text:'Imaginary' if root.showing_re==False else 'Real'
+        text:'show real'
         on_press:root.showing_re = not root.showing_re
         on_press:root.real_visu()
-        pos_hint:{'x':0.0,'y':0.25}
-        size_hint:0.2,0.025
-        background_color:(0,0,0,1) if root.showing_re==False else (0,0,0,0.2)
-
-                
-
-
-<SchroMirrorScreen>:
-    name: 'SchroMirror'
-    box1:box1_id
-    #:set color_labels 1,1,1,1
-    #:set black 0,0,0,1
-    
-    FloatLayout:
-        id:box1_id
-        orientation:'vertical'   
-        size_hint:1,1
-    
-    Label: 
-        color:(0,0,0,1)
-        text:"Quantum Mirrors"
-        pos_hint:{'x':0.45,'y':0.9}
-        size_hint:0.1,0.1
-        font_size:35
-        
-    Label: 
-        color:(0,0,0,1)
-        text:"Wave function diagram"
-        pos_hint:{'x':0.35,'y':0.875}
-        size_hint:0.3,0.05
-        font_size:10
-    
-    Label: 
-        color:(0,0,0,1)
-        text:"Probability density diagram"
-        pos_hint:{'x':0.35,'y':0.455}
-        size_hint:0.3,0.05
-        font_size:10
-        
-
-        
-    Button:
-        id: reset_psi
-        text: "Stop editing" if root.is_setup_on==True else "Start editing"
-        on_press: root.reset_psi()
-        on_press: root.is_setup_on = not root.is_setup_on
-        pos_hint:{'x':0.42,'y':0.005}
-        size_hint:0.16,0.05
-        
-        
-    Button:
-        id: start_stop
-        text:'Stop' if root.is_compute_on==True else "Resume"
-        on_press:root.is_compute_on = not root.is_compute_on
-        on_press:root.start_stop()
-        pos_hint:{'x':0.65,'y':0.02}
+        pos_hint:{'x':0.0,'y':0.35}
         size_hint:0.1,0.025
-        width:120 if root.is_setup_on==True else 0
-        opacity: 1 if root.is_setup_on==False else 0
-        background_color:(0,0,0,1)
-        
-    Button:
-        id: back_SMD
-        text:'Back'
-        on_press:root.transition_SMD()
-        on_press:y02_slider_id.value=int(root.Ny_ss*0.1)
-        on_press:y03_slider_id.value=int(root.Ny_ss*0.9)
-        on_press:V1_slider_id.value=25.75
-        on_press:V4_slider_id.value=25.75
-        on_press:root.reset_conditions()
-        pos_hint:{'x':0.0,'y':0.00}
-        size_hint:0.15,0.025
-        background_color:(0,0,0,1)
-        
-    Button:
-        id: reset_sm
-        text:'Reset conditions'
-        on_press:root.reset_conditions()
-        on_press:y02_slider_id.value=int(root.Ny_ss*0.1)
-        on_press:y03_slider_id.value=int(root.Ny_ss*0.9)
-        on_press:V1_slider_id.value=25.75
-        on_press:V4_slider_id.value=25.75
-        pos_hint:{'x':0.8,'y':0.00}
-        size_hint:0.2,0.025
-        background_color:(0,0,0,1)
-    
-    
-    BoxLayout:
-        orientation: 'vertical'
-        pos_hint:{'x':0.8,'y':0.8}
-        size_hint:0.2,0.1
-        width:120 if root.is_setup_on==True else 0
-        opacity: 1 if root.is_setup_on==True else 0
-        y02_slider: y02_slider_id
-        
-        Label:
-            color: (0,0,0,1)
-            text: "Position mirror 1"
-
-            
-        Slider:
-            id:y02_slider_id
-            orientation:'horizontal'
-            size_hint:1,0.9
-            min:0
-            max:int(root.Ny_ss/2)
-            value:int(root.Ny_ss*0.1)
-            on_touch_up:
-                root.change_y02(self.value)
-                
-    BoxLayout:
-        orientation: 'vertical'
-        pos_hint:{'x':0.8,'y':0.6}
-        size_hint:0.2,0.1
-        width:120 if root.is_setup_on==True else 0
-        opacity: 1 if root.is_setup_on==True else 0
-        y03_slider: y03_slider_id
-        
-        Label:
-            color: (0,0,0,1)
-            text: "Position mirror 2"
-
-            
-        Slider:
-            id:y03_slider_id
-            orientation:'horizontal'
-            size_hint:1,0.9
-            min:int(root.Ny_ss/2)
-            max:root.Ny_ss
-            value:int(root.Ny_ss*0.9)
-            on_touch_up:
-                root.change_y03(self.value)
-                
-    BoxLayout:
-        orientation: 'vertical'
-        pos_hint:{'x':0.8,'y':0.4}
-        size_hint:0.2,0.1
-        width:120 if root.is_setup_on==True else 0
-        opacity: 1 if root.is_setup_on==True else 0
-        y03_slider: V1_slider_id
-        
-        Label:
-            color: (0,0,0,1)
-            text: "Potential barrier height 1"
-
-            
-        Slider:
-            id:V1_slider_id
-            orientation:'horizontal'
-            size_hint:1,0.9
-            min:0
-            max:+100
-            value:25.75
-            on_touch_up:
-                root.change_V1(self.value)
-                
-    BoxLayout:
-        orientation: 'vertical'
-        pos_hint:{'x':0.8,'y':0.2}
-        size_hint:0.2,0.1
-        width:120 if root.is_setup_on==True else 0
-        opacity: 1 if root.is_setup_on==True else 0
-        y03_slider: V4_slider_id
-        
-        Label:
-            color: (0,0,0,1)
-            text: "Potential barrier height 2"
-
-            
-        Slider:
-            id:V4_slider_id
-            orientation:'horizontal'
-            size_hint:1,0.9
-            min:0
-            max:+100
-            value:25.75
-            on_touch_up:
-                root.change_V4(self.value)
-                
-    Button:
-        id: show_real
-        text:'Imaginary' if root.showing_re==False else 'Real'
-        on_press:root.showing_re = not root.showing_re
-        on_press:root.real_visu()
-        pos_hint:{'x':0.0,'y':0.25}
-        size_hint:0.2,0.025
         background_color:(0,0,0,1) if root.showing_re==False else (0,0,0,0.2)
-           
+        
+    Button:
+        id: show_imag
+        text:'show imaginary'
+        on_press:root.showing_im = not root.showing_im
+        on_press:root.imag_visu()
+        pos_hint:{'x':0.0,'y':0.2}
+        size_hint:0.1,0.025
+        background_color:(0,0,0,1) if root.showing_im==False else (0,0,0,0.2)
+                
+    
+                
                 
 
 
