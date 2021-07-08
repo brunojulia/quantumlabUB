@@ -132,25 +132,28 @@ class entangledEXP(object):
 			angle1 = self.b1
 			angle2 = self.b2
 		# WARNING: max beta linspace points ~ 50
+		print(angle1,angle2)
 		betalist = np.linspace(angle1, angle2, 100)
 
 		# create 2d x,y grid (both X and Y will be 2d)
-		X, Y = np.meshgrid(alphalist, betalist, sparse=True)
+		#X, Y = np.meshgrid(alphalist, betalist, sparse=True)
 		# repeat Z to make it a 2d grid
 
-		Z = self.scalcvec(self,X, Y)
+		#Z = self.scalcvec(self,X, Y)
 
-		mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
-		mappable.set_array(Z)
-		fig = plt.figure()
-		ax = Axes3D(fig)
-		ax.plot_surface(X, Y, Z, cmap=mappable.cmap, linewidth=0.01)
-
-		ax.set_xlabel('Alpha (rad)')
-		ax.set_ylabel('Beta (rad)')
-		ax.set_zlabel('S')
-
-		cbar = fig.colorbar(mappable,shrink=0.5)
-		cbar.set_label('S', rotation=0)
-		plt.savefig('test.png')
-		plt.show()
+		coords=(alphalist, betalist)
+		return(coords)
+		# mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
+		# mappable.set_array(Z)
+		# fig = plt.figure()
+		# ax = Axes3D(fig)
+		# ax.plot_surface(X, Y, Z, cmap=mappable.cmap, linewidth=0.01)
+		#
+		# ax.set_xlabel('Alpha (rad)')
+		# ax.set_ylabel('Beta (rad)')
+		# ax.set_zlabel('S')
+		#
+		# cbar = fig.colorbar(mappable,shrink=0.5)
+		# cbar.set_label('S', rotation=0)
+		# plt.savefig('test.png')
+		# plt.show()
