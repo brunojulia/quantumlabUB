@@ -1,36 +1,57 @@
+import matplotlib
+matplotlib.use('module://kivy.garden.matplotlib.backend_kivy')
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas
+from matplotlib.figure import Figure
+from numpy import arange, sin, pi
+from mpl_toolkits.mplot3d import Axes3D
+
+import numpy as np
+import matplotlib.pyplot as plt
+
 #kivy imports
 from kivy.app import App
-from kivy.uix.widget import Widget
+from kivy.clock import Clock
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.slider import Slider
+from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
 from kivy.garden.knob import Knob
 from kivy.graphics import Rectangle, Color
+from kivy.lang import Builder
 from  kivy.uix.popup import Popup
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas,\
+                                                NavigationToolbar2Kivy
 
-from kivy.properties import ObjectProperty, NumericProperty
+from kivy.properties import ObjectProperty, NumericProperty, StringProperty
 import math
 
 from entangledexp import entangledEXP  #importa les funcions que tenen a veure amb l'experiment.
 
-class TablePopup(FloatLayout):
+
+
+class TablePopup(Popup):
 	g_rectangle = ObjectProperty()
 
-	def __init__(self,*args, **kwargs ):
+	def __init__(self,*args, **kwargs):
 		super(TablePopup, self).__init__(*args, **kwargs)
 
-class entangledscreen(BoxLayout):
+class TrueScreen(ScreenManager):
+	# def __init__(self, **kwargs):
+	# 	super(TrueScreen, self).__init__()
+	pass
+
+class EntangledScreen(Screen):
 	n_label=ObjectProperty()  #ara n és una propietat de entangledscreen i farem self. bla bla
 	label_s1=ObjectProperty()
 	label_s2=ObjectProperty()
 	s_label=ObjectProperty()
-	table_checkbox=ObjectProperty()
+	table_checkbox=ObjectProperty(CheckBox())
 	table_popup=ObjectProperty()
-	graph_checkbox=ObjectProperty()
+	graph_checkbox=ObjectProperty(CheckBox())
 	select_button=ObjectProperty()
 	delete_button=ObjectProperty()
 	plot_btn=ObjectProperty()
@@ -41,13 +62,12 @@ class entangledscreen(BoxLayout):
 	b2_val=NumericProperty()
 
 
-	def __init__(self,angle_count = 0):
-		super(entangledscreen, self).__init__()
+	def __init__(self,angle_count = 0,**kwargs):
+		super(EntangledScreen, self).__init__()
 		self.angle_count = angle_count
 		self.experiment = entangledEXP()
 		self.table_checkbox.bind(active=self.on_checkbox_Active)#lliga la checkbox amb la funció
 		self.graph_checkbox.bind(active=self.on_graph_checkbox_Active)  # lliga la checkbox amb la funció
-
 	def add_photons(self,a):
 		self.experiment.addphotons(n=self.experiment.n+a) #suma 1000 als fotons a llençar
 		self.n_label.text=str(self.experiment.n)
@@ -79,7 +99,7 @@ class entangledscreen(BoxLayout):
 		'''opens popup window'''
 		popuplayout= TablePopup()# es un float layout q posem com a content al popup
 
-		self.table_popup= Popup(title='Table 1',content=popuplayout,size_hint=(1,1))
+		self.table_popup= TablePopup()
 		self.table_popup.open()
 
 	def close(self):
@@ -107,11 +127,11 @@ class entangledscreen(BoxLayout):
 
 	def select_angle(self):
 		self.angle_count+=1
-
+		self.manager.get_screen('GS').changed_angles = True
 		if self.angle_count==1:
 			self.delete_button.disabled = False
 			self.b1_label.text='[font=Digital-7][color=000000][size=20] '+self.label_s2.text+' [/color][/font][/size]'
-			self.b1_val = float(self.label_s1.text)
+			self.b1_val = float(self.label_s2.text)
 		if self.angle_count==2:
 			self.delete_button.disabled = False
 			self.b2_label.text='[font=Digital-7][color=000000][size=20] '+self.label_s2.text+' [/color][/font][/size]'
@@ -122,21 +142,21 @@ class entangledscreen(BoxLayout):
 		if self.angle_count>0:
 			if self.angle_count == 1:
 				self.b1_label.text = ' '
+				self.b1_val = 0
 				self.delete_button.disabled=True
 				self.select_button.disabled = False
 			if self.angle_count == 2:
 				self.b2_label.text = ' '
+				self.b2_val = 0
 				self.select_button.disabled = True
 				self.select_button.disabled = False
 			self.angle_count-=1
-	def gen_graph(self):
-		self.experiment.b1 = self.b1_val*math.pi/180
-		self.experiment.b2 = self.b2_val*math.pi/180
-		self.experiment.sweepS()
 
 	def clear_angles(self):
 		self.b1_label.text = ' '
+		self.b1_val = 0
 		self.b2_label.text = ' '
+		self.b2_val = 0
 		self.delete_button.disabled = True
 		self.select_button.disabled = False
 		self.angle_count = 0
@@ -146,21 +166,80 @@ class entangledscreen(BoxLayout):
 class AngleKnob(Knob):
 
 	def __init__(self, **kwargs):
-		self.screen = App.get_running_app().screen
+		super(AngleKnob, self).__init__(**kwargs)
+		#self.MS = App.get_running_app().MS
 	def on_touch_up(self, touch):
 		if self.collide_point(touch.x,touch.y):
-			self.screen.runexp()
+			App.get_running_app().MS.runexp()
 		return super(AngleKnob,self).on_touch_up(touch)
 	pass
+############################################ Graph Layout ################################################################
 
-class entangledApp(App):
+class GraphScreen(Screen):
+	mainlay = ObjectProperty()
+	canv=ObjectProperty()
+	#if the angles are changed sets to true
+	changed_angles=ObjectProperty()
+	def __init__(self, *args, **kwargs):
+		super(GraphScreen, self).__init__(*args, **kwargs)
+		self.exit = Button(size_hint = (1, 0.05),text = 'Go Back')
+		self.exit.bind(on_release=self.go_back)
+		self.mainlay.add_widget(self.exit, index=0)
+		self.changed_angles = True
+	def get_graph(self):
+		fig = plt.figure()
+		ax = Axes3D(fig)
+		if self.changed_angles == True:
+			self.manager.get_screen('ES').experiment.b1 = self.manager.get_screen('ES').b1_val * math.pi / 180
+			self.manager.get_screen('ES').experiment.b2 = self.manager.get_screen('ES').b2_val * math.pi / 180
 
-	#hi ha un proboema quan poso això :(
-	#screen = entangledscreen()
+			(alphalist,betalist)=self.manager.get_screen('ES').experiment.sweepS()
+			scalcvec = np.vectorize(self.manager.get_screen('ES').experiment.scalc)
+
+			X, Y = np.meshgrid(alphalist, betalist, sparse=True)
+			Z = scalcvec(X, Y)
+
+			mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
+			mappable.set_array(Z)
+
+			ax.plot_surface(X, Y, Z, cmap=mappable.cmap, linewidth=0.01)
+
+			ax.set_xlabel('Alpha (rad)')
+			ax.set_ylabel('Beta (rad)')
+			ax.set_zlabel('S')
+			mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
+			mappable.set_array(Z)
+			cbar = fig.colorbar(mappable, shrink=0.5)
+			cbar.set_label('S', rotation=0)
+
+			self.canv = FigureCanvas(fig)
+		self.add_plot()
+
+	def add_plot(self):
+		self.mainlay.add_widget(self.canv, index = 1)
+		self.manager.current = 'GS'
+
+	def go_back(self,instance):
+		self.mainlay.remove_widget(self.canv)
+		self.manager.current = 'ES'
+		self.changed_angles = False
+	pass
+
+kv = Builder.load_file("entangled.kv")
+
+
+
+class MainApp(App):
+
+	MS = EntangledScreen()
+
 	def build(self):
-
-		return entangledscreen()
+		sm = TrueScreen()
+		sm.add_widget(GraphScreen(name='GS'))
+		sm.add_widget(EntangledScreen(name='ES'))
+		sm.current = 'ES'
+		return sm
 
 if __name__ == "__main__":
-    app = entangledApp()
+    app = MainApp()
     app.run()
