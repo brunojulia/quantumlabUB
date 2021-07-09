@@ -29,7 +29,7 @@
     plot_btn:plot_btn
     b1_label:b1_label
     b2_label:b2_label
-
+    knoblay : knoblay
 
     BoxLayout:
 
@@ -177,6 +177,7 @@
                             step: 1
                             slope: 1
                             value: 0
+                            on_release: root.runexp()
                             knobimg_source: "img/knob_metal.png"
                             show_marker: True  # Show surrounding marker
                             marker_img: "img/bline2.png" # Marker texture image
@@ -190,7 +191,7 @@
 
                         Label:
                             text: "angle of polarizer 2: \u03B2 (deg)"
-                        Knob:
+                        AngleKnob:
                             pos_hint:{'x': 0.3, 'y':.7}
                             min: 0
                             max: 360
@@ -199,6 +200,7 @@
                             value: 0
                             knobimg_source: "img/knob_metal.png"
                             show_marker: True  # Show surrounding marker
+                            on_release: root.runexp()
                             marker_img: "img/bline2.png" # Marker texture image
                             #on_touch_up: root.runexp()
 
@@ -241,39 +243,32 @@
                                         orientation: "horizontal"
                                         Label:
                                             text:"\u03B2"+"1:"
-                                        Label:
+                                        TextInput:
                                             id: b1_label
-                                            #size: (self.width, self.height*0.9)
-                                            text: '[font=Digital-7][color=000000][size=20]  [/color][/font][/size]'
-                                            #font_name: 'digital-7.ttf'
-                                            font_size: 10
-                                            markup:True
-                                            canvas:
-                                            canvas.before:
-                                                Color:
-                                                    rgba: 255, 255, 255, 1
+                                            size_hint: (1,1.25)
+                                            text: ' '
+                                            font_name: 'digital-7.ttf'
+                                            font_size: 20
+                                            multiline:False
+                                            on_text:root.kwinput=True
+                                            on_text_validate:root.select_angle()
+                                            disabled: not graph.active
 
-                                                Rectangle:
-                                                    pos: self.pos[0] , self.pos[1]
-                                                    size: (self.width, self.height*0.9)
-                                                    id: b1_rect
                                     BoxLayout:
                                         orientation: "horizontal"
                                         Label:
                                             text:"\u03B2"+"2:"
-                                        Label:
+                                        TextInput:
                                             id: b2_label
-                                            text:'[font=Digital-7][color=000000][size=20]  [/color][/font][/size]'
-                                            markup:True
-                                            canvas:
-                                            canvas.before:
-                                                Color:
-                                                    rgba: 255, 255, 255, 1
+                                            size_hint: (1,1.25)
+                                            text: ' '
+                                            font_name: 'digital-7.ttf'
+                                            font_size: 20
+                                            multiline:False
+                                            on_text:root.kwinput=True
+                                            on_text_validate:root.select_angle()
+                                            disabled: not graph.active
 
-                                                Rectangle:
-                                                    pos: self.pos[0] , self.pos[1]
-                                                    size: (self.width, self.height*0.9)
-                                                    id: b2_rect
                             BoxLayout:
                                 orientation: "horizontal"
                                 Button:
@@ -301,7 +296,8 @@
                                     text: "Generate table"
                                     pos_hint:{'x': -0.1, 'y':0}
                         Button:
-                            text: "Run"
+                            size_hint: (1,0.3)
+                            text: "Calculate S"
                             id: run_b
                             on_release: root.runexp()
 
