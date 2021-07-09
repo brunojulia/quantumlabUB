@@ -3,6 +3,7 @@ matplotlib.use('module://kivy.garden.matplotlib.backend_kivy')
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas
 from matplotlib.figure import Figure
 from numpy import arange, sin, pi
+from kivy.uix.behaviors import ButtonBehavior
 from mpl_toolkits.mplot3d import Axes3D
 
 import numpy as np
@@ -60,14 +61,17 @@ class EntangledScreen(Screen):
 	b2_label=ObjectProperty()
 	b1_val=NumericProperty()
 	b2_val=NumericProperty()
-
+	kwinput=ObjectProperty()
+	knoblay=ObjectProperty()
 
 	def __init__(self,angle_count = 0,**kwargs):
 		super(EntangledScreen, self).__init__()
 		self.angle_count = angle_count
+		self.kwinput = False
 		self.experiment = entangledEXP()
 		self.table_checkbox.bind(active=self.on_checkbox_Active)#lliga la checkbox amb la funció
 		self.graph_checkbox.bind(active=self.on_graph_checkbox_Active)  # lliga la checkbox amb la funció
+
 	def add_photons(self,a):
 		self.experiment.addphotons(n=self.experiment.n+a) #suma 1000 als fotons a llençar
 		self.n_label.text=str(self.experiment.n)
@@ -111,6 +115,7 @@ class EntangledScreen(Screen):
 			self.open_table_popup()
 
 	def on_graph_checkbox_Active(self, checkboxInstance, isActive):
+		self.kwinput = False
 		if isActive:
 			self.select_button.disabled = False
 			self.delete_button.disabled = False
@@ -121,24 +126,37 @@ class EntangledScreen(Screen):
 			self.delete_button.disabled = True
 			self.clear_btn.disabled = True
 			self.plot_btn.disabled = True
+			self.b1_label.disabled = True
+			self.b2_label.disabled = True
 			self.angle_count = 0
-			self.b1_label.text = ' '
-			self.b2_label.text = ' '
 
 	def select_angle(self):
-		self.angle_count+=1
+		if self.angle_count < 2:
+			self.angle_count+=1
+		#  if the angles changed it replots the graph
 		self.manager.get_screen('GS').changed_angles = True
+
 		if self.angle_count==1:
 			self.delete_button.disabled = False
-			self.b1_label.text='[font=Digital-7][color=000000][size=20] '+self.label_s2.text+' [/color][/font][/size]'
-			self.b1_val = float(self.label_s2.text)
-		if self.angle_count==2:
-			self.delete_button.disabled = False
-			self.b2_label.text='[font=Digital-7][color=000000][size=20] '+self.label_s2.text+' [/color][/font][/size]'
-			self.b2_val=float(self.label_s2.text)
-			self.select_button.disabled=True
+			if not self.kwinput:
+				self.b1_label.text = self.label_s2.text
+				self.b1_val = float(self.label_s2.text)
 
+			else:
+				self.b1_val = float(self.b1_label.text)
+
+		if self.angle_count == 2:
+			self.delete_button.disabled = False
+			#self.select_button.disabled = True
+			if not self.kwinput:
+				self.b2_label.text = self.label_s2.text
+				self.b2_val = float(self.label_s2.text)
+			else:
+				self.b2_val = float(self.b2_label.text)
+		print(self.angle_count)
+		self.kwinput = False
 	def delete_angle(self):
+
 		if self.angle_count>0:
 			if self.angle_count == 1:
 				self.b1_label.text = ' '
@@ -146,11 +164,14 @@ class EntangledScreen(Screen):
 				self.delete_button.disabled=True
 				self.select_button.disabled = False
 			if self.angle_count == 2:
+				print(self.angle_count)
 				self.b2_label.text = ' '
 				self.b2_val = 0
-				self.select_button.disabled = True
 				self.select_button.disabled = False
 			self.angle_count-=1
+			print(self.angle_count)
+		self.kwinput = False
+
 
 	def clear_angles(self):
 		self.b1_label.text = ' '
@@ -161,17 +182,12 @@ class EntangledScreen(Screen):
 		self.select_button.disabled = False
 		self.angle_count = 0
 
-
 	pass
-class AngleKnob(Knob):
 
-	def __init__(self, **kwargs):
-		super(AngleKnob, self).__init__(**kwargs)
-		#self.MS = App.get_running_app().MS
-	def on_touch_up(self, touch):
-		if self.collide_point(touch.x,touch.y):
-			App.get_running_app().MS.runexp()
-		return super(AngleKnob,self).on_touch_up(touch)
+# AngleKnob is a knob with properties from the button such as on_release.
+
+class AngleKnob(ButtonBehavior, Knob):
+
 	pass
 ############################################ Graph Layout ################################################################
 
@@ -182,14 +198,17 @@ class GraphScreen(Screen):
 	changed_angles=ObjectProperty()
 	def __init__(self, *args, **kwargs):
 		super(GraphScreen, self).__init__(*args, **kwargs)
-		self.exit = Button(size_hint = (1, 0.05),text = 'Go Back')
-		self.exit.bind(on_release=self.go_back)
-		self.mainlay.add_widget(self.exit, index=0)
+		self.exitbtn = Button(size_hint = (1, 0.05),text = 'Go Back')
+		self.exitbtn.bind(on_release=self.go_back)
+		self.mainlay.add_widget(self.exitbtn, index=0)
 		self.changed_angles = True
 	def get_graph(self):
 		fig = plt.figure()
 		ax = Axes3D(fig)
 		if self.changed_angles == True:
+			self.manager.get_screen('ES').b1_val = float(self.manager.get_screen('ES').b1_label.text)
+			self.manager.get_screen('ES').b2_val = float(self.manager.get_screen('ES').b2_label.text)
+			self.manager.get_screen('ES').angle_count = 2
 			self.manager.get_screen('ES').experiment.b1 = self.manager.get_screen('ES').b1_val * math.pi / 180
 			self.manager.get_screen('ES').experiment.b2 = self.manager.get_screen('ES').b2_val * math.pi / 180
 
@@ -231,7 +250,7 @@ kv = Builder.load_file("entangled.kv")
 
 class MainApp(App):
 
-	MS = EntangledScreen()
+	#MS = EntangledScreen()
 
 	def build(self):
 		sm = TrueScreen()
