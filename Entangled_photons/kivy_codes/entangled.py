@@ -145,11 +145,11 @@ class EntangledScreen(Screen):
 			sigmar = round(sigma, 2)
 
 		if self.tab_selector == 0:
-			self.s_label.text = '[font=Digital-7][color=000000][size=34] S=' + str(
-				sr) + '[/font]' + '±' + '[font=Digital-7]' + str(sigmar) + '[/color][/font][/size]'
+			self.s_label.text = '[font=digital-7][color=000000][size=34] S=' + str(
+				sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
 		elif self.tab_selector == 1:
-			self.s_label_hvt.text = '[font=Digital-7][color=000000][size=34] S=' + str(
-				sr) + '[/font]' + '±' + '[font=Digital-7]' + str(sigmar) + '[/color][/font][/size]'
+			self.s_label_hvt.text = '[font=digital-7][color=000000][size=34] S=' + str(
+				sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
 		return (sr, " ± ", sigmar)
 
 	def activate_txtin_1(self):
