@@ -31,14 +31,9 @@
     label_s1_hvt : label_s1_hvt
     label_s2_hvt : label_s2_hvt
     table_checkbox_hvt : table_checkbox_hvt
-    graph_checkbox_hvt : graph_hvt
     s_label_hvt : s_label_hvt
-    delete_button_hvt : delete_button_hvt
-    select_button_hvt : select_button_hvt
-    clear_btn_hvt : clear_btn_hvt
     plot_btn_hvt : plot_btn_hvt
-    b1_label_hvt : b1_label_hvt
-    b2_label_hvt : b2_label_hvt
+    alpha_hvt : alpha_hvt
     reps : reps
 
     BoxLayout:
@@ -448,63 +443,45 @@
                         orientation:"vertical"
                         BoxLayout:
                             orientation: "vertical"
-                            FloatLayout:
-                                CheckBox:
-                                    id: graph_hvt
-                                    size_hint:(0.2,0.2)
-                                    pos_hint:{'x': 0, 'y':0.4}
-                                Label:
-                                    text: "Generate 3D S-plot"
-                                    pos_hint:{'x': -0.1, 'y':0}
+
+                            Label:
+                                text: "Generate S vs \u03B2 plot"
+                                pos_hint:{'x': -0.1, 'y':0}
+                            Label:
+                                text:"select fixed \u03B1" + " (deg):"
                             BoxLayout:
                                 orientation: "horizontal"
-                                BoxLayout:
-                                    orientation: "vertical"
-                                    Button:
-                                        id: select_button_hvt
-                                        text: "Select angle \u03B1"
-                                        disabled: True
-                                        on_release:root.select_angle_hvt()
-                                    Button:
-                                        id: delete_button_hvt
-                                        disabled: True
-                                        text: "Delete angle"
-                                        on_release:root.delete_angle_hvt()
-                                BoxLayout:
-                                    orientation: "vertical"
-                                    BoxLayout:
-                                        orientation: "horizontal"
-                                        Label:
-                                            text:"\u03B2"+"1:"
-                                        TextInput:
-                                            id: b1_label_hvt
-                                            size_hint: (1,1.25)
-                                            foreground_color : (1, 0, 0, 1)
-                                            background_color : (0, 0, 0, 1)
-                                            text: '0'
-                                            font_name: 'digital-7.ttf'
-                                            font_size: 20
-                                            multiline:False
-                                            on_text:root.kwinput=True
-                                            on_text_validate:root.select_angle_hvt()
-                                            disabled: not graph_hvt.active
 
-                                    BoxLayout:
-                                        orientation: "horizontal"
-                                        Label:
-                                            text:"\u03B2"+"2:"
-                                        TextInput:
-                                            id: b2_label_hvt
-                                            size_hint: (1,1.25)
-                                            foreground_color : (1, 0, 0, 1)
-                                            background_color : (0, 0, 0, 1)
-                                            text: '0'
-                                            font_name: 'digital-7.ttf'
-                                            font_size: 20
-                                            multiline:False
-                                            on_text:root.kwinput=True
-                                            on_text_validate:root.select_angle_hvt()
-                                            disabled: not graph_hvt.active
+                                Button:
+                                    id: rest_btn
+                                    text: "-"
+                                    on_press: root.angle_down_hvt()
+                                    on_press: root.start_angle_down()
+                                    on_release: root.stop_angle_down()
+
+                                TextInput:
+                                    id: alpha_hvt
+                                    size_hint: (1,1)
+                                    foreground_color : (1, 0, 0, 1)
+                                    background_color : (0, 0, 0, 1)
+                                    text: '0'
+                                    font_name: 'digital-7.ttf'
+                                    font_size: 20
+                                    multiline : False
+                                    on_text:root.changed_angles=True
+                                    on_text_validate:root.changed_angles=True
+                                    on_text_validate:root.manager.get_screen('GS').get_graph()
+
+
+                                Button:
+                                    id: sum_btn
+                                    text: "+"
+                                    disabled: False
+                                    on_press : root.changed_angles = True
+                                    on_press: root.angle_up_hvt()
+                                    on_press: root.start_angle_up()
+                                    on_release: root.stop_angle_up()
+
 
                             BoxLayout:
                                 orientation: "horizontal"
@@ -512,15 +489,8 @@
                                     id:plot_btn_hvt
                                     text: "Plot"
                                     size_hint: (0.9,0.7)
-                                    disabled: True
+                                    on_release: print(root.changed_angles)
                                     on_release: root.manager.get_screen('GS').get_graph()
-
-                                Button:
-                                    id:clear_btn_hvt
-                                    text: "Clear"
-                                    size_hint: (0.9,0.7)
-                                    disabled: True
-                                    on_release:root.clear_angles()
                         BoxLayout:
                             orientation: "horizontal"
                             FloatLayout:

@@ -1,7 +1,7 @@
 import matplotlib
 
 matplotlib.use('module://kivy.garden.matplotlib.backend_kivy')
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas,FigureCanvasKivyAgg
 from matplotlib.figure import Figure
 from numpy import arange, sin, pi
 from kivy.uix.behaviors import ButtonBehavior
@@ -30,6 +30,7 @@ from kivy.uix.popup import Popup
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas, \
     NavigationToolbar2Kivy
 from kivy.clock import Clock
+
 
 from kivy.properties import ObjectProperty, NumericProperty, StringProperty, ListProperty, BooleanProperty, \
     OptionProperty
@@ -92,7 +93,6 @@ class EntangledScreen(Screen):
     label_s1_hvt = ObjectProperty()
     label_s2_hvt = ObjectProperty()
     table_checkbox_hvt = ObjectProperty()
-    graph_checkbox_hvt = ObjectProperty()
     s_label_hvt = ObjectProperty()
     delete_button_hvt = ObjectProperty()
     select_button_hvt = ObjectProperty()
@@ -101,6 +101,7 @@ class EntangledScreen(Screen):
     b1_label_hvt = ObjectProperty()
     b2_label_hvt = ObjectProperty()
     reps = ObjectProperty()
+    alpha_hvt = ObjectProperty()
 
     def __init__(self, angle_count=0, tab_selector=0, angle_count_hvt=0, **kwargs):
         super(EntangledScreen, self).__init__()
@@ -112,7 +113,6 @@ class EntangledScreen(Screen):
         self.table_checkbox.bind(active=self.on_checkbox_Active)  # lliga la checkbox amb la funció
         self.table_checkbox_hvt.bind(active=self.on_checkbox_Active)
         self.graph_checkbox.bind(active=self.on_graph_checkbox_Active)  # lliga la checkbox amb la funció
-        self.graph_checkbox_hvt.bind(active=self.on_graph_checkbox_Active)
 
     # Adds a photons to throw
     # When the button is pressed for a long time it keeps adding photons
@@ -221,11 +221,7 @@ class EntangledScreen(Screen):
                 self.delete_button.disabled = False
                 self.clear_btn.disabled = False
                 self.plot_btn.disabled = False
-            elif self.tab_selector == 1:
-                self.select_button_hvt.disabled = False
-                self.delete_button_hvt.disabled = False
-                self.clear_btn_hvt.disabled = False
-                self.plot_btn_hvt.disabled = False
+
         if not isActive:
             if self.tab_selector == 0:
                 self.select_button.disabled = True
@@ -235,20 +231,10 @@ class EntangledScreen(Screen):
                 self.b1_label.disabled = True
                 self.b2_label.disabled = True
                 self.angle_count = 0
-            elif self.tab_selector == 1:
-                self.select_button_hvt.disabled = True
-                self.delete_button_hvt.disabled = True
-                self.clear_btn_hvt.disabled = True
-                self.plot_btn_hvt.disabled = True
-                self.b1_label_hvt.disabled = True
-                self.b2_label_hvt.disabled = True
-                self.angle_count_hvt = 0
 
     def select_angle(self):
         if self.angle_count < 2:
             self.angle_count += 1
-        #  if the angles changed it replots the graph
-        self.manager.get_screen('GS').changed_angles = True
 
         if self.angle_count == 1:
             self.delete_button.disabled = False
@@ -269,30 +255,6 @@ class EntangledScreen(Screen):
                 self.b2_val = float(self.b2_label.text)
         self.kwinput = False
 
-    def select_angle_hvt(self):
-        if self.angle_count_hvt < 2:
-            self.angle_count_hvt += 1
-        #  if the angles changed it replots the graph
-        self.manager.get_screen('GS').changed_angles = True
-
-        if self.angle_count_hvt == 1:
-            self.delete_button_hvt.disabled = False
-            if not self.kwinput:
-                self.b1_label_hvt.text = self.label_s2_hvt.text
-                self.b1_val = float(self.label_s2_hvt.text)
-
-            else:
-                self.b1_val = float(self.b1_label_hvt.text)
-
-        if self.angle_count_hvt == 2:
-            self.delete_button_hvt.disabled = False
-            if not self.kwinput:
-                self.b2_label_hvt.text = self.label_s2_hvt.text
-                self.b2_val = float(self.label_s2_hvt.text)
-            else:
-                self.b2_val = float(self.b2_label_hvt.text)
-        self.kwinput = False
-
     def delete_angle(self):
 
         if self.angle_count > 0:
@@ -308,20 +270,29 @@ class EntangledScreen(Screen):
             self.angle_count -= 1
         self.kwinput = False
 
-    def delete_angle_hvt(self):
-        if self.angle_count_hvt > 0:
-            if self.angle_count_hvt == 1:
-                self.b1_label_hvt.text = ' '
-                self.b1_val = 0
-                self.delete_button_hvt.disabled = True
-                self.select_button_hvt.disabled = False
-            if self.angle_count_hvt == 2:
-                self.b2_label_hvt.text = ' '
-                self.b2_val = 0
-                self.select_button_hvt.disabled = False
-            self.angle_count_hvt -= 1
-        self.kwinput = False
+    def angle_up_hvt(self):
+        if int(self.alpha_hvt.text)<360:
+            self.alpha_hvt.text = str(int(self.alpha_hvt.text)+1)
+        if int(self.alpha_hvt.text) == 360:
+            self.alpha_hvt.text = str(0)
 
+    def angle_down_hvt(self):
+        if int(self.alpha_hvt.text)>0:
+            self.alpha_hvt.text = str(int(self.alpha_hvt.text)-1)
+        if int(self.alpha_hvt.text) == 0:
+            self.alpha_hvt.text = str(360)
+
+    def start_angle_up(self):
+        self.adding_angle = Clock.schedule_interval(lambda dt: self.angle_up_hvt(), 0.18)
+
+    def stop_angle_up(self):
+        Clock.unschedule(self.adding_angle)
+
+    def start_angle_down(self):
+        self.subtracting_angle = Clock.schedule_interval(lambda dt: self.angle_down_hvt(), 0.18)
+
+    def stop_angle_down(self):
+        Clock.unschedule(self.subtracting_angle)
     def clear_angles(self):
         self.b1_val = 0
         self.b2_val = 0
@@ -331,13 +302,6 @@ class EntangledScreen(Screen):
             self.delete_button.disabled = True
             self.select_button.disabled = False
             self.angle_count = 0
-            self.kwinput = False
-        elif self.tab_selector == 1:
-            self.b1_label_hvt.text = ' '
-            self.b2_label_hvt.text = ' '
-            self.delete_button_hvt.disabled = True
-            self.select_button_hvt.disabled = False
-            self.angle_count_hvt = 0
             self.kwinput = False
 
     pass
@@ -397,23 +361,28 @@ class AngleKnob(ButtonBehavior, Knob):
 class GraphScreen(Screen):
     mainlay = ObjectProperty()
     canv = ObjectProperty()
-    # if the angles are changed sets to true
-    changed_angles = ObjectProperty()
-
+    alpha = NumericProperty()
     def __init__(self, *args, **kwargs):
         super(GraphScreen, self).__init__(*args, **kwargs)
         self.exitbtn = Button(size_hint=(1, 0.05), text='Go Back')
         self.exitbtn.bind(on_release=self.go_back)
         self.mainlay.add_widget(self.exitbtn, index=0)
-        self.changed_angles = True
+
 
     def get_graph(self):
-        fig = plt.figure()
-        ax = Axes3D(fig)
-        if self.changed_angles == True:
-            if self.manager.get_screen('ES').tab_selector == 0:
-                self.manager.get_screen('ES').b1_val = float(self.manager.get_screen('ES').b1_label.text)
-                self.manager.get_screen('ES').b2_val = float(self.manager.get_screen('ES').b2_label.text)
+
+        if self.manager.get_screen('ES').tab_selector == 0:
+            # if angles changed
+            if int(self.manager.get_screen('ES').b1_label.text) != self.manager.get_screen('ES').b1_val or \
+            (int(self.manager.get_screen('ES').b2_label.text) != self.manager.get_screen('ES').b2_val):
+                fig = plt.figure()
+                ax = Axes3D(fig)
+                self.manager.get_screen('ES').b1_val = int(self.manager.get_screen('ES').b1_label.text)
+                self.manager.get_screen('ES').b2_val = int(self.manager.get_screen('ES').b2_label.text)
+
+                self.manager.get_screen('ES').angle_count = 2
+                self.manager.get_screen('ES').experiment.b1 = self.manager.get_screen('ES').b1_val * math.pi / 180
+                self.manager.get_screen('ES').experiment.b2 = self.manager.get_screen('ES').b2_val * math.pi / 180
 
                 (alphalist, betalist) = self.manager.get_screen('ES').experiment.sweepS()
                 scalcvec = np.vectorize(self.manager.get_screen('ES').experiment.scalc)
@@ -436,14 +405,25 @@ class GraphScreen(Screen):
 
                 self.canv = FigureCanvas(fig)
 
-            elif self.manager.get_screen('ES').tab_selector == 1: # HVT
-                self.manager.get_screen('ES').b1_val = float(self.manager.get_screen('ES').b1_label_hvt.text)
-                self.manager.get_screen('ES').b2_val = float(self.manager.get_screen('ES').b2_label_hvt.text)
+        if self.manager.get_screen('ES').tab_selector == 1: # HVT
 
-            self.manager.get_screen('ES').angle_count = 2
-            self.manager.get_screen('ES').experiment.b1 = self.manager.get_screen('ES').b1_val * math.pi / 180
-            self.manager.get_screen('ES').experiment.b2 = self.manager.get_screen('ES').b2_val * math.pi / 180
+            if int(self.manager.get_screen('ES').alpha_hvt.text)*np.pi/180 != self.alpha:
+                figure, ax = plt.subplots()
 
+                self.alpha = int(self.manager.get_screen('ES').alpha_hvt.text)*np.pi/180
+                beta_axis = np.linspace(0, 2*np.pi, 100)
+                S_axis = []
+
+                for beta in beta_axis:
+                    S_axis.append(self.manager.get_screen('ES').experiment.scalc(self.manager.get_screen('ES').tab_selector, self.alpha, beta))
+
+                S_axis = np.array(S_axis)
+
+                ax.plot(beta_axis,S_axis)
+                ax.set_ylabel("S")
+                ax.set_xlabel("\u03B2 (rad)")
+
+                self.canv = FigureCanvasKivyAgg(figure)
 
         self.add_plot()
 
@@ -454,7 +434,6 @@ class GraphScreen(Screen):
     def go_back(self, instance):
         self.mainlay.remove_widget(self.canv)
         self.manager.current = 'ES'
-        self.changed_angles = False
 
     pass
 
