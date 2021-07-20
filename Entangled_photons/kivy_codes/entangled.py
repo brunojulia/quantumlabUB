@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # kivy imports
+
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -37,20 +38,37 @@ import math
 from entangledexp import entangledEXP  # importa les funcions que tenen a veure amb l'experiment.
 
 
-class TablePopup(Popup):
-    g_rectangle = ObjectProperty()
-
-    def __init__(self, *args, **kwargs):
-        super(TablePopup, self).__init__(*args, **kwargs)
-
-
 class TrueScreen(ScreenManager):
     pass
+# Defining the screenmanager otherwise TablePopup doesn't work
+sm = TrueScreen()
+
+class TablePopup(Screen):
+    g_rectangle = ObjectProperty()
+    table = ListProperty()
+    table_lay = ObjectProperty()
+    def __init__(self, *args, **kwargs):
+        super(TablePopup, self).__init__(*args, **kwargs)
+        self.table = sm.get_screen('ES').table
+    def on_enter(self, *args):
+        self.table_lay.clear_widgets()
+        self.table_lay.add_widget(Label(text='\u03B1'))
+        self.table_lay.add_widget(Label(text='\u03B2'))
+        self.table_lay.add_widget(Label(text='N_a'))
+        self.table_lay.add_widget(Label(text='N_b'))
+        self.table_lay.add_widget(Label(text='N'))
+
+        self.table = sm.get_screen('ES').table
+        # If a measure of the S has been taken
+        if len(self.table) != 0:
+            for row in self.table:
+                for item in row:
+                    self.table_lay.add_widget(Label(text=str(item),size_hint=(1,1)))
 
 
 class EntangledScreen(Screen):
     # Quant variables:
-
+    table = ListProperty()
     n_label = ObjectProperty()
     label_s1 = ObjectProperty()
     label_s2 = ObjectProperty()
@@ -139,11 +157,13 @@ class EntangledScreen(Screen):
         self.experiment.photons = int(self.n_label.text)
 
         if self.tab_selector == 0:
+            self.table = self.experiment.expqua(alpha,beta)
             s = self.experiment.scalc(self.tab_selector, alpha, beta)
             sigma = self.experiment.sigma(alpha, beta)
             print(s, "±", sigma)
 
         elif self.tab_selector == 1:
+            self.table = self.experiment.hvt(alpha, beta)
             s_arr = np.array([])
             for rep in range(0, int(self.reps.text)):
                 s_i = self.experiment.scalc(self.tab_selector, alpha, beta)
@@ -178,12 +198,8 @@ class EntangledScreen(Screen):
 
     def open_table_popup(self):
         '''opens popup window'''
-        if self.tab_selector == 0:
-            self.table_popup = TablePopup()
-            self.table_popup.open()
-        elif self.tab_selector == 1:
-            self.table_popup_hvt = TablePopup()
-            self.table_popup_hvt.open()
+        self.table_checkbox.active = False
+        self.manager.current = 'TP'
 
     def close(self):
 
@@ -197,7 +213,6 @@ class EntangledScreen(Screen):
     def on_checkbox_Active(self, checkboxInstance, isActive):
         if isActive:
             self.open_table_popup()
-
     def on_graph_checkbox_Active(self, checkboxInstance, isActive):
         self.kwinput = False
         if isActive:
@@ -329,7 +344,7 @@ class EntangledScreen(Screen):
 
 
 class animWidg(Widget):
-    line_pos = ListProperty([[750, 680], [750, 680]])
+    line_pos = ListProperty([[760, 680], [760, 680]])
     joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
     cap = OptionProperty('none', options=('round', 'square', 'none'))
     linewidth = NumericProperty(2)
@@ -347,18 +362,18 @@ class animWidg(Widget):
 
     def run_animation(self):
         Clock.unschedule(self.move_lines)
-        self.line_pos = [[750, 680], [795, 663]]
+        self.line_pos = [[780, 680], [825, 663]]
         self.line.points = self.line_pos
         Clock.schedule_interval(self.move_lines, 1 / 60)
 
     def move_lines(self, dt):
-        if self.line_pos[1][0] < 750 + 30 * 5:
+        if self.line_pos[1][0] < 780 + 30 * 5:
             self.line_pos[1][0] += 5
         if self.line_pos[1][1] > 680 - 30 * 5 * 17 / 50:
             self.line_pos[1][1] += -5 * 17 / 50
-        if self.line_pos[1][0] < 795:
+        if self.line_pos[1][0] < 825:
             self.line_pos[1][0] = self.line_pos[1][0]
-        elif self.line_pos[0][0] < 750 + 30 * 5:
+        elif self.line_pos[0][0] < 780 + 30 * 5:
             self.line_pos[0][0] += 5
             self.line_pos[0][1] += -5 * 17 / 50
 
@@ -399,7 +414,29 @@ class GraphScreen(Screen):
             if self.manager.get_screen('ES').tab_selector == 0:
                 self.manager.get_screen('ES').b1_val = float(self.manager.get_screen('ES').b1_label.text)
                 self.manager.get_screen('ES').b2_val = float(self.manager.get_screen('ES').b2_label.text)
-            elif self.manager.get_screen('ES').tab_selector == 1:
+
+                (alphalist, betalist) = self.manager.get_screen('ES').experiment.sweepS()
+                scalcvec = np.vectorize(self.manager.get_screen('ES').experiment.scalc)
+
+                X, Y = np.meshgrid(alphalist, betalist, sparse=True)
+                Z = scalcvec(self.manager.get_screen('ES').tab_selector, X, Y)
+
+                mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
+                mappable.set_array(Z)
+
+                ax.plot_surface(X, Y, Z, cmap=mappable.cmap, linewidth=0.01)
+
+                ax.set_xlabel('Alpha (rad)')
+                ax.set_ylabel('Beta (rad)')
+                ax.set_zlabel('S')
+                mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
+                mappable.set_array(Z)
+                cbar = fig.colorbar(mappable, shrink=0.5)
+                cbar.set_label('S', rotation=0)
+
+                self.canv = FigureCanvas(fig)
+
+            elif self.manager.get_screen('ES').tab_selector == 1: # HVT
                 self.manager.get_screen('ES').b1_val = float(self.manager.get_screen('ES').b1_label_hvt.text)
                 self.manager.get_screen('ES').b2_val = float(self.manager.get_screen('ES').b2_label_hvt.text)
 
@@ -407,26 +444,7 @@ class GraphScreen(Screen):
             self.manager.get_screen('ES').experiment.b1 = self.manager.get_screen('ES').b1_val * math.pi / 180
             self.manager.get_screen('ES').experiment.b2 = self.manager.get_screen('ES').b2_val * math.pi / 180
 
-            (alphalist, betalist) = self.manager.get_screen('ES').experiment.sweepS()
-            scalcvec = np.vectorize(self.manager.get_screen('ES').experiment.scalc)
 
-            X, Y = np.meshgrid(alphalist, betalist, sparse=True)
-            Z = scalcvec(self.manager.get_screen('ES').tab_selector, X, Y)
-
-            mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
-            mappable.set_array(Z)
-
-            ax.plot_surface(X, Y, Z, cmap=mappable.cmap, linewidth=0.01)
-
-            ax.set_xlabel('Alpha (rad)')
-            ax.set_ylabel('Beta (rad)')
-            ax.set_zlabel('S')
-            mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
-            mappable.set_array(Z)
-            cbar = fig.colorbar(mappable, shrink=0.5)
-            cbar.set_label('S', rotation=0)
-
-            self.canv = FigureCanvas(fig)
         self.add_plot()
 
     def add_plot(self):
@@ -446,12 +464,11 @@ kv = Builder.load_file("entangled.kv")
 
 class MainApp(App):
 
-    # MS = EntangledScreen()
-
     def build(self):
-        sm = TrueScreen()
+
         sm.add_widget(GraphScreen(name='GS'))
         sm.add_widget(EntangledScreen(name='ES'))
+        sm.add_widget(TablePopup(name='TP'))
         sm.current = 'ES'
         return sm
 

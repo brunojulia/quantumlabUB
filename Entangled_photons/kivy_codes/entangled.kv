@@ -6,18 +6,9 @@
 <TrueScreen>:
     orientation: 'vertical'
 
-<TablePopup>:
-    title: 'Table 1'
-    FloatLayout:
-        Button:
-            size_hint: (0.2,0.1)
-            pos_hint: {'x':0, 'y':0}
-            text: 'Close'
-            on_release: root.dismiss()
 
 <EntangledScreen>:
     name: 'ES'
-
     #Qua variables
 
     n_label: n_label #MOLT IMPORTANT AIXÒ, SI NO EL PROGRAMA NO SAP DE Q ÉS
@@ -59,31 +50,52 @@
 
         BoxLayout:
             orientation: "horizontal"
-            Image:
-                id: I1
-                pos_hint:{'x': 0., 'y':0.}
-                source: 'img\pol2.png'
+            BoxLayout:
+                orientation: "vertical"
+                Image:
+                    id: I1
+                    pos_hint:{'x': 0., 'y':0.}
+                    source: 'img\pol2.png'
 
-            # Giving the size of image
-                size_hint: (0.7,0.7)
+                # Giving the size of image
+                    size_hint: (0.7,0.7)
 
-                # allow sterching of image
-                allow_stretch: True
-                canvas.before:
-                    PushMatrix:
-                    Rotate:
-                        angle: 0
-                        origin:self.center
-                canvas.after:
-                    PopMatrix
+                    # allow sterching of image
+                    allow_stretch: True
+                    canvas.before:
+                        PushMatrix:
+                        Rotate:
+                            angle: 0
+                            origin:self.center
+                    canvas.after:
+                        PopMatrix
+
+
+                Image:
+                    id: I2
+                    pos_hint:{'x': 0., 'y':0.}
+                    source: 'img\pol2.png'
+
+                # Giving the size of image
+                    size_hint: (0.7,0.7)
+
+                    # allow sterching of image
+                    allow_stretch: True
+                    canvas.before:
+                        PushMatrix:
+                        Rotate:
+                            angle: 0
+                            origin:self.center
+                    canvas.after:
+                        PopMatrix
 
             animWidg:
                 id: anwidg
                 canvas.before:
                     Rectangle:
                         source: 'img\sketch_exp_1.png'
-                        pos: self.pos[0] , self.pos[1]
-                        size: (self.width*0.75, self.height)
+                        pos: self.pos[0]-100 , self.pos[1]
+                        size: (self.width*0.85, self.height)
                         id: i_rect
 
 
@@ -91,12 +103,13 @@
         TabbedPanel:
             size_hint: (1, 1)
             do_default_tab: False
+            border : [0, 0, 0, 0]
+            background_image: 'img\metal.jpg'
 
             TabbedPanelItem: #creem la primera pestanya
                 text: "[b]Quantic\n experiment:[/b]"
                 markup: True
                 on_release: root.tab_selector = 0
-
                 BoxLayout:
                     orientation: "horizontal" #el partim en 2 cols grans
 
@@ -164,10 +177,10 @@
                             text:"[b]Polarizer angles:[/b]"
                             markup: True
                         Label:
-                            text: "angle of polarizer 1: \u03B1 (deg)"
+                            text: "Angle of polarizer 1: \u03B1 (deg)"
                             pos_hint:{'x': 0, 'y':0}
                         AngleKnob:
-                            pos_hint:{'x': 0.3, 'y':.7}
+                            pos_hint:{'x': 0.4, 'y':.7}
                             min: 0
                             max: 360
                             step: 1
@@ -187,9 +200,9 @@
                                 color: 0.1, 0.1, 0.1, 1
 
                         Label:
-                            text: "angle of polarizer 2: \u03B2 (deg)"
+                            text: "Angle of polarizer 2: \u03B2 (deg)"
                         AngleKnob:
-                            pos_hint:{'x': 0.3, 'y':.7}
+                            pos_hint:{'x': 0.4, 'y':.7}
                             min: 0
                             max: 360
                             step: 1
@@ -243,7 +256,9 @@
                                         TextInput:
                                             id: b1_label
                                             size_hint: (1,1.25)
-                                            text: ' '
+                                            foreground_color : (1, 0, 0, 1)
+                                            background_color : (0, 0, 0, 1)
+                                            text: '0'
                                             font_name: 'digital-7.ttf'
                                             font_size: 20
                                             multiline:False
@@ -258,7 +273,9 @@
                                         TextInput:
                                             id: b2_label
                                             size_hint: (1,1.25)
-                                            text: ' '
+                                            foreground_color : (1, 0, 0, 1)
+                                            background_color : (0, 0, 0, 1)
+                                            text: '0'
                                             font_name: 'digital-7.ttf'
                                             font_size: 20
                                             multiline:False
@@ -351,10 +368,14 @@
                             FloatLayout:
                                 TextInput:
                                     id:reps
+                                    background_color : (0, 0, 0, 1)
+                                    foreground_color : (1, 0, 0, 1)
                                     size_hint: (0.4,.5)
                                     pos_hint : {'x': 0.3, 'y':.7}
                                     multiline : False
-                                    text : '1'
+                                    text: '1'
+                                    font_name: 'digital-7.ttf'
+                                    font_size: 25
 
                         FloatLayout:
                             Label:
@@ -441,7 +462,7 @@
                                     orientation: "vertical"
                                     Button:
                                         id: select_button_hvt
-                                        text: "Select angle"
+                                        text: "Select angle \u03B1"
                                         disabled: True
                                         on_release:root.select_angle_hvt()
                                     Button:
@@ -458,7 +479,9 @@
                                         TextInput:
                                             id: b1_label_hvt
                                             size_hint: (1,1.25)
-                                            text: ' '
+                                            foreground_color : (1, 0, 0, 1)
+                                            background_color : (0, 0, 0, 1)
+                                            text: '0'
                                             font_name: 'digital-7.ttf'
                                             font_size: 20
                                             multiline:False
@@ -473,7 +496,9 @@
                                         TextInput:
                                             id: b2_label_hvt
                                             size_hint: (1,1.25)
-                                            text: ' '
+                                            foreground_color : (1, 0, 0, 1)
+                                            background_color : (0, 0, 0, 1)
+                                            text: '0'
                                             font_name: 'digital-7.ttf'
                                             font_size: 20
                                             multiline:False
@@ -527,3 +552,18 @@
         id: mainlay
 
 
+<TablePopup>:
+    table_lay : table_lay
+    title: 'Table 1'
+    FloatLayout:
+
+        GridLayout:
+            id : table_lay
+            rows : 17
+            cols : 5
+
+        Button:
+            size_hint: (1,0.05)
+            pos_hint: {'x':0, 'y':0}
+            text: 'Close'
+            on_release: root.manager.current = 'ES'
