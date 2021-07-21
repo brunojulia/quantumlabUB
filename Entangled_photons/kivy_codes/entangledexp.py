@@ -2,7 +2,7 @@
 import math
 import numpy as np
 import random
-
+from kivy.properties import ListProperty
 
 class entangledEXP(object):
     # aqui posem totes les propietats del entangledEXP que escriurem com self. el que sigui
@@ -171,7 +171,6 @@ class entangledEXP(object):
         # Agafem els angles a=-45, a'=0 i b=22.5, b'=-22.5
         # print(Elist)
         S = Elist[0] - Elist[1] + Elist[2] + Elist[3]
-
         return S
 
     scalcvec = np.vectorize(scalc)

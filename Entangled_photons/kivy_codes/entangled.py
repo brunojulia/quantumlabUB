@@ -1,7 +1,7 @@
 import matplotlib
 
 matplotlib.use('module://kivy.garden.matplotlib.backend_kivy')
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas
+from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas,FigureCanvasKivyAgg
 from matplotlib.figure import Figure
 from numpy import arange, sin, pi
 from kivy.uix.behaviors import ButtonBehavior
@@ -11,6 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # kivy imports
+
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -30,6 +31,7 @@ from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas, \
     NavigationToolbar2Kivy
 from kivy.clock import Clock
 
+
 from kivy.properties import ObjectProperty, NumericProperty, StringProperty, ListProperty, BooleanProperty, \
     OptionProperty
 import math
@@ -37,20 +39,37 @@ import math
 from entangledexp import entangledEXP  # importa les funcions que tenen a veure amb l'experiment.
 
 
-class TablePopup(Popup):
-    g_rectangle = ObjectProperty()
-
-    def __init__(self, *args, **kwargs):
-        super(TablePopup, self).__init__(*args, **kwargs)
-
-
 class TrueScreen(ScreenManager):
     pass
+# Defining the screenmanager otherwise TablePopup doesn't work
+sm = TrueScreen()
+
+class TablePopup(Screen):
+    g_rectangle = ObjectProperty()
+    table = ListProperty()
+    table_lay = ObjectProperty()
+    def __init__(self, *args, **kwargs):
+        super(TablePopup, self).__init__(*args, **kwargs)
+        self.table = sm.get_screen('ES').table
+    def on_enter(self, *args):
+        self.table_lay.clear_widgets()
+        self.table_lay.add_widget(Label(text='\u03B1'))
+        self.table_lay.add_widget(Label(text='\u03B2'))
+        self.table_lay.add_widget(Label(text='N_a'))
+        self.table_lay.add_widget(Label(text='N_b'))
+        self.table_lay.add_widget(Label(text='N'))
+
+        self.table = sm.get_screen('ES').table
+        # If a measure of the S has been taken
+        if len(self.table) != 0:
+            for row in self.table:
+                for item in row:
+                    self.table_lay.add_widget(Label(text=str(item),size_hint=(1,1)))
 
 
 class EntangledScreen(Screen):
     # Quant variables:
-
+    table = ListProperty()
     n_label = ObjectProperty()
     label_s1 = ObjectProperty()
     label_s2 = ObjectProperty()
@@ -74,7 +93,6 @@ class EntangledScreen(Screen):
     label_s1_hvt = ObjectProperty()
     label_s2_hvt = ObjectProperty()
     table_checkbox_hvt = ObjectProperty()
-    graph_checkbox_hvt = ObjectProperty()
     s_label_hvt = ObjectProperty()
     delete_button_hvt = ObjectProperty()
     select_button_hvt = ObjectProperty()
@@ -83,6 +101,7 @@ class EntangledScreen(Screen):
     b1_label_hvt = ObjectProperty()
     b2_label_hvt = ObjectProperty()
     reps = ObjectProperty()
+    alpha_hvt = ObjectProperty()
 
     def __init__(self, angle_count=0, tab_selector=0, angle_count_hvt=0, **kwargs):
         super(EntangledScreen, self).__init__()
@@ -94,7 +113,6 @@ class EntangledScreen(Screen):
         self.table_checkbox.bind(active=self.on_checkbox_Active)  # lliga la checkbox amb la funció
         self.table_checkbox_hvt.bind(active=self.on_checkbox_Active)
         self.graph_checkbox.bind(active=self.on_graph_checkbox_Active)  # lliga la checkbox amb la funció
-        self.graph_checkbox_hvt.bind(active=self.on_graph_checkbox_Active)
 
     # Adds a photons to throw
     # When the button is pressed for a long time it keeps adding photons
@@ -139,11 +157,13 @@ class EntangledScreen(Screen):
         self.experiment.photons = int(self.n_label.text)
 
         if self.tab_selector == 0:
+            self.table = self.experiment.expqua(alpha,beta)
             s = self.experiment.scalc(self.tab_selector, alpha, beta)
             sigma = self.experiment.sigma(alpha, beta)
             print(s, "±", sigma)
 
         elif self.tab_selector == 1:
+            self.table = self.experiment.hvt(alpha, beta)
             s_arr = np.array([])
             for rep in range(0, int(self.reps.text)):
                 s_i = self.experiment.scalc(self.tab_selector, alpha, beta)
@@ -178,12 +198,8 @@ class EntangledScreen(Screen):
 
     def open_table_popup(self):
         '''opens popup window'''
-        if self.tab_selector == 0:
-            self.table_popup = TablePopup()
-            self.table_popup.open()
-        elif self.tab_selector == 1:
-            self.table_popup_hvt = TablePopup()
-            self.table_popup_hvt.open()
+        self.table_checkbox.active = False
+        self.manager.current = 'TP'
 
     def close(self):
 
@@ -197,7 +213,6 @@ class EntangledScreen(Screen):
     def on_checkbox_Active(self, checkboxInstance, isActive):
         if isActive:
             self.open_table_popup()
-
     def on_graph_checkbox_Active(self, checkboxInstance, isActive):
         self.kwinput = False
         if isActive:
@@ -206,11 +221,7 @@ class EntangledScreen(Screen):
                 self.delete_button.disabled = False
                 self.clear_btn.disabled = False
                 self.plot_btn.disabled = False
-            elif self.tab_selector == 1:
-                self.select_button_hvt.disabled = False
-                self.delete_button_hvt.disabled = False
-                self.clear_btn_hvt.disabled = False
-                self.plot_btn_hvt.disabled = False
+
         if not isActive:
             if self.tab_selector == 0:
                 self.select_button.disabled = True
@@ -220,20 +231,10 @@ class EntangledScreen(Screen):
                 self.b1_label.disabled = True
                 self.b2_label.disabled = True
                 self.angle_count = 0
-            elif self.tab_selector == 1:
-                self.select_button_hvt.disabled = True
-                self.delete_button_hvt.disabled = True
-                self.clear_btn_hvt.disabled = True
-                self.plot_btn_hvt.disabled = True
-                self.b1_label_hvt.disabled = True
-                self.b2_label_hvt.disabled = True
-                self.angle_count_hvt = 0
 
     def select_angle(self):
         if self.angle_count < 2:
             self.angle_count += 1
-        #  if the angles changed it replots the graph
-        self.manager.get_screen('GS').changed_angles = True
 
         if self.angle_count == 1:
             self.delete_button.disabled = False
@@ -254,30 +255,6 @@ class EntangledScreen(Screen):
                 self.b2_val = float(self.b2_label.text)
         self.kwinput = False
 
-    def select_angle_hvt(self):
-        if self.angle_count_hvt < 2:
-            self.angle_count_hvt += 1
-        #  if the angles changed it replots the graph
-        self.manager.get_screen('GS').changed_angles = True
-
-        if self.angle_count_hvt == 1:
-            self.delete_button_hvt.disabled = False
-            if not self.kwinput:
-                self.b1_label_hvt.text = self.label_s2_hvt.text
-                self.b1_val = float(self.label_s2_hvt.text)
-
-            else:
-                self.b1_val = float(self.b1_label_hvt.text)
-
-        if self.angle_count_hvt == 2:
-            self.delete_button_hvt.disabled = False
-            if not self.kwinput:
-                self.b2_label_hvt.text = self.label_s2_hvt.text
-                self.b2_val = float(self.label_s2_hvt.text)
-            else:
-                self.b2_val = float(self.b2_label_hvt.text)
-        self.kwinput = False
-
     def delete_angle(self):
 
         if self.angle_count > 0:
@@ -293,20 +270,29 @@ class EntangledScreen(Screen):
             self.angle_count -= 1
         self.kwinput = False
 
-    def delete_angle_hvt(self):
-        if self.angle_count_hvt > 0:
-            if self.angle_count_hvt == 1:
-                self.b1_label_hvt.text = ' '
-                self.b1_val = 0
-                self.delete_button_hvt.disabled = True
-                self.select_button_hvt.disabled = False
-            if self.angle_count_hvt == 2:
-                self.b2_label_hvt.text = ' '
-                self.b2_val = 0
-                self.select_button_hvt.disabled = False
-            self.angle_count_hvt -= 1
-        self.kwinput = False
+    def angle_up_hvt(self):
+        if int(self.alpha_hvt.text)<360:
+            self.alpha_hvt.text = str(int(self.alpha_hvt.text)+1)
+        if int(self.alpha_hvt.text) == 360:
+            self.alpha_hvt.text = str(0)
 
+    def angle_down_hvt(self):
+        if int(self.alpha_hvt.text)>0:
+            self.alpha_hvt.text = str(int(self.alpha_hvt.text)-1)
+        if int(self.alpha_hvt.text) == 0:
+            self.alpha_hvt.text = str(360)
+
+    def start_angle_up(self):
+        self.adding_angle = Clock.schedule_interval(lambda dt: self.angle_up_hvt(), 0.18)
+
+    def stop_angle_up(self):
+        Clock.unschedule(self.adding_angle)
+
+    def start_angle_down(self):
+        self.subtracting_angle = Clock.schedule_interval(lambda dt: self.angle_down_hvt(), 0.18)
+
+    def stop_angle_down(self):
+        Clock.unschedule(self.subtracting_angle)
     def clear_angles(self):
         self.b1_val = 0
         self.b2_val = 0
@@ -317,19 +303,12 @@ class EntangledScreen(Screen):
             self.select_button.disabled = False
             self.angle_count = 0
             self.kwinput = False
-        elif self.tab_selector == 1:
-            self.b1_label_hvt.text = ' '
-            self.b2_label_hvt.text = ' '
-            self.delete_button_hvt.disabled = True
-            self.select_button_hvt.disabled = False
-            self.angle_count_hvt = 0
-            self.kwinput = False
 
     pass
 
 
 class animWidg(Widget):
-    line_pos = ListProperty([[750, 680], [750, 680]])
+    line_pos = ListProperty([[760, 680], [760, 680]])
     joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
     cap = OptionProperty('none', options=('round', 'square', 'none'))
     linewidth = NumericProperty(2)
@@ -347,18 +326,18 @@ class animWidg(Widget):
 
     def run_animation(self):
         Clock.unschedule(self.move_lines)
-        self.line_pos = [[750, 680], [795, 663]]
+        self.line_pos = [[780, 680], [825, 663]]
         self.line.points = self.line_pos
         Clock.schedule_interval(self.move_lines, 1 / 60)
 
     def move_lines(self, dt):
-        if self.line_pos[1][0] < 750 + 30 * 5:
+        if self.line_pos[1][0] < 780 + 30 * 5:
             self.line_pos[1][0] += 5
         if self.line_pos[1][1] > 680 - 30 * 5 * 17 / 50:
             self.line_pos[1][1] += -5 * 17 / 50
-        if self.line_pos[1][0] < 795:
+        if self.line_pos[1][0] < 825:
             self.line_pos[1][0] = self.line_pos[1][0]
-        elif self.line_pos[0][0] < 750 + 30 * 5:
+        elif self.line_pos[0][0] < 780 + 30 * 5:
             self.line_pos[0][0] += 5
             self.line_pos[0][1] += -5 * 17 / 50
 
@@ -382,51 +361,70 @@ class AngleKnob(ButtonBehavior, Knob):
 class GraphScreen(Screen):
     mainlay = ObjectProperty()
     canv = ObjectProperty()
-    # if the angles are changed sets to true
-    changed_angles = ObjectProperty()
-
+    alpha = NumericProperty()
     def __init__(self, *args, **kwargs):
         super(GraphScreen, self).__init__(*args, **kwargs)
         self.exitbtn = Button(size_hint=(1, 0.05), text='Go Back')
         self.exitbtn.bind(on_release=self.go_back)
         self.mainlay.add_widget(self.exitbtn, index=0)
-        self.changed_angles = True
+
 
     def get_graph(self):
-        fig = plt.figure()
-        ax = Axes3D(fig)
-        if self.changed_angles == True:
-            if self.manager.get_screen('ES').tab_selector == 0:
-                self.manager.get_screen('ES').b1_val = float(self.manager.get_screen('ES').b1_label.text)
-                self.manager.get_screen('ES').b2_val = float(self.manager.get_screen('ES').b2_label.text)
-            elif self.manager.get_screen('ES').tab_selector == 1:
-                self.manager.get_screen('ES').b1_val = float(self.manager.get_screen('ES').b1_label_hvt.text)
-                self.manager.get_screen('ES').b2_val = float(self.manager.get_screen('ES').b2_label_hvt.text)
 
-            self.manager.get_screen('ES').angle_count = 2
-            self.manager.get_screen('ES').experiment.b1 = self.manager.get_screen('ES').b1_val * math.pi / 180
-            self.manager.get_screen('ES').experiment.b2 = self.manager.get_screen('ES').b2_val * math.pi / 180
+        if self.manager.get_screen('ES').tab_selector == 0:
+            # if angles changed
+            if int(self.manager.get_screen('ES').b1_label.text) != self.manager.get_screen('ES').b1_val or \
+            (int(self.manager.get_screen('ES').b2_label.text) != self.manager.get_screen('ES').b2_val):
+                fig = plt.figure()
+                ax = Axes3D(fig)
+                self.manager.get_screen('ES').b1_val = int(self.manager.get_screen('ES').b1_label.text)
+                self.manager.get_screen('ES').b2_val = int(self.manager.get_screen('ES').b2_label.text)
 
-            (alphalist, betalist) = self.manager.get_screen('ES').experiment.sweepS()
-            scalcvec = np.vectorize(self.manager.get_screen('ES').experiment.scalc)
+                self.manager.get_screen('ES').angle_count = 2
+                self.manager.get_screen('ES').experiment.b1 = self.manager.get_screen('ES').b1_val * math.pi / 180
+                self.manager.get_screen('ES').experiment.b2 = self.manager.get_screen('ES').b2_val * math.pi / 180
 
-            X, Y = np.meshgrid(alphalist, betalist, sparse=True)
-            Z = scalcvec(self.manager.get_screen('ES').tab_selector, X, Y)
+                (alphalist, betalist) = self.manager.get_screen('ES').experiment.sweepS()
+                scalcvec = np.vectorize(self.manager.get_screen('ES').experiment.scalc)
 
-            mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
-            mappable.set_array(Z)
+                X, Y = np.meshgrid(alphalist, betalist, sparse=True)
+                Z = scalcvec(self.manager.get_screen('ES').tab_selector, X, Y)
 
-            ax.plot_surface(X, Y, Z, cmap=mappable.cmap, linewidth=0.01)
+                mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
+                mappable.set_array(Z)
 
-            ax.set_xlabel('Alpha (rad)')
-            ax.set_ylabel('Beta (rad)')
-            ax.set_zlabel('S')
-            mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
-            mappable.set_array(Z)
-            cbar = fig.colorbar(mappable, shrink=0.5)
-            cbar.set_label('S', rotation=0)
+                ax.plot_surface(X, Y, Z, cmap=mappable.cmap, linewidth=0.01)
 
-            self.canv = FigureCanvas(fig)
+                ax.set_xlabel('Alpha (rad)')
+                ax.set_ylabel('Beta (rad)')
+                ax.set_zlabel('S')
+                mappable = plt.cm.ScalarMappable(cmap=plt.cm.jet)
+                mappable.set_array(Z)
+                cbar = fig.colorbar(mappable, shrink=0.5)
+                cbar.set_label('S', rotation=0)
+
+                self.canv = FigureCanvas(fig)
+
+        if self.manager.get_screen('ES').tab_selector == 1: # HVT
+
+            if int(self.manager.get_screen('ES').alpha_hvt.text)*np.pi/180 != self.alpha:
+                figure, ax = plt.subplots()
+
+                self.alpha = int(self.manager.get_screen('ES').alpha_hvt.text)*np.pi/180
+                beta_axis = np.linspace(0, 2*np.pi, 100)
+                S_axis = []
+
+                for beta in beta_axis:
+                    S_axis.append(self.manager.get_screen('ES').experiment.scalc(self.manager.get_screen('ES').tab_selector, self.alpha, beta))
+
+                S_axis = np.array(S_axis)
+
+                ax.plot(beta_axis,S_axis)
+                ax.set_ylabel("S")
+                ax.set_xlabel("\u03B2 (rad)")
+
+                self.canv = FigureCanvasKivyAgg(figure)
+
         self.add_plot()
 
     def add_plot(self):
@@ -436,7 +434,6 @@ class GraphScreen(Screen):
     def go_back(self, instance):
         self.mainlay.remove_widget(self.canv)
         self.manager.current = 'ES'
-        self.changed_angles = False
 
     pass
 
@@ -446,12 +443,11 @@ kv = Builder.load_file("entangled.kv")
 
 class MainApp(App):
 
-    # MS = EntangledScreen()
-
     def build(self):
-        sm = TrueScreen()
+
         sm.add_widget(GraphScreen(name='GS'))
         sm.add_widget(EntangledScreen(name='ES'))
+        sm.add_widget(TablePopup(name='TP'))
         sm.current = 'ES'
         return sm
 
