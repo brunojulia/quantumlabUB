@@ -23,7 +23,7 @@
     plot_btn:plot_btn
     b1_label:b1_label
     b2_label:b2_label
-
+    img_widg:anwidg
 
     #HVT variables
 
@@ -56,7 +56,7 @@
                     size_hint: (0.7,0.7)
 
                     # allow sterching of image
-                    allow_stretch: True
+                    allow_stretch: False
                     canvas.before:
                         PushMatrix:
                         Rotate:
@@ -75,7 +75,7 @@
                     size_hint: (0.7,0.7)
 
                     # allow sterching of image
-                    allow_stretch: True
+                    allow_stretch: False
                     canvas.before:
                         PushMatrix:
                         Rotate:
@@ -84,15 +84,15 @@
                     canvas.after:
                         PopMatrix
 
-            animWidg:
+            BoxLayout:
                 id: anwidg
-                canvas.before:
+                canvas:
+                    Color:
+                        rgb: (1, 1, 1)
                     Rectangle:
-                        source: 'img\sketch_exp_1.png'
-                        pos: self.pos[0]-100 , self.pos[1]
-                        size: (self.width*0.85, self.height)
-                        id: i_rect
-
+                        size : self.size
+                        pos: self.pos
+                        source : "img/sketch_exp_6.png"
 
 
         TabbedPanel:
@@ -182,7 +182,7 @@
                             slope: 1
                             value: 0
                             on_release: root.runexp()
-                            on_release: anwidg.run_animation()
+                            on_release: root.run_animation()
                             knobimg_source: "img/knob_metal.png"
                             show_marker: True  # Show surrounding marker
                             marker_img: "img/bline2.png" # Marker texture image
@@ -206,7 +206,7 @@
                             knobimg_source: "img/knob_metal.png"
                             show_marker: True  # Show surrounding marker
                             on_release: root.runexp()
-                            on_release: anwidg.run_animation()
+                            on_release: root.run_animation()
                             marker_img: "img/bline2.png" # Marker texture image
 
                             Label:

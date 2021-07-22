@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 
 # kivy imports
 
+from kivy.core.window import Window
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -24,7 +25,7 @@ from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.uix.checkbox import CheckBox
 from kivy.garden.knob import Knob
-from kivy.graphics import Rectangle, Color, Line
+from kivy.graphics import Rectangle, Color, Line, PushMatrix,PopMatrix,Scale, Translate
 from kivy.lang import Builder
 from kivy.uix.popup import Popup
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas, \
@@ -103,6 +104,14 @@ class EntangledScreen(Screen):
     reps = ObjectProperty()
     alpha_hvt = ObjectProperty()
 
+    line_pos = ListProperty([[760, 680], [760, 680]])
+    joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
+    cap = OptionProperty('none', options=('round', 'square', 'none'))
+    linewidth = NumericProperty(2)
+    dash_length = NumericProperty(1)
+    dash_offset = NumericProperty(0)
+    dashes = ListProperty([])
+
     def __init__(self, angle_count=0, tab_selector=0, angle_count_hvt=0, **kwargs):
         super(EntangledScreen, self).__init__()
         self.angle_count = angle_count
@@ -113,7 +122,54 @@ class EntangledScreen(Screen):
         self.table_checkbox.bind(active=self.on_checkbox_Active)  # lliga la checkbox amb la funció
         self.table_checkbox_hvt.bind(active=self.on_checkbox_Active)
         self.graph_checkbox.bind(active=self.on_graph_checkbox_Active)  # lliga la checkbox amb la funció
+        with self.img_widg.canvas.after:
+            # PushMatrix()
+            # Translate(xy = (self.img_widg.x + (self.img_widg.width - self.img_widg.norm_image_size[0]) / 2,
+            #          self.img_widg.y + (self.img_widg.height - self.img_widg.norm_image_size[1]) / 2))
+            # Scale(origin = (0, 0),
+            # x = self.img_widg.norm_image_size[0] / self.img_widg.texture_size[0] if self.img_widg.texture_size[0] > 0 else 1,
+            # y = self.img_widg.norm_image_size[1] / self.img_widg.texture_size[1] if self.img_widg.texture_size[1] > 0 else 1)
 
+            self.img_widg.rect = Rectangle(size=self.img_widg.size, pos = self.img_widg.pos,
+                                  source="img/sketch_exp_2.png")
+            Color(0, 0, 1)
+            self.line = Line(points=self.img_widg.pos, joint=self.joint, cap=self.cap,
+                             width=self.linewidth, close=False, dash_length=self.dash_length,
+                             dash_offset=self.dash_offset)
+        # with self.img_widg.canvas.after:
+        #     PopMatrix()
+
+    def run_animation(self):
+        initial_pos = [self.img_widg.pos[0]+self.img_widg.size[0]*0.115,self.img_widg.pos[1]+self.img_widg.size[1]*0.752]
+        Clock.unschedule(self.move_lines)
+        self.line_pos = [[self.img_widg.pos[0]+self.img_widg.size[0]*0.115,self.img_widg.pos[1]+self.img_widg.size[1]*0.752],
+                         [self.img_widg.pos[0]+self.img_widg.size[0]*0.115,self.img_widg.pos[1]+self.img_widg.size[1]*0.752]]
+
+        self.line.points = self.line_pos
+        Clock.schedule_interval(self.move_lines, 1 / 60)
+
+    def move_lines(self, dt):
+        initial_pos = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.115,
+                       self.img_widg.pos[1] + self.img_widg.size[1] * 0.752]
+        end_pos_1 = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.350, self.img_widg.pos[1] + self.img_widg.size[1] * 0.640]
+        if self.line_pos[1][0] < end_pos_1[0]:
+            self.line_pos[1][0] += (initial_pos[0]+end_pos_1[0])*0.003*2.9
+            print(self.line_pos)
+        if self.line_pos[1][1] > end_pos_1[1]:
+            self.line_pos[1][1] -= (initial_pos[1]+end_pos_1[1])*0.003
+
+
+        else:
+            if self.line_pos[0][0] < end_pos_1[0]:
+                self.line_pos[0][0] += (initial_pos[0] + end_pos_1[0]) * 0.003 * 2.9
+                print(self.line_pos)
+            if self.line_pos[0][1] > end_pos_1[1]:
+                self.line_pos[0][1] -= (initial_pos[1] + end_pos_1[1]) * 0.003
+            else:
+                Clock.unschedule(self.move_lines)
+        # The tail of the line has arrived to the crystals
+
+        self.line.points = self.line_pos
     # Adds a photons to throw
     # When the button is pressed for a long time it keeps adding photons
 
@@ -318,7 +374,11 @@ class animWidg(Widget):
 
     def __init__(self, **kwargs):
         super(animWidg, self).__init__()
-        with self.canvas.after:
+        with self.canvas:
+            self.rect = Rectangle(source = 'img\sketch_exp_1.png',
+                                  pos=(self.size[0]*3,self.size[1]*3),
+                                  size = (self.width * 0.85, self.height))
+
             Color(0, 0, 1)
             self.line = Line(points=self.line_pos, joint=self.joint, cap=self.cap,
                              width=self.linewidth, close=False, dash_length=self.dash_length,
