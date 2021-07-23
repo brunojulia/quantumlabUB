@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 
 # kivy imports
 
-from kivy.core.window import Window
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.uix.screenmanager import ScreenManager, Screen
@@ -54,18 +53,20 @@ class TablePopup(Screen):
         self.table = sm.get_screen('ES').table
     def on_enter(self, *args):
         self.table_lay.clear_widgets()
-        self.table_lay.add_widget(Label(text='\u03B1'))
-        self.table_lay.add_widget(Label(text='\u03B2'))
-        self.table_lay.add_widget(Label(text='N_a'))
-        self.table_lay.add_widget(Label(text='N_b'))
-        self.table_lay.add_widget(Label(text='N'))
+        self.table_lay.add_widget(Button(text='\u03B1 (rad)', background_color = (0, 102/255, 204/255, 1)))
+        self.table_lay.add_widget(Button(text='\u03B2 (rad)', background_color = (0, 102/255, 204/255, 1)))
+        self.table_lay.add_widget(Button(text='N_a', background_color = (0, 102/255, 204/255, 1)))
+        self.table_lay.add_widget(Button(text='N_b', background_color = (0, 102/255, 204/255, 1)))
+        self.table_lay.add_widget(Button(text='N', background_color = (0, 102/255, 204/255, 1)))
 
         self.table = sm.get_screen('ES').table
         # If a measure of the S has been taken
         if len(self.table) != 0:
             for row in self.table:
                 for item in row:
-                    self.table_lay.add_widget(Label(text=str(item),size_hint=(1,1)))
+                    label_i =Button(text=str(round(item, 2)),size_hint=(1,1), background_color = (0, 102/255, 204/255, 0.8))
+
+                    self.table_lay.add_widget(label_i)
 
 
 class EntangledScreen(Screen):
@@ -88,6 +89,8 @@ class EntangledScreen(Screen):
     b2_val = NumericProperty()
     kwinput = ObjectProperty()
     img_widg = ObjectProperty()
+    angle_1 = NumericProperty(0)
+    angle_2 = NumericProperty(0)
     # Cla variables:
 
     n_label_hvt = ObjectProperty()
@@ -122,13 +125,10 @@ class EntangledScreen(Screen):
         self.table_checkbox.bind(active=self.on_checkbox_Active)  # lliga la checkbox amb la funció
         self.table_checkbox_hvt.bind(active=self.on_checkbox_Active)
         self.graph_checkbox.bind(active=self.on_graph_checkbox_Active)  # lliga la checkbox amb la funció
+
+    #Canvas of the animation
+
         with self.img_widg.canvas.after:
-            # PushMatrix()
-            # Translate(xy = (self.img_widg.x + (self.img_widg.width - self.img_widg.norm_image_size[0]) / 2,
-            #          self.img_widg.y + (self.img_widg.height - self.img_widg.norm_image_size[1]) / 2))
-            # Scale(origin = (0, 0),
-            # x = self.img_widg.norm_image_size[0] / self.img_widg.texture_size[0] if self.img_widg.texture_size[0] > 0 else 1,
-            # y = self.img_widg.norm_image_size[1] / self.img_widg.texture_size[1] if self.img_widg.texture_size[1] > 0 else 1)
 
             self.img_widg.rect = Rectangle(size=self.img_widg.size, pos = self.img_widg.pos,
                                   source="img/sketch_exp_2.png")
@@ -136,11 +136,8 @@ class EntangledScreen(Screen):
             self.line = Line(points=self.img_widg.pos, joint=self.joint, cap=self.cap,
                              width=self.linewidth, close=False, dash_length=self.dash_length,
                              dash_offset=self.dash_offset)
-        # with self.img_widg.canvas.after:
-        #     PopMatrix()
 
     def run_animation(self):
-        initial_pos = [self.img_widg.pos[0]+self.img_widg.size[0]*0.115,self.img_widg.pos[1]+self.img_widg.size[1]*0.752]
         Clock.unschedule(self.move_lines)
         self.line_pos = [[self.img_widg.pos[0]+self.img_widg.size[0]*0.115,self.img_widg.pos[1]+self.img_widg.size[1]*0.752],
                          [self.img_widg.pos[0]+self.img_widg.size[0]*0.115,self.img_widg.pos[1]+self.img_widg.size[1]*0.752]]
@@ -154,7 +151,6 @@ class EntangledScreen(Screen):
         end_pos_1 = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.350, self.img_widg.pos[1] + self.img_widg.size[1] * 0.640]
         if self.line_pos[1][0] < end_pos_1[0]:
             self.line_pos[1][0] += (initial_pos[0]+end_pos_1[0])*0.003*2.9
-            print(self.line_pos)
         if self.line_pos[1][1] > end_pos_1[1]:
             self.line_pos[1][1] -= (initial_pos[1]+end_pos_1[1])*0.003
 
@@ -162,7 +158,6 @@ class EntangledScreen(Screen):
         else:
             if self.line_pos[0][0] < end_pos_1[0]:
                 self.line_pos[0][0] += (initial_pos[0] + end_pos_1[0]) * 0.003 * 2.9
-                print(self.line_pos)
             if self.line_pos[0][1] > end_pos_1[1]:
                 self.line_pos[0][1] -= (initial_pos[1] + end_pos_1[1]) * 0.003
             else:
@@ -218,6 +213,20 @@ class EntangledScreen(Screen):
             sigma = self.experiment.sigma(alpha, beta)
             print(s, "±", sigma)
 
+            # Rounds the S and sigma decimals properly.
+
+            rounder = sigma
+            factor_counter = 0
+            while rounder < 1:
+                rounder = rounder * 10
+                factor_counter += 1
+
+            sr = round(s, factor_counter)
+            sigmar = round(sigma, factor_counter)
+
+            self.s_label.text = '[font=digital-7][color=000000][size=34] S=' + str(
+                sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
+
         elif self.tab_selector == 1:
             self.table = self.experiment.hvt(alpha, beta)
             s_arr = np.array([])
@@ -227,26 +236,24 @@ class EntangledScreen(Screen):
             sigma = s_arr.std()
             s = s_arr.mean()
 
-        # Rounds the S and sigma decimals properly.
-        rounder = sigma
-        factor_counter = 0
-        if int(self.reps.text) > 1:
-            while rounder < 1:
-                rounder = rounder * 10
-                factor_counter += 1
+            # Rounds the S and sigma decimals properly.
 
-            sr = round(s, factor_counter)
-            sigmar = round(sigma, factor_counter)
-        else:
-            sr = round(s, 2)
-            sigmar = round(sigma, 2)
+            rounder = sigma
+            factor_counter = 0
+            if int(self.reps.text) > 1:
+                while rounder < 1:
+                    rounder = rounder * 10
+                    factor_counter += 1
 
-        if self.tab_selector == 0:
-            self.s_label.text = '[font=digital-7][color=000000][size=34] S=' + str(
-                sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
-        elif self.tab_selector == 1:
+                sr = round(s, factor_counter)
+                sigmar = round(sigma, factor_counter)
+            else:
+                sr = round(s, 2)
+                sigmar = round(sigma, 2)
+
             self.s_label_hvt.text = '[font=digital-7][color=000000][size=34] S=' + str(
                 sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
+
         return (sr, " ± ", sigmar)
 
     def activate_txtin_1(self):
@@ -255,6 +262,7 @@ class EntangledScreen(Screen):
     def open_table_popup(self):
         '''opens popup window'''
         self.table_checkbox.active = False
+        self.table_checkbox_hvt.active = False
         self.manager.current = 'TP'
 
     def close(self):
@@ -360,53 +368,19 @@ class EntangledScreen(Screen):
             self.angle_count = 0
             self.kwinput = False
 
-    pass
+    def change_pol_angles(self):
+        self.changing_angle = Clock.schedule_interval(lambda dt: self.angle_update(), 0.01)
 
+    def stop_angles(self):
+        Clock.unschedule(self.changing_angle)
 
-class animWidg(Widget):
-    line_pos = ListProperty([[760, 680], [760, 680]])
-    joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
-    cap = OptionProperty('none', options=('round', 'square', 'none'))
-    linewidth = NumericProperty(2)
-    dash_length = NumericProperty(1)
-    dash_offset = NumericProperty(0)
-    dashes = ListProperty([])
-
-    def __init__(self, **kwargs):
-        super(animWidg, self).__init__()
-        with self.canvas:
-            self.rect = Rectangle(source = 'img\sketch_exp_1.png',
-                                  pos=(self.size[0]*3,self.size[1]*3),
-                                  size = (self.width * 0.85, self.height))
-
-            Color(0, 0, 1)
-            self.line = Line(points=self.line_pos, joint=self.joint, cap=self.cap,
-                             width=self.linewidth, close=False, dash_length=self.dash_length,
-                             dash_offset=self.dash_offset)
-
-    def run_animation(self):
-        Clock.unschedule(self.move_lines)
-        self.line_pos = [[780, 680], [825, 663]]
-        self.line.points = self.line_pos
-        Clock.schedule_interval(self.move_lines, 1 / 60)
-
-    def move_lines(self, dt):
-        if self.line_pos[1][0] < 780 + 30 * 5:
-            self.line_pos[1][0] += 5
-        if self.line_pos[1][1] > 680 - 30 * 5 * 17 / 50:
-            self.line_pos[1][1] += -5 * 17 / 50
-        if self.line_pos[1][0] < 825:
-            self.line_pos[1][0] = self.line_pos[1][0]
-        elif self.line_pos[0][0] < 780 + 30 * 5:
-            self.line_pos[0][0] += 5
-            self.line_pos[0][1] += -5 * 17 / 50
-
-        else:
-            Clock.unschedule(self.move_lines)
-        # The tail of the line has arrived to the crystals
-
-        self.line.points = self.line_pos
-
+    def angle_update(self):
+        if self.tab_selector == 0:
+            self.angle_1 = -int(self.label_s1.text)
+            self.angle_2 = -int(self.label_s2.text)
+        elif self.tab_selector == 1:
+            self.angle_1 = -int(self.label_s1_hvt.text)
+            self.angle_2 = -int(self.label_s2_hvt.text)
     pass
 
 
