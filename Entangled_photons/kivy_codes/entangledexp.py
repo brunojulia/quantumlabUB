@@ -101,7 +101,7 @@ class entangledEXP(object):
         detectors = [detector1, detector2]
         return detectors
 
-    def hvt(self, alpha, beta):
+    def hvt(self, alpha, beta, rho_select):
         # creem les llistes dels angles que posarem als polaritzadors per poder calcular S
         # fem que els angles estiguin entre -pi i pi
         pol1 = []
@@ -130,7 +130,11 @@ class entangledEXP(object):
                                             math.pi)  # ha de ser entre -pi i pi perquè si no el alpha=-45 no pilla cap al detector1
 
                     # fem passar el fotó pels polaritzadors
-                    detectors = self.rho(photon, alph, bet)  # funció de distribució de probabilitat
+                    if rho_select == 0:
+                        detectors = self.rho(photon, alph, bet)  # funció de distribució de probabilitat
+                    elif rho_select == 1:
+                        detectors = self.rho2(photon, alph, bet)
+
                     detector1 = detectors[0]
                     detector2 = detectors[1]
                     # organitzem els resultats per VV, VH, HV, HH
@@ -151,12 +155,12 @@ class entangledEXP(object):
                 resultats = []
         return table1
 
-    def scalc(self, exp_select, alpha, beta):
+    def scalc(self, exp_select, alpha, beta, rho_select):
 
         if exp_select == 0:
             table1 = self.expqua(alpha, beta)
         elif exp_select == 1:
-            table1 = self.hvt(alpha, beta)
+            table1 = self.hvt(alpha, beta, rho_select)
         Elist = []
         # Nc=llista de coincidències, agafa la última columna de la taula
         Nc = []
