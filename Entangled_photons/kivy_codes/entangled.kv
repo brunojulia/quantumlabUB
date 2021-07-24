@@ -35,6 +35,8 @@
     plot_btn_hvt : plot_btn_hvt
     alpha_hvt : alpha_hvt
     reps : reps
+    rho1 : rho1
+    rho2 : rho2
 
     BoxLayout:
 
@@ -46,7 +48,13 @@
         BoxLayout:
             orientation: "horizontal"
             BoxLayout:
+                spacing: 10
                 orientation: "vertical"
+                Label:
+                    text: "Pol 1"
+                    size_hint: (0.05,0.1)
+                    pos_hint:{'x': 0.32, 'y':1}
+                    color: 1, 1, 1, 1
                 Image:
                     id: I1
                     pos_hint:{'x': 0., 'y':0.}
@@ -60,11 +68,16 @@
                     canvas.before:
                         PushMatrix:
                         Rotate:
-                            angle: 0
+                            angle: root.angle_1
                             origin:self.center
                     canvas.after:
                         PopMatrix
 
+                Label:
+                    text: "Pol 2"
+                    size_hint: (0.05,0.1)
+                    pos_hint:{'x': 0.32, 'y':1}
+                    color: 1, 1, 1, 1
 
                 Image:
                     id: I2
@@ -79,7 +92,7 @@
                     canvas.before:
                         PushMatrix:
                         Rotate:
-                            angle: 0
+                            angle: root.angle_2
                             origin:self.center
                     canvas.after:
                         PopMatrix
@@ -105,6 +118,11 @@
                 text: "[b]Quantic\n experiment:[/b]"
                 markup: True
                 on_release: root.tab_selector = 0
+                on_release: root.tab_change = True
+                on_release: root.angle_1 = 0
+                on_release: root.angle_2 = 0
+                on_release: root.angle_update()
+
                 BoxLayout:
                     orientation: "horizontal" #el partim en 2 cols grans
 
@@ -115,38 +133,39 @@
                             markup: True
                         BoxLayout:
                             orientation: "horizontal"
-                            FloatLayout:
-                                pos_hint:{'x': 0, 'y':.0}
-                                Label:
-                                    text: "Number of photons:"
-                                    markup: True
-                                    pos_hint:{'x': .7, 'y':.3}
-                            FloatLayout:
-                                pos_hint:{'x': 0, 'y':.0}
-                                Button:
-                                    text:"-"
-                                    size_hint: (0.3,0.2)
-                                    pos_hint:{'x': 1.3, 'y':.7}
-                                    on_press: root.start_photon_adding(-10000)
-                                    on_press: root.add_photons(-10000)
-                                    on_release: root.stop_photon_adding()
-                            FloatLayout:
-                                pos_hint:{'x': 0, 'y':.0}
-                                Label:
-                                    id: n_label
-                                    text: "10000"
-                                    markup: True
-                                    size_hint: (0.3,0.2)
-                                    pos_hint:{'x': 0.7, 'y':.7}
-                            FloatLayout:
-                                pos_hint:{'x': 0, 'y':.0}
-                                Button:
-                                    text: "+"
-                                    size_hint: (0.3,0.2)
-                                    pos_hint:{'x': .2, 'y':.7}
-                                    on_press: root.start_photon_adding(10000)
-                                    on_press: root.add_photons(10000)
-                                    on_release: root.stop_photon_adding()
+
+                            Label:
+                                text: "Number of photons:"
+                                markup: True
+                                pos_hint:{'x': .7, 'y':.3}
+
+                            Button:
+                                text:"-"
+                                size_hint: (0.2,0.25)
+                                pos_hint:{'x': 1.3, 'y':.7}
+                                on_press: root.start_photon_adding(-10000)
+                                on_press: root.add_photons(-10000)
+                                on_release: root.stop_photon_adding()
+
+                            TextInput:
+                                id: n_label
+                                size_hint: (.5,0.25)
+                                pos_hint:{'x': 0.7, 'y':.7}
+                                foreground_color : (1, 0, 0, 1)
+                                background_color : (0, 0, 0, 1)
+                                text: "10000"
+                                font_name: 'digital-7.ttf'
+                                font_size: 20
+                                multiline : False
+
+
+                            Button:
+                                text: "+"
+                                size_hint: (0.2,0.25)
+                                pos_hint:{'x': .5, 'y':.7}
+                                on_press: root.start_photon_adding(10000)
+                                on_press: root.add_photons(10000)
+                                on_release: root.stop_photon_adding()
 
                         FloatLayout:
                             Label:
@@ -183,6 +202,8 @@
                             value: 0
                             on_release: root.runexp()
                             on_release: root.run_animation()
+                            on_press: root.change_pol_angles()
+                            on_release: root.stop_angles()
                             knobimg_source: "img/knob_metal.png"
                             show_marker: True  # Show surrounding marker
                             marker_img: "img/bline2.png" # Marker texture image
@@ -207,6 +228,9 @@
                             show_marker: True  # Show surrounding marker
                             on_release: root.runexp()
                             on_release: root.run_animation()
+
+                            on_press: root.change_pol_angles()
+                            on_release: root.stop_angles()
                             marker_img: "img/bline2.png" # Marker texture image
 
                             Label:
@@ -221,7 +245,7 @@
                         BoxLayout:
                             orientation: "vertical"
                             FloatLayout:
-                                CheckBox:
+                                Switch:
                                     id: graph
                                     size_hint:(0.2,0.2)
                                     pos_hint:{'x': 0, 'y':0.4}
@@ -296,9 +320,9 @@
                         BoxLayout:
                             orientation: "horizontal"
                             FloatLayout:
-                                CheckBox:
+                                Switch:
                                     id: table_checkbox
-                                    size_hint:(0.2,0.2)
+                                    size_hint:(0.1,0.1)
                                     pos_hint:{'x': 0, 'y':0.4}
 
                                 Label:
@@ -309,6 +333,10 @@
                 text: "[b]HVT[/b]"
                 markup: True
                 on_release : root.tab_selector = 1
+                on_release: root.angle_1 = 0
+                on_release: root.angle_2 = 0
+                on_release: root.tab_change = True
+                on_release: root.angle_update()
                 BoxLayout:
                     orientation: "horizontal" #el partim en 2 cols grans
 
@@ -319,39 +347,39 @@
                             markup: True
                         BoxLayout:
                             orientation: "horizontal"
-                            FloatLayout:
-                                pos_hint:{'x': 0, 'y':.0}
-                                Label:
-                                    text: "Number of photons:"
-                                    markup: True
-                                    pos_hint:{'x': .7, 'y':.3}
-                            FloatLayout:
-                                pos_hint:{'x': 0, 'y':.0}
-                                Button:
-                                    text:"-"
-                                    size_hint: (0.3,0.2)
-                                    pos_hint:{'x': 1.3, 'y':.7}
-                                    on_press:root.start_photon_adding(-1000)
-                                    on_press: root.add_photons(-1000)
-                                    on_release: root.stop_photon_adding()
-                            FloatLayout:
-                                pos_hint:{'x': 0, 'y':.0}
-                                Label:
-                                    id: n_label_hvt
-                                    text: "1000"
-                                    markup: True
-                                    size_hint: (0.3,0.2)
-                                    pos_hint:{'x': 0.7, 'y':.7}
-                            FloatLayout:
-                                pos_hint:{'x': 0, 'y':.0}
-                                Button:
-                                    text: "+"
-                                    size_hint: (0.3,0.2)
-                                    pos_hint:{'x': .2, 'y':.7}
-                                    on_press: root.start_photon_adding(1000)
-                                    on_press: root.add_photons(1000)
-                                    on_release: root.stop_photon_adding()
 
+                            Label:
+                                text: "Number of photons:"
+                                markup: True
+                                pos_hint:{'x': .7, 'y':.3}
+
+                            Button:
+                                text:"-"
+                                size_hint: (0.2,0.35)
+                                pos_hint:{'x': 1.3, 'y':.7}
+                                on_press: root.start_photon_adding(-10000)
+                                on_press: root.add_photons(-10000)
+                                on_release: root.stop_photon_adding()
+
+                            TextInput:
+                                id: n_label_hvt
+                                size_hint: (.5,0.35)
+                                pos_hint:{'x': 0.7, 'y':.7}
+                                foreground_color : (1, 0, 0, 1)
+                                background_color : (0, 0, 0, 1)
+                                text: "10000"
+                                font_name: 'digital-7.ttf'
+                                font_size: 20
+                                multiline : False
+
+
+                            Button:
+                                text: "+"
+                                size_hint: (0.2,0.35)
+                                pos_hint:{'x': .5, 'y':.7}
+                                on_press: root.start_photon_adding(10000)
+                                on_press: root.add_photons(10000)
+                                on_release: root.stop_photon_adding()
                         BoxLayout:
                             orientation: "horizontal"
                             FloatLayout:
@@ -365,7 +393,7 @@
                                     id:reps
                                     background_color : (0, 0, 0, 1)
                                     foreground_color : (1, 0, 0, 1)
-                                    size_hint: (0.4,.5)
+                                    size_hint: (0.4,.4)
                                     pos_hint : {'x': 0.3, 'y':.7}
                                     multiline : False
                                     text: '1'
@@ -396,16 +424,17 @@
                             text:"[b]Polarizer angles:[/b]"
                             markup: True
                         Label:
-                            text: "angle of polarizer 1: \u03B1 (deg)"
+                            text: "Angle of polarizer 1: \u03B1 (deg)"
                             pos_hint:{'x': 0, 'y':0}
                         AngleKnob:
-                            pos_hint:{'x': 0.3, 'y':.7}
+                            pos_hint:{'x': 0.4, 'y':.7}
                             min: 0
                             max: 360
                             step: 1
                             slope: 1
                             value: 0
-                            #on_release: root.runexp()
+                            on_press: root.change_pol_angles()
+                            on_release: root.stop_angles()
                             knobimg_source: "img/knob_metal.png"
                             show_marker: True  # Show surrounding marker
                             marker_img: "img/bline2.png" # Marker texture image
@@ -418,9 +447,9 @@
                                 color: 0.1, 0.1, 0.1, 1
 
                         Label:
-                            text: "angle of polarizer 2: \u03B2 (deg)"
+                            text: "Angle of polarizer 2: \u03B2 (deg)"
                         AngleKnob:
-                            pos_hint:{'x': 0.3, 'y':.7}
+                            pos_hint:{'x': 0.4, 'y':.7}
                             min: 0
                             max: 360
                             step: 1
@@ -428,7 +457,8 @@
                             value: 0
                             knobimg_source: "img/knob_metal.png"
                             show_marker: True  # Show surrounding marker
-                            #on_release: root.runexp()
+                            on_press: root.change_pol_angles()
+                            on_release: root.stop_angles()
                             marker_img: "img/bline2.png" # Marker texture image
                             #on_touch_up: root.runexp()
 
@@ -461,15 +491,13 @@
 
                                 TextInput:
                                     id: alpha_hvt
-                                    size_hint: (1,1)
+                                    size_hint: (1,1.1)
                                     foreground_color : (1, 0, 0, 1)
                                     background_color : (0, 0, 0, 1)
                                     text: '0'
                                     font_name: 'digital-7.ttf'
                                     font_size: 20
                                     multiline : False
-                                    on_text:root.changed_angles=True
-                                    on_text_validate:root.changed_angles=True
                                     on_text_validate:root.manager.get_screen('GS').get_graph()
 
 
@@ -477,7 +505,6 @@
                                     id: sum_btn
                                     text: "+"
                                     disabled: False
-                                    on_press : root.changed_angles = True
                                     on_press: root.angle_up_hvt()
                                     on_press: root.start_angle_up()
                                     on_release: root.stop_angle_up()
@@ -489,26 +516,42 @@
                                     id:plot_btn_hvt
                                     text: "Plot"
                                     size_hint: (0.9,0.7)
-                                    on_release: print(root.changed_angles)
                                     on_release: root.manager.get_screen('GS').get_graph()
                         BoxLayout:
                             orientation: "horizontal"
                             FloatLayout:
-                                CheckBox:
+                                Switch:
                                     id: table_checkbox_hvt
-                                    size_hint:(0.2,0.2)
+                                    size_hint:(0.1,0.1)
                                     pos_hint:{'x': 0, 'y':0.4}
 
                                 Label:
                                     text: "Generate table"
                                     pos_hint:{'x': -0.1, 'y':0}
+                        BoxLayout:
+                            orientation: "vertical"
+
+                            BoxLayout:
+                                orientation: "horizontal"
+                                Switch:
+                                    id: rho1
+                                    active : True
+                                Label:
+                                    text: "\u03C1_1"
+                            BoxLayout:
+                                orientation: "horizontal"
+                                Switch:
+                                    id: rho2
+                                Label:
+                                    text: "\u03C1_2"
+
 
                         Button:
                             size_hint: (1,0.3)
                             text: "Calculate S"
                             id: run_b
                             on_release: root.runexp()
-                            on_release: anwidg.run_animation()
+                            on_release: root.run_animation()
 
             TabbedPanelItem:
                 text: "[b]Experiment\n Sketch[/b]"
@@ -525,7 +568,14 @@
 <TablePopup>:
     table_lay : table_lay
     title: 'Table 1'
-    FloatLayout:
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba : (1,1,1,1)
+            Rectangle:
+                size : self.size
+                pos : self.pos
 
         GridLayout:
             id : table_lay
