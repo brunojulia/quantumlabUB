@@ -42,11 +42,12 @@
 
         orientation: "vertical"
         padding: 10
-        spacing: 10
-        # Adding image from the system
+        spacing: 5
 
-        BoxLayout:
-            orientation: "horizontal"
+        GridLayout:
+            cols : 3
+            rows : 1
+            width: self.minimum_width
             BoxLayout:
                 spacing: 10
                 orientation: "vertical"
@@ -106,7 +107,6 @@
                         size : self.size
                         pos: self.pos
                         source : "img/sketch_exp_6.png"
-
 
         TabbedPanel:
             size_hint: (1, 1)
@@ -554,6 +554,23 @@
                             on_release: root.run_animation()
 
             TabbedPanelItem:
+                text: "[b]Use real\n data[/b]"
+                markup: True
+                BoxLayout:
+                    orientation: 'vertical'
+
+                    FileChooserIconView:
+                        id: filechooser
+                        path: "."
+                        on_submit: root.select_file(filechooser.selection)
+                        on_selection: root.file_name = filechooser.selection[0]
+                        on_selection : print(filechooser.selection[0])
+                    Button:
+                        size_hint: (1,0.1)
+                        text: 'Load file (.csv)'
+                        on_release:root.select_file(filechooser.selection)
+
+            TabbedPanelItem:
                 text: "[b]Experiment\n Sketch[/b]"
                 markup: True
 
@@ -587,3 +604,45 @@
             pos_hint: {'x':0, 'y':0}
             text: 'Close'
             on_release: root.manager.current = 'ES'
+
+<DataScreen>:
+    name: 'DS'
+    table_lay_data: table_lay_data
+    BoxLayout:
+        orientation: 'vertical'
+        canvas.before:
+            Color:
+                rgba : (1,1,1,1)
+            Rectangle:
+                size : self.size
+                pos : self.pos
+
+        GridLayout:
+            id : table_lay_data
+            rows : 17
+            cols : 5
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint: (1,0.2)
+            BoxLayout:
+                orientation: 'horizontal'
+                Button:
+                    text: 'Calculate S'
+                Label:
+                    id: s_label
+                    text:'[font=digital-7][color=000000][size=34] S=                [/color][/font][/size]'
+                    markup:True
+                    #pos_hint:{'x':0.1,'y':0.2}
+                    canvas.before:
+                        Color:
+                            rgba: 0, 153, 0, 1
+
+                        RoundedRectangle:
+                            pos: self.pos[0] , self.pos[1]
+                            size: (self.width, self.height)
+                            id: S_rect
+
+            Button:
+                text: 'Close'
+                on_release: root.manager.current = 'ES'

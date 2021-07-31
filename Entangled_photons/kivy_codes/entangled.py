@@ -1,4 +1,7 @@
 import matplotlib
+import csv
+from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
 matplotlib.use('module://kivy.garden.matplotlib.backend_kivy')
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas, FigureCanvasKivyAgg
@@ -119,6 +122,8 @@ class EntangledScreen(Screen):
     rho_select = NumericProperty()
     changed_rho = BooleanProperty()
 
+    # Animation props
+
     line_pos = ListProperty([[760, 680], [760, 680]])
     joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
     cap = OptionProperty('none', options=('round', 'square', 'none'))
@@ -126,6 +131,10 @@ class EntangledScreen(Screen):
     dash_length = NumericProperty(1)
     dash_offset = NumericProperty(0)
     dashes = ListProperty([])
+
+    # real data props
+
+    file_name = StringProperty()
 
     def __init__(self, angle_count=0, tab_selector=0, angle_count_hvt=0, **kwargs):
         super(EntangledScreen, self).__init__()
@@ -137,7 +146,7 @@ class EntangledScreen(Screen):
         self.table_checkbox.bind(active=self.on_checkbox_Active)  # lliga la checkbox amb la funció
         self.table_checkbox_hvt.bind(active=self.on_checkbox_Active)
         self.graph_checkbox.bind(active=self.on_graph_checkbox_Active)  # lliga la checkbox amb la funció
-        self.rho1.bind(active=self.select_rho) # lliga el switch a la funció per seleccionar la rho.
+        self.rho1.bind(active=self.select_rho)  # lliga el switch a la funció per seleccionar la rho.
         self.rho2.bind(active=self.select_rho)
         # Canvas of the animation
 
@@ -211,7 +220,6 @@ class EntangledScreen(Screen):
                     self.experiment.addphotons(n=self.experiment.n + a)
             self.n_label_hvt.text = str(int(self.experiment.n))
 
-
     # Selects rho 1 or rho 2 used in HVT tab
     def select_rho(self, checkboxInstance, isActive):
         if self.rho1.active:
@@ -222,6 +230,7 @@ class EntangledScreen(Screen):
             self.rho_select = 0
             print("No distribution selected. Chosen default (0)")
         self.changed_rho = True
+
     # Runs the experiment. tab_selector determines if the user is in the Quantum (0) or the HVT (1) tab.
     def runexp(self):
         if self.tab_selector == 0:
@@ -408,6 +417,14 @@ class EntangledScreen(Screen):
             self.angle_1 = -int(self.label_s1_hvt.text)
             self.angle_2 = -int(self.label_s2_hvt.text)
 
+    def select_file(self, filename):
+        try:
+            self.file_name = filename[0]
+            sm.current = 'DS'
+            print(self.file_name)
+        except:
+            pass
+
     pass
 
 
@@ -470,8 +487,9 @@ class GraphScreen(Screen):
 
         if self.manager.get_screen('ES').tab_selector == 1:  # HVT
 
-            if int(self.manager.get_screen('ES').alpha_hvt.text) * np.pi / 180 != self.alpha or self.manager.get_screen('ES').changed_rho \
-                   or self.manager.get_screen('ES').tab_change:
+            if int(self.manager.get_screen('ES').alpha_hvt.text) * np.pi / 180 != self.alpha or self.manager.get_screen(
+                    'ES').changed_rho \
+                    or self.manager.get_screen('ES').tab_change:
                 figure, ax = plt.subplots()
 
                 self.alpha = int(self.manager.get_screen('ES').alpha_hvt.text) * np.pi / 180
@@ -491,7 +509,7 @@ class GraphScreen(Screen):
                 ax.set_xlabel("\u03B2 (rad)")
 
                 self.canv = FigureCanvasKivyAgg(figure)
-                self.manager.get_screen('ES').changed_rho = False # changed_rho tells if the rho used has changed
+                self.manager.get_screen('ES').changed_rho = False  # changed_rho tells if the rho used has changed
                 self.manager.get_screen('ES').tab_change = False  # tab_change tells if the tab has changed to replot
         self.add_plot()
 
@@ -506,6 +524,34 @@ class GraphScreen(Screen):
     pass
 
 
+class DataScreen(Screen):
+    table_lay_data = ObjectProperty(GridLayout)
+    def __init__(self, *args, **kwargs):
+        super(DataScreen, self).__init__(*args, **kwargs)
+
+    def on_enter(self, *args):
+
+        self.table_lay_data.clear_widgets()
+        self.table_lay_data.add_widget(Button(text='\u03B1 (rad)', background_color=(0, 102 / 255, 204 / 255, 1)))
+        self.table_lay_data.add_widget(Button(text='\u03B2 (rad)', background_color=(0, 102 / 255, 204 / 255, 1)))
+        self.table_lay_data.add_widget(Button(text='N_a', background_color=(0, 102 / 255, 204 / 255, 1)))
+        self.table_lay_data.add_widget(Button(text='N_b', background_color=(0, 102 / 255, 204 / 255, 1)))
+        self.table_lay_data.add_widget(Button(text='N', background_color=(0, 102 / 255, 204 / 255, 1)))
+
+        file_name = sm.get_screen('ES').file_name
+        with open(file_name, 'r', encoding='utf-8-sig') as csvfile:
+            reader = csv.reader(csvfile, delimiter=';')
+            # If a measure of the S has been taken
+            for row in reader:
+                for item in row:
+                    print(row)
+                    label_i = Button(text=str(round(float(item), 2)), size_hint=(1, 1),
+                                     background_color=(0, 102 / 255, 204 / 255, 0.8))
+
+                    self.table_lay_data.add_widget(label_i)
+    pass
+
+
 kv = Builder.load_file("entangled.kv")
 
 
@@ -515,6 +561,7 @@ class MainApp(App):
         sm.add_widget(GraphScreen(name='GS'))
         sm.add_widget(EntangledScreen(name='ES'))
         sm.add_widget(TablePopup(name='TP'))
+        sm.add_widget(DataScreen(name='DS'))
         sm.current = 'ES'
         return sm
 
