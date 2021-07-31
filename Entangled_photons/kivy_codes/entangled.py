@@ -549,6 +549,7 @@ class DataScreen(Screen):
                                      background_color=(0, 102 / 255, 204 / 255, 0.8))
 
                     self.table_lay_data.add_widget(label_i)
+            csvfile.close()
     pass
 
 
