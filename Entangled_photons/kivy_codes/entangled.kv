@@ -563,8 +563,10 @@
                         id: filechooser
                         path: "."
                         on_submit: root.select_file(filechooser.selection)
-                        on_selection: root.file_name = filechooser.selection[0]
-                        on_selection : print(filechooser.selection[0])
+                        on_selection:
+                            if len(filechooser.selection) != 0: \
+                            root.file_name = filechooser.selection[0]
+
                     Button:
                         size_hint: (1,0.1)
                         text: 'Load file (.csv)'
