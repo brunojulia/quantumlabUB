@@ -493,7 +493,7 @@ class GraphScreen(Screen):
                 figure, ax = plt.subplots()
 
                 self.alpha = int(self.manager.get_screen('ES').alpha_hvt.text) * np.pi / 180
-                beta_axis = np.linspace(0, 2 * np.pi, 100)
+                beta_axis = np.linspace(0, 2 * np.pi, 75)
                 S_axis = []
 
                 for beta in beta_axis:
@@ -526,6 +526,11 @@ class GraphScreen(Screen):
 
 class DataScreen(Screen):
     table_lay_data = ObjectProperty(GridLayout)
+    table1 = ListProperty([])
+    s_label_data = ObjectProperty()
+    alpha = NumericProperty()
+    beta = NumericProperty()
+
     def __init__(self, *args, **kwargs):
         super(DataScreen, self).__init__(*args, **kwargs)
 
@@ -542,15 +547,65 @@ class DataScreen(Screen):
         with open(file_name, 'r', encoding='utf-8-sig') as csvfile:
             reader = csv.reader(csvfile, delimiter=';')
             # If a measure of the S has been taken
+            self.table1 = []
             for row in reader:
+                table_row = []
                 for item in row:
-                    print(row)
                     label_i = Button(text=str(round(float(item), 2)), size_hint=(1, 1),
                                      background_color=(0, 102 / 255, 204 / 255, 0.8))
-
                     self.table_lay_data.add_widget(label_i)
+
+#                   generating the table with numbers
+                    table_row.append(float(item))
+                self.table1.append(table_row)
+            self.alpha = self.table1[0][0]
+            self.beta = self.table1[0][1]
             csvfile.close()
+
+    def run_exp_data(self):
+
+        s = sm.get_screen('ES').experiment.s_calc_data(self.table1)
+        sigma = sm.get_screen('ES').experiment.sigma_data(self.table1)
+
+        # Rounds the S and sigma decimals properly.
+
+        rounder = sigma
+        factor_counter = 0
+        while rounder < 1:
+            rounder = rounder * 10
+            factor_counter += 1
+
+        sr = round(s, factor_counter)
+        sigmar = round(sigma, factor_counter)
+
+        self.s_label_data.text = '[font=digital-7][color=000000][size=34] S=' + str(
+                sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
     pass
+
+#   predicts HVT's S using the angles from the table
+
+    def run_cla_pred(self):
+        s_arr = np.array([])
+        for rep in range(0, 10):
+            s_i = sm.get_screen('ES').experiment.scalc(1, self.alpha, self.beta, 0)
+            s_arr = np.append(s_arr, s_i)
+        sigma = s_arr.std()
+        s = s_arr.mean()
+
+        # Rounds the S and sigma decimals properly.
+        rounder = sigma
+        factor_counter = 0
+        while rounder < 1:
+            rounder = rounder * 10
+            factor_counter += 1
+
+        sr = round(s, factor_counter)
+        sigmar = round(sigma, factor_counter)
+
+        self.s_label_data.text = '[font=digital-7][color=000000][size=34] S=' + str(
+            sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
+
+        return (sr, " ± ", sigmar)
 
 
 kv = Builder.load_file("entangled.kv")

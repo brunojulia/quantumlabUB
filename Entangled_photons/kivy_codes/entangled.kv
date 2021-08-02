@@ -608,6 +608,7 @@
 <DataScreen>:
     name: 'DS'
     table_lay_data: table_lay_data
+    s_label_data : s_label_data
     BoxLayout:
         orientation: 'vertical'
         canvas.before:
@@ -627,10 +628,17 @@
             size_hint: (1,0.2)
             BoxLayout:
                 orientation: 'horizontal'
-                Button:
-                    text: 'Calculate S'
+                BoxLayout:
+                    orientation: 'vertical'
+                    Button:
+                        text: 'Calculate S from data'
+                        on_release : root.run_exp_data()
+
+                    Button:
+                        text: 'Calculate S predicted by HVT'
+                        on_release:  root.run_cla_pred()
                 Label:
-                    id: s_label
+                    id: s_label_data
                     text:'[font=digital-7][color=000000][size=34] S=                [/color][/font][/size]'
                     markup:True
                     #pos_hint:{'x':0.1,'y':0.2}
@@ -646,3 +654,4 @@
             Button:
                 text: 'Close'
                 on_release: root.manager.current = 'ES'
+                on_release: s_label_data.text = '[font=digital-7][color=000000][size=34] S=                [/color][/font][/size]'

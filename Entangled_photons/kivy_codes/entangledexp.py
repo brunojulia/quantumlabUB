@@ -157,9 +157,9 @@ class entangledEXP(object):
 
     def scalc(self, exp_select, alpha, beta, rho_select):
 
-        if exp_select == 0:
+        if exp_select == 0: #qua
             table1 = self.expqua(alpha, beta)
-        elif exp_select == 1:
+        elif exp_select == 1: #HVT
             table1 = self.hvt(alpha, beta, rho_select)
         Elist = []
         # Nc=llista de coincidències, agafa la última columna de la taula
@@ -182,6 +182,46 @@ class entangledEXP(object):
     def sigma(self, alpha, beta):
         # Nc=llista de coincidències, agafa la última columna de la taula
         table1 = self.expqua(alpha, beta)
+        Nc = []
+        for result in table1:
+            Nc.append(result[4])
+        # posicions en la llista de coincidències de E(alpha,beta).
+        posab = [0, 1, 4, 5]
+        ##################
+        # Càlcul de la desviació estàndard
+        ##################
+        suma = []
+        for i in posab:
+            # calcula la derivada de E segons la posició de E(alpha,beta) de la llista de coincidències
+            # derivades
+            dEi1 = 2 * (Nc[i + 2] + Nc[i + 8]) / (Nc[i] + Nc[i + 10] + Nc[i + 2] + Nc[i + 8]) ** 2
+            dEi2 = -2 * (Nc[i] + Nc[i + 10]) / (Nc[i] + Nc[i + 10] + Nc[i + 2] + Nc[i + 8]) ** 2
+
+            suma.append(dEi1 ** 2 * (Nc[i] + Nc[i + 10]) + dEi2 ** 2 * (Nc[i + 2] + Nc[i + 8]))
+
+        sigma = math.sqrt(sum(suma))
+        return (sigma)
+
+# Calcs S from real data
+
+    def s_calc_data(self, table1):
+        Elist = []
+        # Nc=llista de coincidències, agafa la última columna de la taula
+        Nc = []
+        for result in table1:
+            Nc.append(result[4])
+        # posicions en la llista de coincidències de E(alpha,beta). Ho faig així perquè segueixen un patró.
+        posab = [0, 1, 4, 5]
+        for i in posab:
+            # calcula la E segons la posició de E(alpha,beta) de la llista de coincidències
+            E = (Nc[i] + Nc[i + 10] - Nc[i + 2] - Nc[i + 8]) / (Nc[i] + Nc[i + 10] + Nc[i + 2] + Nc[i + 8])
+            Elist.append(E)
+        # Agafem els angles a=-45, a'=0 i b=22.5, b'=-22.5
+        # print(Elist)
+        S = Elist[0] - Elist[1] + Elist[2] + Elist[3]
+        return S
+
+    def sigma_data(self, table1):
         Nc = []
         for result in table1:
             Nc.append(result[4])
