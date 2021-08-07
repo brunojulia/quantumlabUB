@@ -14,6 +14,8 @@
     n_label: n_label #MOLT IMPORTANT AIXÒ, SI NO EL PROGRAMA NO SAP DE Q ÉS
     label_s1:label_s1
     label_s2:label_s2
+    textin_alph : label_s1_1
+    textin_bet : label_s2_1
     table_checkbox:table_checkbox
     graph_checkbox:graph
     s_label:s_label
@@ -30,6 +32,8 @@
     n_label_hvt : n_label_hvt
     label_s1_hvt : label_s1_hvt
     label_s2_hvt : label_s2_hvt
+    textin_alph_hvt : label_s1_1_hvt
+    textin_bet_hvt : label_s2_1_hvt
     table_checkbox_hvt : table_checkbox_hvt
     s_label_hvt : s_label_hvt
     plot_btn_hvt : plot_btn_hvt
@@ -190,55 +194,104 @@
                         Label:
                             text:"[b]Polarizer angles:[/b]"
                             markup: True
-                        Label:
-                            text: "Angle of polarizer 1: \u03B1 (deg)"
-                            pos_hint:{'x': 0, 'y':0}
-                        AngleKnob:
-                            pos_hint:{'x': 0.4, 'y':.7}
-                            min: 0
-                            max: 360
-                            step: 1
-                            slope: 1
-                            value: 0
-                            on_release: root.runexp()
-                            on_release: root.run_animation()
-                            on_press: root.change_pol_angles()
-                            on_release: root.stop_angles()
-                            knobimg_source: "img/knob_metal.png"
-                            show_marker: True  # Show surrounding marker
-                            marker_img: "img/bline2.png" # Marker texture image
-
+                        FloatLayout:
                             Label:
-                                id: label_s1
-                                text: "{}".format(int(self.parent.value))
-                                center: self.parent.center
-                                font_size: 20
-                                color: 0.1, 0.1, 0.1, 1
+                                text: "Angle of polarizer 1: \u03B1 (deg)"
+                                pos_hint: {'x': 0, 'y':0.4}
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            FloatLayout:
+                                AngleKnob:
+                                    id: knob_1
+                                    pos_hint:{'x': 0.7, 'y':0}
+                                    min: 0
+                                    max: 360
+                                    step: 1
+                                    slope: 1
+                                    value: 0
+                                    on_release: root.runexp()
+                                    on_release: root.run_animation()
+                                    on_press: root.change_pol_angles()
+                                    on_release: root.stop_angles()
+                                    knobimg_source: "img/knob_metal.png"
+                                    show_marker: True  # Show surrounding marker
+                                    marker_img: "img/bline2.png" # Marker texture image
 
-                        Label:
-                            text: "Angle of polarizer 2: \u03B2 (deg)"
-                        AngleKnob:
-                            pos_hint:{'x': 0.4, 'y':.7}
-                            min: 0
-                            max: 360
-                            step: 1
-                            slope: 1
-                            value: 0
-                            knobimg_source: "img/knob_metal.png"
-                            show_marker: True  # Show surrounding marker
-                            on_release: root.runexp()
-                            on_release: root.run_animation()
-
-                            on_press: root.change_pol_angles()
-                            on_release: root.stop_angles()
-                            marker_img: "img/bline2.png" # Marker texture image
-
+                                    Label:
+                                        id: label_s1
+                                        text: "{}".format(int(self.parent.value))
+                                        center: self.parent.center
+                                        font_name: 'digital-7.ttf'
+                                        center: self.parent.center
+                                        font_size: 25
+                                        color: (0, 205/255, 0, 1)
+                            FloatLayout:
+                                TextInput:
+                                    id: label_s1_1
+                                    size_hint: (0.2, 0.5)
+                                    size : (50, 30)
+                                    pos_hint: {'x': 0.2, 'y':0.5}
+                                    foreground_color : (1, 0, 0, 1)
+                                    background_color : (0, 0, 0, 1)
+                                    text: "{}".format(int(knob_1.value))
+                                    font_name: 'digital-7.ttf'
+                                    font_size: 23
+                                    multiline:False
+                                    on_text_validate: label_s1.text = self.text
+                                    on_text_validate: knob_1.value = int(self.text)
+                                    on_text_validate: root.angle_1 = -int(self.text)
+                                    on_text_validate: root.runexp()
+                                    on_text_validate: root.run_animation()
+                        FloatLayout:
                             Label:
-                                id: label_s2
-                                text: "{}".format(int(self.parent.value))
-                                center: self.parent.center
-                                font_size: 20
-                                color: 0.1, 0.1, 0.1, 1
+                                text: "Angle of polarizer 2: \u03B2 (deg)"
+                                pos_hint: {'x': 0, 'y':0.4}
+
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            FloatLayout:
+                                AngleKnob:
+                                    id: knob_2
+                                    pos_hint:{'x': 0.7, 'y':0}
+                                    min: 0
+                                    max: 360
+                                    step: 1
+                                    slope: 1
+                                    value: 0
+                                    knobimg_source: "img/knob_metal.png"
+                                    show_marker: True  # Show surrounding marker
+                                    on_release: root.runexp()
+                                    on_release: root.run_animation()
+
+                                    on_press: root.change_pol_angles()
+                                    on_release: root.stop_angles()
+                                    marker_img: "img/bline2.png" # Marker texture image
+
+                                    Label:
+                                        id: label_s2
+                                        text: "{}".format(int(self.parent.value))
+                                        font_name: 'digital-7.ttf'
+                                        center: self.parent.center
+                                        font_size: 25
+                                        color: (0, 205/255, 0, 1)
+                            FloatLayout:
+                                TextInput:
+                                    id: label_s2_1
+                                    size_hint: (0.2, 0.5)
+                                    pos_hint: {'x': 0.2, 'y':0.5}
+                                    foreground_color : (1, 0, 0, 1)
+                                    background_color : (0, 0, 0, 1)
+                                    text: "{}".format(int(knob_2.value))
+                                    font_name: 'digital-7.ttf'
+                                    font_size: 23
+                                    multiline:False
+                                    on_text_validate: label_s2.text = self.text
+                                    on_text_validate: knob_2.value = int(self.text)
+                                    on_text_validate: root.angle_2 = -int(self.text)
+                                    on_text_validate: root.runexp()
+                                    on_text_validate: root.run_animation()
+
+
 
                     BoxLayout:
                         orientation:"vertical"
@@ -317,6 +370,7 @@
                                     size_hint: (0.9,0.7)
                                     disabled: True
                                     on_release:root.clear_angles()
+
                         BoxLayout:
                             orientation: "horizontal"
                             FloatLayout:
@@ -423,51 +477,93 @@
                         Label:
                             text:"[b]Polarizer angles:[/b]"
                             markup: True
-                        Label:
-                            text: "Angle of polarizer 1: \u03B1 (deg)"
-                            pos_hint:{'x': 0, 'y':0}
-                        AngleKnob:
-                            pos_hint:{'x': 0.4, 'y':.7}
-                            min: 0
-                            max: 360
-                            step: 1
-                            slope: 1
-                            value: 0
-                            on_press: root.change_pol_angles()
-                            on_release: root.stop_angles()
-                            knobimg_source: "img/knob_metal.png"
-                            show_marker: True  # Show surrounding marker
-                            marker_img: "img/bline2.png" # Marker texture image
-
+                        FloatLayout:
                             Label:
-                                id: label_s1_hvt
-                                text: "{}".format(int(self.parent.value))
-                                center: self.parent.center
-                                font_size: 20
-                                color: 0.1, 0.1, 0.1, 1
+                                text: "Angle of polarizer 1: \u03B1 (deg)"
+                                pos_hint: {'x': 0, 'y':0.4}
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            FloatLayout:
+                                AngleKnob:
+                                    id: knob_1_hvt
+                                    pos_hint:{'x': 0.7, 'y':0}
+                                    min: 0
+                                    max: 360
+                                    step: 1
+                                    slope: 1
+                                    value: 0
+                                    on_press: root.change_pol_angles()
+                                    on_release: root.stop_angles()
+                                    knobimg_source: "img/knob_metal.png"
+                                    show_marker: True  # Show surrounding marker
+                                    marker_img: "img/bline2.png" # Marker texture image
 
-                        Label:
-                            text: "Angle of polarizer 2: \u03B2 (deg)"
-                        AngleKnob:
-                            pos_hint:{'x': 0.4, 'y':.7}
-                            min: 0
-                            max: 360
-                            step: 1
-                            slope: 1
-                            value: 0
-                            knobimg_source: "img/knob_metal.png"
-                            show_marker: True  # Show surrounding marker
-                            on_press: root.change_pol_angles()
-                            on_release: root.stop_angles()
-                            marker_img: "img/bline2.png" # Marker texture image
-                            #on_touch_up: root.runexp()
+                                    Label:
+                                        id: label_s1_hvt
+                                        text: "{}".format(int(self.parent.value))
+                                        center: self.parent.center
+                                        font_size: 25
+                                        font_name: 'digital-7.ttf'
+                                        color: (0, 205/255, 0, 1)
+                            FloatLayout:
+                                TextInput:
+                                    id: label_s1_1_hvt
+                                    size_hint: (0.2, 0.5)
+                                    pos_hint: {'x': 0.2, 'y':0.5}
+                                    foreground_color : (1, 0, 0, 1)
+                                    background_color : (0, 0, 0, 1)
+                                    text: "{}".format(int(knob_1_hvt.value))
+                                    font_name: 'digital-7.ttf'
+                                    font_size: 23
+                                    multiline:False
+                                    on_text_validate: label_s1_hvt.text = self.text
+                                    on_text_validate: knob_1_hvt.value = int(self.text)
+                                    on_text_validate: root.angle_1 = -int(self.text)
 
+                        FloatLayout:
                             Label:
-                                id: label_s2_hvt
-                                text: "{}".format(int(self.parent.value))
-                                center: self.parent.center
-                                font_size: 20
-                                color: 0.1, 0.1, 0.1, 1
+                                text: "Angle of polarizer 2: \u03B2 (deg)"
+                                pos_hint: {'x': 0, 'y':0.4}
+
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            FloatLayout:
+                                AngleKnob:
+                                    id: knob_2_hvt
+                                    pos_hint:{'x': 0.7, 'y':0}
+                                    min: 0
+                                    max: 360
+                                    step: 1
+                                    slope: 1
+                                    value: 0
+                                    knobimg_source: "img/knob_metal.png"
+                                    show_marker: True  # Show surrounding marker
+
+                                    on_press: root.change_pol_angles()
+                                    on_release: root.stop_angles()
+                                    marker_img: "img/bline2.png" # Marker texture image
+
+                                    Label:
+                                        id: label_s2_hvt
+                                        text: "{}".format(int(self.parent.value))
+                                        center: self.parent.center
+                                        font_size: 25
+                                        font_name: 'digital-7.ttf'
+                                        color: (0, 205/255, 0, 1)
+                            FloatLayout:
+                                TextInput:
+                                    id: label_s2_1_hvt
+                                    size_hint: (0.2, 0.5)
+                                    pos_hint: {'x': 0.2, 'y':0.5}
+                                    foreground_color : (1, 0, 0, 1)
+                                    background_color : (0, 0, 0, 1)
+                                    text: "{}".format(int(knob_2_hvt.value))
+                                    font_name: 'digital-7.ttf'
+                                    font_size: 23
+                                    multiline:False
+                                    on_text_validate: label_s2_hvt.text = self.text
+                                    on_text_validate: knob_2_hvt.value = int(self.text)
+                                    on_text_validate: root.angle_2 = -int(self.text)
 
                     BoxLayout:
                         orientation:"vertical"
@@ -517,6 +613,7 @@
                                     text: "Plot"
                                     size_hint: (0.9,0.7)
                                     on_release: root.manager.get_screen('GS').get_graph()
+
                         BoxLayout:
                             orientation: "horizontal"
                             FloatLayout:

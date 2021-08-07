@@ -84,6 +84,8 @@ class EntangledScreen(Screen):
     n_label = ObjectProperty()
     label_s1 = ObjectProperty()
     label_s2 = ObjectProperty()
+    textin_alph = ObjectProperty()
+    textin_bet = ObjectProperty()
     s_label = ObjectProperty()
     table_checkbox = ObjectProperty(Switch)
     table_popup = ObjectProperty()
@@ -109,6 +111,8 @@ class EntangledScreen(Screen):
     n_label_hvt = ObjectProperty()
     label_s1_hvt = ObjectProperty()
     label_s2_hvt = ObjectProperty()
+    textin_alph_hvt = ObjectProperty()
+    textin_bet_hvt = ObjectProperty()
     table_checkbox_hvt = ObjectProperty()
     s_label_hvt = ObjectProperty()
     delete_button_hvt = ObjectProperty()
@@ -235,11 +239,11 @@ class EntangledScreen(Screen):
     def runexp(self):
         if self.tab_selector == 0:
             alpha = int(
-                self.label_s1.text) * math.pi / 180  # convertim a radians i assignem els parametres per poder fer l'experiment
-            beta = int(self.label_s2.text) * math.pi / 180
+                self.textin_alph.text) * math.pi / 180  # convertim a radians i assignem els parametres per poder fer l'experiment
+            beta = int(self.textin_bet.text) * math.pi / 180
         elif self.tab_selector == 1:
-            alpha = int(self.label_s1_hvt.text) * math.pi / 180
-            beta = int(self.label_s2_hvt.text) * math.pi / 180
+            alpha = int(self.textin_alph_hvt.text) * math.pi / 180
+            beta = int(self.textin_bet_hvt.text) * math.pi / 180
 
         self.experiment.photons = int(self.n_label.text)
 
@@ -337,8 +341,8 @@ class EntangledScreen(Screen):
         if self.angle_count == 1:
             self.delete_button.disabled = False
             if not self.kwinput:
-                self.b1_label.text = self.label_s2.text
-                self.b1_val = float(self.label_s2.text)
+                self.b1_label.text = self.textin_bet.text
+                self.b1_val = float(self.textin_bet.text)
 
             else:
                 self.b1_val = float(self.b1_label.text)
@@ -347,8 +351,8 @@ class EntangledScreen(Screen):
             self.delete_button.disabled = False
             # self.select_button.disabled = True
             if not self.kwinput:
-                self.b2_label.text = self.label_s2.text
-                self.b2_val = float(self.label_s2.text)
+                self.b2_label.text = self.textin_bet.text
+                self.b2_val = float(self.textin_bet.text)
             else:
                 self.b2_val = float(self.b2_label.text)
         self.kwinput = False
@@ -411,11 +415,12 @@ class EntangledScreen(Screen):
 
     def angle_update(self):
         if self.tab_selector == 0:
-            self.angle_1 = -int(self.label_s1.text)
-            self.angle_2 = -int(self.label_s2.text)
+            self.angle_1 = -int(self.textin_alph.text)
+            self.angle_2 = -int(self.textin_bet.text)
+            print(int(self.textin_alph.text))
         elif self.tab_selector == 1:
-            self.angle_1 = -int(self.label_s1_hvt.text)
-            self.angle_2 = -int(self.label_s2_hvt.text)
+            self.angle_1 = -int(self.textin_alph_hvt.text)
+            self.angle_2 = -int(self.textin_bet_hvt.text)
 
     def select_file(self, filename):
         try:
