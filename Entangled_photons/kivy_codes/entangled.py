@@ -9,6 +9,7 @@ from numpy import arange, sin, pi
 from mpl_toolkits.mplot3d import Axes3D
 from functools import partial
 import numpy as np
+import time
 
 # kivy imports
 if __name__ == '__main__':  # to avoid new window with a new process
@@ -250,8 +251,15 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 print("No distribution selected. Chosen default (0)")
             self.changed_rho = True
 
+        def exp_thread(self):
+            self.s_label_hvt.text = '[font=digital-7][color=000000][size=34] Computing S...[/color][/font][/size]'
+            self.exp_th = threading.Thread(target=self.runexp)
+            self.exp_th.daemon = True
+            self.exp_th.start()
+
         # Runs the experiment. tab_selector determines if the user is in the Quantum (0) or the HVT (1) tab.
         def runexp(self):
+            start = time.perf_counter()
             if self.tab_selector == 0:  # Qua
                 alpha = int(
                     self.textin_alph.text) * math.pi / 180  # convertim a radians i assignem els parametres per poder fer l'experiment
@@ -283,33 +291,38 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 self.s_label.text = '[font=digital-7][color=000000][size=34] S=' + str(
                     sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
 
-            elif self.tab_selector == 1:  #HVT
+            elif self.tab_selector == 1:  # HVT
 
                 self.table = self.experiment.hvt(alpha, beta, self.rho_select)
-                s_arr = np.array([])
-                for rep in range(0, int(self.reps.text)):
-                    s_i = self.experiment.scalc(self.tab_selector, alpha, beta, self.rho_select)
-                    s_arr = np.append(s_arr, s_i)
-                sigma = s_arr.std()
-                s = s_arr.mean()
-
-                # Rounds the S and sigma decimals properly.
-                rounder = sigma
-                factor_counter = 0
                 if int(self.reps.text) > 1:
+                    with concurrent.futures.ProcessPoolExecutor() as executor:
+                        s_list = list(
+                            executor.map(self.experiment.scalc, itertools.repeat(self.tab_selector, int(self.reps.text)),
+                                         itertools.repeat(alpha, int(self.reps.text)),
+                                         itertools.repeat(beta, int(self.reps.text)),
+                                         itertools.repeat(self.rho_select, int(self.reps.text))))
+
+                    s_arr = np.array(s_list)
+                    sigma = s_arr.std()
+                    s = s_arr.mean()
+
+                    # Rounds the S and sigma decimals properly.
+                    rounder = sigma
+                    factor_counter = 0
                     while rounder < 1:
                         rounder = rounder * 10
                         factor_counter += 1
-
                     sr = round(s, factor_counter)
                     sigmar = round(sigma, factor_counter)
                 else:
+                    s = self.experiment.scalc(self.tab_selector,alpha, beta,self.rho_select)
                     sr = round(s, 2)
-                    sigmar = round(sigma, 2)
+                    sigmar = round(0, 2)
 
                 self.s_label_hvt.text = '[font=digital-7][color=000000][size=34] S=' + str(
                     sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
-
+            finish = time.perf_counter()
+            print(f'finished in {round(finish - start, 2)} s')
             return (sr, " ± ", sigmar)
 
         def open_table_popup(self):
