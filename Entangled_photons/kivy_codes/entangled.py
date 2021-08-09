@@ -1,7 +1,7 @@
 import matplotlib
 import csv
 import concurrent.futures
-from multiprocessing import Process, freeze_support
+from multiprocessing import freeze_support
 import functools
 import itertools
 import threading
@@ -9,19 +9,20 @@ from numpy import arange, sin, pi
 from mpl_toolkits.mplot3d import Axes3D
 from functools import partial
 import numpy as np
-import matplotlib.pyplot as plt
-plt.switch_backend('agg') # very important, otherwise the threading won't work for some reason...
 
 # kivy imports
 if __name__ == '__main__':  # to avoid new window with a new process
     freeze_support()  # support multiprocessing in pyinstaller
 
+    matplotlib.use('module://kivy.garden.matplotlib.backend_kivy')
+    import matplotlib.pyplot as plt
+
+    plt.switch_backend('agg')  # very important, otherwise the threading won't work for some reason...
     # solves left click issue
     from kivy.config import Config
 
     Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
 
-    matplotlib.use('module://kivy.garden.matplotlib.backend_kivy')
     from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas, FigureCanvasKivyAgg
     from matplotlib.figure import Figure
     from kivy.uix.behaviors import ButtonBehavior
@@ -69,7 +70,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
         table_lay = ObjectProperty()
 
         def __init__(self, *args, **kwargs):
-            super(TablePopup, self).__init__(*args, **kwargs)
+            super(TablePopup, self).__init__(**kwargs)
             self.table = sm.get_screen('ES').table
 
         def on_enter(self, *args):
@@ -130,14 +131,15 @@ if __name__ == '__main__':  # to avoid new window with a new process
         s_label_hvt = ObjectProperty()
         delete_button_hvt = ObjectProperty()
         select_button_hvt = ObjectProperty()
-        clear_btn_hvt = ObjectProperty()
-        plot_btn_hvt = ObjectProperty()
         b1_label_hvt = ObjectProperty()
         b2_label_hvt = ObjectProperty()
         reps = ObjectProperty()
         alpha_hvt = ObjectProperty()
         rho_select = NumericProperty()
         changed_rho = BooleanProperty()
+        sum_btn = ObjectProperty(Button)
+        rest_btn = ObjectProperty(Button)
+        plot_btn_hvt = ObjectProperty(Button)
 
         # Animation props
 
@@ -250,17 +252,18 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
         # Runs the experiment. tab_selector determines if the user is in the Quantum (0) or the HVT (1) tab.
         def runexp(self):
-            if self.tab_selector == 0:
+            if self.tab_selector == 0:  # Qua
                 alpha = int(
                     self.textin_alph.text) * math.pi / 180  # convertim a radians i assignem els parametres per poder fer l'experiment
                 beta = int(self.textin_bet.text) * math.pi / 180
-            elif self.tab_selector == 1:
+                self.experiment.photons = int(self.n_label.text)
+            elif self.tab_selector == 1:  # HVT
                 alpha = int(self.textin_alph_hvt.text) * math.pi / 180
                 beta = int(self.textin_bet_hvt.text) * math.pi / 180
+                self.experiment.photons = int(self.n_label_hvt.text)
 
-            self.experiment.photons = int(self.n_label.text)
+            if self.tab_selector == 0:  # Qua
 
-            if self.tab_selector == 0:
                 self.table = self.experiment.expqua(alpha, beta)
                 s = self.experiment.scalc(self.tab_selector, alpha, beta, 0)
                 sigma = self.experiment.sigma(alpha, beta)
@@ -280,7 +283,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 self.s_label.text = '[font=digital-7][color=000000][size=34] S=' + str(
                     sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
 
-            elif self.tab_selector == 1:
+            elif self.tab_selector == 1:  #HVT
 
                 self.table = self.experiment.hvt(alpha, beta, self.rho_select)
                 s_arr = np.array([])
@@ -445,9 +448,10 @@ if __name__ == '__main__':  # to avoid new window with a new process
         pass
 
 
-    ############################################ Graph Layout ################################################################
+    ############################################ Graph Layout ###############################################################
 
     class GraphScreen(Screen):
+
         mainlay = ObjectProperty()
         canv = ObjectProperty()
         alpha = NumericProperty()
@@ -466,6 +470,9 @@ if __name__ == '__main__':  # to avoid new window with a new process
         def get_graph(self):
 
             if self.manager.get_screen('ES').tab_selector == 0:
+                # avoids unnecessary mess disabling plot button
+                self.manager.get_screen('ES').plot_btn.disabled = True
+
                 # if angles changed or tab changed (HVT <--> Qua)
                 if int(self.manager.get_screen('ES').b1_label.text) != self.manager.get_screen('ES').b1_val or \
                         (int(self.manager.get_screen('ES').b2_label.text) != self.manager.get_screen('ES').b2_val) or \
@@ -500,30 +507,34 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
                     self.canv = FigureCanvas(fig)
                     self.manager.get_screen(
-                        'ES').tab_change = False  # tab_change tells if the tab has changed to replot
+                        'ES').tab_change = False  # tab_change tells if the tab has changed to replot or not
 
             if self.manager.get_screen('ES').tab_selector == 1:  # HVT
 
-                if int(self.manager.get_screen(
-                        'ES').alpha_hvt.text) * np.pi / 180 != self.alpha or self.manager.get_screen(
-                        'ES').changed_rho \
-                        or self.manager.get_screen('ES').tab_change:
+                # if the angle, the rho or the tab have changed plot another figure
+                if int(
+                        self.manager.get_screen('ES').alpha_hvt.text) * np.pi / 180 != self.alpha or \
+                        self.manager.get_screen('ES').changed_rho or self.manager.get_screen('ES').tab_change:
                     figure, ax = plt.subplots()
 
                     self.alpha = int(self.manager.get_screen('ES').alpha_hvt.text) * np.pi / 180
                     beta_axis = np.linspace(0, 2 * np.pi, 70)
+
+                    # this is so the user knows the graph is being plotted
+
+                    self.manager.get_screen('ES').alpha_hvt.text = 'plotting, stand by...'
+                    # disabling the plotting buttons so the user doesn't mess around
+                    self.manager.get_screen('ES').sum_btn.disabled = True
+                    self.manager.get_screen('ES').rest_btn.disabled = True
+                    self.manager.get_screen('ES').plot_btn_hvt.disabled = True
+                    # multiprocessing to speed up the calc of the graph
+
                     with concurrent.futures.ProcessPoolExecutor() as executor:
                         S_axis = list(executor.map(self.manager.get_screen('ES').experiment.scalc,
                                                    itertools.repeat(1, len(beta_axis)),
                                                    itertools.repeat(self.alpha, len(beta_axis)), beta_axis,
                                                    itertools.repeat(self.manager.get_screen('ES').rho_select,
                                                                     len(beta_axis))))
-
-                    # for beta in beta_axis:
-                    #     S_axis.append(
-                    #         self.manager.get_screen('ES').experiment.scalc(1,
-                    #                                                        self.alpha, beta,
-                    #                                                        self.manager.get_screen('ES').rho_select))
 
                     ax.plot(beta_axis, S_axis)
                     ax.set_ylabel("S")
@@ -533,7 +544,15 @@ if __name__ == '__main__':  # to avoid new window with a new process
                     self.manager.get_screen('ES').changed_rho = False  # changed_rho tells if the rho used has changed
                     self.manager.get_screen(
                         'ES').tab_change = False  # tab_change tells if the tab has changed to replot
+
             self.add_plot()
+            self.manager.get_screen('ES').alpha_hvt.text = str(int(self.alpha * 180 / np.pi))
+
+            # Enabling the buttons again
+            self.manager.get_screen('ES').plot_btn.disabled = False
+            self.manager.get_screen('ES').sum_btn.disabled = False
+            self.manager.get_screen('ES').rest_btn.disabled = False
+            self.manager.get_screen('ES').plot_btn_hvt.disabled = False
 
         def add_plot(self):
             self.mainlay.add_widget(self.canv, index=1)
@@ -542,6 +561,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
         def go_back(self, instance):
             self.mainlay.remove_widget(self.canv)
             self.manager.current = 'ES'
+            self.manager.get_screen('ES').ids.info_label.text = 'Select input angles'
 
         pass
 

@@ -41,6 +41,9 @@
     reps : reps
     rho1 : rho1
     rho2 : rho2
+    sum_btn : sum_btn
+    rest_btn : rest_btn
+    plot_btn_hvt : plot_btn_hvt
 
     BoxLayout:
 
@@ -297,14 +300,33 @@
                         orientation:"vertical"
                         BoxLayout:
                             orientation: "vertical"
-                            FloatLayout:
+                            BoxLayout:
+                                orientation: 'horizontal'
                                 Switch:
                                     id: graph
                                     size_hint:(0.2,0.2)
                                     pos_hint:{'x': 0, 'y':0.4}
                                 Label:
                                     text: "Generate 3D S-plot"
-                                    pos_hint:{'x': -0.1, 'y':0}
+                                    #pos_hint:{'x': -0.1, 'y':0}
+
+                                Label:
+                                    id: info_label
+                                    text:'Select input angles'
+                                    font_name: 'digital-7.ttf'
+                                    color: (1, 0, 0, 1)
+                                    font_size: 20
+                                    markup:True
+                                    canvas:
+                                    canvas.before:
+                                        Color:
+                                            rgba: 0, 0, 0, 1
+
+                                        Rectangle:
+                                            pos: self.pos[0] , self.pos[1]+10
+                                            size: (self.width, self.height*0.6)
+
+
                             BoxLayout:
                                 orientation: "horizontal"
                                 BoxLayout:
@@ -363,6 +385,7 @@
                                     size_hint: (0.9,0.7)
                                     disabled: True
                                     on_release: root.manager.get_screen('GS').graph_thread()
+                                    on_release: info_label.text = 'Plotting, stand by...'
 
                                 Button:
                                     id:clear_btn
@@ -613,7 +636,7 @@
                                     text: "Plot"
                                     size_hint: (0.9,0.7)
                                     on_release: root.manager.get_screen('GS').graph_thread()
-                                    #on_release: alpha_hvt.text ='plotting, stand by...'
+
 
                         BoxLayout:
                             orientation: "horizontal"
