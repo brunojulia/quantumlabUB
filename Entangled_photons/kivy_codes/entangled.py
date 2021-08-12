@@ -144,7 +144,9 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
         # Animation props
 
-        line_pos = ListProperty([[760, 680], [760, 680]])
+        line_b_pos = ListProperty([[760, 680], [760, 680]])
+        line_r_1_pos = ListProperty([[760, 680], [760, 680]])
+        line_r_2_pos = ListProperty([[760, 680], [760, 680]])
         joint = OptionProperty('none', options=('round', 'miter', 'bevel', 'none'))
         cap = OptionProperty('none', options=('round', 'square', 'none'))
         linewidth = NumericProperty(2)
@@ -174,43 +176,110 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 self.img_widg.rect = Rectangle(size=self.img_widg.size, pos=self.img_widg.pos,
                                                source="img/sketch_exp_2.png")
                 Color(0, 0, 1)
-                self.line = Line(points=self.img_widg.pos, joint=self.joint, cap=self.cap,
-                                 width=self.linewidth, close=False, dash_length=self.dash_length,
-                                 dash_offset=self.dash_offset)
+                self.line_b = Line(points=self.img_widg.pos, joint=self.joint, cap=self.cap,
+                                   width=self.linewidth, close=False, dash_length=self.dash_length,
+                                   dash_offset=self.dash_offset)
+                Color(1, 0, 0)
+                self.line_r_1 = Line(points=self.img_widg.pos, joint=self.joint, cap=self.cap,
+                                     width=self.linewidth, close=False, dash_length=self.dash_length,
+                                     dash_offset=self.dash_offset)
+
+                self.line_r_2 = Line(points=self.img_widg.pos, joint=self.joint, cap=self.cap,
+                                     width=self.linewidth, close=False, dash_length=self.dash_length,
+                                     dash_offset=self.dash_offset)
 
         # crea el clock object que s'encarrega de fer anar l'animació
         def run_animation(self):
             Clock.unschedule(self.move_lines)
-            self.line_pos = [[self.img_widg.pos[0] + self.img_widg.size[0] * 0.115,
-                              self.img_widg.pos[1] + self.img_widg.size[1] * 0.752],
-                             [self.img_widg.pos[0] + self.img_widg.size[0] * 0.115,
-                              self.img_widg.pos[1] + self.img_widg.size[1] * 0.752]]
+            self.line_b_pos = [[self.img_widg.pos[0] + self.img_widg.size[0] * 0.160,
+                                self.img_widg.pos[1] + self.img_widg.size[1] * 0.657],
+                               [self.img_widg.pos[0] + self.img_widg.size[0] * 0.160,
+                                self.img_widg.pos[1] + self.img_widg.size[1] * 0.657]]
 
-            self.line.points = self.line_pos
-            Clock.schedule_interval(self.move_lines, 1 / 60)
+            self.line_r_1_pos = [[self.img_widg.pos[0] + self.img_widg.size[0] * 0.295,
+                                  self.img_widg.pos[1] + self.img_widg.size[1] * 0.605],
+                                 [self.img_widg.pos[0] + self.img_widg.size[0] * 0.295,
+                                  self.img_widg.pos[1] + self.img_widg.size[1] * 0.605]]
+            self.line_r_2_pos = [[self.img_widg.pos[0] + self.img_widg.size[0] * 0.295,
+                                  self.img_widg.pos[1] + self.img_widg.size[1] * 0.605],
+                                 [self.img_widg.pos[0] + self.img_widg.size[0] * 0.295,
+                                  self.img_widg.pos[1] + self.img_widg.size[1] * 0.605]]
+
+            self.line_b.points = self.line_b_pos
+            self.line_r_1.points = self.line_r_1_pos
+            self.line_r_2.points = self.line_r_2_pos
+
+            Clock.schedule_interval(self.move_lines, 0.0001)
 
         # Actualitza la posició de les linies
         def move_lines(self, dt):
-            initial_pos = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.115,
-                           self.img_widg.pos[1] + self.img_widg.size[1] * 0.752]
-            end_pos_1 = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.350,
-                         self.img_widg.pos[1] + self.img_widg.size[1] * 0.640]
-            if self.line_pos[1][0] < end_pos_1[0]:
-                self.line_pos[1][0] += (initial_pos[0] + end_pos_1[0]) * 0.003 * 2.9
-            if self.line_pos[1][1] > end_pos_1[1]:
-                self.line_pos[1][1] -= (initial_pos[1] + end_pos_1[1]) * 0.003
+            initial_pos = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.160,
+                           self.img_widg.pos[1] + self.img_widg.size[1] * 0.657]
 
+            end_pos_1 = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.263,
+                         self.img_widg.pos[1] + self.img_widg.size[1] * 0.615]
 
-            else:
-                if self.line_pos[0][0] < end_pos_1[0]:
-                    self.line_pos[0][0] += (initial_pos[0] + end_pos_1[0]) * 0.003 * 2.9
-                if self.line_pos[0][1] > end_pos_1[1]:
-                    self.line_pos[0][1] -= (initial_pos[1] + end_pos_1[1]) * 0.003
-                else:
+            start_pos_r_1 = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.295,
+                             self.img_widg.pos[1] + self.img_widg.size[1] * 0.605]
+
+            start_pos_r_2 = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.295,
+                             self.img_widg.pos[1] + self.img_widg.size[1] * 0.605]
+
+            end_pos_r_1 = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.740,
+                           self.img_widg.pos[1] + self.img_widg.size[1] * 0.515]
+
+            end_pos_r_2 = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.690,
+                           self.img_widg.pos[1] + self.img_widg.size[1] * 0.395]
+
+            # Blue line head movement
+            if self.line_b_pos[1][0] < end_pos_1[0]:
+                self.line_b_pos[1][0] += (initial_pos[0] + end_pos_1[0]) * 0.002 * 3.20
+
+            if self.line_b_pos[1][1] > end_pos_1[1]:
+                self.line_b_pos[1][1] -= (initial_pos[1] + end_pos_1[1]) * 0.002
+
+            # Blue head reaches crystals
+            # start red head movement
+            if self.line_b_pos[1][0] >= end_pos_1[0] or self.line_b_pos[1][1] <= end_pos_1[1]:
+                # extend red line 1 while it hasn't reached the polarizer
+                if self.line_r_1_pos[1][0] < end_pos_r_1[0]:
+                    self.line_r_1_pos[1][0] += (start_pos_r_1[0] + end_pos_r_1[0]) * 0.002 * 5
+                if self.line_r_1_pos[1][1] > end_pos_r_1[1]:
+                    self.line_r_1_pos[1][1] -= (start_pos_r_1[1] + end_pos_r_1[1]) * 0.002
+
+                # extend red line 2 while it hasn't reached the polarizer
+                if self.line_r_2_pos[1][0] < end_pos_r_2[0]:
+                    self.line_r_2_pos[1][0] += (start_pos_r_2[0] + end_pos_r_2[0]) * 0.0045 * 1.9
+                if self.line_r_2_pos[1][1] > end_pos_r_2[1]:
+                    self.line_r_2_pos[1][1] -= (start_pos_r_2[1] + end_pos_r_2[1]) * 0.0045
+                # if red line reaches pol blue tail advances
+                if self.line_r_1_pos[1][0] >= end_pos_r_1[0] or self.line_r_1_pos[1][1] <= end_pos_r_1[1]:
+                    # if blue tail hasn't reached the crystals
+                    if self.line_b_pos[0][0] <= end_pos_1[0] or self.line_b_pos[0][1] >= end_pos_1[1]:
+                        self.line_b_pos[0][0] += (initial_pos[0] + end_pos_1[0]) * 0.002 * 3.20
+                        self.line_b_pos[0][1] -= (initial_pos[1] + end_pos_1[1]) * 0.002
+                # if blue tail reaches crystals red tail advances
+                if self.line_b_pos[0][0] >= end_pos_1[0] or self.line_b_pos[0][1] <= end_pos_1[1]:
+                    self.line_r_1_pos[0][0] += (start_pos_r_1[0] + end_pos_r_1[0]) * 0.002 * 5
+                    self.line_r_1_pos[0][1] -= (start_pos_r_1[1] + end_pos_r_1[1]) * 0.002
+
+                    self.line_r_2_pos[0][0] += (start_pos_r_2[0] + end_pos_r_2[0]) * 0.0045 * 1.9
+                    self.line_r_2_pos[0][1] -= (start_pos_r_2[1] + end_pos_r_2[1]) * 0.0045
+
+                if self.line_r_1_pos[0][0] >= end_pos_r_1[0]:
+                    self.line_r_1_pos[0][0] = self.line_r_1_pos[1][0]
+                    self.line_r_1_pos[0][1] = self.line_r_1_pos[1][1]
+
+                    self.line_r_2_pos[0][0] = self.line_r_2_pos[1][0]
+                    self.line_r_2_pos[0][1] = self.line_r_2_pos[1][1]
+
                     Clock.unschedule(self.move_lines)
+
             # The tail of the line has arrived to the crystals
 
-            self.line.points = self.line_pos
+            self.line_b.points = self.line_b_pos
+            self.line_r_1.points = self.line_r_1_pos
+            self.line_r_2.points = self.line_r_2_pos
 
         # Adds a photons to throw
         # When the button is pressed for a long time it keeps adding photons
@@ -297,7 +366,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 if int(self.reps.text) > 1:
                     with concurrent.futures.ProcessPoolExecutor() as executor:
                         s_list = list(
-                            executor.map(self.experiment.scalc, itertools.repeat(self.tab_selector, int(self.reps.text)),
+                            executor.map(self.experiment.scalc,
+                                         itertools.repeat(self.tab_selector, int(self.reps.text)),
                                          itertools.repeat(alpha, int(self.reps.text)),
                                          itertools.repeat(beta, int(self.reps.text)),
                                          itertools.repeat(self.rho_select, int(self.reps.text))))
@@ -315,7 +385,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
                     sr = round(s, factor_counter)
                     sigmar = round(sigma, factor_counter)
                 else:
-                    s = self.experiment.scalc(self.tab_selector,alpha, beta,self.rho_select)
+                    s = self.experiment.scalc(self.tab_selector, alpha, beta, self.rho_select)
                     sr = round(s, 2)
                     sigmar = round(0, 2)
 
