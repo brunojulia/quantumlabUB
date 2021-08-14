@@ -406,6 +406,12 @@
                                     text: "Generate table"
                                     pos_hint:{'x': -0.1, 'y':0}
 
+
+                        Button:
+                            size_hint: (1,0.5)
+                            text: 'Experiment sketch and info'
+                            on_release: root.manager.current = 'IS'
+
             TabbedPanelItem: #creem la 2a pestanya
                 text: "[b]HVT[/b]"
                 markup: True
@@ -693,10 +699,6 @@
                         text: 'Load file (.csv)'
                         on_release:root.select_file(filechooser.selection)
 
-            TabbedPanelItem:
-                text: "[b]Experiment\n Sketch[/b]"
-                markup: True
-
 <GraphScreen>:
     mainlay:mainlay
     name:'GS'
@@ -778,3 +780,205 @@
                 text: 'Close'
                 on_release: root.manager.current = 'ES'
                 on_release: s_label_data.text = '[font=digital-7][color=000000][size=34] S=                [/color][/font][/size]'
+
+
+<InfoScreen>:
+    im_view: im_view
+    top_ch: top_ch
+    trb_ch: trb_ch
+    right_ch: right_ch
+    tlf_ch: tlf_ch
+    front_ch: front_ch
+    trf_ch: trf_ch
+
+    name: 'IS'
+    BoxLayout:
+        orientation: 'vertical'
+        id: info_mainlay
+
+        BoxLayout:
+            orientation: 'horizontal'
+            id: info_toplay
+
+            BoxLayout:
+                orientation: 'vertical'
+                id: checkbox_lay
+                FloatLayout:
+                    Label:
+                        text:"CHOOSE VIEW"
+                        font_size: 28
+                        bold: True
+                        pos_hint: {'x':0.1, 'y':0.4}
+                        size_hint: (0.4,0.4)
+                    CheckBox:
+                        id: top_ch
+                        group: 'views'
+                        pos_hint: {'x':0, 'y':0.2}
+                        size_hint:(0.1,0.1)
+                        on_active: root.on_view_select(self, self.active, 1)
+                    Label:
+                        text: 'Top'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.05, 'y':0.15}
+
+                    CheckBox:
+                        id: trb_ch
+                        group: 'views'
+                        pos_hint: {'x':0.25, 'y':0.2}
+                        size_hint:(0.1,0.1)
+                        on_active: root.on_view_select(self, self.active, 2)
+
+                    Label:
+                        text: 'Top-Right-Back'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.35, 'y':0.15}
+
+                FloatLayout:
+                    CheckBox:
+                        id: right_ch
+                        group: 'views'
+                        size_hint:(0.1,0.1)
+                        pos_hint: {'x':0, 'y':0.2}
+                        on_active: root.on_view_select(self, self.active, 3)
+                    Label:
+                        text: 'Right'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.05, 'y':0.15}
+
+                    CheckBox:
+                        id: tlf_ch
+                        group: 'views'
+                        pos_hint: {'x':0.25, 'y':0.2}
+                        size_hint:(0.1,0.1)
+                        active: True
+                        on_active: root.on_view_select(self, self.active, 4)
+                    Label:
+                        text: 'Top-Left-Front'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.35, 'y':0.15}
+
+                FloatLayout:
+                    CheckBox:
+                        id: front_ch
+                        group: 'views'
+                        size_hint:(0.1,0.1)
+                        pos_hint: {'x':0, 'y':0.2}
+                        on_active: root.on_view_select(self, self.active, 5)
+                    Label:
+                        text: 'Front'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.05, 'y':0.15}
+
+                    CheckBox:
+                        id: trf_ch
+                        group: 'views'
+                        pos_hint: {'x':0.25, 'y':0.2}
+                        size_hint:(0.1,0.1)
+                        on_active: root.on_view_select(self, self.active, 6)
+                    Label:
+                        text: 'Top-Right-Front'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.35, 'y':0.15}
+
+
+            Image:
+                id: im_view
+                source: 'img/top-left-front.png'
+                # Giving the size of image
+                size_hint: (1,1)
+
+                # allow sterching of image
+                allow_stretch: True
+
+            Image:
+                source: 'img/top.png'
+                # Giving the size of image
+                size_hint: (1,1)
+
+                # allow sterching of image
+                allow_stretch: True
+
+        BoxLayout:
+            orientation: 'horizontal'
+            id: info_bottomlay
+            canvas.before:
+                Rectangle:
+                    source: 'img/metal.jpg'
+                    size: self.size
+                    pos: self.pos
+
+            BoxLayout:
+                orientation: 'vertical'
+                id: comp_lay
+                FloatLayout:
+                    Label:
+                        text:"INSPECT COMPONENT"
+                        font_size: 28
+                        bold: True
+                        pos_hint: {'x':0.2, 'y':0.5}
+                        size_hint: (0.4,0.4)
+                    CheckBox:
+                        pos_hint: {'x':0, 'y':0.2}
+                        size_hint:(0.1,0.1)
+                        active: True
+                        group: 'comps'
+                    Label:
+                        text: 'Polarizer'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.05, 'y':0.15}
+
+                    CheckBox:
+                        pos_hint: {'x':0.25, 'y':0.2}
+                        size_hint:(0.1,0.1)
+                        group: 'comps'
+                    Label:
+                        text: 'Laser'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.30, 'y':0.15}
+
+                FloatLayout:
+                    CheckBox:
+                        size_hint:(0.1,0.1)
+                        pos_hint: {'x':0, 'y':0.7}
+                        group: 'comps'
+                    Label:
+                        text: 'Quartz Sheet'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.07, 'y':0.65}
+
+                    CheckBox:
+                        pos_hint: {'x':0.25, 'y':0.7}
+                        size_hint:(0.1,0.1)
+                        group: 'comps'
+                    Label:
+                        text: 'Downconversion Crystals'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.40, 'y':0.65}
+
+                    Button:
+                        text: 'Go back to main screen'
+                        size_hint: (0.8,0.3)
+                        pos_hint: {'x': 0.1, 'y': 0.1}
+                        on_release: root.manager.current = 'ES'
+            FloatLayout:
+                Image:
+                    source: 'img/pol_real.png'
+                    # Giving the size of image
+                    size_hint: (0.9,0.9)
+                    pos_hint: {'x':0, 'y':0.05}
+
+                    # allow sterching of image
+                    allow_stretch: True
+                    canvas.before:
+                        Color:
+                            rgba: (112/255,112/255,104/255,0.8)
+                        RoundedRectangle:
+                            size: self.size
+                            pos: self.pos
+
+
+
+            Label:
+                text: 'specs'
+
+

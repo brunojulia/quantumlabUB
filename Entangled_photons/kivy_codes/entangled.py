@@ -706,8 +706,6 @@ if __name__ == '__main__':  # to avoid new window with a new process
             self.s_label_data.text = '[font=digital-7][color=000000][size=34] S=' + str(
                 sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
 
-        pass
-
         #   predicts HVT's S using the angles from the table
 
         def run_cla_pred(self):
@@ -733,6 +731,26 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
             return (sr, " ± ", sigmar)
 
+        pass
+
+
+    class InfoScreen(Screen):
+        top_ch = ObjectProperty(CheckBox)
+        trb_ch = ObjectProperty(CheckBox)
+        right_ch = ObjectProperty(CheckBox)
+        tlf_ch = ObjectProperty(CheckBox)
+        front_ch = ObjectProperty(CheckBox)
+        trf_ch = ObjectProperty(CheckBox)
+        im_view = ObjectProperty()
+
+        def __init__(self, *args, **kwargs):
+            super(InfoScreen, self).__init__()
+
+        def on_view_select(self, instance, value, in_view_val):
+            view_dict = {1: 'img/top.png', 2: 'img/top-right-back.png', 3: 'img/right.png', 4: 'img/top-left-front.png', 5: 'img/front.png', 6: 'img/top-right-front.png'}
+            self.im_view.source = view_dict[in_view_val]
+        pass
+
 
     kv = Builder.load_file("entangled.kv")
 
@@ -744,6 +762,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
             sm.add_widget(EntangledScreen(name='ES'))
             sm.add_widget(TablePopup(name='TP'))
             sm.add_widget(DataScreen(name='DS'))
+            sm.add_widget(InfoScreen(name='IS'))
             sm.current = 'ES'
             return sm
 
