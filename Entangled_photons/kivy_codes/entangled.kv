@@ -122,7 +122,7 @@
             background_image: 'img/metal.jpg'
 
             TabbedPanelItem: #creem la primera pestanya
-                text: "[b]Quantic\n experiment:[/b]"
+                text: "[b]Quantum\n experiment[/b]"
                 markup: True
                 on_release: root.tab_selector = 0
                 on_release: root.tab_change = True
@@ -490,14 +490,14 @@
                                 size:240,100
                                 text:'[font=digital-7][color=000000][size=34] S=                [/color][/font][/size]'
                                 markup:True
-                                pos_hint:{'x':0.2,'y':0.15}
+                                pos_hint:{'x':0.2,'y':0.2}
                                 canvas:
                                 canvas.before:
                                     Color:
                                         rgba: 0, 153, 0, 0.5
 
                                     RoundedRectangle:
-                                        pos: self.pos[0] , self.pos[1]+20
+                                        pos: self.pos[0] , self.pos[1]+10
                                         size: (self.width, self.height*0.8)
                                         id: S_rect_hvt
 
@@ -664,14 +664,13 @@
                                     id: rho1
                                     active : True
                                 Label:
-                                    text: "\u03C1_1"
+                                    text: "\u03C1"+"1"
                             BoxLayout:
                                 orientation: "horizontal"
                                 Switch:
                                     id: rho2
                                 Label:
-                                    text: "\u03C1_2"
-
+                                    text: "\u03C1"+"2"
 
                         Button:
                             size_hint: (1,0.3)
@@ -701,10 +700,16 @@
 
 <GraphScreen>:
     mainlay:mainlay
+    bottom_lay:bottom_lay
     name:'GS'
     BoxLayout:
         orientation: 'vertical'
         id: mainlay
+        BoxLayout:
+            orientation: 'horizontal'
+            id:bottom_lay
+            size_hint_y : 0.07
+
 
 
 <TablePopup>:
@@ -784,13 +789,15 @@
 
 <InfoScreen>:
     im_view: im_view
+    comp_pos_im: comp_pos_im
     top_ch: top_ch
     trb_ch: trb_ch
     right_ch: right_ch
     tlf_ch: tlf_ch
     front_ch: front_ch
     trf_ch: trf_ch
-
+    comp_im: comp_im
+    specs_lab: specs_lab
     name: 'IS'
     BoxLayout:
         orientation: 'vertical'
@@ -891,12 +898,21 @@
                 allow_stretch: True
 
             Image:
+                id: comp_pos_im
                 source: 'img/top.png'
                 # Giving the size of image
                 size_hint: (1,1)
-
+                comp_pos_x: 0
+                comp_pos_y: 0
+                comp_y_size: 0
                 # allow sterching of image
                 allow_stretch: True
+                canvas.before:
+                    Rectangle:
+                        source: 'img/red_frame.png'
+                        pos: self.pos[0]+self.size[0]*0.34+self.comp_pos_x, self.pos[1]+self.size[1]*0+self.comp_pos_y
+                        size: self.size[0]*0.3,self.size[1]*0.3-self.comp_y_size
+
 
         BoxLayout:
             orientation: 'horizontal'
@@ -920,8 +936,9 @@
                     CheckBox:
                         pos_hint: {'x':0, 'y':0.2}
                         size_hint:(0.1,0.1)
-                        active: True
                         group: 'comps'
+                        on_active: root.animate_frame(comp_pos_im, 3)
+                        on_active: root.on_comp_select(self, self.active, 4)
                     Label:
                         text: 'Polarizer'
                         size_hint: (0.2,0.2)
@@ -931,16 +948,32 @@
                         pos_hint: {'x':0.25, 'y':0.2}
                         size_hint:(0.1,0.1)
                         group: 'comps'
+                        active: True
+                        on_active: root.animate_frame(comp_pos_im, 1)
+                        on_active: root.on_comp_select(self, self.active, 1)
                     Label:
                         text: 'Laser'
                         size_hint: (0.2,0.2)
                         pos_hint: {'x':0.30, 'y':0.15}
+
+                    CheckBox:
+                        pos_hint: {'x':0.5, 'y':0.2}
+                        size_hint:(0.1,0.1)
+                        group: 'comps'
+                        on_active: root.animate_frame(comp_pos_im, 4)
+                        on_active: root.on_comp_select(self, self.active, 5)
+                    Label:
+                        text: 'Detector'
+                        size_hint: (0.2,0.2)
+                        pos_hint: {'x':0.55, 'y':0.15}
 
                 FloatLayout:
                     CheckBox:
                         size_hint:(0.1,0.1)
                         pos_hint: {'x':0, 'y':0.7}
                         group: 'comps'
+                        on_active: root.animate_frame(comp_pos_im, 1)
+                        on_active: root.on_comp_select(self, self.active, 3)
                     Label:
                         text: 'Quartz Sheet'
                         size_hint: (0.2,0.2)
@@ -950,6 +983,8 @@
                         pos_hint: {'x':0.25, 'y':0.7}
                         size_hint:(0.1,0.1)
                         group: 'comps'
+                        on_active: root.animate_frame(comp_pos_im, 2)
+                        on_active: root.on_comp_select(self, self.active, 2)
                     Label:
                         text: 'Downconversion Crystals'
                         size_hint: (0.2,0.2)
@@ -962,7 +997,8 @@
                         on_release: root.manager.current = 'ES'
             FloatLayout:
                 Image:
-                    source: 'img/pol_real.png'
+                    id: comp_im
+                    source: 'img/laser.png'
                     # Giving the size of image
                     size_hint: (0.9,0.9)
                     pos_hint: {'x':0, 'y':0.05}
@@ -979,6 +1015,7 @@
 
 
             Label:
-                text: 'specs'
+                id: specs_lab
+                text: ''
 
 

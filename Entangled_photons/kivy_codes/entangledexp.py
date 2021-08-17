@@ -131,7 +131,7 @@ class entangledEXP(object):
                                             math.pi)  # ha de ser entre -pi i pi perquè si no el alpha=-45 no pilla cap al detector1
 
                     # fem passar el fotó pels polaritzadors
-                    if rho_select == 0:
+                    if rho_select == 0 or rho_select == 2:
                         detectors = self.rho(photon, alph, bet)  # funció de distribució de probabilitat
                     elif rho_select == 1:
                         detectors = self.rho2(photon, alph, bet)

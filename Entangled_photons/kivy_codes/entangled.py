@@ -23,7 +23,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
     from kivy.config import Config
 
     Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
-
+    from kivy.animation import Animation
     from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas, FigureCanvasKivyAgg
     from matplotlib.figure import Figure
     from kivy.uix.behaviors import ButtonBehavior
@@ -311,10 +311,12 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
         # Selects rho 1 or rho 2 used in HVT tab
         def select_rho(self, checkboxInstance, isActive):
-            if self.rho1.active:
+            if self.rho1.active and self.rho2.active == False:
                 self.rho_select = 0
-            elif self.rho2.active:
+            elif self.rho2.active and self.rho1.active == False:
                 self.rho_select = 1
+            elif self.rho1.active and self.rho2.active:
+                self.rho_select = 2
             else:
                 self.rho_select = 0
                 print("No distribution selected. Chosen default (0)")
@@ -361,42 +363,94 @@ if __name__ == '__main__':  # to avoid new window with a new process
                     sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
 
             elif self.tab_selector == 1:  # HVT
+                if self.rho_select == 0 or self.rho_select == 1:
+                    self.table = self.experiment.hvt(alpha, beta, self.rho_select)
+                    if int(self.reps.text) > 1:
+                        with concurrent.futures.ProcessPoolExecutor() as executor:
+                            s_list = list(
+                                executor.map(self.experiment.scalc,
+                                             itertools.repeat(self.tab_selector, int(self.reps.text)),
+                                             itertools.repeat(alpha, int(self.reps.text)),
+                                             itertools.repeat(beta, int(self.reps.text)),
+                                             itertools.repeat(self.rho_select, int(self.reps.text))))
 
-                self.table = self.experiment.hvt(alpha, beta, self.rho_select)
-                if int(self.reps.text) > 1:
-                    with concurrent.futures.ProcessPoolExecutor() as executor:
-                        s_list = list(
-                            executor.map(self.experiment.scalc,
-                                         itertools.repeat(self.tab_selector, int(self.reps.text)),
-                                         itertools.repeat(alpha, int(self.reps.text)),
-                                         itertools.repeat(beta, int(self.reps.text)),
-                                         itertools.repeat(self.rho_select, int(self.reps.text))))
+                        s_arr = np.array(s_list)
+                        sigma = s_arr.std()
+                        s = s_arr.mean()
 
-                    s_arr = np.array(s_list)
-                    sigma = s_arr.std()
-                    s = s_arr.mean()
+                        # Rounds the S and sigma decimals properly.
+                        rounder = sigma
+                        factor_counter = 0
+                        while rounder < 1:
+                            rounder = rounder * 10
+                            factor_counter += 1
+                        sr = round(s, factor_counter)
+                        sigmar = round(sigma, factor_counter)
+                    else:
+                        s = self.experiment.scalc(self.tab_selector, alpha, beta, self.rho_select)
+                        sr = round(s, 2)
+                        sigmar = round(0, 2)
 
-                    # Rounds the S and sigma decimals properly.
-                    rounder = sigma
-                    factor_counter = 0
-                    while rounder < 1:
-                        rounder = rounder * 10
-                        factor_counter += 1
-                    sr = round(s, factor_counter)
-                    sigmar = round(sigma, factor_counter)
-                else:
-                    s = self.experiment.scalc(self.tab_selector, alpha, beta, self.rho_select)
-                    sr = round(s, 2)
-                    sigmar = round(0, 2)
+                    self.s_label_hvt.text = '[font=digital-7][color=000000][size=34] S=' + str(
+                        sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
 
-                self.s_label_hvt.text = '[font=digital-7][color=000000][size=34] S=' + str(
-                    sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
+                elif self.rho_select == 2:
+                    self.table = self.experiment.hvt(alpha, beta, 0)
+                    if int(self.reps.text) > 1:
+                        with concurrent.futures.ProcessPoolExecutor() as executor:
+                            s_list_0 = list(
+                                executor.map(self.experiment.scalc,
+                                             itertools.repeat(self.tab_selector, int(self.reps.text)),
+                                             itertools.repeat(alpha, int(self.reps.text)),
+                                             itertools.repeat(beta, int(self.reps.text)),
+                                             itertools.repeat(0, int(self.reps.text))))
+                            s_list_1 = list(
+                                executor.map(self.experiment.scalc,
+                                             itertools.repeat(self.tab_selector, int(self.reps.text)),
+                                             itertools.repeat(alpha, int(self.reps.text)),
+                                             itertools.repeat(beta, int(self.reps.text)),
+                                             itertools.repeat(1, int(self.reps.text))))
+
+                        s_arr_0 = np.array(s_list_0)
+                        sigma_0 = s_arr_0.std()
+                        s_0 = s_arr_0.mean()
+
+                        s_arr_1 = np.array(s_list_1)
+                        sigma_1 = s_arr_1.std()
+                        s_1 = s_arr_1.mean()
+                        # Rounds the S and sigma decimals properly.
+                        rounder = sigma_0
+                        factor_counter = 0
+                        while rounder < 1:
+                            rounder = rounder * 10
+                            factor_counter += 1
+                        sr_0 = round(s_0, factor_counter)
+                        sigmar_0 = round(sigma_0, factor_counter)
+
+                        rounder = sigma_1
+                        factor_counter = 0
+                        while rounder < 1:
+                            rounder = rounder * 10
+                            factor_counter += 1
+                        sr_1 = round(s_1, factor_counter)
+                        sigmar_1 = round(sigma_1, factor_counter)
+                    else:
+                        s_0 = self.experiment.scalc(self.tab_selector, alpha, beta, 0)
+                        sr_0 = round(s_0, 2)
+                        sigmar_0 = round(0, 2)
+
+                        s_1 = self.experiment.scalc(self.tab_selector, alpha, beta, 1)
+                        sr_1 = round(s_1, 2)
+                        sigmar_1 = round(0, 2)
+
+                    self.s_label_hvt.text = '[font=digital-7][color=000000][size=30] S_1=' + str(
+                        sr_0) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar_0) + '\n' + 'S_2=' + str(
+                        sr_1) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar_1) + '[/color][/font][/size]'
             finish = time.perf_counter()
             print(f'finished in {round(finish - start, 2)} s')
-            return (sr, " ± ", sigmar)
 
         def open_table_popup(self):
-            '''opens popup window'''
+            """opens popup window"""
             self.table_checkbox.active = False
             self.table_checkbox_hvt.active = False
             self.manager.current = 'TP'
@@ -538,12 +592,19 @@ if __name__ == '__main__':  # to avoid new window with a new process
         mainlay = ObjectProperty()
         canv = ObjectProperty()
         alpha = NumericProperty()
+        S_axis = ListProperty([])
+        S_axis_1 = ListProperty([])
+        S_axis_2 = ListProperty([])
+        bottom_lay = ObjectProperty()
 
         def __init__(self, *args, **kwargs):
             super(GraphScreen, self).__init__(*args, **kwargs)
-            self.exitbtn = Button(size_hint=(1, 0.05), text='Go Back')
+            self.exitbtn = Button(size_hint=(1, 1), text='Go Back')
             self.exitbtn.bind(on_release=self.go_back)
-            self.mainlay.add_widget(self.exitbtn, index=0)
+            self.qua_ch = CheckBox(size_hint=(0.5, 0.5), pos_hint={'x': 0.2, 'y': 0.2})
+            self.qua_ch.bind(active=self.add_qua_plot)
+            self.qua_lab = Label(text='Show quantum prediction', size_hint=(0.5, 0.6), pos_hint={'x': 0, 'y': 0.2})
+            self.bottom_lay.add_widget(self.exitbtn, index=0)
 
         def graph_thread(self):
             self.gr_th = threading.Thread(target=self.get_graph)
@@ -593,11 +654,13 @@ if __name__ == '__main__':  # to avoid new window with a new process
                         'ES').tab_change = False  # tab_change tells if the tab has changed to replot or not
 
             if self.manager.get_screen('ES').tab_selector == 1:  # HVT
-
+                self.bottom_lay.add_widget(self.qua_ch)
+                self.bottom_lay.add_widget(self.qua_lab)
                 # if the angle, the rho or the tab have changed plot another figure
                 if int(
                         self.manager.get_screen('ES').alpha_hvt.text) * np.pi / 180 != self.alpha or \
                         self.manager.get_screen('ES').changed_rho or self.manager.get_screen('ES').tab_change:
+
                     figure, ax = plt.subplots()
 
                     self.alpha = int(self.manager.get_screen('ES').alpha_hvt.text) * np.pi / 180
@@ -611,15 +674,35 @@ if __name__ == '__main__':  # to avoid new window with a new process
                     self.manager.get_screen('ES').rest_btn.disabled = True
                     self.manager.get_screen('ES').plot_btn_hvt.disabled = True
                     # multiprocessing to speed up the calc of the graph
+                    if self.manager.get_screen('ES').rho_select == 0 or self.manager.get_screen('ES').rho_select == 1:
+                        with concurrent.futures.ProcessPoolExecutor() as executor:
+                            self.S_axis = list(executor.map(self.manager.get_screen('ES').experiment.scalc,
+                                                            itertools.repeat(1, len(beta_axis)),
+                                                            itertools.repeat(self.alpha, len(beta_axis)), beta_axis,
+                                                            itertools.repeat(self.manager.get_screen('ES').rho_select,
+                                                                             len(beta_axis))))
 
-                    with concurrent.futures.ProcessPoolExecutor() as executor:
-                        S_axis = list(executor.map(self.manager.get_screen('ES').experiment.scalc,
-                                                   itertools.repeat(1, len(beta_axis)),
-                                                   itertools.repeat(self.alpha, len(beta_axis)), beta_axis,
-                                                   itertools.repeat(self.manager.get_screen('ES').rho_select,
-                                                                    len(beta_axis))))
+                        ax.plot(beta_axis, self.S_axis, 'bo',
+                                label="\u03C1" + "" + str(self.manager.get_screen('ES').rho_select + 1))
+                        ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
+                        ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
 
-                    ax.plot(beta_axis, S_axis)
+                    elif self.manager.get_screen('ES').rho_select == 2:
+                        with concurrent.futures.ProcessPoolExecutor() as executor:
+                            self.S_axis_1 = list(executor.map(self.manager.get_screen('ES').experiment.scalc,
+                                                              itertools.repeat(1, len(beta_axis)),
+                                                              itertools.repeat(self.alpha, len(beta_axis)), beta_axis,
+                                                              itertools.repeat(0, len(beta_axis))))
+                            self.S_axis_2 = list(executor.map(self.manager.get_screen('ES').experiment.scalc,
+                                                              itertools.repeat(1, len(beta_axis)),
+                                                              itertools.repeat(self.alpha, len(beta_axis)), beta_axis,
+                                                              itertools.repeat(1, len(beta_axis))))
+
+                        ax.plot(beta_axis, self.S_axis_1, "bo", label='\u03C1' + '\u2081')
+                        ax.plot(beta_axis, self.S_axis_2, "ro", label='\u03C1' + '\u2082')
+                        ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
+                        ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
+                    ax.legend(loc="lower left")
                     ax.set_ylabel("S")
                     ax.set_xlabel("\u03B2 (rad)")
 
@@ -643,8 +726,58 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
         def go_back(self, instance):
             self.mainlay.remove_widget(self.canv)
+            self.bottom_lay.remove_widget(self.qua_ch)
+            self.bottom_lay.remove_widget(self.qua_lab)
             self.manager.current = 'ES'
             self.manager.get_screen('ES').ids.info_label.text = 'Select input angles'
+
+        def add_qua_plot(self, checkboxInstance, isActive):
+            figure, ax = plt.subplots()
+            beta_axis = np.linspace(0, 2 * np.pi, 70)
+            self.mainlay.remove_widget(self.canv)
+            if isActive:
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    s_ax_qua = list(executor.map(self.manager.get_screen('ES').experiment.scalc,
+                                                 itertools.repeat(0, len(beta_axis)),
+                                                 itertools.repeat(self.alpha, len(beta_axis)), beta_axis,
+                                                 itertools.repeat(self.manager.get_screen('ES').rho_select,
+                                                                  len(beta_axis))))
+                if self.manager.get_screen('ES').rho_select == 0 or self.manager.get_screen('ES').rho_select == 1:
+                    ax.plot(beta_axis, self.S_axis, 'bo',
+                            label="\u03C1" + "" + str(self.manager.get_screen('ES').rho_select + 1))
+                    ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
+                    ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
+                    ax.plot(beta_axis, s_ax_qua, 'yo', label='Quantum prediction')
+
+                elif self.manager.get_screen('ES').rho_select == 2:
+                    ax.plot(beta_axis, self.S_axis_1, "bo", label='\u03C1' + '\u2081')
+                    ax.plot(beta_axis, self.S_axis_2, "ro", label='\u03C1' + '\u2082')
+                    ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
+                    ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
+                    ax.plot(beta_axis, s_ax_qua, 'yo', label='Quantum prediction')
+                ax.legend(loc="lower left")
+                ax.set_ylabel("S")
+                ax.set_xlabel("\u03B2 (rad)")
+
+            if not isActive:
+                if self.manager.get_screen('ES').rho_select == 0 or self.manager.get_screen('ES').rho_select == 1:
+                    ax.plot(beta_axis, self.S_axis, 'bo',
+                            label="\u03C1" + "" + str(self.manager.get_screen('ES').rho_select + 1))
+                    ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
+                    ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
+
+                elif self.manager.get_screen('ES').rho_select == 2:
+                    ax.plot(beta_axis, self.S_axis_1, "bo", label='\u03C1' + '\u2081')
+                    ax.plot(beta_axis, self.S_axis_2, "ro", label='\u03C1' + '\u2082')
+                    ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
+                    ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
+
+            self.canv = FigureCanvasKivyAgg(figure)
+            self.manager.get_screen('ES').changed_rho = False  # changed_rho tells if the rho used has changed
+            self.manager.get_screen(
+                'ES').tab_change = False  # tab_change tells if the tab has changed to replot
+
+            self.add_plot()
 
         pass
 
@@ -657,7 +790,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
         beta = NumericProperty()
 
         def __init__(self, *args, **kwargs):
-            super(DataScreen, self).__init__(*args, **kwargs)
+            super(DataScreen, self).__init__(**kwargs)
 
         def on_enter(self, *args):
 
@@ -729,7 +862,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
             self.s_label_data.text = '[font=digital-7][color=000000][size=34] S=' + str(
                 sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
 
-            return (sr, " ± ", sigmar)
+            return sr, " ± ", sigmar
 
         pass
 
@@ -742,13 +875,76 @@ if __name__ == '__main__':  # to avoid new window with a new process
         front_ch = ObjectProperty(CheckBox)
         trf_ch = ObjectProperty(CheckBox)
         im_view = ObjectProperty()
+        comp_pos_im = ObjectProperty()
+        comp_im = ObjectProperty()
+        defs_dict = ObjectProperty()
+        specs_lab = ObjectProperty(Label)
 
         def __init__(self, *args, **kwargs):
             super(InfoScreen, self).__init__()
 
+# loads the components' descriptions from a file when the user enters the screen and creates a dictionary with
+# the item's number and the text. Then, on_comp_select changes the label's text according to the component selected.
+
+        def on_enter(self, *args):
+            line_num = 0
+            par_num = 1
+            file_name = 'comp_descriptions.txt'
+            with open(file_name, 'r') as comp_file:
+                descriptions = comp_file.readlines()
+
+                for line in descriptions:
+                    if line == '\n':
+                        descriptions[line_num] =str(par_num)
+                        par_num += 1
+                    line_num += 1
+                lab_defs = []
+                self.defs_dict = {}
+                for i in descriptions:
+                    if i.isnumeric():
+                        self.defs_dict[i] = lab_defs
+                        lab_defs = []
+                    else:
+                        lab_defs.append(i)
+                comp_file.close()
+                description = ''
+            for i in self.defs_dict[str(1)]:
+                description += (' ' + i)
+            self.specs_lab.text = description
+        # selects model view
         def on_view_select(self, instance, value, in_view_val):
-            view_dict = {1: 'img/top.png', 2: 'img/top-right-back.png', 3: 'img/right.png', 4: 'img/top-left-front.png', 5: 'img/front.png', 6: 'img/top-right-front.png'}
+            view_dict = {1: 'img/top.png', 2: 'img/top-right-back.png', 3: 'img/right.png', 4: 'img/top-left-front.png',
+                         5: 'img/front.png', 6: 'img/top-right-front.png'}
             self.im_view.source = view_dict[in_view_val]
+
+        def animate_frame(self, widget, comp_val, *args):
+            anim_cry = Animation(comp_pos_y=self.comp_pos_im.size[1] * 0.2, comp_y_size=0)
+            anim_pol = Animation(comp_pos_y=self.comp_pos_im.size[1] * 0.75, comp_y_size=self.comp_pos_im.size[1] * 0.2)
+            anim_laser = Animation(comp_pos_y=self.comp_pos_im.size[1] * 0, comp_y_size=0)
+            anim_detect = Animation(comp_pos_y=self.comp_pos_im.size[1] * 0.77,
+                                    comp_y_size=self.comp_pos_im.size[1] * 0.05)
+
+            if comp_val == 1:
+                anim_laser.start(widget)
+            if comp_val == 2:
+                anim_cry.start(widget)
+            if comp_val == 3:
+                anim_pol.start(widget)
+            if comp_val == 4:
+                anim_detect.start(widget)
+
+        def on_comp_select(self, instance, value, in_comp_val):
+            comp_dict = {1: 'img/laser.png', 2: 'img/crystals.png', 3: 'img/quartz.png', 4: 'img/pol_real.png',
+                         5: 'img/photon_counter.png'}
+            self.comp_im.source = comp_dict[in_comp_val]
+
+            description = ''
+            # print(type(self.defs_dict[in_comp_val]))
+            for i in self.defs_dict[str(in_comp_val)]:
+                description += (' ' + i)
+            self.specs_lab.text = description
+
+
         pass
 
 
