@@ -883,8 +883,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
         def __init__(self, *args, **kwargs):
             super(InfoScreen, self).__init__()
 
-# loads the components' descriptions from a file when the user enters the screen and creates a dictionary with
-# the item's number and the text. Then, on_comp_select changes the label's text according to the component selected.
+        # loads the components' descriptions from a file when the user enters the screen and creates a dictionary with
+        # the item's number and the text. Then, on_comp_select changes the label's text according to the component selected.
 
         def on_enter(self, *args):
             line_num = 0
@@ -895,7 +895,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
                 for line in descriptions:
                     if line == '\n':
-                        descriptions[line_num] =str(par_num)
+                        descriptions[line_num] = str(par_num)
                         par_num += 1
                     line_num += 1
                 lab_defs = []
@@ -911,6 +911,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
             for i in self.defs_dict[str(1)]:
                 description += (' ' + i)
             self.specs_lab.text = description
+
         # selects model view
         def on_view_select(self, instance, value, in_view_val):
             view_dict = {1: 'img/top.png', 2: 'img/top-right-back.png', 3: 'img/right.png', 4: 'img/top-left-front.png',
@@ -943,7 +944,6 @@ if __name__ == '__main__':  # to avoid new window with a new process
             for i in self.defs_dict[str(in_comp_val)]:
                 description += (' ' + i)
             self.specs_lab.text = description
-
 
         pass
 

@@ -1016,6 +1016,14 @@
 
             Label:
                 id: specs_lab
+                halign: 'left'
+                size: self.size
                 text: ''
-
+                font_size: 18
+                canvas.before:
+                    Color:
+                        rgba: (0,0,0,0.8)
+                    RoundedRectangle:
+                        size: (self.size[0]*0.97, self.size[1]*0.9)
+                        pos: (self.pos[0], self.pos[1]+20)
 
