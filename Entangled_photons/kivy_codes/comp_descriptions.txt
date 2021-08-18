@@ -1,0 +1,37 @@
+The source of the photons is a violet diode laser. It 
+also consists of a collimating lens, a blue filter and 
+a linear polarizer in order to fine tune the experiment, 
+increase countings and avoid noise.
+
+The downconversion crystals consist of two 
+Beta-Barium-Borate (BBO) crystals. One crystal 
+is rotated 90 degrees from the other because each 
+one can only downconvert one pump polarization and 
+the other polarization passes through unchanged. 
+Either one can downconvert a vertical or horizontal 
+pump into two horizontal or vertical idler-signal pair
+of photons respectively.
+
+The quartz sheet is used to induce a known phase to 
+one polarization. It is placed between the laser and 
+the crystals.
+
+Linear polarizers block all the light which is not 
+polarized along a given axis. The downconverted 
+photons from the crystals are polarized in a combi-
+nation of the vertical and horizontal states in respect
+to the polarizer's axis, thus having a certain proba-
+bility to pass through.
+
+At the receiving end, immediatly behind the polari-
+zers, the two Single Photon Counting Modules (SPCMs) 
+are in charge of emmittig an electric pulse when a 
+photon impacts them. These spikes are processed by 
+a filtering circuit which decides weather or not 
+the pair of photons detected are indeed entangled. 
+Because the photons of a downconverted pair are pro-
+duced at the same time they cause nearly simultaneous
+firings of the SPCMs, in this case, a coincidence is 
+recorded in a PC.
+
+end
