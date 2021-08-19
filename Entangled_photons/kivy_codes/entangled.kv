@@ -207,6 +207,7 @@
                                 AngleKnob:
                                     id: knob_1
                                     pos_hint:{'x': 0.7, 'y':0}
+                                    size: self.size
                                     min: 0
                                     max: 360
                                     step: 1
@@ -304,7 +305,7 @@
                                 orientation: 'horizontal'
                                 Switch:
                                     id: graph
-                                    size_hint:(0.2,0.2)
+                                    size_hint:(0.4,0.2)
                                     pos_hint:{'x': 0, 'y':0.4}
                                 Label:
                                     text: "Generate 3D S-plot"

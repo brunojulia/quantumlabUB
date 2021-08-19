@@ -78,9 +78,11 @@ if __name__ == '__main__':  # to avoid new window with a new process
             self.table_lay.clear_widgets()
             self.table_lay.add_widget(Button(text='\u03B1 (rad)', background_color=(0, 102 / 255, 204 / 255, 1)))
             self.table_lay.add_widget(Button(text='\u03B2 (rad)', background_color=(0, 102 / 255, 204 / 255, 1)))
-            self.table_lay.add_widget(Button(text='N_a', background_color=(0, 102 / 255, 204 / 255, 1)))
-            self.table_lay.add_widget(Button(text='N_b', background_color=(0, 102 / 255, 204 / 255, 1)))
-            self.table_lay.add_widget(Button(text='N', background_color=(0, 102 / 255, 204 / 255, 1)))
+            self.table_lay.add_widget(
+                Button(text='N_\u03B1 (detections alpha)', background_color=(0, 102 / 255, 204 / 255, 1)))
+            self.table_lay.add_widget(
+                Button(text='N_\u03B2 (detections beta)', background_color=(0, 102 / 255, 204 / 255, 1)))
+            self.table_lay.add_widget(Button(text='N (coincidences)', background_color=(0, 102 / 255, 204 / 255, 1)))
 
             self.table = sm.get_screen('ES').table
             # If a measure of the S has been taken
@@ -652,15 +654,15 @@ if __name__ == '__main__':  # to avoid new window with a new process
                     self.canv = FigureCanvas(fig)
                     self.manager.get_screen(
                         'ES').tab_change = False  # tab_change tells if the tab has changed to replot or not
-
+                self.add_plot()
             if self.manager.get_screen('ES').tab_selector == 1:  # HVT
+
                 self.bottom_lay.add_widget(self.qua_ch)
                 self.bottom_lay.add_widget(self.qua_lab)
                 # if the angle, the rho or the tab have changed plot another figure
                 if int(
                         self.manager.get_screen('ES').alpha_hvt.text) * np.pi / 180 != self.alpha or \
                         self.manager.get_screen('ES').changed_rho or self.manager.get_screen('ES').tab_change:
-
                     figure, ax = plt.subplots()
 
                     self.alpha = int(self.manager.get_screen('ES').alpha_hvt.text) * np.pi / 180
@@ -682,10 +684,10 @@ if __name__ == '__main__':  # to avoid new window with a new process
                                                             itertools.repeat(self.manager.get_screen('ES').rho_select,
                                                                              len(beta_axis))))
 
-                        ax.plot(beta_axis, self.S_axis, 'bo',
-                                label="\u03C1" + "" + str(self.manager.get_screen('ES').rho_select + 1))
-                        ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
-                        ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
+                            ax.plot(beta_axis, self.S_axis, 'bo',
+                                    label="\u03C1" + "" + str(self.manager.get_screen('ES').rho_select + 1))
+                            ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
+                            ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
 
                     elif self.manager.get_screen('ES').rho_select == 2:
                         with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -698,20 +700,24 @@ if __name__ == '__main__':  # to avoid new window with a new process
                                                               itertools.repeat(self.alpha, len(beta_axis)), beta_axis,
                                                               itertools.repeat(1, len(beta_axis))))
 
-                        ax.plot(beta_axis, self.S_axis_1, "bo", label='\u03C1' + '\u2081')
-                        ax.plot(beta_axis, self.S_axis_2, "ro", label='\u03C1' + '\u2082')
-                        ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
-                        ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
+                            ax.plot(beta_axis, self.S_axis_1, "bo", label='\u03C1' + '\u2081')
+                            ax.plot(beta_axis, self.S_axis_2, "ro", label='\u03C1' + '\u2082')
+                            ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
+                            ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
+
                     ax.legend(loc="lower left")
                     ax.set_ylabel("S")
                     ax.set_xlabel("\u03B2 (rad)")
-
                     self.canv = FigureCanvasKivyAgg(figure)
-                    self.manager.get_screen('ES').changed_rho = False  # changed_rho tells if the rho used has changed
+                    self.manager.get_screen(
+                        'ES').changed_rho = False  # changed_rho tells if the rho used has changed
                     self.manager.get_screen(
                         'ES').tab_change = False  # tab_change tells if the tab has changed to replot
+                self.add_plot()
 
-            self.add_plot()
+        def add_plot(self):
+            self.mainlay.add_widget(self.canv, index=1)
+            self.manager.current = 'GS'
             self.manager.get_screen('ES').alpha_hvt.text = str(int(self.alpha * 180 / np.pi))
 
             # Enabling the buttons again
@@ -720,16 +726,13 @@ if __name__ == '__main__':  # to avoid new window with a new process
             self.manager.get_screen('ES').rest_btn.disabled = False
             self.manager.get_screen('ES').plot_btn_hvt.disabled = False
 
-        def add_plot(self):
-            self.mainlay.add_widget(self.canv, index=1)
-            self.manager.current = 'GS'
-
         def go_back(self, instance):
+            self.manager.get_screen('ES').ids.info_label.text = 'Select input angles'
+            self.qua_ch.active = False
+            self.manager.current = 'ES'
             self.mainlay.remove_widget(self.canv)
             self.bottom_lay.remove_widget(self.qua_ch)
             self.bottom_lay.remove_widget(self.qua_lab)
-            self.manager.current = 'ES'
-            self.manager.get_screen('ES').ids.info_label.text = 'Select input angles'
 
         def add_qua_plot(self, checkboxInstance, isActive):
             figure, ax = plt.subplots()
@@ -742,22 +745,29 @@ if __name__ == '__main__':  # to avoid new window with a new process
                                                  itertools.repeat(self.alpha, len(beta_axis)), beta_axis,
                                                  itertools.repeat(self.manager.get_screen('ES').rho_select,
                                                                   len(beta_axis))))
-                if self.manager.get_screen('ES').rho_select == 0 or self.manager.get_screen('ES').rho_select == 1:
-                    ax.plot(beta_axis, self.S_axis, 'bo',
-                            label="\u03C1" + "" + str(self.manager.get_screen('ES').rho_select + 1))
-                    ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
-                    ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
-                    ax.plot(beta_axis, s_ax_qua, 'yo', label='Quantum prediction')
+                    if self.manager.get_screen('ES').rho_select == 0 or self.manager.get_screen('ES').rho_select == 1:
+                        ax.plot(beta_axis, self.S_axis, 'bo',
+                                label="\u03C1" + "" + str(self.manager.get_screen('ES').rho_select + 1))
+                        ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
+                        ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
+                        ax.plot(beta_axis, s_ax_qua, 'yo', label='Quantum prediction')
 
-                elif self.manager.get_screen('ES').rho_select == 2:
-                    ax.plot(beta_axis, self.S_axis_1, "bo", label='\u03C1' + '\u2081')
-                    ax.plot(beta_axis, self.S_axis_2, "ro", label='\u03C1' + '\u2082')
-                    ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
-                    ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
-                    ax.plot(beta_axis, s_ax_qua, 'yo', label='Quantum prediction')
-                ax.legend(loc="lower left")
-                ax.set_ylabel("S")
-                ax.set_xlabel("\u03B2 (rad)")
+                    elif self.manager.get_screen('ES').rho_select == 2:
+                        ax.plot(beta_axis, self.S_axis_1, "bo", label='\u03C1' + '\u2081')
+                        ax.plot(beta_axis, self.S_axis_2, "ro", label='\u03C1' + '\u2082')
+                        ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
+                        ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
+                        ax.plot(beta_axis, s_ax_qua, 'yo', label='Quantum prediction')
+                    ax.legend(loc="lower left")
+                    ax.set_ylabel("S")
+                    ax.set_xlabel("\u03B2 (rad)")
+
+                    self.canv = FigureCanvasKivyAgg(figure)
+                    self.manager.get_screen('ES').changed_rho = False  # changed_rho tells if the rho used has changed
+                    self.manager.get_screen(
+                        'ES').tab_change = False  # tab_change tells if the tab has changed to replot
+
+                    self.add_plot()
 
             if not isActive:
                 if self.manager.get_screen('ES').rho_select == 0 or self.manager.get_screen('ES').rho_select == 1:
@@ -772,12 +782,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
                     ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
                     ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
 
-            self.canv = FigureCanvasKivyAgg(figure)
-            self.manager.get_screen('ES').changed_rho = False  # changed_rho tells if the rho used has changed
-            self.manager.get_screen(
-                'ES').tab_change = False  # tab_change tells if the tab has changed to replot
-
-            self.add_plot()
+                self.canv = FigureCanvasKivyAgg(figure)
+                self.add_plot()
 
         pass
 
