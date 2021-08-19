@@ -307,6 +307,7 @@
                                     id: graph
                                     size_hint:(0.4,0.2)
                                     pos_hint:{'x': 0, 'y':0.4}
+                                    on_active: b1_label.focus = True
                                 Label:
                                     text: "Generate 3D S-plot"
                                     #pos_hint:{'x': -0.1, 'y':0}
@@ -359,6 +360,7 @@
                                             multiline:False
                                             on_text:root.kwinput=True
                                             on_text_validate:root.select_angle()
+                                            on_text_validate: b2_label.focus = True
                                             disabled: not graph.active
 
                                     BoxLayout:
