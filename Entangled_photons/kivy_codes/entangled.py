@@ -885,6 +885,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
         comp_im = ObjectProperty()
         defs_dict = ObjectProperty()
         specs_lab = ObjectProperty(Label)
+        descr = StringProperty()
 
         def __init__(self, *args, **kwargs):
             super(InfoScreen, self).__init__()
@@ -916,7 +917,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 description = ''
             for i in self.defs_dict[str(1)]:
                 description += (' ' + i)
-            self.specs_lab.text = description
+            self.descr = description
 
         # selects model view
         def on_view_select(self, instance, value, in_view_val):

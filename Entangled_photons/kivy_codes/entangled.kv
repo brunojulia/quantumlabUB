@@ -946,6 +946,7 @@
                         pos_hint: {'x':0.05, 'y':0.15}
 
                     CheckBox:
+                        id: laser_ch
                         pos_hint: {'x':0.25, 'y':0.2}
                         size_hint:(0.1,0.1)
                         group: 'comps'
@@ -1019,7 +1020,7 @@
                 id: specs_lab
                 halign: 'left'
                 size: self.size
-                text: ''
+                text: root.descr
                 font_size: 18
                 canvas.before:
                     Color:
