@@ -177,11 +177,11 @@ if __name__ == '__main__':  # to avoid new window with a new process
             with self.img_widg.canvas.after:
                 self.img_widg.rect = Rectangle(size=self.img_widg.size, pos=self.img_widg.pos,
                                                source="img/sketch_exp_2.png")
-                Color(0, 0, 1)
+                Color(0, 0, 1, 0.5)
                 self.line_b = Line(points=self.img_widg.pos, joint=self.joint, cap=self.cap,
                                    width=self.linewidth, close=False, dash_length=self.dash_length,
                                    dash_offset=self.dash_offset)
-                Color(1, 0, 0)
+                Color(1, 0, 0, 0.5)
                 self.line_r_1 = Line(points=self.img_widg.pos, joint=self.joint, cap=self.cap,
                                      width=self.linewidth, close=False, dash_length=self.dash_length,
                                      dash_offset=self.dash_offset)
