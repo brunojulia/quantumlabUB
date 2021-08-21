@@ -4,6 +4,7 @@ import numpy as np
 import random
 from kivy.properties import ListProperty
 
+
 class entangledEXP(object):
     # aqui posem totes les propietats del entangledEXP que escriurem com self. el que sigui
     def __init__(self, n=10000, theta_l=math.pi / 4, phi=26 * math.pi / 180, photons=10000, b1=5 * math.pi / 36,
@@ -77,9 +78,9 @@ class entangledEXP(object):
         # fem passar el fotó pels polaritzadors
         detector1 = 0
         detector2 = 0
-        photon = photon % (math.pi)
-        alpha = alpha % (math.pi)
-        beta = beta % (math.pi)
+        photon = photon % math.pi
+        alpha = alpha % math.pi
+        beta = beta % math.pi
         if abs(alpha - photon) <= (math.pi / 4) or abs(alpha - photon) > (
                 3 * math.pi / 4):  # si passa pel primer pol
             detector1 = 1
@@ -91,9 +92,9 @@ class entangledEXP(object):
     def rho2(self, photon, alpha, beta):
         detector1 = 0
         detector2 = 0
-        photon = photon % (math.pi)
-        alpha = alpha % (math.pi)
-        beta = beta % (math.pi)
+        photon = photon % math.pi
+        alpha = alpha % math.pi
+        beta = beta % math.pi
         if random.uniform(0, 1) < math.cos(alpha - photon) ** 2:
             detector1 = 1
         if random.uniform(0, 1) < math.cos(beta - photon) ** 2:
@@ -130,7 +131,7 @@ class entangledEXP(object):
                                             math.pi)  # ha de ser entre -pi i pi perquè si no el alpha=-45 no pilla cap al detector1
 
                     # fem passar el fotó pels polaritzadors
-                    if rho_select == 0:
+                    if rho_select == 0 or rho_select == 2:
                         detectors = self.rho(photon, alph, bet)  # funció de distribució de probabilitat
                     elif rho_select == 1:
                         detectors = self.rho2(photon, alph, bet)
@@ -156,10 +157,9 @@ class entangledEXP(object):
         return table1
 
     def scalc(self, exp_select, alpha, beta, rho_select):
-
-        if exp_select == 0: #qua
+        if exp_select == 0:  # qua
             table1 = self.expqua(alpha, beta)
-        elif exp_select == 1: #HVT
+        elif exp_select == 1:  # HVT
             table1 = self.hvt(alpha, beta, rho_select)
         Elist = []
         # Nc=llista de coincidències, agafa la última columna de la taula
@@ -173,7 +173,7 @@ class entangledEXP(object):
             E = (Nc[i] + Nc[i + 10] - Nc[i + 2] - Nc[i + 8]) / (Nc[i] + Nc[i + 10] + Nc[i + 2] + Nc[i + 8])
             Elist.append(E)
         # Agafem els angles a=-45, a'=0 i b=22.5, b'=-22.5
-        # print(Elist)
+
         S = Elist[0] - Elist[1] + Elist[2] + Elist[3]
         return S
 
@@ -202,7 +202,7 @@ class entangledEXP(object):
         sigma = math.sqrt(sum(suma))
         return (sigma)
 
-# Calcs S from real data
+    # Calcs S from real data
 
     def s_calc_data(self, table1):
         Elist = []
@@ -217,7 +217,6 @@ class entangledEXP(object):
             E = (Nc[i] + Nc[i + 10] - Nc[i + 2] - Nc[i + 8]) / (Nc[i] + Nc[i + 10] + Nc[i + 2] + Nc[i + 8])
             Elist.append(E)
         # Agafem els angles a=-45, a'=0 i b=22.5, b'=-22.5
-        # print(Elist)
         S = Elist[0] - Elist[1] + Elist[2] + Elist[3]
         return S
 
