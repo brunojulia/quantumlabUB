@@ -153,6 +153,7 @@
                                 on_press: root.start_photon_adding(-10000)
                                 on_press: root.add_photons(-10000)
                                 on_release: root.stop_photon_adding()
+                                always_release: True
 
                             FloatInput:
                                 id: n_label
@@ -173,6 +174,7 @@
                                 on_press: root.start_photon_adding(10000)
                                 on_press: root.add_photons(10000)
                                 on_release: root.stop_photon_adding()
+                                always_release: True # triggers on_release despite the release event is outside the button
 
                         FloatLayout:
                             Label:
@@ -447,6 +449,7 @@
                                 on_press: root.start_photon_adding(-10000)
                                 on_press: root.add_photons(-10000)
                                 on_release: root.stop_photon_adding()
+                                always_release: True
 
                             FloatInput:
                                 id: n_label_hvt
@@ -467,6 +470,7 @@
                                 on_press: root.start_photon_adding(10000)
                                 on_press: root.add_photons(10000)
                                 on_release: root.stop_photon_adding()
+                                always_release: True
                         BoxLayout:
                             orientation: "horizontal"
                             FloatLayout:
@@ -477,7 +481,7 @@
 
                             FloatLayout:
                                 FloatInput:
-                                    id:reps
+                                    id: reps
                                     background_color : (0, 0, 0, 1)
                                     foreground_color : (1, 0, 0, 1)
                                     size_hint: (0.4,.4)
@@ -493,7 +497,7 @@
                                 size_hint: None, None
                                 size:240,100
                                 text:'[font=digital-7][color=000000][size=34] S=                [/color][/font][/size]'
-                                markup:True
+                                markup: True
                                 pos_hint:{'x':0.2,'y':0.2}
                                 canvas:
                                 canvas.before:
@@ -617,6 +621,7 @@
                                     on_press: root.angle_down_hvt()
                                     on_press: root.start_angle_down()
                                     on_release: root.stop_angle_down()
+                                    always_release: True
 
                                 FloatInput:
                                     id: alpha_hvt
@@ -637,7 +642,7 @@
                                     on_press: root.angle_up_hvt()
                                     on_press: root.start_angle_up()
                                     on_release: root.stop_angle_up()
-
+                                    always_release: True
 
                             BoxLayout:
                                 orientation: "horizontal"
