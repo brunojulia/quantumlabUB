@@ -10,6 +10,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from functools import partial
 import numpy as np
 import time
+import re
 
 # kivy imports
 if __name__ == '__main__':  # to avoid new window with a new process
@@ -76,8 +77,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
         def on_enter(self, *args):
             self.table_lay.clear_widgets()
-            self.table_lay.add_widget(Button(text='\u03B1 (rad)', background_color=(0, 102 / 255, 204 / 255, 1)))
-            self.table_lay.add_widget(Button(text='\u03B2 (rad)', background_color=(0, 102 / 255, 204 / 255, 1)))
+            self.table_lay.add_widget(Button(text='\u03B1 (deg)', background_color=(0, 102 / 255, 204 / 255, 1)))
+            self.table_lay.add_widget(Button(text='\u03B2 (deg)', background_color=(0, 102 / 255, 204 / 255, 1)))
             self.table_lay.add_widget(
                 Button(text='N_\u03B1 (detections alpha)', background_color=(0, 102 / 255, 204 / 255, 1)))
             self.table_lay.add_widget(
@@ -87,10 +88,18 @@ if __name__ == '__main__':  # to avoid new window with a new process
             self.table = sm.get_screen('ES').table
             # If a measure of the S has been taken
             if len(self.table) != 0:
+                col_counter = 0
                 for row in self.table:
+                    col_counter = 0
                     for item in row:
-                        label_i = Button(text=str(round(item, 2)), size_hint=(1, 1),
-                                         background_color=(0, 102 / 255, 204 / 255, 0.8))
+                        # if the angles are being added to the table (cols 0 and 1) it changes them into degrees
+                        if col_counter <= 1:
+                            label_i = Button(text=str(round(item*180/np.pi, 0)), size_hint=(1, 1),
+                                             background_color=(0, 102 / 255, 204 / 255, 0.8))
+                        else:
+                            label_i = Button(text=str(round(item, 2)), size_hint=(1, 1),
+                                             background_color=(0, 102 / 255, 204 / 255, 0.8))
+                        col_counter += 1
 
                         self.table_lay.add_widget(label_i)
 
@@ -586,6 +595,18 @@ if __name__ == '__main__':  # to avoid new window with a new process
     class AngleKnob(ButtonBehavior, Knob):
         pass
 
+    # TextInput which only allows Int or Float inputs to avoid errors in the program
+    class FloatInput(TextInput):
+
+        pat = re.compile('[^0-9]')
+
+        def insert_text(self, substring, from_undo=False):
+            pat = self.pat
+            if '.' in self.text:
+                s = re.sub(pat, '', substring)
+            else:
+                s = '.'.join([re.sub(pat, '', s) for s in substring.split('.', 1)])
+            return super(FloatInput, self).insert_text(s, from_undo=from_undo)
 
     ############################################ Graph Layout ###############################################################
 
