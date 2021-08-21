@@ -308,13 +308,14 @@
                                     size_hint:(0.4,0.2)
                                     pos_hint:{'x': 0, 'y':0.4}
                                     on_active: b1_label.focus = True
+
                                 Label:
                                     text: "Generate 3D S-plot"
                                     #pos_hint:{'x': -0.1, 'y':0}
 
                                 Label:
                                     id: info_label
-                                    text:'Select input angles'
+                                    text:'Select input angles' if graph.active else ''
                                     font_name: 'digital-7.ttf'
                                     color: (1, 0, 0, 1)
                                     font_size: 20
@@ -604,7 +605,7 @@
 
                             Label:
                                 text: "Generate S vs \u03B2 plot"
-                                pos_hint:{'x': -0.1, 'y':0}
+                                pos_hint:{'x': 0, 'y':0}
                             Label:
                                 text:"select fixed \u03B1" + " (deg):"
                             BoxLayout:
@@ -691,6 +692,7 @@
                     FileChooserIconView:
                         id: filechooser
                         path: "."
+                        filters: ['*.csv']
                         on_submit: root.select_file(filechooser.selection)
                         on_selection:
                             if len(filechooser.selection) != 0: \
