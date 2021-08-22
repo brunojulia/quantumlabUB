@@ -88,13 +88,12 @@ if __name__ == '__main__':  # to avoid new window with a new process
             self.table = sm.get_screen('ES').table
             # If a measure of the S has been taken
             if len(self.table) != 0:
-                col_counter = 0
                 for row in self.table:
                     col_counter = 0
                     for item in row:
                         # if the angles are being added to the table (cols 0 and 1) it changes them into degrees
                         if col_counter <= 1:
-                            label_i = Button(text=str(round(item*180/np.pi, 0)), size_hint=(1, 1),
+                            label_i = Button(text=str(round(item * 180 / np.pi, 0)), size_hint=(1, 1),
                                              background_color=(0, 102 / 255, 204 / 255, 0.8))
                         else:
                             label_i = Button(text=str(round(item, 2)), size_hint=(1, 1),
@@ -595,6 +594,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
     class AngleKnob(ButtonBehavior, Knob):
         pass
 
+
     # TextInput which only allows Int or Float inputs to avoid errors in the program
     class FloatInput(TextInput):
 
@@ -607,6 +607,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
             else:
                 s = '.'.join([re.sub(pat, '', s) for s in substring.split('.', 1)])
             return super(FloatInput, self).insert_text(s, from_undo=from_undo)
+
 
     ############################################ Graph Layout ###############################################################
 
@@ -621,7 +622,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
         bottom_lay = ObjectProperty()
 
         def __init__(self, *args, **kwargs):
-            super(GraphScreen, self).__init__(*args, **kwargs)
+            super(GraphScreen, self).__init__(**kwargs)
             self.exitbtn = Button(size_hint=(1, 1), text='Go Back')
             self.exitbtn.bind(on_release=self.go_back)
             self.qua_ch = CheckBox(size_hint=(0.5, 0.5), pos_hint={'x': 0.2, 'y': 0.2})

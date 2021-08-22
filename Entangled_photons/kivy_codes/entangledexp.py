@@ -68,7 +68,7 @@ class entangledEXP(object):
                 VH = int(self.crossed(a1, b1) * self.photons)
                 HV = int(self.crossed(b1, a1) * self.photons)  # simplement canviar alpha per beta i viceversa
 
-                resultats = [a1, b1, VH, HV, VV]
+                resultats = [a1, b1, VH+VV, HV+VV, VV]
                 table1.append(resultats)
                 resultats = []
         return table1
