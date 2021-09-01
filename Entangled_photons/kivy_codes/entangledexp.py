@@ -16,6 +16,8 @@ class entangledEXP(object):
         self.b1 = b1
         self.b2 = b2
 
+# updates the number of photons for this file
+
     def addphotons(self, n=None):
         changed = False
         if n is not None:
@@ -25,12 +27,17 @@ class entangledEXP(object):
             return changed
 
     # ----------------------------EXPERIMENT QUÀNTIC-------------------------------
-    def verticals(self, a1, b1, ):
+
+    # returns VV probability from input angles
+
+    def verticals(self, a1, b1):
         # prob VV
         verticals = math.sin(a1) ** 2 * math.sin(b1) ** 2 * math.cos(self.tl) ** 2 + math.cos(
             a1) ** 2 * math.cos(b1) ** 2 * math.sin(self.tl) ** 2 + (1 / 4) * math.sin(2 * a1) * math.sin(
             2 * b1) * math.sin(2 * self.tl) * math.cos(self.phi)
         return verticals
+
+    # returns VH or HV probability from input angles
 
     def crossed(self, a1, b1):
         # prob HV o VH
@@ -40,11 +47,15 @@ class entangledEXP(object):
             self.tl) ** 2
         return Pcrossed
 
+    # returns HH probability from input angles
+
     def horizontals(self, a1, b1):
         Phh = math.cos(a1) ** 2 * math.cos(b1) ** 2 * math.cos(self.tl) ** 2 + math.sin(a1) ** 2 * math.sin(
             b1) ** 2 * math.sin(self.tl) ** 2 + \
               (1 / 4) * math.sin(2 * a1) * math.sin(2 * b1) * math.sin(2 * self.tl) * math.cos(self.phi)
         return Phh
+
+    # returns a table which then is used to calculate the S in Scalc. Takes the polarizers' angles as input
 
     def expqua(self, alpha, beta):
         # creem les llistes dels angles que posarem als polaritzadors per poder calcular S
@@ -67,13 +78,16 @@ class entangledEXP(object):
                 VV = int(self.verticals(a1, b1) * self.photons)
                 VH = int(self.crossed(a1, b1) * self.photons)
                 HV = int(self.crossed(b1, a1) * self.photons)  # simplement canviar alpha per beta i viceversa
-
                 resultats = [a1, b1, VH+VV, HV+VV, VV]
                 table1.append(resultats)
                 resultats = []
         return table1
 
-    # ----------------------------EXPERIMENT Clàssic-------------------------------
+# ------------------------------EXPERIMENT Clàssic-------------------------------
+
+    # rho and rho1: return a list with the detector outputs. Takes polarizer angles as input as well as the polarization
+    # of the photon.
+
     def rho(self, photon, alpha, beta):
         # fem passar el fotó pels polaritzadors
         detector1 = 0
@@ -101,6 +115,10 @@ class entangledEXP(object):
             detector2 = 1
         detectors = [detector1, detector2]
         return detectors
+
+    # Classic equivalent to expqua.
+    # rho_select: 0: use rho
+    #             1: use rho2
 
     def hvt(self, alpha, beta, rho_select):
         # creem les llistes dels angles que posarem als polaritzadors per poder calcular S
@@ -131,7 +149,7 @@ class entangledEXP(object):
                                             math.pi)  # ha de ser entre -pi i pi perquè si no el alpha=-45 no pilla cap al detector1
 
                     # fem passar el fotó pels polaritzadors
-                    if rho_select == 0 or rho_select == 2:
+                    if rho_select == 0:
                         detectors = self.rho(photon, alph, bet)  # funció de distribució de probabilitat
                     elif rho_select == 1:
                         detectors = self.rho2(photon, alph, bet)
@@ -156,6 +174,10 @@ class entangledEXP(object):
                 resultats = []
         return table1
 
+# Calculates S from tables from hvt and expqua.
+#   exp_select: 0: quantum
+#               1: Classical
+
     def scalc(self, exp_select, alpha, beta, rho_select):
         if exp_select == 0:  # qua
             table1 = self.expqua(alpha, beta)
@@ -177,7 +199,11 @@ class entangledEXP(object):
         S = Elist[0] - Elist[1] + Elist[2] + Elist[3]
         return S
 
+    # Vectorizes scalc so it can recieve 1D arrays as inputs to generate the 3D plot.
+
     scalcvec = np.vectorize(scalc)
+
+#   Calculates the error of S.
 
     def sigma(self, alpha, beta):
         # Nc=llista de coincidències, agafa la última columna de la taula
@@ -220,6 +246,7 @@ class entangledEXP(object):
         S = Elist[0] - Elist[1] + Elist[2] + Elist[3]
         return S
 
+    # Calcs error from real data
     def sigma_data(self, table1):
         Nc = []
         for result in table1:
@@ -241,6 +268,7 @@ class entangledEXP(object):
         sigma = math.sqrt(sum(suma))
         return (sigma)
 
+    # generates the alpha and beta linspaces to use in the 3D plot
     def sweepS(self):
         res = []
         # we take the lowest of b1 and b2

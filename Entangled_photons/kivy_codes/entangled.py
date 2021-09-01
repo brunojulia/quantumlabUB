@@ -75,6 +75,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
             super(TablePopup, self).__init__(**kwargs)
             self.table = sm.get_screen('ES').table
 
+        # triggered when the table screen is entered, builds the table.
+
         def on_enter(self, *args):
             self.table_lay.clear_widgets()
             self.table_lay.add_widget(Button(text='\u03B1 (deg)', background_color=(0, 102 / 255, 204 / 255, 1)))
@@ -180,15 +182,19 @@ if __name__ == '__main__':  # to avoid new window with a new process
             self.graph_checkbox.bind(active=self.on_graph_checkbox_Active)  # lliga la checkbox amb la funció
             self.rho1.bind(active=self.select_rho)  # lliga el switch a la funció per seleccionar la rho.
             self.rho2.bind(active=self.select_rho)
+
             # Canvas of the animation
 
             with self.img_widg.canvas.after:
+                # Rectangle with the image of the exp sketch
                 self.img_widg.rect = Rectangle(size=self.img_widg.size, pos=self.img_widg.pos,
                                                source="img/sketch_exp_2.png")
+                # Blue line
                 Color(0, 0, 1, 0.5)
                 self.line_b = Line(points=self.img_widg.pos, joint=self.joint, cap=self.cap,
                                    width=self.linewidth, close=False, dash_length=self.dash_length,
                                    dash_offset=self.dash_offset)
+                # red lines
                 Color(1, 0, 0, 0.5)
                 self.line_r_1 = Line(points=self.img_widg.pos, joint=self.joint, cap=self.cap,
                                      width=self.linewidth, close=False, dash_length=self.dash_length,
@@ -198,7 +204,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
                                      width=self.linewidth, close=False, dash_length=self.dash_length,
                                      dash_offset=self.dash_offset)
 
-        # crea el clock object que s'encarrega de fer anar l'animació
+        # creates a clock object which triggers and updates the position of the lines
         def run_animation(self):
             Clock.unschedule(self.move_lines)
             self.line_b_pos = [[self.img_widg.pos[0] + self.img_widg.size[0] * 0.160,
@@ -221,7 +227,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
             Clock.schedule_interval(self.move_lines, 0.0001)
 
-        # Actualitza la posició de les linies
+        # updates the position of the lines
         def move_lines(self, dt):
             initial_pos = [self.img_widg.pos[0] + self.img_widg.size[0] * 0.160,
                            self.img_widg.pos[1] + self.img_widg.size[1] * 0.657]
@@ -293,7 +299,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
         # Adds a photons to throw
         # When the button is pressed for a long time it keeps adding photons
-
+        # start and stop_photon adding create and stop the clock objects to keep adding photons when the button is pressed
         def start_photon_adding(self, a):
             self.adding_phot = Clock.schedule_interval(lambda dt: self.add_photons(a), 0.2)
 
@@ -331,6 +337,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 self.rho_select = 0
                 print("No distribution selected. Chosen default (0)")
             self.changed_rho = True
+
+        # Creates a thread to compute the S without crashing the program
 
         def exp_thread(self):
             self.s_label_hvt.text = '[font=digital-7][color=000000][size=34] Computing S...[/color][/font][/size]'
@@ -460,11 +468,12 @@ if __name__ == '__main__':  # to avoid new window with a new process
             print(f'finished in {round(finish - start, 2)} s')
 
         def open_table_popup(self):
-            """opens popup window"""
+            """opens table screen"""
             self.table_checkbox.active = False
             self.table_checkbox_hvt.active = False
             self.manager.current = 'TP'
 
+        # Closes the table screen and unchecks the table switch
         def close(self):
 
             if self.tab_selector == 0:
@@ -477,6 +486,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
         def on_checkbox_Active(self, checkboxInstance, isActive):
             if isActive:
                 self.open_table_popup()
+
+        # Activates graph buttons if switch active
 
         def on_graph_checkbox_Active(self, checkboxInstance, isActive):
             self.kwinput = False
@@ -497,6 +508,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
                     self.b2_label.disabled = True
                     self.angle_count = 0
 
+        # selects beta angles in graph
+
         def select_angle(self):
             if self.angle_count < 2:
                 self.angle_count += 1
@@ -514,6 +527,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
             self.kwinput = False
 
+        # deletes beta angles in graph
+
         def delete_angle(self):
 
             if self.angle_count > 0:
@@ -529,6 +544,9 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 self.angle_count -= 1
             self.kwinput = False
 
+    # Belong to HVT tab:
+    # Ad or subtract 1 deg in the plot textinput and run a clock when the button is held active.
+        # Update up or down the textinput
         def angle_up_hvt(self):
             if int(self.alpha_hvt.text) < 360:
                 self.alpha_hvt.text = str(int(self.alpha_hvt.text) + 1)
@@ -540,6 +558,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 self.alpha_hvt.text = str(int(self.alpha_hvt.text) - 1)
             if int(self.alpha_hvt.text) == 0:
                 self.alpha_hvt.text = str(360)
+        # Start and stop clock for adding and subtracting degs
 
         def start_angle_up(self):
             self.adding_angle = Clock.schedule_interval(lambda dt: self.angle_up_hvt(), 0.18)
@@ -564,6 +583,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 self.angle_count = 0
                 self.kwinput = False
 
+    # polarizers images' angle. Generates clock when held.
         def change_pol_angles(self):
             self.changing_angle = Clock.schedule_interval(lambda dt: self.angle_update(), 0.01)
 
@@ -578,6 +598,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 self.angle_1 = -int(self.textin_alph_hvt.text)
                 self.angle_2 = -int(self.textin_bet_hvt.text)
 
+        # Selects file to import the real data
         def select_file(self, filename):
             try:
                 self.file_name = filename[0]
@@ -608,8 +629,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 s = '.'.join([re.sub(pat, '', s) for s in substring.split('.', 1)])
             return super(FloatInput, self).insert_text(s, from_undo=from_undo)
 
-
-    ############################################ Graph Layout ###############################################################
+    ############################################ Graph Layout ##########################################################
 
     class GraphScreen(Screen):
 
@@ -630,13 +650,15 @@ if __name__ == '__main__':  # to avoid new window with a new process
             self.qua_lab = Label(text='Show quantum prediction', size_hint=(0.5, 0.6), pos_hint={'x': 0, 'y': 0.2})
             self.bottom_lay.add_widget(self.exitbtn, index=0)
 
+        # Creates thread to avoid program crashing while generating the plot
         def graph_thread(self):
             self.gr_th = threading.Thread(target=self.get_graph)
             self.gr_th.daemon = True
             self.gr_th.start()
 
+        # Creates the graph to put un the graph screen, be it Quantum or Classical graphs.
         def get_graph(self):
-
+            # QUANTUM
             if self.manager.get_screen('ES').tab_selector == 0:
                 # avoids unnecessary mess disabling plot button
                 self.manager.get_screen('ES').plot_btn.disabled = True
@@ -677,6 +699,9 @@ if __name__ == '__main__':  # to avoid new window with a new process
                     self.manager.get_screen(
                         'ES').tab_change = False  # tab_change tells if the tab has changed to replot or not
                 self.add_plot()
+
+            # CLASSICAL
+
             if self.manager.get_screen('ES').tab_selector == 1:  # HVT
 
                 self.bottom_lay.add_widget(self.qua_ch)
@@ -727,7 +752,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
                             ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
                             ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
 
-                    ax.legend(loc="lower left")
+                    ax.legend(bbox_to_anchor = (0, 0.99), loc="lower left")
                     ax.set_ylabel("S")
                     ax.set_xlabel("\u03B2 (rad)")
                     self.canv = FigureCanvasKivyAgg(figure)
@@ -736,6 +761,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
                     self.manager.get_screen(
                         'ES').tab_change = False  # tab_change tells if the tab has changed to replot
                 self.add_plot()
+
+        # Adds graph to graph_screen and changes the current screen.
 
         def add_plot(self):
             self.mainlay.add_widget(self.canv, index=1)
@@ -755,6 +782,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
             self.mainlay.remove_widget(self.canv)
             self.bottom_lay.remove_widget(self.qua_ch)
             self.bottom_lay.remove_widget(self.qua_lab)
+
+        # Adds quantum plot to the HVT 2D graph.
 
         def add_qua_plot(self, checkboxInstance, isActive):
             figure, ax = plt.subplots()
@@ -780,7 +809,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
                         ax.plot(beta_axis, list(itertools.repeat(2, len(beta_axis))), '-g', label='Classical limit')
                         ax.plot(beta_axis, list(itertools.repeat(-2, len(beta_axis))), '-g')
                         ax.plot(beta_axis, s_ax_qua, 'yo', label='Quantum prediction')
-                    ax.legend(loc="lower left")
+                    ax.legend(bbox_to_anchor = (0, 0.99), loc="lower left")
                     ax.set_ylabel("S")
                     ax.set_xlabel("\u03B2 (rad)")
 
@@ -810,6 +839,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
         pass
 
 
+    ############################################ Data Screen ###########################################################
+
     class DataScreen(Screen):
         table_lay_data = ObjectProperty(GridLayout)
         table1 = ListProperty([])
@@ -819,6 +850,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
 
         def __init__(self, *args, **kwargs):
             super(DataScreen, self).__init__(**kwargs)
+
+        # When the screen is entered loads the table from the data from the file
 
         def on_enter(self, *args):
 
@@ -848,6 +881,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
                 self.beta = self.table1[0][1]
                 csvfile.close()
 
+        # Calculates the S with the data from the file
+
         def run_exp_data(self):
 
             s = sm.get_screen('ES').experiment.s_calc_data(self.table1)
@@ -867,7 +902,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
             self.s_label_data.text = '[font=digital-7][color=000000][size=34] S=' + str(
                 sr) + '[/font]' + '±' + '[font=digital-7]' + str(sigmar) + '[/color][/font][/size]'
 
-        #   predicts HVT's S using the angles from the table
+        # predicts HVT's S using the angles from the table
 
         def run_cla_pred(self):
             s_arr = np.array([])
@@ -895,7 +930,10 @@ if __name__ == '__main__':  # to avoid new window with a new process
         pass
 
 
+    ############################################ Info Screen ###########################################################
+
     class InfoScreen(Screen):
+
         top_ch = ObjectProperty(CheckBox)
         trb_ch = ObjectProperty(CheckBox)
         right_ch = ObjectProperty(CheckBox)
@@ -947,6 +985,8 @@ if __name__ == '__main__':  # to avoid new window with a new process
                          5: 'img/front.png', 6: 'img/top-right-front.png'}
             self.im_view.source = view_dict[in_view_val]
 
+        # Moves the red frame to the selected component
+
         def animate_frame(self, widget, comp_val, *args):
             anim_cry = Animation(comp_pos_y=self.comp_pos_im.size[1] * 0.2, comp_y_size=0)
             anim_pol = Animation(comp_pos_y=self.comp_pos_im.size[1] * 0.75, comp_y_size=self.comp_pos_im.size[1] * 0.2)
@@ -963,13 +1003,14 @@ if __name__ == '__main__':  # to avoid new window with a new process
             if comp_val == 4:
                 anim_detect.start(widget)
 
+        # Shows the selected component's image and its description
+
         def on_comp_select(self, instance, value, in_comp_val):
             comp_dict = {1: 'img/laser.png', 2: 'img/crystals.png', 3: 'img/quartz.png', 4: 'img/pol_real.png',
                          5: 'img/photon_counter.png'}
             self.comp_im.source = comp_dict[in_comp_val]
 
             description = ''
-            # print(type(self.defs_dict[in_comp_val]))
             for i in self.defs_dict[str(in_comp_val)]:
                 description += (' ' + i)
             self.specs_lab.text = description
@@ -983,6 +1024,7 @@ if __name__ == '__main__':  # to avoid new window with a new process
     class MainApp(App):
 
         def build(self):
+            # Screen name definitions
             sm.add_widget(GraphScreen(name='GS'))
             sm.add_widget(EntangledScreen(name='ES'))
             sm.add_widget(TablePopup(name='TP'))
