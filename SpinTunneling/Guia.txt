@@ -3,4 +3,5 @@ optiv2: RK4 optimitzat per un spin 1/2
 RK4_spin: RK4 optimitzat per un spin s. Cal canviar les condicions inicials a mà
 v2_0 i design: primeres proves de l'aplicacio amb kivy
 tun_v0: 2a versió de prova per veure com funciona l'interficie grafica, botons i inputs de kivy
+tun_v1: 1r intent de programa
 tun_v4: (En procés) App en el que escollint un spin i un Hamiltonia per l'app, grafica la funció mod(a)^2 vs. t' 
