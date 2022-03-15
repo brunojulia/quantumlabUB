@@ -197,7 +197,7 @@
 				id: bvb
 	        	font_size:12
 				color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-				text: "BARRIER\n LEFT [-5,5] A   RIGHT [-5,5] A \n V [0,30] eV"
+				text: "BARRIER\n LEFT [-5,5] A   RIGHT [-5,5] A \n V [0,20] eV"
 	            halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
@@ -226,7 +226,7 @@
 				size_hint_y:1
 				pos_hint:{"x":0.62,"y":0}
 				min: 0
-				max: 30
+				max: 20
 				step: 1
 				orientation: "vertical"
 				on_value: root.V_barrier(*args) #we call a function that saves the value of the slide
@@ -239,7 +239,7 @@
 				id: water
 	        	font_size:12
 				color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-				text: "WATER WELL \n LEFT [-5,5], RIGHT [-5,5] \n V [0,30] eV"
+				text: "WATER WELL \n LEFT [-5,5], RIGHT [-5,5] \n V [0,20] eV"
 	            halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
@@ -269,7 +269,7 @@
 				size_hint_y:1
 				pos_hint:{"x":0.97,"y":0}	
 				min: 0
-				max: 30
+				max: 20
 				step: 1
 				orientation: "vertical"
 				on_value: root.V_water(*args) #we call a function that saves the value of the slide
