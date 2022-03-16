@@ -9,9 +9,6 @@ from kivy.properties import ObjectProperty
 import matplotlib.pyplot as plt 
 import math as math
 import numpy as np  
-import scipy.special 
-import decimal 
-from decimal import Decimal
 
 
 
@@ -33,7 +30,7 @@ class TrainerWindow(Screen):
         potential_type="Free particle" #if no potential button is pressed   
 
         #we create the list of values x outside so its faster(no need to do it every time)
-        n_steps=500 #number of steps taken to integrate the wavefunction 
+        n_steps=400 #number of steps taken to integrate the wavefunction 
         L=10.0 #lenght of the box 
         x0=-L/2  
         x_list_values=[x0]
@@ -185,70 +182,143 @@ class TrainerWindow(Screen):
                                 if x<self.left_x_w: V=self.Vw 
                                 if x>self.left_x_w and x <self.right_x_w: V=0  
                                 if x>self.right_x_w: V=self.Vw 
-                #for any potential the partcile is inside the box so: 
-                if x<-(self.L/2-self.dx/2) : V=10**10 #infinite potential
-                if x>(self.L/2-self.dx/2): V=10**10 
 
                 return V 
 
-        def matrix(self): 
-                '''This function creates the numpy array we will work with. '''
-
-                #define parameters 
+        def derivatives(self,x,yin,energy):
+                '''This function returns f(x)=dy/dx returns the derivatives of the dependent variable. 
+                Takes as an argument value x(A), the independent variable at wich we are, and yin the values of y at x. 
+                Yin should be a list such as [phi,dphi/dx] 
+                Emergy(eV) is the energy we are working with
+                Returns de derivative dyout. 
+                This fucntion is called inside RK4 '''
                 h2_me=7.6199  # (eV*A) h**2/me
-
-                #we create the matrix with all zeros 
-                H_matrix=np.zeros((self.n_steps+1,self.n_steps+1)) #matrix 501x501 
-                for i in range(0,self.n_steps+1): #rows 
-                        
-                        if i==0: #first row
-                                H_matrix[i,0]= -h2_me/(2*self.dx**2)+self.potential(self.x_list_values[i])
-                                H_matrix[i,1]= h2_me/(self.dx**2)
-                                H_matrix[i,2]= -h2_me/(2*self.dx**2)
-
-                        elif i==self.n_steps: #last row 
-                                H_matrix[i,self.n_steps]=-h2_me/(2*self.dx**2)+self.potential(self.x_list_values[i])
-                                H_matrix[i,self.n_steps-1]=h2_me/(self.dx**2)
-                                H_matrix[i,self.n_steps-2]=-h2_me/(2*self.dx**2)
-                
-                        else: #not first nor last row 
-                                H_matrix[i,i]= h2_me/(self.dx**2)+self.potential(self.x_list_values[i])
-                                H_matrix[i,i-1]=-h2_me/(2*self.dx**2)
-                                H_matrix[i,i+1]=-h2_me/(2*self.dx**2)
         
-                return H_matrix 
+                phi=yin[0] #we assign the value of the wave fucntion
+                p=yin[1] #also its derivative
 
-        def wave_function(self):
-                '''This function finds the eigenvalues and eigenvectors and normalises the eigenvector we want to plot 
-                Returns the wave function squared and the energy used'''
-                A=self.matrix()
-                eigenval,eigenvec=np.linalg.eig(A) #we compute eigenvalues and eigenvectors 
-                #we sort the eigenvalues and eigenvectors 
-                index=np.argsort(eigenval)
-                eigenval=eigenval[index] #list of eigenvalues sorted
-                eigenvec=eigenvec[:,index] #lis of eigenvectors sorted accordingly 
+                dphi=p #we compute dphi/dx
+
+                dp= (2/h2_me)*(self.potential(x)-energy)*phi #we compute dphi**2/dx**2 
+
+                dyout=[dphi,dp]
+                return dyout #return a list with dphi and dp 
+
+        def RK4(self,x,dx,yin,energy): 
+                '''THis function makes one step of a RK4 intergation of an ordinary diferential equation. 
+                x i the dependent variable at which we start, dx is the step we take. 
+                yin are the values of the function at x: should be a list such as [phi,dphi/dx] 
+                , yout(return) are the values at x+dx'''
+        
+                k1=self.derivatives(x,yin,energy) #k1 is a list [dphi,p]
+                yytemp=[0,0] #we assign random numbers to yytemp in order to have a 2d list
+                yytemp[0]=yin[0]+dx*k1[0]/2 
+                yytemp[1]=yin[1]+dx*k1[1]/2 
+        
+
+
+                k2=self.derivatives((x+dx)/2,yytemp,energy) 
+                #we now overwrite a new yytemp 
+                yytemp[0]=yin[0]+dx*k2[0]/2 
+                yytemp[1]=yin[1]+dx*k2[1]/2 
+        
+                k3=self.derivatives((x+dx)/2,yytemp,energy) 
+                #we now overwrite a new yytemp 
+                yytemp[0]=yin[0]+dx*k3[0]
+                yytemp[1]=yin[1]+dx*k3[1]
+        
+                k4=self.derivatives((x+dx),yytemp,energy) 
+                #we calculate the final values
+                finalphi=yin[0]+(1/6)*(k1[0]+2*k2[0]+2*k3[0]+k4[0])*dx
+                finalp=yin[1]+(1/6)*(k1[1]+2*k2[1]+2*k3[1]+k4[1])*dx
+                yout=[finalphi,finalp] #we put the final values in a list and return it
+    
+                return yout 
+        
+        def wave_function(self,E):
+                '''This fucntion solves the schrodingers equation for a certain potential (function called inside) and certain E. 
+                It takes as a parameter the energy of the particle.
+                The output is a list of two lists with the positions x and phi of the normalized wave function'''
                 
-                #we choose the energy 
-                E=eigenval[self.value_n] 
-                wave=eigenvec[:,self.value_n]
-                wave=wave.tolist() #we make it a list 
-                #Now we normalise 
+                phi=[0] #initial condition for x=-5A 
+                p=[2*10**(-6)] #initial derivative for x=-5A
+                #Taking first step from x0 
+                x=self.x_list_values[0] 
+                previous_list=[phi[0],p[0]] #phi and p we have before the step
+                next_list=self.RK4(x,self.dx,previous_list,E) #phi and p we have after the step 
+                phi.append(next_list[0])
+                p.append(next_list[1]) #we append to the phi list and p list the new values 
+
+                for k in range(1,self.n_steps): #we do the rest of steps 
+                        x=self.x_list_values[k]  #define the new x from wich we take the step
+                        previous_list=[phi[k],p[k]] #phi and p we have before the step
+                        next_list=self.RK4(x,self.dx,previous_list,E) #phi and p after the step 
+                        phi.append(next_list[0])
+                        p.append(next_list[1]) #we append to the phi list and p list the new values 
+                        #now we have a list of 401 elements for phi and p 
+        
+                #now we have to normalize the wave function 
+                #normalization is done by Simpson
                 integral=0 
                 for k in range(0,self.n_steps+1): 
                         if k==0 or k==self.n_steps: #extrem values 
-                                integral=integral +(wave[k]**2)/3
+                                integral=integral +(phi[k]**2)/3
                         elif (k % 2) == 0:  #even number
-                                integral=integral+2*(wave[k]**2)/3
+                                integral=integral+2*(phi[k]**2)/3
                         else: #odd number 
-                                integral=integral+4*(wave[k]**2)/3
+                                integral=integral+4*(phi[k]**2)/3
                 integral=integral*self.dx 
                 #now we have to normalize 
-                phi_norm=[element/math.sqrt(integral) for element in wave] #and we have to wave function normalised 
+                phi_norm=[element/math.sqrt(integral) for element in phi] #and we have to wave function normalised 
 
-                phi_square=[component**2 for component in phi_norm]
+                return phi_norm #list of lists
 
-                return phi_square,E         
-        
+        def eigenvalue(self): 
+                '''Finds eigenvalues for a potential given with bisection, we d'ont want to left out any zero
+                Returns a list of the five eigenvalues founded'''
+                epsilon=10**(-4) #precission of the zero 
+                E1=0 
+                dE=0.1 #precission between eigenvalues
+                zeros_counter=0 #counts how many zeros we have found 
+                eigen_values=[] #list where all eigenvalues will be placed 
+                while zeros_counter<5: #we want to find 5 zeros 
+                        E2=E1+dE 
+                        #we have to now see if there is a zero between E2 and E1 
+                        listsE1=self.wave_function(E1)
+                        listsE2=self.wave_function(E2)
+                        last_phiE1=listsE1[self.n_steps]
+                        last_phiE2=listsE2[self.n_steps]#we have to get the last value in order to search for the zero 
+                        #we check now if there is a zero between them 
+                        if (last_phiE1*last_phiE2)<0: #theres is a zero 
+                                B=E2 
+                                A=E1 #so we don't modify E1 and E2 in bisection
+                                #we do bisection: 
+                                n_max=(math.log((B-A)/epsilon)/math.log(2)) +10000 #compute maximum of iterations 
+                                for n in range(0,int(n_max)): 
+                                        listsA=self.wave_function(A)
+                                        listsB=self.wave_function(B)
+                                        last_phiA=listsA[self.n_steps]
+                                        last_phiB=listsB[self.n_steps]#we have to get the last value in order to search for the zero 
+                                        C=(A+B)/2 #take a mid point
+                                        listsC=self.wave_function(C)
+                                        last_phiC=listsC[self.n_steps]
+                                        if (last_phiC*last_phiB)>0:#zero ain't between C an B 
+                                                B=C
+                                        else: #zero is between c and b 
+                                                A=C 
+                                        #now we have new A and B, we check if we have enough precission 
+                                        dif=abs(B-A) 
+                                        if dif < epsilon: 
+                                                eigenvalue=C 
+                                                break #we exit the loop 
+                                #we have foun the zero 
+                                eigen_values.append(eigenvalue) 
+                                zeros_counter=zeros_counter+1  
+                                E1=E2 
+                        else: #there is no zero 
+                                E1=E2
+                return eigen_values
+
         def plot_energy(self):
                 '''This function plots the energy line for a estatic potential'''
                 plt.clf()
@@ -257,15 +327,10 @@ class TrainerWindow(Screen):
                 ax_phi.set_ylabel(r"$ \phi^2$")
                 ax_phi.set_ylim((0,1)) #maximum of phi_axis
                 
-                #we compute the eigen_values 
-                A=self.matrix()
-                eigenval,eigenvec=np.linalg.eig(A) #we compute eigenvalues and eigenvectors 
-                #we sort the eigenvalues and eigenvectors 
-                index=np.argsort(eigenval)
-                eigenval=eigenval[index] #list of eigenvalues sorted
-                eigenvec=eigenvec[:,index] #lis of eigenvectors sorted accordingly 
-                E=eigenval[self.value_n]  #we assign Energy 
+                eigen_values=self.eigenvalue() #we compute the eigen_values 
+                E= eigen_values[self.value_n] #we assign Energy 
                 
+
 
                 y2=0
                 V_plot=[self.potential(s) for s in self.x_list_values] 
@@ -274,7 +339,7 @@ class TrainerWindow(Screen):
                 ax_V.plot(self.x_list_values,V_plot, label="V(x)" , color='tab:blue') 
                 ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
                 ax_V.fill_between(self.x_list_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
-                if E<40: ax_V.set_ylim((0,40)) #limit in potential axis
+                if E<30: ax_V.set_ylim((0,30))
                 else: ax_V.set_ylim((0,E+5)) 
                 ax_V.legend(loc="upper right")
                 plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4]+"   V(x)= "+str(self.potential_type),loc="right")
@@ -283,9 +348,7 @@ class TrainerWindow(Screen):
                 self.float_plot.add_widget(canvas_plot)
 
         def plot_potential(self): 
-                '''This function plots the potential
-                This function won't plot energy in order to not having to compute the eigenvalues
-                every time the potential is changing'''
+                '''This function plots the potential'''
                 #clear previous plot 
                 plt.clf()
 
@@ -301,7 +364,7 @@ class TrainerWindow(Screen):
                 ax_V.set_ylabel(r"$V(eV)$")
                 ax_V.plot(self.x_list_values,V_plot, label="V(x)" , color='tab:blue') 
                 ax_V.fill_between(self.x_list_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
-                ax_V.set_ylim((0,40)) 
+                ax_V.set_ylim((0,30)) 
                 ax_V.legend(loc="upper right")
                 plt.title("V(x)= "+str(self.potential_type),loc="right")
                 
@@ -315,39 +378,22 @@ class TrainerWindow(Screen):
                 #clear previous plot 
                 plt.clf()
                 
-                phi_square, E=self.wave_function()#we compute the eigen_values  and assign E 
-                 
+                eigen_values=self.eigenvalue() #we compute the eigen_values 
+                E= eigen_values[self.value_n] #we assign Energy 
+                phi=self.wave_function(E)#we compute the wave_function
                 y2=0
+                phi_square=[element**2 for element in phi]
                 #let's plot:
+
                 V_plot=[self.potential(k) for k in self.x_list_values] #compute potential for every x_position
                 fig, ax_phi=plt.subplots() 
                 ax_phi.set_xlabel(r"$x(\AA)$")
                 ax_phi.set_ylabel(r"$ \phi^2$")
-
-                #CHECKING
                 #we check free partcile with theory to see if we are right 
-                x_4= np.linspace(-5,5,401)
-                #y_4=((1/math.sqrt(5))*np.sin(4*math.pi*x_4/10))**2 #plot E4
-                #y_4=((1/math.sqrt(5))*np.cos(5*math.pi*x_4/10))**2 #plot E5
-                #ax_phi.plot(x_4,y_4,label= "Analytic", color='blue')
-
-                #we check HARMONIC behavoior
-                #h2_me=(7.6199)  # (eV*A) h**2/me
-                #h_planck=(6.582119569*10**(-16)/(2*np.pi))
-                #me_evA=((h_planck**2)/h2_me)
-                #w_freq=np.sqrt(self.hooke_constant/me_evA) #computing w 
-                #constant=np.sqrt(np.sqrt(np.pi*h_planck/np.sqrt(self.hooke_constant*me_evA))*(2**self.value_n)*np.math.factorial(self.value_n))
-                #constant=1/constant
-                #E_harmonica=h_planck*w_freq+(self.value_n+1/2) #computing energy for the oscillator analitically
-                #psi=np.sqrt(me_evA*w_freq/h_planck)*(x_4-self.x0_harmonic) #change of variable
-                #hermite=scipy.special.eval_hermite(self.value_n,psi) #computing the hermite polinomail
-                #phi_harm=constant*np.exp(-me_evA*w_freq*((x_4-self.x0_harmonic)**2)/(2*h_planck))*hermite #computing the wave function
-                #phi_harm=phi_harm**2 
-                #print(self.hooke_constant)
-
-                #ax_phi.plot(x_4,phi_harm,label= "Analytic", color='blue')
-
-
+                #x_4= np.linspace(-5,5,401)
+                #y_4=((1/math.sqrt(5))*np.sin(4*math.pi*x_4/10))**2 #plot E3 
+                #ax_phi.plot(x_4,y_4,label= "Analytic", color='blue') 
+                ax_phi.plot(self.x_list_values,phi_square,label=r"$ \phi^2(x)$" , color='tab:red')
 
                 #we check integral value
                 #integral_prova=0 
@@ -361,18 +407,18 @@ class TrainerWindow(Screen):
                 #integral_prova=integral_prova*self.dx 
                 #print(integral_prova)
 
-
-                ax_phi.plot(self.x_list_values,phi_square,label=r"$ \phi^2(x)$" , color='tab:red')
+                
+                
                 ax_phi.set_ylim((0,max(phi_square)+0.2)) #maximum of phi_axis= maxim of probability +0.2
                 ax_phi.legend(loc="upper left")
 
-                #we plot the potential
+
                 ax_V = ax_phi.twinx() #same x_axis
                 ax_V.set_ylabel(r"$V(eV)$")
                 ax_V.plot(self.x_list_values,V_plot, label="V(x)" , color='tab:blue')
                 ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
                 ax_V.fill_between(self.x_list_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
-                if E<35: ax_V.set_ylim((0,40))
+                if E<30: ax_V.set_ylim((0,30))
                 else: ax_V.set_ylim((0,E+5)) 
                 ax_V.legend(loc="upper right")
                 plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4]+"   V(x)= "+str(self.potential_type),loc="right")
@@ -386,7 +432,7 @@ class GameWindow(Screen):
         pass    
 
      
-Builder.load_file("principal_kivy.kv") #d'aquesta manera li podem dir al fitxer kv com volguem
+Builder.load_file("metodo_tiro_kivy.kv") #d'aquesta manera li podem dir al fitxer kv com volguem
 
 class MygameApp(App): #inherits from app (utilitza les pepietats)
     #    def __init__() No fem INIT perquè ja agafa el init de App
