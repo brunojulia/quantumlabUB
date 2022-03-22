@@ -45,6 +45,7 @@
 <TrainerWindow>
 	float_plot: float_plot
 	measure_layout: measure_layout
+	grid_target: grid_target
 	button0: E0 
 	button1: E1
 	button2: E2 
@@ -305,20 +306,29 @@
 					source: "graphs/redlines_1.png"
 					allow_stretch: True
     				keep_ratio: False
-    		FloatLayout: #nonforbiden zone 
+    		FloatLayout: #noforbidden for the target 
+				size_hint_x: 0.765
+				size_hint_y: 1
+				pos_hint:{"x":0.17,"y":0}
+				
+				GridLayout: #FOR THE TARGET
+					id: grid_target
+					cols:1 
+					rows:1 
+					size_hint_y:1 
+					size_hint_x:0.1 #epsilon=0.05 
+					pos_hint:{"center_x": root.target_position,"center_y":0.5} #gets generated in the code
+					Image: #we put an image
+						source: "graphs/yellow_target.png"
+						allow_stretch: True
+    					keep_ratio: False
+						
+    		
+    		FloatLayout: #nonforbiden zone for electron and ray 
     			id: measure_layout
 				size_hint_x: 0.765
 				size_hint_y: 1
 				pos_hint:{"x":0.17,"y":0}
-				canvas.before: 
-					Color: 
-						rgba: (11/255, 3/255,74/255,1) #blue canvas as a background 
-					Rectangle: 
-						size: self.size 
-						pos: self.pos
-				
-
-				
 
 
 

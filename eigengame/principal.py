@@ -25,6 +25,7 @@ class MainWindow(Screen):
 class TrainerWindow(Screen):
         float_plot=ObjectProperty(None)
         measure_layout=ObjectProperty(None)
+        target_position=ObjectProperty(None)
         value_n=0#if no button is pressed
         hooke_constant=0 #if it isn't slide it
         x0_harmonic=0 #if there is no sliding
@@ -34,8 +35,7 @@ class TrainerWindow(Screen):
         left_x_w=0 
         right_x_w=0 
         Vw=0 #if the slides for the water aren't activated
-        potential_type="Free particle" #if no potential button is pressed   
-
+        potential_type="Free particle" #if no potential button is pressed  
         #we create the list of values x outside so its faster(no need to do it every time)
         n_steps=500 #number of steps taken to integrate the wavefunction 
         L=10.0 #lenght of the box 
@@ -45,6 +45,14 @@ class TrainerWindow(Screen):
         for i in range(1,n_steps+1):
                 x_value=x0+dx*i
                 x_list_values.append(x_value)
+
+        target_position=random.random() #we calculate first target_position 
+        target_epsilon=0.05
+
+        yellow=Image(source="graphs/yellow_target.PNG",allow_stretch=True,keep_ratio=False)
+        red=Image(source="graphs/red_target.PNG",allow_stretch=True,keep_ratio=False)
+        green=Image(source="graphs/green_target.PNG",allow_stretch=True,keep_ratio=False)
+        
 
 
         #Choosing energies 
@@ -438,8 +446,6 @@ class TrainerWindow(Screen):
                 
                 thunder_anim[n_rays-1].bind(on_complete=self.appear_multi_e) #when the animation is complete 
 
-        
-
         def appear_e(self,*args): 
                 '''Plots the elctron'''
                 probabilities,E=self.wave_function() #compute the probabilities and energy 
@@ -453,7 +459,22 @@ class TrainerWindow(Screen):
                 e_grid.size_hint_y=0.25 #size of gridlayout
                 e_grid.add_widget(e_graphs) #add the image to the gridLayout
                 self.measure_layout.add_widget(e_grid) #we add the electron grid layout to the float layout
+                if e_position<(self.target_position-self.target_epsilon): 
+                        self.grid_target.clear_widgets() #erase previous target 
+                        self.grid_target.add_widget(self.red)#we turn into red the rectangle
+                        #self.grid_target.pos_hint={"center_x": 0,"center_y":0.5}
+                        #when the animation is done we generate a new rectangle  
+                elif e_position>(self.target_position+self.target_epsilon): 
+                        self.grid_target.clear_widgets()
+                        self.grid_target.add_widget(self.red) #we turn into red the rectangle 
 
+                        #when the animation is done we generate a new rectangle  
+                else: 
+                       self.grid_target.clear_widgets()
+                       self.grid_target.add_widget(self.green)#we turn into green the rectangle
+                
+
+                        #when the animation is done we generate a new rectangle  
         def appear_multi_e(self,*args): 
                 '''This function measures the position of the n electrons and plots the electrons into the screen. 
                 acts like self.appear_e but with n_e electrons'''
@@ -471,6 +492,12 @@ class TrainerWindow(Screen):
                         gridlayout[i].size_hint_y=0.25/4 #size of gridlayout
                         gridlayout[i].add_widget(e_graphs) #add the image to the gridLayout
                         self.measure_layout.add_widget(gridlayout[i]) #we add the grid layout to the float layout
+
+
+        def target_move(self,*args): 
+                '''Changes x position of the target'''
+                self.target_position=random.random()
+             
 
 
 
