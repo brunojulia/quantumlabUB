@@ -44,6 +44,8 @@
 
 <TrainerWindow>
 	float_plot: float_plot
+	measure_layout: measure_layout
+	grid_target: grid_target
 	button0: E0 
 	button1: E1
 	button2: E2 
@@ -56,18 +58,20 @@
 
 	FloatLayout: #creem una layout
 		size: root.width, root.height
-		FloatLayout: #FOR PLOTTING 
+		GridLayout: #FOR PLOTTING 
 			id: float_plot
-			size_hint_x: 0.92
-			size_hint_y: 0.8
-			pos_hint:{"x":0,"y":0}
+			cols: 1
+			rows: 1
+			size_hint_x: 1
+			size_hint_y: 0.64
+			pos_hint:{"x":0,"y":0.16}
 			canvas.before: 
 				Color: 
 					rgba: (1,1,1,1) 
 				Rectangle: 
 					size: self.size 
 					pos: self.pos
-		FloatLayout: #we create a Float layout for buttons 
+		FloatLayout: #For buttons 
 			size_hint_x: 1 
 			size_hint_y:0.2
 			pos_hint:{"x":0,"y":0.8}
@@ -232,14 +236,14 @@
 				on_value: root.V_barrier(*args) #we call a function that saves the value of the slide
 
 
-			Button: #water well 
+			Button: # well 
 			    size_hint_x: 0.32
 				size_hint_y:0.65
 				pos_hint:{"x":0.65,"y":0.35}
 				id: water
 	        	font_size:12
 				color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-				text: "WATER WELL \n LEFT [-5,5], RIGHT [-5,5] \n V [0,30] eV"
+				text: "WELL \n LEFT [-5,5], RIGHT [-5,5] \n V [0,30] eV"
 	            halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
@@ -275,9 +279,61 @@
 				on_value: root.V_water(*args) #we call a function that saves the value of the slide
 
 
-            
+        FloatLayout: #FOR THE MEASURMENT OF THE PARTICLE  
+			id: measure_layout
+			size_hint_x: 0.925
+			size_hint_y: 0.16
+			pos_hint:{"x":0,"y":0}
+			canvas.before: 
+				Color: 
+					rgba: (0,0,0,1) #black canvas as a background 
+				Rectangle: 
+					size: self.size 
+					pos: self.pos
+			FloatLayout: #redlines left 
+				size_hint_x: 0.17
+				size_hint_y: 1
+				pos_hint:{"x":0,"y":0}
+				Image: #we put an image
+					source: "graphs/redlines.png"
+					allow_stretch: True
+    				keep_ratio: False
+    		BoxLayout: #redlines right 
+				size_hint_x: 0.065
+				size_hint_y: 1
+				pos_hint:{"right":1,"y":0}
+				Image: #we put an image
+					source: "graphs/redlines_1.png"
+					allow_stretch: True
+    				keep_ratio: False
+    		FloatLayout: #noforbidden for the target 
+				size_hint_x: 0.765
+				size_hint_y: 1
+				pos_hint:{"x":0.17,"y":0}
+				
+				GridLayout: #FOR THE TARGET
+					id: grid_target
+					cols:1 
+					rows:1 
+					size_hint_y:1 
+					size_hint_x:0.1 #epsilon=0.05 
+					pos_hint:{"center_x": root.target_position,"center_y":0.5} #gets generated in the code
+					Image: #we put an image
+						source: "graphs/yellow_target.png"
+						allow_stretch: True
+    					keep_ratio: False
+						
+    		
+    		FloatLayout: #nonforbiden zone for electron and ray 
+    			id: measure_layout
+				size_hint_x: 0.765
+				size_hint_y: 1
+				pos_hint:{"x":0.17,"y":0}
+
+
+
 		Button: #PLOT WAVE FUNCTION BUTTON 
-			size_hint_x: 0.08
+			size_hint_x: 0.075
         	size_hint_y: 0.08
         	pos_hint:{"right":1,"y":0.16}
         	color:0.3,0.6,0.7,1 #tots els buttons seran aixi
@@ -292,21 +348,22 @@
 				size: self.parent.width, self.parent.height  
 
 		Button: #MEASURE BUTTON
-			size_hint_x: 0.08
+			size_hint_x: 0.075
         	size_hint_y: 0.08
         	pos_hint:{"right":1,"y":0.08}
         	color:0.3,0.6,0.7,1 #tots els buttons seran aixi
             halign:"center"
 			valign:"middle" #
+			on_release: 
+				root.measure() #we measure and print position of the electron 
 			Image: #we put an image inside the button 
 				source: "graphs/measure.png"
 				center_x:self.parent.center_x
 				center_y:self.parent.center_y #we put the image in the middle of the button
-				size: self.parent.width, self.parent.height  
-
+				size: self.parent.width, self.parent.height
 
 		Button: #MENU BUTTON  
-        	size_hint_x: 0.08
+        	size_hint_x: 0.075
         	size_hint_y: 0.08
         	pos_hint:{"right":1,"y":0.0}
         	font_size:14
@@ -317,9 +374,8 @@
             on_release: 
 				app.root.current="menu" #quan el deixem anar canviem de pantalla 
 				root.manager.transition.direction="right" #editem la transicio
+
 		
-
-
 <GameWindow>
 	FloatLayout: #creem una layout
 		Label: #afegim text per saber on som 
