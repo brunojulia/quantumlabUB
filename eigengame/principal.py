@@ -1,6 +1,6 @@
 import kivy
 from kivy.config import Config
-Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand') #deactivate left button
 from kivy.app import App 
 from kivy.lang import Builder
 from kivy.core.window import Window
@@ -32,11 +32,11 @@ class TrainerWindow(Screen):
         value_n=0#if no button is pressed
         hooke_constant=5 #if it isn't slide it
         x0_harmonic=0 #if there is no sliding
-        left_x_b=0 
-        right_x_b=0 
+        left_x_b=-0.4 
+        right_x_b=0.4 
         Vb=20 #if the slides for the barrier aren't activated
-        left_x_w=0 
-        right_x_w=0 
+        left_x_w=-0.4 
+        right_x_w=0.4 
         Vw=20 #if the slides for the water aren't activated
         potential_type="Free particle" #if no potential button is pressed  
        
@@ -52,7 +52,7 @@ class TrainerWindow(Screen):
 
         #TARGET
         target_position=random.random() #we calculate first target_position 
-        target_epsilon=0.05 #target width
+        target_epsilon=0.2 #target width
         #we check that all the target is in the screen 
         while (target_position-target_epsilon)<0 or (target_position+target_epsilon)>1: 
                 target_position=random.random() #we generate a new target position 
@@ -75,10 +75,6 @@ class TrainerWindow(Screen):
 
         #score 
         score=0 
-
-
-
-        
 
 
         #Choosing energies 
@@ -512,7 +508,7 @@ class TrainerWindow(Screen):
                         if e_position<(self.target_position-self.target_epsilon): #missed measure
                                 self.grid_target.clear_widgets() #erase previous target 
                                 self.grid_target.add_widget(self.red)#we turn into red the rectangle
-                                target_anim=Animation(size_hint_x=0.1, size_hint_y=1,duration=1) #we make the target appear
+                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
                                 target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
                                 target_anim.start(self.grid_target) 
                                 target_anim.bind(on_complete=self.same_target)
@@ -520,7 +516,7 @@ class TrainerWindow(Screen):
                         elif e_position>(self.target_position+self.target_epsilon): 
                                 self.grid_target.clear_widgets()
                                 self.grid_target.add_widget(self.red) #we turn into red the rectangle
-                                target_anim=Animation(size_hint_x=0.1, size_hint_y=1,duration=1) #we make the target appear
+                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
                                 target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
                                 target_anim.start(self.grid_target) 
                                 target_anim.bind(on_complete=self.same_target) #shoot missed
@@ -529,7 +525,7 @@ class TrainerWindow(Screen):
                         else: 
                                 self.grid_target.clear_widgets()
                                 self.grid_target.add_widget(self.green)#we turn into green the rectangle
-                                target_anim=Animation(size_hint_x=0.1, size_hint_y=1,duration=1) #we make the target appear
+                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
                                 target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
                                 target_anim.start(self.grid_target) 
                                 target_anim.bind(on_complete=self.new_target) #shoot missed 
@@ -562,6 +558,12 @@ class TrainerWindow(Screen):
                 self.grid_target.clear_widgets() #erase previous target 
                 self.grid_target.add_widget(self.yellow)#we turn into yellow 
                 #we generate a new position 
+                if self.target_epsilon>0.030: #if it's bigger than 0.025
+                        self.target_epsilon=self.target_epsilon-0.025
+                else: #it's smaller 
+                        self.target_epsilon=self.target_epsilon #stays the same size 
+
+                print(self.target_epsilon)
                 self.target_position=random.random()
                 #we check that all the target is in the screen 
                 while (self.target_position-self.target_epsilon)<0 or (self.target_position+self.target_epsilon)>1: 
@@ -573,8 +575,8 @@ class TrainerWindow(Screen):
 
                 self.score+=1 #we add one point 
                 self.score_label.text=" SCORE = " +str(self.score)
-                label_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=1)
-                label_animation1+=Animation(color=(0,0,0,1),duration=1)
+                label_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=2)
+                label_animation1+=Animation(color=(0,0,0,1),duration=2)
                 label_animation1.start(self.score_label)
                 
 
@@ -585,7 +587,7 @@ class TrainerWindow(Screen):
                 self.measure_layout.clear_widgets()
                 self.grid_target.clear_widgets() #erase previous target 
                 self.grid_target.add_widget(self.yellow)#we turn into yellow
-                self.grid_target.size_hint_x=0.1 #resize
+                self.grid_target.size_hint_x=self.target_epsilon*2 #resize
                 self.grid_target.size_hint_y=1 
 
                 #we have lost a live: we erase one heart  
@@ -607,6 +609,8 @@ class TrainerWindow(Screen):
                          self.bug_layout.size_hint_y=0
                          self.game_over_layout.size_hint_x=1 
                          self.game_over_layout.size_hint_y=1
+                         self.final_score_label.text="FINAL SCORE = "+ str(self.score)
+                         self.final_score_label.color=(233/255, 179/255, 7/255, 1)
 
 
         def reboot(self): 
@@ -645,8 +649,9 @@ class TrainerWindow(Screen):
                 self.grid_target.add_widget(self.yellow)#we turn into yellow 
                 #we generate a new position 
                 self.target_position=random.random()
+                self.target_epsilon=0.2
                 self.grid_target.pos_hint={"center_x": self.target_position,"center_y":0.5}
-                self.grid_target.size_hint_x=0.1 #resize
+                self.grid_target.size_hint_x=self.target_epsilon #resize
                 self.grid_target.size_hint_y=1
 
                 #we clear the plot 

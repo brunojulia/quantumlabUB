@@ -57,6 +57,7 @@
 	bug_layout: bug_layout
 	plots_label: plots_label
 	score_label: score_label
+	final_score_label: final_score_label
 	button0: E0 
 	button1: E1
 	button2: E2 
@@ -264,6 +265,7 @@
 				pos_hint:{"x":0.3,"y":0}	
 				min: -5
 				max: 5
+				value:-0.4
 				step: 0.2
 				orientation: "horizontal"
 				on_value: root.left_barrier(*args) #we call a function that saves the value of the slide
@@ -273,6 +275,7 @@
 				pos_hint:{"x":0.45,"y":0}	
 				min: -5
 				max: 5
+				value: 0.4
 				step: 0.2
 				orientation: "horizontal"
 				on_value: root.right_barrier(*args) #we call a function that saves the value of the slide
@@ -331,6 +334,7 @@
 				pos_hint:{"x":0.65,"y":0}	
 				min: -5
 				max: 5
+				value: -0.4
 				step: 0.2
 				orientation: "horizontal"
 				on_value: root.left_water(*args) #we call a function that saves the value of the slide
@@ -340,6 +344,7 @@
 				pos_hint:{"x":0.81,"y":0}	
 				min: -5
 				max: 5
+				value: 0.4
 				step: 0.2
 				orientation: "horizontal"
 				on_value: root.right_water(*args) #we call a function that saves the value of the slide
@@ -481,7 +486,7 @@
 					cols:1 
 					rows:1 
 					size_hint_y:1 
-					size_hint_x:0.1 #epsilon=0.05 
+					size_hint_x:0.4 #epsilon=0.05
 					pos_hint:{"center_x": root.target_position,"center_y":0.5} #gets generated in the code
 					Image: #we put an image
 						source: "graphs/yellow_target.png"
@@ -565,6 +570,16 @@
     		source: "graphs/game_over.png"
     		allow_stretch: True
     		keep_ratio: True 
+
+    	Label:
+    		id: final_score_label
+    		size_hint_x: 1
+        	size_hint_y: 0.2
+        	pos_hint:{"center_x":0.5,"center_y":0.9}
+        	halign:"center"
+			valign:"middle" #lletra centrada
+			font_size: 35
+
 
     	Button: #MENU BUTTON  
         	size_hint_x: 0.075
