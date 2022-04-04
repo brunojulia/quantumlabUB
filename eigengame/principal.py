@@ -39,7 +39,7 @@ class TrainerWindow(Screen):
         right_x_w=0.4 
         Vw=20 #if the slides for the water aren't activated
         potential_type="Free particle" #if no potential button is pressed  
-       
+        e_position=None #we put it here so its global
         #We create the list of values x outside so its faster(no need to do it every time)
         n_steps=500 #number of steps taken to integrate the wavefunction 
         L=10.0 #lenght of the box 
@@ -75,63 +75,87 @@ class TrainerWindow(Screen):
 
         #score 
         score=0 
+        level=1
 
 
         #Choosing energies 
         def value_0(self): 
                 ''' Changes values o value_n when the button is pressed'''
-                self.value_n=0 
-                self.button0.background_color=(1,0,0,1)
-                self.button1.background_color=(1,1,1,1)
-                self.button2.background_color=(1,1,1,1)
-                self.button3.background_color=(1,1,1,1)
-                self.button4.background_color=(1,1,1,1) #changes the color of every button to remark the one pressed
+                if self.plots_left>0: #we can do a plot
+                        self.value_n=0 
+                        self.button0.background_color=(1,0,0,1)
+                        self.button1.background_color=(1,1,1,1)
+                        self.button2.background_color=(1,1,1,1)
+                        self.button3.background_color=(1,1,1,1)
+                        self.button4.background_color=(1,1,1,1)
+                        self.plot_energy() #changes the color of every button to remark the one pressed
+                else: 
+                        self.button_plot_anim() #we animate the plot button and label
 
         def value_1(self): 
                 ''' Changes values o value_n when the button is pressed'''
-                self.value_n=1 
-                self.button0.background_color=(1,1,1,1)
-                self.button1.background_color=(1,0,0,1)
-                self.button2.background_color=(1,1,1,1)
-                self.button3.background_color=(1,1,1,1)
-                self.button4.background_color=(1,1,1,1)
+                if self.plots_left>0: #we can do a plot
+                        self.value_n=1 
+                        self.button0.background_color=(1,1,1,1)
+                        self.button1.background_color=(1,0,0,1)
+                        self.button2.background_color=(1,1,1,1)
+                        self.button3.background_color=(1,1,1,1)
+                        self.button4.background_color=(1,1,1,1)
+                        self.plot_energy()
+                else: 
+                        self.button_plot_anim() #we animate the plot button and label
 
         def value_2(self): 
                 ''' Changes values o value_n when the button is pressed'''
-                self.value_n=2
-                self.button0.background_color=(1,1,1,1)
-                self.button1.background_color=(1,1,1,1)
-                self.button2.background_color=(1,0,0,1)
-                self.button3.background_color=(1,1,1,1)
-                self.button4.background_color=(1,1,1,1)
+                if self.plots_left>0: #we can do a plot
+                        self.value_n=2
+                        self.button0.background_color=(1,1,1,1)
+                        self.button1.background_color=(1,1,1,1)
+                        self.button2.background_color=(1,0,0,1)
+                        self.button3.background_color=(1,1,1,1)
+                        self.button4.background_color=(1,1,1,1)
+                        self.plot_energy()
+                else: 
+                        self.button_plot_anim() #we animate the plot button and label
 
         def value_3(self): 
                 ''' Changes values o value_n when the button is pressed'''
-                self.value_n=3
-                self.button0.background_color=(1,1,1,1)
-                self.button1.background_color=(1,1,1,1)
-                self.button2.background_color=(1,1,1,1)
-                self.button3.background_color=(1,0,0,1)
-                self.button4.background_color=(1,1,1,1)
+                if self.plots_left>0: #we can do a plot
+                        self.value_n=3
+                        self.button0.background_color=(1,1,1,1)
+                        self.button1.background_color=(1,1,1,1)
+                        self.button2.background_color=(1,1,1,1)
+                        self.button3.background_color=(1,0,0,1)
+                        self.button4.background_color=(1,1,1,1)
+                        self.plot_energy()
+                else: 
+                        self.button_plot_anim() #we animate the plot button and label
 
         def value_4(self): 
                 ''' Changes values o value_n when the button is pressed'''
-                self.value_n=4
-                self.button0.background_color=(1,1,1,1)
-                self.button1.background_color=(1,1,1,1)
-                self.button2.background_color=(1,1,1,1)
-                self.button3.background_color=(1,1,1,1)
-                self.button4.background_color=(1,0,0,1)
+                if self.plots_left>0: #we can do a plot
+                        self.value_n=4
+                        self.button0.background_color=(1,1,1,1)
+                        self.button1.background_color=(1,1,1,1)
+                        self.button2.background_color=(1,1,1,1)
+                        self.button3.background_color=(1,1,1,1)
+                        self.button4.background_color=(1,0,0,1)
+                        self.plot_energy()
+                else:  
+                        self.button_plot_anim() #we animate the plot button and label
         
         #choosing potentials 
 
         def harmonic_potential(self): 
-                self.potential_type="Harmonic"
-                self.button_harmonic.background_color=(1,0,0,1)
-                self.button_free.background_color=(1,1,1,1)
-                self.button_barrier.background_color=(1,1,1,1)
-                self.button_water.background_color=(1,1,1,1)
-                self.plot_potential()
+                if self.plots_left>0: #we can do a plot
+                        self.potential_type="Harmonic"
+                        self.button_harmonic.background_color=(1,0,0,1)
+                        self.button_free.background_color=(1,1,1,1)
+                        self.button_barrier.background_color=(1,1,1,1)
+                        self.button_water.background_color=(1,1,1,1)
+                        self.plot_potential()
+                else: 
+                        self.button_plot_anim() #we animate the plot button and label
 
         def slider_value_k(self,*args):
                 ''' Takes the hooke constant value from a slider''' 
@@ -145,12 +169,15 @@ class TrainerWindow(Screen):
                 
 
         def free_particle(self): 
-                self.potential_type="Free particle"
-                self.button_harmonic.background_color=(1,1,1,1)
-                self.button_free.background_color=(1,0,0,1)
-                self.button_barrier.background_color=(1,1,1,1)
-                self.button_water.background_color=(1,1,1,1)
-                self.plot_potential()
+                if self.plots_left>0: #we can do a plot
+                        self.potential_type="Free particle"
+                        self.button_harmonic.background_color=(1,1,1,1)
+                        self.button_free.background_color=(1,0,0,1)
+                        self.button_barrier.background_color=(1,1,1,1)
+                        self.button_water.background_color=(1,1,1,1)
+                        self.plot_potential()
+                else:
+                        self.button_plot_anim() #we animate the plot button and label
 
 
         def left_barrier(self,*args): 
@@ -169,12 +196,15 @@ class TrainerWindow(Screen):
                 self.barrier()
                 
         def barrier(self): 
-                self.potential_type="Barrier"
-                self.button_harmonic.background_color=(1,1,1,1)
-                self.button_free.background_color=(1,1,1,1)
-                self.button_barrier.background_color=(1,0,0,1)
-                self.button_water.background_color=(1,1,1,1)
-                self.plot_potential()
+                if self.plots_left>0: #we can do a plot
+                        self.potential_type="Barrier"
+                        self.button_harmonic.background_color=(1,1,1,1)
+                        self.button_free.background_color=(1,1,1,1)
+                        self.button_barrier.background_color=(1,0,0,1)
+                        self.button_water.background_color=(1,1,1,1)
+                        self.plot_potential()
+                else: 
+                        self.button_plot_anim() #we animate the plot button and label
 
 
 
@@ -194,12 +224,15 @@ class TrainerWindow(Screen):
                 self.water_well()
 
         def water_well(self): 
-                self.potential_type="Well"
-                self.button_harmonic.background_color=(1,1,1,1)
-                self.button_free.background_color=(1,1,1,1)
-                self.button_barrier.background_color=(1,1,1,1)
-                self.button_water.background_color=(1,0,0,1)
-                self.plot_potential()
+                if self.plots_left>0: #we can do a plot
+                        self.potential_type="Well"
+                        self.button_harmonic.background_color=(1,1,1,1)
+                        self.button_free.background_color=(1,1,1,1)
+                        self.button_barrier.background_color=(1,1,1,1)
+                        self.button_water.background_color=(1,0,0,1)
+                        self.plot_potential()
+                else: 
+                        self.button_plot_anim() #we animate the plot button and label
 
 
 
@@ -381,14 +414,14 @@ class TrainerWindow(Screen):
                 self.float_plot.add_widget(canvas_plot)
                 self.is_plot=False #no wave function plotted
 
-        def plot_wave_function(self):
+        def plot_wave_function(self,*args):
                 '''This function plots into the window the wave function.
                 It also plots the potential. Previous to plotting it computes the eigenvalues
                 and computes the eigenvector. '''
  
                 if self.plots_left>0: #we can do a plot
                         self.plots_left-=1  
-                        self.plots_label.text="  PLOTS LEFT = "+str(self.plots_left) #we have to update the plots left
+                        self.plots_label.text=str(self.plots_left) #we have to update the plots left
                         #we animate the plotsleft 
                         label_animation1=Animation(font_size=25,duration=0.5)
                         label_animation1+=Animation(font_size=20,duration=0.5)
@@ -471,17 +504,29 @@ class TrainerWindow(Screen):
                         self.float_plot.add_widget(canvas_plot)
                         self.is_plot=True #there is a wave function plotted
 
+
                 
                 else: #we animate the measure button
-                        button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
-                        button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
-                        button_animation.start(self.measure_button)
+                        self.button_plot_anim() #we animate the plot button and plotsleft label
 
-                        #we animate the plotsleft 
-                        label_animation=Animation(font_size=30,duration=0.5)
-                        label_animation+=Animation(font_size=20,duration=0.5)
-                        label_animation.start(self.plots_label)
+        def button_plot_anim(self): 
+                '''Animates the plot button when there's no plots left'''
+                button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
+                button_animation.start(self.measure_button)
 
+                #we animate the plotsleft 
+                label_animation=Animation(font_size=30,duration=0.5)
+                label_animation+=Animation(font_size=20,duration=0.5)
+                label_animation.start(self.plots_label)
+
+        def loading_anim(self): 
+                '''Triggers loading animation'''
+                loading_animation=Animation(color=(0,0,0,1),duration=0.000005)
+                loading_animation+=Animation(color=(0,0,0,1),duration=1)
+                loading_animation+=Animation(color=(0,0,0,0),duration=0.00005)
+                loading_animation.start(self.loading_label) 
+                loading_animation.bind(on_complete=self.plot_wave_function)
 
         def appear_e(self,*args): 
                 '''Plots the electron after pressing the measure button'''
@@ -492,20 +537,20 @@ class TrainerWindow(Screen):
                         button_animation.start(self.plot_button)
                 else: #there is a wave function plotted 
                         self.plots_left=3  
-                        self.plots_label.text="  PLOTS LEFT = "+str(self.plots_left)
+                        self.plots_label.text=str(self.plots_left)
 
                         probabilities,E=self.wave_function() #compute the probabilities and energy 
                         position=random.choices(self.x_list_values,weights=probabilities,k=1) #computes the position accordingly to WF
-                        e_position=(position[0]+5)/10 #normalising to 0-1 in the box layout
+                        self.e_position=(position[0]+5)/10 #normalising to 0-1 in the box layout
                         e_graphs=Image(source="graphs/electron.png",allow_stretch=True,keep_ratio=False) #we import image
                         #clear image before 
                         e_grid=GridLayout(rows=1,cols=1) #we create a gridlayout to put the image 
-                        e_grid.pos_hint={"center_x":e_position,"center_y":0.5} #we put the gridlayout in the position we want
+                        e_grid.pos_hint={"center_x":self.e_position,"center_y":0.5} #we put the gridlayout in the position we want
                         e_grid.size_hint_x=0.06
                         e_grid.size_hint_y=0.25 #size of gridlayout
                         e_grid.add_widget(e_graphs) #add the image to the gridLayout
                         self.measure_layout.add_widget(e_grid) #we add the electron grid layout to the float layout
-                        if e_position<(self.target_position-self.target_epsilon): #missed measure
+                        if self.e_position<(self.target_position-self.target_epsilon): #missed measure
                                 self.grid_target.clear_widgets() #erase previous target 
                                 self.grid_target.add_widget(self.red)#we turn into red the rectangle
                                 target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
@@ -513,7 +558,7 @@ class TrainerWindow(Screen):
                                 target_anim.start(self.grid_target) 
                                 target_anim.bind(on_complete=self.same_target)
                                 #when the animation is done we change the color of the rectangle
-                        elif e_position>(self.target_position+self.target_epsilon): 
+                        elif self.e_position>(self.target_position+self.target_epsilon):  #red
                                 self.grid_target.clear_widgets()
                                 self.grid_target.add_widget(self.red) #we turn into red the rectangle
                                 target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
@@ -522,15 +567,13 @@ class TrainerWindow(Screen):
                                 target_anim.bind(on_complete=self.same_target) #shoot missed
 
                                 #when the animation is done we change the color of the rectangle  
-                        else: 
+                        else: #green
                                 self.grid_target.clear_widgets()
                                 self.grid_target.add_widget(self.green)#we turn into green the rectangle
                                 target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
                                 target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
                                 target_anim.start(self.grid_target) 
-                                target_anim.bind(on_complete=self.new_target) #shoot missed 
-
-                
+                                target_anim.bind(on_complete=self.new_target) #green
 
                         #when the animation is done we generate a new rectangle  
         
@@ -552,18 +595,25 @@ class TrainerWindow(Screen):
                         gridlayout[i].add_widget(e_graphs) #add the image to the gridLayout
                         self.measure_layout.add_widget(gridlayout[i]) #we add the grid layout to the float layout
 
-        def new_target(self,*args): 
+        def new_target(self,*args): #GREEN
                 '''Generates a new target in another position after having acomplished a green'''
                 self.measure_layout.clear_widgets()
                 self.grid_target.clear_widgets() #erase previous target 
                 self.grid_target.add_widget(self.yellow)#we turn into yellow 
                 #we generate a new position 
-                if self.target_epsilon>0.030: #if it's bigger than 0.025
+                if self.target_epsilon>0.06: #if it's bigger than 0.05
                         self.target_epsilon=self.target_epsilon-0.025
                 else: #it's smaller 
-                        self.target_epsilon=self.target_epsilon #stays the same size 
+                        self.level+=1 #plus one in level 
+                        level_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
+                        level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
+                        level_animation1.start(self.level_label)
+                        
+                        self.level_label.text="LEVEL = "+str(self.level)
 
-                print(self.target_epsilon)
+                        self.target_epsilon=0.2 #resize
+
+                
                 self.target_position=random.random()
                 #we check that all the target is in the screen 
                 while (self.target_position-self.target_epsilon)<0 or (self.target_position+self.target_epsilon)>1: 
@@ -573,16 +623,22 @@ class TrainerWindow(Screen):
                 self.grid_target.size_hint_x=self.target_epsilon*2 #resize
                 self.grid_target.size_hint_y=1
 
-                self.score+=1 #we add one point 
-                self.score_label.text=" SCORE = " +str(self.score)
-                label_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=2)
-                label_animation1+=Animation(color=(0,0,0,1),duration=2)
-                label_animation1.start(self.score_label)
-                
 
-
-
-        def same_target(self,*args): 
+                #UPDATING THE SCORE + ELECTRON ANIMATION TO THE SCORE
+                e_graphs=Image(source="graphs/electron.png",allow_stretch=True,keep_ratio=False) #we import image
+                e_grid=GridLayout(rows=1,cols=1) #we create a gridlayout to put the image 
+                e_grid.pos_hint={"center_x":self.e_position,"center_y":0.5} #we put the gridlayout in the position we want
+                e_grid.size_hint_x=0.06
+                e_grid.size_hint_y=0.25 #size of gridlayout
+                e_grid.add_widget(e_graphs) #add the image to the gridLayout
+                self.measure_layout.add_widget(e_grid)
+                e_animation=Animation(pos_hint={"center_x":self.e_position,"center_y":0.5,},duration=0.005)
+                e_animation+=Animation(pos_hint={"center_x":-0.15,"center_y":4.35,},duration=1.5) #GOES TO THE SCORE
+                e_animation+=Animation(size_hint_x=0,size_hint_y=0,duration=0.0005) #THE DISAPPEARS
+                e_animation.start(e_grid)
+                e_animation.bind(on_complete=self.score_update)
+       
+        def same_target(self,*args): #RED
                 '''Generates same target in the same position after having missed'''
                 self.measure_layout.clear_widgets()
                 self.grid_target.clear_widgets() #erase previous target 
@@ -590,17 +646,27 @@ class TrainerWindow(Screen):
                 self.grid_target.size_hint_x=self.target_epsilon*2 #resize
                 self.grid_target.size_hint_y=1 
 
-                #we have lost a live: we erase one heart  
+                #we have lost a live: we erase one heart 
+                heart_loss_anim=Animation(size_hint_y=1,size_hint_x=0.05) 
+                heart_loss_anim+=Animation(size_hint_y=1.1,size_hint_x=0.07,duration=0.3) #we make it bigger
+                heart_loss_anim+=Animation(size_hint_y=1,size_hint_x=0.05,duration=0.2)
+                
+                
                 if self.lives_counter==5: #we have 5 lives
-                        self.heart5_grid.clear_widgets()
+                        heart_loss_anim.start(self.heart5_grid)
+                        heart_loss_anim.bind(on_complete=self.heart5_disappear)
                 if self.lives_counter==4: #we have 4 lives
-                        self.heart4_grid.clear_widgets()
+                        heart_loss_anim.start(self.heart4_grid)
+                        heart_loss_anim.bind(on_complete=self.heart4_disappear)
                 if self.lives_counter==3: #we have 3 lives
-                        self.heart3_grid.clear_widgets()
+                        heart_loss_anim.start(self.heart3_grid)
+                        heart_loss_anim.bind(on_complete=self.heart3_disappear)
                 if self.lives_counter==2: #we have 2 lives
-                        self.heart2_grid.clear_widgets()
+                        heart_loss_anim.start(self.heart2_grid)
+                        heart_loss_anim.bind(on_complete=self.heart2_disappear)
                 if self.lives_counter==1: #we have 1 lives
-                        self.heart1_grid.clear_widgets()
+                        heart_loss_anim.start(self.heart1_grid)
+                        heart_loss_anim.bind(on_complete=self.heart1_disappear)
 
                 #after erasing the heart we update the counter
                 self.lives_counter-=1  
@@ -612,6 +678,26 @@ class TrainerWindow(Screen):
                          self.final_score_label.text="FINAL SCORE = "+ str(self.score)
                          self.final_score_label.color=(233/255, 179/255, 7/255, 1)
 
+        def heart5_disappear(self,*args): 
+                self.heart5_grid.clear_widgets()
+        def heart4_disappear(self,*args): 
+                self.heart4_grid.clear_widgets()
+        def heart3_disappear(self,*args): 
+                self.heart3_grid.clear_widgets()
+        def heart2_disappear(self,*args): 
+                self.heart2_grid.clear_widgets()
+        def heart1_disappear(self,*args): 
+                self.heart2_grid.clear_widgets()
+
+
+        def score_update(self,*args): #UPTADES THE SCORE
+                '''Updates the score, called by new target''' 
+                self.score+=1 #we add one point 
+                self.score_label.text=" SCORE = " +str(self.score)
+                label_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
+                label_animation1+=Animation(color=(0,0,0,1),duration=0.5)
+                #e_animation.bind(on_complete=
+                label_animation1.start(self.score_label)
 
         def reboot(self): 
                 '''This function reboots the trainer so when you enter the game it's all new and fresh. 
@@ -637,11 +723,15 @@ class TrainerWindow(Screen):
 
                 #we reactivate plots 
                 self.plots_left=3  
-                self.plots_label.text="  PLOTS LEFT = "+str(self.plots_left)
+                self.plots_label.text=str(self.plots_left)
 
                 #score 
                 self.score=0 #we add one point 
                 self.score_label.text=" SCORE = " +str(self.score)
+
+                self.level=1
+                self.level_label.text="LEVEL = "+str(self.level)
+
 
                 #new target 
                 self.measure_layout.clear_widgets()
@@ -650,8 +740,12 @@ class TrainerWindow(Screen):
                 #we generate a new position 
                 self.target_position=random.random()
                 self.target_epsilon=0.2
+                #we check that all the target is in the screen 
+                while (self.target_position-self.target_epsilon)<0 or (self.target_position+self.target_epsilon)>1: 
+                        self.target_position=random.random() #we generate a new target position 
+
                 self.grid_target.pos_hint={"center_x": self.target_position,"center_y":0.5}
-                self.grid_target.size_hint_x=self.target_epsilon #resize
+                self.grid_target.size_hint_x=self.target_epsilon*2 #resize
                 self.grid_target.size_hint_y=1
 
                 #we clear the plot 
