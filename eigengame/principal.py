@@ -28,7 +28,6 @@ class MainWindow(Screen):
 class TrainerWindow(Screen):
         float_plot=ObjectProperty(None)
         measure_layout=ObjectProperty(None)
-        target_position=ObjectProperty(None)
         value_n=0#if no button is pressed
         hooke_constant=5 #if it isn't slide it
         x0_harmonic=0 #if there is no sliding
@@ -39,7 +38,7 @@ class TrainerWindow(Screen):
         right_x_w=0.4 
         Vw=20 #if the slides for the water aren't activated
         potential_type="Free particle" #if no potential button is pressed  
-        e_position=None #we put it here so its global
+        e_position=[None]*10  #we put it here so its global, maximum level is 10
         #We create the list of values x outside so its faster(no need to do it every time)
         n_steps=500 #number of steps taken to integrate the wavefunction 
         L=10.0 #lenght of the box 
@@ -51,15 +50,25 @@ class TrainerWindow(Screen):
                 x_list_values.append(x_value)
 
         #TARGET
-        target_position=random.random() #we calculate first target_position 
+        target_position=[None]*10 #maximum level 10
+        target_position[0]=random.random() #we calculate first target_position 
         target_epsilon=0.2 #target width
         #we check that all the target is in the screen 
-        while (target_position-target_epsilon)<0 or (target_position+target_epsilon)>1: 
-                target_position=random.random() #we generate a new target position 
+        while (target_position[0]-target_epsilon)<0 or (target_position[0]+target_epsilon)>1: 
+                target_position[0]=random.random() #we generate a new target position 
+        
         yellow=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
-        red=Image(source="graphs/red_target.png",allow_stretch=True,keep_ratio=False)
-        green=Image(source="graphs/green_target.png",allow_stretch=True,keep_ratio=False)
 
+        #we create the first grid target 
+        grid_target=[None]*10 #maximum level 10 
+        grid_target[0]=GridLayout(rows=1,cols=1)
+        grid_target[0].pos_hint={"center_x":target_position[0],"center_y":0.5}
+        grid_target[0].size_hint_x=target_epsilon*2
+        grid_target[0].size_hint_y=1
+        grid_target[0].add_widget(yellow) 
+
+        first_target=True
+        
 
         #HEARTS
         heart=[None]*5
@@ -328,7 +337,7 @@ class TrainerWindow(Screen):
         def plot_energy(self):
                 '''This function plots the energy line for a estatic potential'''
                 plt.clf()
-                self.measure_layout.clear_widgets()
+                
                 fig, ax_phi=plt.subplots()
                 ax_phi.set_xlabel(r"$x(\AA)$")
                 ax_phi.set_ylabel(r"$ \phi^2$")
@@ -378,8 +387,6 @@ class TrainerWindow(Screen):
                 every time the potential is changing'''
                 #clear previous plot 
                 plt.clf()
-                self.measure_layout.clear_widgets()
-
 
                 fig, ax_phi=plt.subplots()
                 ax_phi.set_xlabel(r"$x(\AA)$")
@@ -410,7 +417,6 @@ class TrainerWindow(Screen):
                 
                 canvas_plot=FigureCanvasKivyAgg(plt.gcf())
                 self.float_plot.clear_widgets()
-
                 self.float_plot.add_widget(canvas_plot)
                 self.is_plot=False #no wave function plotted
 
@@ -420,14 +426,15 @@ class TrainerWindow(Screen):
                 and computes the eigenvector. '''
  
                 if self.plots_left>0: #we can do a plot
+                        self.plot_potential()
+                        plt.clf()
                         self.plots_left-=1  
                         self.plots_label.text=str(self.plots_left) #we have to update the plots left
                         #we animate the plotsleft 
                         label_animation1=Animation(font_size=25,duration=0.5)
                         label_animation1+=Animation(font_size=20,duration=0.5)
                         label_animation1.start(self.plots_label)
-                        plt.clf()
-                        self.measure_layout.clear_widgets()
+                
                         phi_square, E=self.wave_function()#we compute the eigen_values  and assign E 
                  
                         y2=0
@@ -540,111 +547,182 @@ class TrainerWindow(Screen):
                         self.plots_label.text=str(self.plots_left)
 
                         probabilities,E=self.wave_function() #compute the probabilities and energy 
-                        position=random.choices(self.x_list_values,weights=probabilities,k=1) #computes the position accordingly to WF
-                        self.e_position=(position[0]+5)/10 #normalising to 0-1 in the box layout
-                        e_graphs=Image(source="graphs/electron.png",allow_stretch=True,keep_ratio=False) #we import image
-                        #clear image before 
-                        e_grid=GridLayout(rows=1,cols=1) #we create a gridlayout to put the image 
-                        e_grid.pos_hint={"center_x":self.e_position,"center_y":0.5} #we put the gridlayout in the position we want
-                        e_grid.size_hint_x=0.06
-                        e_grid.size_hint_y=0.25 #size of gridlayout
-                        e_grid.add_widget(e_graphs) #add the image to the gridLayout
-                        self.measure_layout.add_widget(e_grid) #we add the electron grid layout to the float layout
-                        if self.e_position<(self.target_position-self.target_epsilon): #missed measure
-                                self.grid_target.clear_widgets() #erase previous target 
-                                self.grid_target.add_widget(self.red)#we turn into red the rectangle
-                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
-                                target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
-                                target_anim.start(self.grid_target) 
-                                target_anim.bind(on_complete=self.same_target)
-                                #when the animation is done we change the color of the rectangle
-                        elif self.e_position>(self.target_position+self.target_epsilon):  #red
-                                self.grid_target.clear_widgets()
-                                self.grid_target.add_widget(self.red) #we turn into red the rectangle
-                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
-                                target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
-                                target_anim.start(self.grid_target) 
-                                target_anim.bind(on_complete=self.same_target) #shoot missed
+                        n_e=self.level  #number of electrons we want to plot (level number)
+                        position=random.choices(self.x_list_values,weights=probabilities,k=n_e) #computes the position accordingly to WF
+                        #we create a lists of the gridslayouts with are working with 
+                        e_grid=[None]*n_e #list of n_e elements
+                        n_greens=0 #number of targets in green
+                        targets_achieved=[]
+                        for i in range(0,n_e): #we add the electrons to the measure layout 
+                                e_graphs=Image(source="graphs/electron.png",allow_stretch=True,keep_ratio=False) #we import image
+                                self.e_position[i]=(position[i]+5)/10
+                                e_grid[i]=GridLayout(rows=1,cols=1) #we create a gridlayout to put the image 
+                                e_grid[i].pos_hint={"center_x":self.e_position[i],"center_y":0.5} #we put the gridlayout in the position we want
+                                e_grid[i].size_hint_x=0.06
+                                e_grid[i].size_hint_y=0.25 #size of gridlayout
+                                e_grid[i].add_widget(e_graphs) #add the image to the gridLayout
+                                self.measure_layout.add_widget(e_grid[i]) #we add the electron grid layout to the float layout
 
-                                #when the animation is done we change the color of the rectangle  
-                        else: #green
-                                self.grid_target.clear_widgets()
-                                self.grid_target.add_widget(self.green)#we turn into green the rectangle
-                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
-                                target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
-                                target_anim.start(self.grid_target) 
-                                target_anim.bind(on_complete=self.new_target) #green
+                                for j in range(0,n_e): #we check the targets  
+                                        if self.e_position[i]>(self.target_position[j]-self.target_epsilon) \
+                                        and self.e_position[i]<(self.target_position[j]+self.target_epsilon):  #green target 
+                                                if j not in targets_achieved: 
+                                                        targets_achieved.append(j) #add green target
+                                                        n_greens+=1 
+                                                        #we have a list of the green targets achieved   
+                        
+                        if n_greens<self.level: #not all targets in green
 
-                        #when the animation is done we generate a new rectangle  
+                                for j in range(0,n_e): 
+                                        if self.first_target==False: #not the first target: 
+                                                self.grid_target[j].clear_widgets() #erase previous target
+                                                if j in targets_achieved: #we are on a green target 
+                                                        first_green=Image(source="graphs/green_target.png",allow_stretch=True,keep_ratio=False)
+                                                        self.grid_target[j].add_widget(first_green)#we turn into green the rectangle
+                                                        target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
+                                                        target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
+                                                        target_anim.start(self.grid_target[j])  
+                                                else: #j no in targets_achieved   
+                                                        new_red= Image(source="graphs/red_target.png",allow_stretch=True,keep_ratio=False)
+                                                        self.grid_target[j].add_widget(new_red)#we turn into green the rectangle
+                                                        target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
+                                                        target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
+                                                        target_anim.start(self.grid_target[j])  
+                                                if j==(n_e-1): #the last one 
+                                                        target_anim.bind(on_complete=self.same_target)
+                                        else: #the first target 
+                                                self.first_grid_target.clear_widgets()
+                                                first_red=Image(source="graphs/red_target.png",allow_stretch=True,keep_ratio=False)
+                                                self.first_grid_target.add_widget(first_red)#we turn into red the rectangle
+                                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
+                                                target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
+                                                target_anim.start(self.first_grid_target)  
+                                                target_anim.bind(on_complete=self.same_target)
+
+                        else: #all greens 
+                                for j in range(0,n_e): 
+                                        if self.first_target==False: #not the first target: 
+                                                self.grid_target[j].clear_widgets() #erase previous target
+                                                new_green=Image(source="graphs/green_target.png",allow_stretch=True,keep_ratio=False)
+                                                self.grid_target[j].add_widget(new_green)#we turn into green the rectangle
+                                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
+                                                target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
+                                                target_anim.start(self.grid_target[j]) 
+                                                if j==(n_e-1): #the last one 
+                                                        target_anim.bind(on_complete=self.new_target)
+                                                        #when the animation is done we generate a new rectangle  
+                                        else: #the first target 
+                                                self.first_grid_target.clear_widgets()
+                                                first_green=Image(source="graphs/green_target.png",allow_stretch=True,keep_ratio=False)
+                                                self.first_grid_target.add_widget(first_green)#we turn into green the rectangle
+                                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
+                                                target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
+                                                target_anim.start(self.first_grid_target)  
+                                                target_anim.bind(on_complete=self.new_target)
         
-        def appear_multi_e(self,*args): 
-                '''This function measures the position of the n electrons and plots the electrons into the screen. 
-                acts like self.appear_e but with n_e electrons'''
-                n_e=200
-                probabilities,E=self.wave_function() #compute the probabilities and energy 
-                position=random.choices(self.x_list_values,weights=probabilities,k=n_e) #computes the position accordingly to WF
-                #we create a lists of the gridslayouts with are working with 
-                gridlayout=[None]*n_e #list of 100 elements
-                for i in range(0,n_e): 
-                        e_graphs=Image(source="graphs/electron.png",allow_stretch=True,keep_ratio=False) #we import image
-                        gridlayout[i]=GridLayout(rows=1,cols=1) #we create a gridlayout to put the image 
-                        e_position=(position[i]+5)/10 #normalising to 0-1 in the box layout
-                        gridlayout[i].pos_hint={"center_x":e_position,"center_y":0.5} #we put the gridlayout in the position we want
-                        gridlayout[i].size_hint_x=0.07/4
-                        gridlayout[i].size_hint_y=0.25/4 #size of gridlayout
-                        gridlayout[i].add_widget(e_graphs) #add the image to the gridLayout
-                        self.measure_layout.add_widget(gridlayout[i]) #we add the grid layout to the float layout
 
         def new_target(self,*args): #GREEN
                 '''Generates a new target in another position after having acomplished a green'''
                 self.measure_layout.clear_widgets()
-                self.grid_target.clear_widgets() #erase previous target 
-                self.grid_target.add_widget(self.yellow)#we turn into yellow 
-                #we generate a new position 
-                if self.target_epsilon>0.06: #if it's bigger than 0.05
-                        self.target_epsilon=self.target_epsilon-0.025
-                else: #it's smaller 
-                        self.level+=1 #plus one in level 
+                
+                if self.first_target==True:  self.first_grid_target.clear_widgets()
+                else:
+                        for j in range(0,self.level):
+                                self.grid_target[j].clear_widgets() #erase previous target
+                
+                self.first_target=False 
+
+                if self.level==1: #we check if it needs to be smaller in level 1 
+                        #we generate a new epsilon 
+                        if self.target_epsilon>0.08:  #if it's bigger than 0.075
+                                self.target_epsilon=self.target_epsilon-0.05
+                        else: #it's smaller 
+                                self.level=2 #plus one in level
+                                #once we know for sure the new level 
+                                level_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
+                                level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
+                                level_animation1.start(self.level_label) 
+                                self.level_label.text="LEVEL = "+str(self.level) 
+                                self.target_epsilon=0.1 #resize, note that now is smaller than at the beggining of level 1 
+                else: #we increase level inmidiatelly 
+                        self.level+=1 
                         level_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
                         level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
-                        level_animation1.start(self.level_label)
-                        
+                        level_animation1.start(self.level_label) 
                         self.level_label.text="LEVEL = "+str(self.level)
+                        
 
-                        self.target_epsilon=0.2 #resize
 
+                for j in range(0,self.level): #new targets
+                        self.target_position[j]=random.random() #new position 
                 
-                self.target_position=random.random()
-                #we check that all the target is in the screen 
-                while (self.target_position-self.target_epsilon)<0 or (self.target_position+self.target_epsilon)>1: 
-                        self.target_position=random.random() #we generate a new target position 
+                        for p in range(0,j): #iterate along previous targets                                    
+                                previous_max=self.target_position[p]+self.target_epsilon 
+                                previous_min=self.target_position[p]-self.target_epsilon 
+                                actual_max=self.target_position[j]+self.target_epsilon
+                                actual_min=self.target_position[j]-self.target_epsilon
+                                while (actual_min<=previous_max and actual_min>=previous_min) or \
+                                (actual_max<=previous_max and actual_max>=previous_min): #we have target overlapping 
+                                        self.target_position[j]=random.random()
+                                        while (self.target_position[j]-self.target_epsilon)<0 or (self.target_position[j]+self.target_epsilon)>1: 
+                                                self.target_position[j]=random.random() #we generate a new target position
+                                        actual_max=self.target_position[j]+self.target_epsilon
+                                        actual_min=self.target_position[j]-self.target_epsilon
+                        if j==0: #only one target 
+                                while (self.target_position[j]-self.target_epsilon)<0 or (self.target_position[j]+self.target_epsilon)>1: 
+                                                self.target_position[j]=random.random() #we generate a new target position
 
-                self.grid_target.pos_hint={"center_x": self.target_position,"center_y":0.5}
-                self.grid_target.size_hint_x=self.target_epsilon*2 #resize
-                self.grid_target.size_hint_y=1
-
+                        self.grid_target[j]=GridLayout(rows=1,cols=1) #new target
+                        self.grid_target[j].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
+                        self.grid_target[j].size_hint_x=self.target_epsilon*2
+                        self.grid_target[j].size_hint_y=1
+                        yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                        self.grid_target[j].add_widget(yellow_image) 
+                        self.measure_layout.add_widget(self.grid_target[j])
 
                 #UPDATING THE SCORE + ELECTRON ANIMATION TO THE SCORE
-                e_graphs=Image(source="graphs/electron.png",allow_stretch=True,keep_ratio=False) #we import image
-                e_grid=GridLayout(rows=1,cols=1) #we create a gridlayout to put the image 
-                e_grid.pos_hint={"center_x":self.e_position,"center_y":0.5} #we put the gridlayout in the position we want
-                e_grid.size_hint_x=0.06
-                e_grid.size_hint_y=0.25 #size of gridlayout
-                e_grid.add_widget(e_graphs) #add the image to the gridLayout
-                self.measure_layout.add_widget(e_grid)
-                e_animation=Animation(pos_hint={"center_x":self.e_position,"center_y":0.5,},duration=0.005)
-                e_animation+=Animation(pos_hint={"center_x":-0.15,"center_y":4.35,},duration=1.5) #GOES TO THE SCORE
-                e_animation+=Animation(size_hint_x=0,size_hint_y=0,duration=0.0005) #THE DISAPPEARS
-                e_animation.start(e_grid)
-                e_animation.bind(on_complete=self.score_update)
+                if self.level==1: 
+                        n_e=1 #we had one electron 
+                else: 
+                        n_e=self.level-1 #we had the number of the previous level 
+
+                e_grid=[None]*(n_e) #list of n_e elements
+                for i in range(0,n_e):
+                        e_graphs=Image(source="graphs/electron.png",allow_stretch=True,keep_ratio=False) #we import image
+                        e_grid[i]=GridLayout(rows=1,cols=1) #we create a gridlayout to put the image 
+                        e_grid[i].pos_hint={"center_x":self.e_position[i],"center_y":0.5} #we put the gridlayout in the position we want
+                        e_grid[i].size_hint_x=0.06
+                        e_grid[i].size_hint_y=0.25 #size of gridlayout
+                        e_grid[i].add_widget(e_graphs) #add the image to the gridLayout
+                        self.measure_layout.add_widget(e_grid[i])
+                        e_animation=Animation(pos_hint={"center_x":self.e_position[i],"center_y":0.5,},duration=0.005)
+                        e_animation+=Animation(pos_hint={"center_x":-0.15,"center_y":4.35,},duration=1.5) #GOES TO THE SCORE
+                        e_animation+=Animation(size_hint_x=0,size_hint_y=0,duration=0.0005) #THE DISAPPEARS
+                        e_animation.start(e_grid[i])
+                        e_animation.bind(on_complete=self.score_update)
        
         def same_target(self,*args): #RED
                 '''Generates same target in the same position after having missed'''
                 self.measure_layout.clear_widgets()
-                self.grid_target.clear_widgets() #erase previous target 
-                self.grid_target.add_widget(self.yellow)#we turn into yellow
-                self.grid_target.size_hint_x=self.target_epsilon*2 #resize
-                self.grid_target.size_hint_y=1 
+                if self.first_target==True: #the same target 
+                        self.first_grid_target.clear_widgets()
+                        self.grid_target[0]=GridLayout(rows=1,cols=1) #new target
+                        self.grid_target[0].pos_hint={"center_x":self.target_position[0],"center_y":0.5}
+                        self.grid_target[0].size_hint_x=self.target_epsilon*2
+                        self.grid_target[0].size_hint_y=1
+                        first_yellow=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                        self.grid_target[0].add_widget(first_yellow) 
+                        self.measure_layout.add_widget(self.grid_target[0])
+                else: 
+                        for j in range(0,self.level):
+                                self.grid_target[j].clear_widgets() #erase previous target 
+                                yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                                self.grid_target[j].add_widget(yellow_image)#we turn into yellow
+                                self.grid_target[j].size_hint_x=self.target_epsilon*2 #resize
+                                self.grid_target[j].size_hint_y=1 
+                                self.measure_layout.add_widget(self.grid_target[j])
+
+                self.first_target=False
 
                 #we have lost a live: we erase one heart 
                 heart_loss_anim=Animation(size_hint_y=1,size_hint_x=0.05) 
@@ -729,24 +807,31 @@ class TrainerWindow(Screen):
                 self.score=0 #we add one point 
                 self.score_label.text=" SCORE = " +str(self.score)
 
+                for j in range(0,self.level): 
+                        self.grid_target[j].clear_widgets() #erase previous target
+
+                if self.first_target==True:  self.first_grid_target.clear_widgets()
+                self.measure_layout.clear_widgets()
+                self.first_target==False 
+
                 self.level=1
                 self.level_label.text="LEVEL = "+str(self.level)
 
-
-                #new target 
-                self.measure_layout.clear_widgets()
-                self.grid_target.clear_widgets() #erase previous target 
-                self.grid_target.add_widget(self.yellow)#we turn into yellow 
-                #we generate a new position 
-                self.target_position=random.random()
+               
+                 
+                self.target_position[0]=random.random() #new position 
                 self.target_epsilon=0.2
-                #we check that all the target is in the screen 
-                while (self.target_position-self.target_epsilon)<0 or (self.target_position+self.target_epsilon)>1: 
-                        self.target_position=random.random() #we generate a new target position 
-
-                self.grid_target.pos_hint={"center_x": self.target_position,"center_y":0.5}
-                self.grid_target.size_hint_x=self.target_epsilon*2 #resize
-                self.grid_target.size_hint_y=1
+                while (self.target_position[0]-self.target_epsilon)<0 or (self.target_position[0]+self.target_epsilon)>1: 
+                        self.target_position[0]=random.random() #we generate a new target position 
+                self.grid_target[0]=GridLayout(rows=1,cols=1) #new target
+                self.grid_target[0].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
+                self.grid_target[0].size_hint_x=self.target_epsilon*2
+                self.grid_target[0].size_hint_y=1
+                yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                self.grid_target[0].add_widget(yellow_image) 
+                self.measure_layout.add_widget(self.grid_target[0])
+        
+                
 
                 #we clear the plot 
                 self.float_plot.clear_widgets()

@@ -45,7 +45,6 @@
 <TrainerWindow>
 	float_plot: float_plot
 	measure_layout: measure_layout
-	grid_target: grid_target
 	heart1_grid: heart1_grid
 	heart2_grid: heart2_grid
 	heart3_grid: heart3_grid
@@ -60,6 +59,7 @@
 	level_label: level_label
 	loading_label: loading_label
 	final_score_label: final_score_label
+	first_grid_target: first_grid_target
 	button0: E0 
 	button1: E1
 	button2: E2 
@@ -403,7 +403,7 @@
 	            halign: "left"
 	            texture_size: self.size
 	            text_size: self.size
-	            font_size: 25 
+	            font_size: 25
 
 	    BoxLayout: #LEVEL LABEL 
 	    	size_hint_x:0.15
@@ -495,7 +495,6 @@
 
 
         FloatLayout: #FOR THE MEASURMENT OF THE PARTICLE  
-			id: measure_layout
 			size_hint_x: 0.925
 			size_hint_y: 0.16
 			pos_hint:{"x":0,"y":0}
@@ -525,25 +524,25 @@
 				size_hint_x: 0.765
 				size_hint_y: 1
 				pos_hint:{"x":0.17,"y":0}
-				
-				GridLayout: #FOR THE TARGET
-					id: grid_target
-					cols:1 
-					rows:1 
-					size_hint_y:1 
-					size_hint_x:0.4 #epsilon=0.05
-					pos_hint:{"center_x": root.target_position,"center_y":0.5} #gets generated in the code
-					Image: #we put an image
-						source: "graphs/yellow_target.png"
-						allow_stretch: True
-    					keep_ratio: False
-						
+								
     		
     		FloatLayout: #nonforbiden zone for electron and ray 
     			id: measure_layout
 				size_hint_x: 0.765
 				size_hint_y: 1
 				pos_hint:{"x":0.17,"y":0}
+
+				GridLayout: #FOR THE TARGET
+					id: first_grid_target
+					cols:1 
+					rows:1 
+					size_hint_y:1 
+					size_hint_x:0.4 #epsilon=0.05
+					pos_hint:{"center_x": root.target_position[0],"center_y":0.5} #gets generated in the code
+					Image: #we put an image
+						source: "graphs/yellow_target.png"
+						allow_stretch: True
+    					keep_ratio: False
 
 
 
