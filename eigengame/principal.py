@@ -634,7 +634,7 @@ class TrainerWindow(Screen):
 
                 if self.level==1: #we check if it needs to be smaller in level 1 
                         #we generate a new epsilon 
-                        if self.target_epsilon>0.08:  #if it's bigger than 0.075
+                        if self.target_epsilon>0.08:  #if it's bigger than 0.08
                                 self.target_epsilon=self.target_epsilon-0.05
                         else: #it's smaller 
                                 self.level=2 #plus one in level
@@ -650,35 +650,59 @@ class TrainerWindow(Screen):
                         level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
                         level_animation1.start(self.level_label) 
                         self.level_label.text="LEVEL = "+str(self.level)
-                        
+                        if self.level<=3: 
+                                self.target_epsilon=0.1
+                        else: 
+                                self.target_epsilon=0.075
 
+                overlaping_zone=[]
+                j=0 
+                while j<self.level: #new targets + avoiding overlapping 
+                        actual_j=j
+                        self.target_position[j]=random.random() #new position     
+                        actual_max=self.target_position[j]+self.target_epsilon
+                        actual_min=self.target_position[j]-self.target_epsilon
+                        if j!=0: 
+                                for p in range(0,j): 
+                                        previous_min=overlaping_zone[p][0]
+                                        previous_max=overlaping_zone[p][1]
+                                        if (actual_min<=previous_max and actual_min>=previous_min) or \
+                                        (actual_max<=previous_max and actual_max>=previous_min) or (actual_min)<0 or (actual_max)>1:
+                                        #the target position is bad 
+                                                j=actual_j 
+                                                break #we go back to another self.targetposition with same j 
+                                        else: #the target position is good 
+                                                if p==(j-1): #we have arrived to the end of the overlaping check
+                                                        overlaping_zone.append([actual_min,actual_max]) 
+                                                        self.grid_target[j]=GridLayout(rows=1,cols=1) #new target
+                                                        self.grid_target[j].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
+                                                        self.grid_target[j].size_hint_x=self.target_epsilon*2
+                                                        self.grid_target[j].size_hint_y=1
+                                                        yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                                                        self.grid_target[j].add_widget(yellow_image) 
+                                                        self.measure_layout.add_widget(self.grid_target[j])
+                                                        j=j+1 #going to the next iteration         
+                                                #else we continue iterating along p
 
-                for j in range(0,self.level): #new targets
-                        self.target_position[j]=random.random() #new position 
-                
-                        for p in range(0,j): #iterate along previous targets                                    
-                                previous_max=self.target_position[p]+self.target_epsilon 
-                                previous_min=self.target_position[p]-self.target_epsilon 
-                                actual_max=self.target_position[j]+self.target_epsilon
-                                actual_min=self.target_position[j]-self.target_epsilon
-                                while (actual_min<=previous_max and actual_min>=previous_min) or \
-                                (actual_max<=previous_max and actual_max>=previous_min): #we have target overlapping 
-                                        self.target_position[j]=random.random()
-                                        while (self.target_position[j]-self.target_epsilon)<0 or (self.target_position[j]+self.target_epsilon)>1: 
-                                                self.target_position[j]=random.random() #we generate a new target position
-                                        actual_max=self.target_position[j]+self.target_epsilon
-                                        actual_min=self.target_position[j]-self.target_epsilon
+                                                
                         if j==0: #only one target 
                                 while (self.target_position[j]-self.target_epsilon)<0 or (self.target_position[j]+self.target_epsilon)>1: 
-                                                self.target_position[j]=random.random() #we generate a new target position
+                                        self.target_position[j]=random.random() #we generate a new target position
 
-                        self.grid_target[j]=GridLayout(rows=1,cols=1) #new target
-                        self.grid_target[j].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
-                        self.grid_target[j].size_hint_x=self.target_epsilon*2
-                        self.grid_target[j].size_hint_y=1
-                        yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
-                        self.grid_target[j].add_widget(yellow_image) 
-                        self.measure_layout.add_widget(self.grid_target[j])
+                                actual_max=self.target_position[j]+self.target_epsilon
+                                actual_min=self.target_position[j]-self.target_epsilon
+                                overlaping_zone.append([actual_min,actual_max])
+
+                                self.grid_target[j]=GridLayout(rows=1,cols=1) #new target
+                                self.grid_target[j].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
+                                self.grid_target[j].size_hint_x=self.target_epsilon*2
+                                self.grid_target[j].size_hint_y=1
+                                yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                                self.grid_target[j].add_widget(yellow_image) 
+                                self.measure_layout.add_widget(self.grid_target[j])
+                                j=j+1 #going to the next iteration
+                                
+            
 
                 #UPDATING THE SCORE + ELECTRON ANIMATION TO THE SCORE
                 if self.level==1: 
