@@ -92,7 +92,7 @@ class TrainerWindow(Screen):
                 ''' Changes values o value_n when the button is pressed'''
                 if self.plots_left>0: #we can do a plot
                         self.value_n=0 
-                        self.button0.background_color=(1,0,0,1)
+                        self.button0.background_color=(0,0,1,0.8)
                         self.button1.background_color=(1,1,1,1)
                         self.button2.background_color=(1,1,1,1)
                         self.button3.background_color=(1,1,1,1)
@@ -106,7 +106,7 @@ class TrainerWindow(Screen):
                 if self.plots_left>0: #we can do a plot
                         self.value_n=1 
                         self.button0.background_color=(1,1,1,1)
-                        self.button1.background_color=(1,0,0,1)
+                        self.button1.background_color=(0,0,1,0.8)
                         self.button2.background_color=(1,1,1,1)
                         self.button3.background_color=(1,1,1,1)
                         self.button4.background_color=(1,1,1,1)
@@ -120,7 +120,7 @@ class TrainerWindow(Screen):
                         self.value_n=2
                         self.button0.background_color=(1,1,1,1)
                         self.button1.background_color=(1,1,1,1)
-                        self.button2.background_color=(1,0,0,1)
+                        self.button2.background_color=(0,0,1,0.8)
                         self.button3.background_color=(1,1,1,1)
                         self.button4.background_color=(1,1,1,1)
                         self.plot_energy()
@@ -134,7 +134,7 @@ class TrainerWindow(Screen):
                         self.button0.background_color=(1,1,1,1)
                         self.button1.background_color=(1,1,1,1)
                         self.button2.background_color=(1,1,1,1)
-                        self.button3.background_color=(1,0,0,1)
+                        self.button3.background_color=(0,0,1,0.8)
                         self.button4.background_color=(1,1,1,1)
                         self.plot_energy()
                 else: 
@@ -148,7 +148,7 @@ class TrainerWindow(Screen):
                         self.button1.background_color=(1,1,1,1)
                         self.button2.background_color=(1,1,1,1)
                         self.button3.background_color=(1,1,1,1)
-                        self.button4.background_color=(1,0,0,1)
+                        self.button4.background_color=(0,0,1,0.8)
                         self.plot_energy()
                 else:  
                         self.button_plot_anim() #we animate the plot button and label
@@ -158,7 +158,7 @@ class TrainerWindow(Screen):
         def harmonic_potential(self): 
                 if self.plots_left>0: #we can do a plot
                         self.potential_type="Harmonic"
-                        self.button_harmonic.background_color=(1,0,0,1)
+                        self.button_harmonic.background_color=(0,0,1,0.8)
                         self.button_free.background_color=(1,1,1,1)
                         self.button_barrier.background_color=(1,1,1,1)
                         self.button_water.background_color=(1,1,1,1)
@@ -181,7 +181,7 @@ class TrainerWindow(Screen):
                 if self.plots_left>0: #we can do a plot
                         self.potential_type="Free particle"
                         self.button_harmonic.background_color=(1,1,1,1)
-                        self.button_free.background_color=(1,0,0,1)
+                        self.button_free.background_color=(0,0,1,0.8)
                         self.button_barrier.background_color=(1,1,1,1)
                         self.button_water.background_color=(1,1,1,1)
                         self.plot_potential()
@@ -209,7 +209,7 @@ class TrainerWindow(Screen):
                         self.potential_type="Barrier"
                         self.button_harmonic.background_color=(1,1,1,1)
                         self.button_free.background_color=(1,1,1,1)
-                        self.button_barrier.background_color=(1,0,0,1)
+                        self.button_barrier.background_color=(0,0,1,0.8)
                         self.button_water.background_color=(1,1,1,1)
                         self.plot_potential()
                 else: 
@@ -238,7 +238,7 @@ class TrainerWindow(Screen):
                         self.button_harmonic.background_color=(1,1,1,1)
                         self.button_free.background_color=(1,1,1,1)
                         self.button_barrier.background_color=(1,1,1,1)
-                        self.button_water.background_color=(1,0,0,1)
+                        self.button_water.background_color=(0,0,1,0.8)
                         self.plot_potential()
                 else: 
                         self.button_plot_anim() #we animate the plot button and label
@@ -481,7 +481,7 @@ class TrainerWindow(Screen):
                         #print(integral_prova)
 
 
-                        ax_phi.plot(self.x_list_values,phi_square,label=r"$ \phi^2(x)$" , color='tab:red')
+                        
                         ax_phi.set_ylim((0,max(phi_square)+0.2)) #maximum of phi_axis= maxim of probability +0.2
                         ax_phi.legend(loc="upper left")
 
@@ -489,11 +489,15 @@ class TrainerWindow(Screen):
                         ax_V = ax_phi.twinx() #same x_axis
                         ax_V.set_ylabel(r"$V(eV)$")
                         ax_V.plot(self.x_list_values,V_plot, label="V(x)" , color='tab:blue')
-                        ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
                         ax_V.fill_between(self.x_list_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
+                        ax_phi.plot(self.x_list_values,phi_square,label=r"$ \phi^2(x)$" , color='tab:red')
+                        ax_phi.fill_between(self.x_list_values, phi_square,0, facecolor='red', alpha=0.5) #paint wave_function
+                        ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
+                        
                         if E<35: ax_V.set_ylim((0,40))
                         else: ax_V.set_ylim((0,E+5)) 
                         ax_V.legend(loc="upper right")
+                        ax_phi.legend(loc="upper left")
                         #MAKING THE TITLE OF THE GRAPH
                         if self.potential_type=="Harmonic":
                                 string_var="    $K(eV/\AA^2)$="+str(self.hooke_constant)

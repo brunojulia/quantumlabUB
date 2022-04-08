@@ -20,6 +20,7 @@
         	font_size:19
 			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
 			text: "TRAINER"
+			bold: True
 			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.5
 			size_hint_y: 0.15
@@ -32,6 +33,7 @@
         	font_size:19
 			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
 			text: "LET'S PLAY"
+			bold: True
 			pos_hint: {"center_x":0.5,"center_y":0.4} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.5
 			size_hint_y:0.15
@@ -86,76 +88,77 @@
 				Rectangle: 
 					size: self.size 
 					pos: self.pos
+		BoxLayout: #for energy buttons
+			size_hint_x: 0.3/5
+			size_hint_y:0.4
+			pos_hint:{"x":0.0,"y":0.16}
+			orientation: "vertical"
+			#add buttons for Energy
+			Button: #E4 
+	            id: E4
+	        	font_size:14
+				color:1,1,1,1
+				text: "E4"
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.value_4()
+						
+			Button: #E3
+				id: E3
+	        	font_size:14
+				color:1,1,1,1 #tots els buttons seran aixi
+				text: "E3"
+				bold: True
+	        	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.value_3()
+					 		
+			Button: #E2
+				id: E2
+				font_size:14
+				color:1,1,1,1 #tots els buttons seran aixi
+				text: "E2"
+				bold: True
+				halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.value_2() 
+						
+			Button: #E1
+				id: E1
+				font_size:14
+				color:1,1,1,1 #tots els buttons seran aixi
+				text: "E1"
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.value_1() 
+					
+			Button: #E0
+				id: E0
+				font_size:14
+				color:1,1,1,1 #tots els buttons seran aixi
+				background_color: (0,0,1,0.8)
+				text: "E0"
+				bold: True
+				halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.value_0() 
+
+	           
 		FloatLayout: #For editing buttons 
 			size_hint_x: 1 
 			size_hint_y:0.2
 			pos_hint:{"x":0,"y":0.8}
-
-            BoxLayout: #we create a box layout for energy buttons
-            	size_hint_x: 0.3
-				size_hint_y:0.3
-				pos_hint:{"x":0.0,"top":1}
-				orientation: "horizontal"
-            	#add buttons for Energy
-	            Button: #E0 
-	            	id: E0
-	        		font_size:14
-					color: 0.3,0.6,0.7,1
-					background_color: (1,0,0,1)
-					text: "E0"
-	            	halign:"center"
-					valign:"middle" #lletra centrada
-					on_release: 
-						root.value_0()
-						
-
-						
-				Button: #E1
-					id: E1
-	        		font_size:14
-					color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-					text: "E1"
-	            	halign:"center"
-					valign:"middle" #lletra centrada
-					on_release: 
-						root.value_1()
 						 
-				
-						
-				Button: #E2
-				    id: E2
-	        		font_size:14
-					color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-					text: "E2"
-	            	halign:"center"
-					valign:"middle" #lletra centrada
-					on_release: 
-						root.value_2() 
-						
-				Button: #E3
-					id: E3
-	        		font_size:14
-					color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-					text: "E3"
-	            	halign:"center"
-					valign:"middle" #lletra centrada
-					on_release: 
-						root.value_3() 
-					
-				Button: #E4
-					id: E4
-	        		font_size:14
-					color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-					text: "E4"
-	            	halign:"center"
-					valign:"middle" #lletra centrada
-					on_release: 
-						root.value_4() 
-						 
-
 			FloatLayout: #we create a FloatLayout for potential buttons 
 				size_hint_x: 1
-				size_hint_y:0.7
+				size_hint_y:1
 				pos_hint:{"x":0.0,"y":0.0}
             	#add buttons for Potential 
             	
@@ -164,9 +167,10 @@
             		size_hint_x: 0.05
 					size_hint_y:1
 					pos_hint:{"x":0.0,"y":0.0}
-					color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-					background_color: (1,0,0,1)
+					color:1,1,1,1 
+					background_color: (0,0,1,0.8)
 					text: "FREE"
+					bold: True
 	            	halign:"center"
 					valign:"middle" #lletra centrada
 					on_release: 
@@ -176,18 +180,18 @@
             	Button: #HARMONIC POTENTIAL 
             		id: bvh
             		size_hint_x: 0.25
-					size_hint_y:0.5
-					pos_hint:{"x":0.05,"y":0.5} 
-					color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+					size_hint_y:0.65
+					pos_hint:{"x":0.05,"y":0.35} 
+					#color:0.3,0.6,0.7,1 #estandard color 
 	            	halign:"center"
 					valign:"middle" #lletra centrada
 					on_release: 
 						root.harmonic_potential()
-				GridLayout: #well icon
+				GridLayout: #harmonic icon
 					cols:1 
 					rows:1 
-					pos_hint:{"center_x":0.175,"center_y":0.75}
-					size_hint_y:0.4
+					pos_hint:{"center_x":0.175,"center_y":0.70}
+					size_hint_y:0.42
 					size_hint_x:0.2
 					Image: #we put an image
 						source: "graphs/harmonic_icon.png"
@@ -197,23 +201,25 @@
 				Label: #inside button LEFT 
 					size_hint_x:0.32/4 
 					size_hint_y: 0.65/4 
-					pos_hint:{"center_x":0.05+0.25/4,"y":0.5+0.05}
+					pos_hint:{"center_x":0.05+0.25/4,"y":0.35+0.01}
 					text: "K"
-					color:0.3,0.6,0.7,1
+					bold: True
+					color:1,1,1,1
 	            	halign:"center"
 					valign:"middle"
 				Label: #inside button x-=
 					size_hint_x:0.32/4 
 					size_hint_y: 0.65/4 
-					pos_hint:{"center_x":7/40+0.25/4,"y":0.5+0.05}
-					text: "x_0"
-					color:0.3,0.6,0.7,1
+					pos_hint:{"center_x":7/40+0.25/4,"y":0.35+0.01}
+					text: "Xo"
+					bold: True
+					color:1,1,1,1
 	            	halign:"center"
 					valign:"middle"
 							
 				Slider: #to choose the hooke constant
 					size_hint_x: 0.25/2
-					size_hint_y:0.5
+					size_hint_y:0.35
 					pos_hint:{"x":0.05,"y":0.0}
 					min: 0
 					max: 10
@@ -224,7 +230,7 @@
 
 				Slider: #to choose x_0
 					size_hint_x: 0.25/2
-					size_hint_y:0.5
+					size_hint_y:0.35
 					pos_hint:{"x":7.0/40.0,"y":0.0}
 					min: -5
 					max: 5
@@ -239,7 +245,7 @@
 				size_hint_y:0.65
 				pos_hint:{"x":0.3,"y":0.35}
 				id: bvb
-				color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+				color:1,1,1,1 #tots els buttons seran aixi
 				on_release: 
 					root.barrier()
 			GridLayout: #barrieri icon
@@ -256,25 +262,28 @@
 			Label: #inside button LEFT 
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
-				pos_hint:{"center_x":0.3+0.08,"y":0.35+0.02}
+				pos_hint:{"center_x":0.3+0.075,"y":0.35+0.02}
 				text: "LEFT"
-				color:0.3,0.6,0.7,1
+				bold: True
+				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
 			Label: #inside button RIGHT
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
-				pos_hint:{"center_x":0.45+0.08,"y":0.35+0.02}
+				pos_hint:{"center_x":0.45+0.085,"y":0.35+0.02}
 				text: "RIGHT"
-				color:0.3,0.6,0.7,1
+				bold: True
+				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
 			Label: #inside button VMAX
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
-				pos_hint:{"x":0.3+0.32*3/4,"y":0.35+2.8*0.65/4}
+				pos_hint:{"x":0.3+0.32*3/4+0.01,"y":0.35+2.8*0.65/4}
 				text: "Vmax:"
-				color:0.3,0.6,0.7,1
+				bold: True
+				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
 					 
@@ -315,7 +324,7 @@
 				size_hint_y:0.65
 				pos_hint:{"x":0.65,"y":0.35}
 				id: water
-				color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+				color:1,1,1,1 #tots els buttons seran aixi
 	            halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
@@ -334,25 +343,28 @@
 			Label: #inside button LEFT 
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
-				pos_hint:{"center_x":0.65+0.08,"y":0.35+0.02}
+				pos_hint:{"center_x":0.65+0.075,"y":0.35+0.02}
 				text: "LEFT"
-				color:0.3,0.6,0.7,1
+				bold: True
+				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
 			Label: #inside button RIGHT
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
-				pos_hint:{"center_x":0.81+0.08,"y":0.35+0.02}
+				pos_hint:{"center_x":0.81+0.085,"y":0.35+0.02}
 				text: "RIGHT"
-				color:0.3,0.6,0.7,1
+				bold: True
+				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
 			Label: #inside button 
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
-				pos_hint:{"x":0.65+0.32*3/4,"y":0.35+2.8*0.65/4}
+				pos_hint:{"x":0.65+0.32*3/4+0.01,"y":0.35+2.8*0.65/4}
 				text: "Vmax:"
-				color:0.3,0.6,0.7,1
+				bold: True
+				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
 
@@ -553,7 +565,9 @@
         	pos_hint:{"right":1,"y":0.16}
         	color: 255, 0, 132, 0.8#tots els buttons seran aixi
         	background_normal: ''
-        	background_color: 255/255, 0, 132/255, 1
+        	#background_color: 255/255, 0, 132/255, 1 #pink
+        	background_color: 99/255, 214/255, 253/255, 1
+        	
             halign:"center"
 			valign:"middle" #
 			on_release:
@@ -582,7 +596,8 @@
         	pos_hint:{"right":1,"y":0.08}
         	color:0.3,0.6,0.7,1 #tots els buttons seran aixi
         	background_normal: ''
-        	background_color: 50/255, 255/255, 0, 0.8
+        	#background_color: 50/255, 255/255, 0, 0.8 #green
+        	background_color: 23/255, 195/255, 252/255, 1
             halign:"center"
 			valign:"middle" #
 			on_release: 
@@ -666,7 +681,6 @@
         	size_hint_x: 0.075
         	size_hint_y: 0.08
         	pos_hint:{"right":1,"y":0.08}
-        	#text: "PLAY\nAGAIN"
 			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
             halign:"center"
 			valign:"middle" #lletra centrada
@@ -699,7 +713,8 @@
 	FloatLayout: #creem una layout
 		Label: #afegim text per saber on som 
 			font_size:25
-			text: "GAME" 
+			text: "GAME"
+			bold: True 
 			multiline: True
 			pos_hint: {"center_x":0.5,"center_y":0.5} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.6
@@ -710,6 +725,7 @@
         	font_size:14
 			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
 			text: "Menu"
+			bold: True
 			pos_hint: {"right":1,"y":0} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.08
 			size_hint_y: 0.08
