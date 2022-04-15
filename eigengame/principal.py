@@ -61,6 +61,7 @@ class TrainerWindow(Screen):
 
         #we create the first grid target 
         grid_target=[None]*10 #maximum level 10 
+        grid_heart_recover=None
         grid_target[0]=GridLayout(rows=1,cols=1)
         grid_target[0].pos_hint={"center_x":target_position[0],"center_y":0.5}
         grid_target[0].size_hint_x=target_epsilon*2
@@ -69,15 +70,19 @@ class TrainerWindow(Screen):
 
         first_target=True
         
+        position=None
 
         #HEARTS
         heart=[None]*5
         for i in range(0,5):
-                heart[i]=Image(source="graphs/heart_icon.png",allow_stretch=True,keep_ratio=False)
+                heart[i]=Image(source="graphs/heart_icon.png",allow_stretch=True,keep_ratio=True)
         lives_counter=5 #counter of how many lives we have left. Initially we have 5 lives
 
         #To control no measure is done without a plot 
         is_plot=False #initially equals to False because no plot is showed 
+
+        #to control if there is the possibility to recover a live 
+        is_live_recover=False
 
         #plots left 
         plots_left=3 #Initially we have 3 plots left 
@@ -92,7 +97,7 @@ class TrainerWindow(Screen):
                 ''' Changes values o value_n when the button is pressed'''
                 if self.plots_left>0: #we can do a plot
                         self.value_n=0 
-                        self.button0.background_color=(1,0,0,1)
+                        self.button0.background_color=(0,0,1,0.8)
                         self.button1.background_color=(1,1,1,1)
                         self.button2.background_color=(1,1,1,1)
                         self.button3.background_color=(1,1,1,1)
@@ -106,7 +111,7 @@ class TrainerWindow(Screen):
                 if self.plots_left>0: #we can do a plot
                         self.value_n=1 
                         self.button0.background_color=(1,1,1,1)
-                        self.button1.background_color=(1,0,0,1)
+                        self.button1.background_color=(0,0,1,0.8)
                         self.button2.background_color=(1,1,1,1)
                         self.button3.background_color=(1,1,1,1)
                         self.button4.background_color=(1,1,1,1)
@@ -120,7 +125,7 @@ class TrainerWindow(Screen):
                         self.value_n=2
                         self.button0.background_color=(1,1,1,1)
                         self.button1.background_color=(1,1,1,1)
-                        self.button2.background_color=(1,0,0,1)
+                        self.button2.background_color=(0,0,1,0.8)
                         self.button3.background_color=(1,1,1,1)
                         self.button4.background_color=(1,1,1,1)
                         self.plot_energy()
@@ -134,7 +139,7 @@ class TrainerWindow(Screen):
                         self.button0.background_color=(1,1,1,1)
                         self.button1.background_color=(1,1,1,1)
                         self.button2.background_color=(1,1,1,1)
-                        self.button3.background_color=(1,0,0,1)
+                        self.button3.background_color=(0,0,1,0.8)
                         self.button4.background_color=(1,1,1,1)
                         self.plot_energy()
                 else: 
@@ -148,7 +153,7 @@ class TrainerWindow(Screen):
                         self.button1.background_color=(1,1,1,1)
                         self.button2.background_color=(1,1,1,1)
                         self.button3.background_color=(1,1,1,1)
-                        self.button4.background_color=(1,0,0,1)
+                        self.button4.background_color=(0,0,1,0.8)
                         self.plot_energy()
                 else:  
                         self.button_plot_anim() #we animate the plot button and label
@@ -158,7 +163,7 @@ class TrainerWindow(Screen):
         def harmonic_potential(self): 
                 if self.plots_left>0: #we can do a plot
                         self.potential_type="Harmonic"
-                        self.button_harmonic.background_color=(1,0,0,1)
+                        self.button_harmonic.background_color=(0,0,1,0.8)
                         self.button_free.background_color=(1,1,1,1)
                         self.button_barrier.background_color=(1,1,1,1)
                         self.button_water.background_color=(1,1,1,1)
@@ -181,7 +186,7 @@ class TrainerWindow(Screen):
                 if self.plots_left>0: #we can do a plot
                         self.potential_type="Free particle"
                         self.button_harmonic.background_color=(1,1,1,1)
-                        self.button_free.background_color=(1,0,0,1)
+                        self.button_free.background_color=(0,0,1,0.8)
                         self.button_barrier.background_color=(1,1,1,1)
                         self.button_water.background_color=(1,1,1,1)
                         self.plot_potential()
@@ -209,7 +214,7 @@ class TrainerWindow(Screen):
                         self.potential_type="Barrier"
                         self.button_harmonic.background_color=(1,1,1,1)
                         self.button_free.background_color=(1,1,1,1)
-                        self.button_barrier.background_color=(1,0,0,1)
+                        self.button_barrier.background_color=(0,0,1,0.8)
                         self.button_water.background_color=(1,1,1,1)
                         self.plot_potential()
                 else: 
@@ -238,7 +243,7 @@ class TrainerWindow(Screen):
                         self.button_harmonic.background_color=(1,1,1,1)
                         self.button_free.background_color=(1,1,1,1)
                         self.button_barrier.background_color=(1,1,1,1)
-                        self.button_water.background_color=(1,0,0,1)
+                        self.button_water.background_color=(0,0,1,0.8)
                         self.plot_potential()
                 else: 
                         self.button_plot_anim() #we animate the plot button and label
@@ -481,7 +486,7 @@ class TrainerWindow(Screen):
                         #print(integral_prova)
 
 
-                        ax_phi.plot(self.x_list_values,phi_square,label=r"$ \phi^2(x)$" , color='tab:red')
+                        
                         ax_phi.set_ylim((0,max(phi_square)+0.2)) #maximum of phi_axis= maxim of probability +0.2
                         ax_phi.legend(loc="upper left")
 
@@ -489,11 +494,15 @@ class TrainerWindow(Screen):
                         ax_V = ax_phi.twinx() #same x_axis
                         ax_V.set_ylabel(r"$V(eV)$")
                         ax_V.plot(self.x_list_values,V_plot, label="V(x)" , color='tab:blue')
-                        ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
                         ax_V.fill_between(self.x_list_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
+                        ax_phi.plot(self.x_list_values,phi_square,label=r"$ \phi^2(x)$" , color='tab:red')
+                        ax_phi.fill_between(self.x_list_values, phi_square,0, facecolor='red', alpha=0.5) #paint wave_function
+                        ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
+                        
                         if E<35: ax_V.set_ylim((0,40))
                         else: ax_V.set_ylim((0,E+5)) 
                         ax_V.legend(loc="upper right")
+                        ax_phi.legend(loc="upper left")
                         #MAKING THE TITLE OF THE GRAPH
                         if self.potential_type=="Harmonic":
                                 string_var="    $K(eV/\AA^2)$="+str(self.hooke_constant)
@@ -535,8 +544,9 @@ class TrainerWindow(Screen):
                 loading_animation.start(self.loading_label) 
                 loading_animation.bind(on_complete=self.plot_wave_function)
 
-        def appear_e(self,*args): 
-                '''Plots the electron after pressing the measure button'''
+        def appear_e(self): 
+                '''Manages the live recovery, when the process of live recovery is finished we call teh functions that checks 
+                the targets'''
                 if self.is_plot==False: #There is no wave function plotted 
                         #we don't measure and do something 
                         button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
@@ -548,20 +558,55 @@ class TrainerWindow(Screen):
 
                         probabilities,E=self.wave_function() #compute the probabilities and energy 
                         n_e=self.level  #number of electrons we want to plot (level number)
-                        position=random.choices(self.x_list_values,weights=probabilities,k=n_e) #computes the position accordingly to WF
+                        self.position=random.choices(self.x_list_values,weights=probabilities,k=n_e) #computes the position accordingly to WF
                         #we create a lists of the gridslayouts with are working with 
                         e_grid=[None]*n_e #list of n_e elements
                         n_greens=0 #number of targets in green
                         targets_achieved=[]
                         for i in range(0,n_e): #we add the electrons to the measure layout 
                                 e_graphs=Image(source="graphs/electron.png",allow_stretch=True,keep_ratio=False) #we import image
-                                self.e_position[i]=(position[i]+5)/10
+                                self.e_position[i]=(self.position[i]+5)/10
                                 e_grid[i]=GridLayout(rows=1,cols=1) #we create a gridlayout to put the image 
                                 e_grid[i].pos_hint={"center_x":self.e_position[i],"center_y":0.5} #we put the gridlayout in the position we want
                                 e_grid[i].size_hint_x=0.06
                                 e_grid[i].size_hint_y=0.25 #size of gridlayout
                                 e_grid[i].add_widget(e_graphs) #add the image to the gridLayout
                                 self.measure_layout.add_widget(e_grid[i]) #we add the electron grid layout to the float layout
+                        
+                        #checking whether we have touched the live 
+                        if self.is_live_recover==True: 
+                                heart_position=self.target_position[0]
+                                is_heart_achived=False 
+                                for i in range(0,n_e): 
+                                        self.e_position[i]=(self.position[i]+5)/10
+                                        if self.e_position[i]>(heart_position-self.target_epsilon) \
+                                        and self.e_position[i]<(heart_position+self.target_epsilon):  
+                                                #green target: live recovered  
+                                                self.live_recovered()
+                                                is_heart_achived=True 
+                                                break
+                                if is_heart_achived==False: self.electron_check() #no live recovered 
+
+
+                        else: self.electron_check() #no live recovered 
+
+        def electron_check(self,*args): 
+                '''Plots the electron after pressing the measure button'''
+                if self.is_plot==False: #There is no wave function plotted 
+                        #we don't measure and do something 
+                        button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
+                        button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
+                        button_animation.start(self.plot_button)
+                else: #there is a wave function plotted 
+                        self.plots_left=3  
+                        self.plots_label.text=str(self.plots_left)
+                        n_e=self.level  #number of electrons we want to plot (level number) 
+                        e_grid=[None]*n_e #list of n_e elements
+                        n_greens=0 #number of targets in green
+                        targets_achieved=[]
+
+
+                        for i in range(0,n_e): #we add the electrons to the measure layout 
 
                                 for j in range(0,n_e): #we check the targets  
                                         if self.e_position[i]>(self.target_position[j]-self.target_epsilon) \
@@ -599,6 +644,7 @@ class TrainerWindow(Screen):
                                                 target_anim.start(self.first_grid_target)  
                                                 target_anim.bind(on_complete=self.same_target)
 
+       
                         else: #all greens 
                                 for j in range(0,n_e): 
                                         if self.first_target==False: #not the first target: 
@@ -619,7 +665,7 @@ class TrainerWindow(Screen):
                                                 target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
                                                 target_anim.start(self.first_grid_target)  
                                                 target_anim.bind(on_complete=self.new_target)
-        
+
 
         def new_target(self,*args): #GREEN
                 '''Generates a new target in another position after having acomplished a green'''
@@ -634,7 +680,7 @@ class TrainerWindow(Screen):
 
                 if self.level==1: #we check if it needs to be smaller in level 1 
                         #we generate a new epsilon 
-                        if self.target_epsilon>0.08:  #if it's bigger than 0.075
+                        if self.target_epsilon>0.08:  #if it's bigger than 0.08
                                 self.target_epsilon=self.target_epsilon-0.05
                         else: #it's smaller 
                                 self.level=2 #plus one in level
@@ -650,35 +696,86 @@ class TrainerWindow(Screen):
                         level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
                         level_animation1.start(self.level_label) 
                         self.level_label.text="LEVEL = "+str(self.level)
-                        
+                        if self.level<=3: 
+                                self.target_epsilon=0.1
+                        else: 
+                                self.target_epsilon=0.075
 
+                overlaping_zone=[]
+                j=0 
+                while j<self.level: #new targets + avoiding overlapping 
+                        actual_j=j
+                        self.target_position[j]=random.random() #new position     
+                        actual_max=self.target_position[j]+self.target_epsilon
+                        actual_min=self.target_position[j]-self.target_epsilon
+                        if j!=0: 
+                                for p in range(0,j): 
+                                        previous_min=overlaping_zone[p][0]
+                                        previous_max=overlaping_zone[p][1]
+                                        if (actual_min<=previous_max and actual_min>=previous_min) or \
+                                        (actual_max<=previous_max and actual_max>=previous_min) or (actual_min)<0 or (actual_max)>1:
+                                        #the target position is bad 
+                                                j=actual_j 
+                                                break #we go back to another self.targetposition with same j 
+                                        else: #the target position is good 
+                                                if p==(j-1): #we have arrived to the end of the overlaping check
+                                                        overlaping_zone.append([actual_min,actual_max]) 
+                                                        self.grid_target[j]=GridLayout(rows=1,cols=1) #new target
+                                                        self.grid_target[j].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
+                                                        self.grid_target[j].size_hint_x=self.target_epsilon*2
+                                                        self.grid_target[j].size_hint_y=1
+                                                        yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                                                        self.grid_target[j].add_widget(yellow_image) 
+                                                        self.measure_layout.add_widget(self.grid_target[j])
+                                                        j=j+1 #going to the next iteration         
+                                                #else we continue iterating along p
 
-                for j in range(0,self.level): #new targets
-                        self.target_position[j]=random.random() #new position 
-                
-                        for p in range(0,j): #iterate along previous targets                                    
-                                previous_max=self.target_position[p]+self.target_epsilon 
-                                previous_min=self.target_position[p]-self.target_epsilon 
-                                actual_max=self.target_position[j]+self.target_epsilon
-                                actual_min=self.target_position[j]-self.target_epsilon
-                                while (actual_min<=previous_max and actual_min>=previous_min) or \
-                                (actual_max<=previous_max and actual_max>=previous_min): #we have target overlapping 
-                                        self.target_position[j]=random.random()
-                                        while (self.target_position[j]-self.target_epsilon)<0 or (self.target_position[j]+self.target_epsilon)>1: 
-                                                self.target_position[j]=random.random() #we generate a new target position
-                                        actual_max=self.target_position[j]+self.target_epsilon
-                                        actual_min=self.target_position[j]-self.target_epsilon
+                                                
                         if j==0: #only one target 
                                 while (self.target_position[j]-self.target_epsilon)<0 or (self.target_position[j]+self.target_epsilon)>1: 
-                                                self.target_position[j]=random.random() #we generate a new target position
+                                        self.target_position[j]=random.random() #we generate a new target position
 
-                        self.grid_target[j]=GridLayout(rows=1,cols=1) #new target
-                        self.grid_target[j].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
-                        self.grid_target[j].size_hint_x=self.target_epsilon*2
-                        self.grid_target[j].size_hint_y=1
-                        yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
-                        self.grid_target[j].add_widget(yellow_image) 
-                        self.measure_layout.add_widget(self.grid_target[j])
+                                actual_max=self.target_position[j]+self.target_epsilon
+                                actual_min=self.target_position[j]-self.target_epsilon
+                                overlaping_zone.append([actual_min,actual_max])
+
+                                self.grid_target[j]=GridLayout(rows=1,cols=1) #new target
+                                self.grid_target[j].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
+                                self.grid_target[j].size_hint_x=self.target_epsilon*2
+                                self.grid_target[j].size_hint_y=1
+                                yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                                self.grid_target[j].add_widget(yellow_image) 
+                                self.measure_layout.add_widget(self.grid_target[j])
+                                j=j+1 #going to the next iteration
+
+                if self.lives_counter<5: #NOT ALL LIVES : it is possible to recover a live  
+                        if random.randint(1,3)==2 and self.level==1: #one in trhee times  
+                                self.is_live_recover=True 
+                                heart_position=self.target_position[0] #live appears in first target generated 
+                                self.grid_heart_recover=GridLayout(rows=1,cols=1)
+                                self.grid_heart_recover.pos_hint={"center_x":heart_position,"center_y":0.5}
+                                self.grid_heart_recover.size_hint_x=0.035
+                                self.grid_heart_recover.size_hint_y=0.2
+                                heart_image=Image(source="graphs/heart_icon.png",allow_stretch=True,keep_ratio=False)
+                                self.grid_heart_recover.add_widget(heart_image)
+                                self.measure_layout.add_widget(self.grid_heart_recover)
+                        elif random.randint(1,2)==2 and self.level>1:  #one in two times
+                                self.is_live_recover=True 
+                                heart_position=self.target_position[0] #live appears in first target generated 
+                                self.grid_heart_recover=GridLayout(rows=1,cols=1)
+                                self.grid_heart_recover.pos_hint={"center_x":heart_position,"center_y":0.5}
+                                self.grid_heart_recover.size_hint_x=0.035
+                                self.grid_heart_recover.size_hint_y=0.2
+                                heart_image=Image(source="graphs/heart_icon.png",allow_stretch=True,keep_ratio=False)
+                                self.grid_heart_recover.add_widget(heart_image)
+                                self.measure_layout.add_widget(self.grid_heart_recover)
+                        else: 
+                                self.is_live_recover=False
+
+                else: self.is_live_recover=False
+
+                                
+            
 
                 #UPDATING THE SCORE + ELECTRON ANIMATION TO THE SCORE
                 if self.level==1: 
@@ -697,7 +794,7 @@ class TrainerWindow(Screen):
                         self.measure_layout.add_widget(e_grid[i])
                         e_animation=Animation(pos_hint={"center_x":self.e_position[i],"center_y":0.5,},duration=0.005)
                         e_animation+=Animation(pos_hint={"center_x":-0.15,"center_y":4.35,},duration=1.5) #GOES TO THE SCORE
-                        e_animation+=Animation(size_hint_x=0,size_hint_y=0,duration=0.0005) #THE DISAPPEARS
+                        e_animation+=Animation(size_hint_x=0,size_hint_y=0,duration=0.0005) #THEN DISAPPEARS
                         e_animation.start(e_grid[i])
                         e_animation.bind(on_complete=self.score_update)
        
@@ -755,6 +852,42 @@ class TrainerWindow(Screen):
                          self.game_over_layout.size_hint_y=1
                          self.final_score_label.text="FINAL SCORE = "+ str(self.score)
                          self.final_score_label.color=(233/255, 179/255, 7/255, 1)
+                         self.is_plot=False
+
+                elif self.lives_counter<5: #NOT ALL LIVES : it is possible to recover a live 
+                        if random.randint(1,3)==2: #one in trhee times  
+                                self.is_live_recover=True 
+                                heart_position=self.target_position[0] #live appears in first target generated 
+                                self.grid_heart_recover=GridLayout(rows=1,cols=1)
+                                self.grid_heart_recover.pos_hint={"center_x":heart_position,"center_y":0.5}
+                                self.grid_heart_recover.size_hint_x=0.035
+                                self.grid_heart_recover.size_hint_y=0.2
+                                heart_image=Image(source="graphs/heart_icon.png",allow_stretch=True,keep_ratio=False)
+                                self.grid_heart_recover.add_widget(heart_image)
+                                self.measure_layout.add_widget(self.grid_heart_recover)
+                        else: 
+                                self.is_live_recover=False
+
+                else: self.is_live_recover=False 
+
+
+        def live_recovered(self): #we have recovered a live
+                '''Updates the live counter and live icons with animation'''
+                heart_position=self.target_position[0]
+                self.grid_heart_recover.clear_widgets()#delete previous heart 
+                self.grid_heart_recover=GridLayout(rows=1,cols=1)
+                self.grid_heart_recover.pos_hint={"center_x":heart_position,"center_y":0.5}
+                self.grid_heart_recover.size_hint_x=0.035
+                self.grid_heart_recover.size_hint_y=0.2
+                heart_image=Image(source="graphs/heart_icon.png",allow_stretch=True,keep_ratio=False)
+                self.grid_heart_recover.add_widget(heart_image)
+                self.measure_layout.add_widget(self.grid_heart_recover)
+                heart__recover_animation=Animation(pos_hint={"center_x":heart_position,"center_y":0.5,},duration=0.005)
+                heart__recover_animation+=Animation(pos_hint={"center_x":-0.15,"center_y":4.5,},duration=1.5) #GOES TO THE LIVES 
+                heart__recover_animation+=Animation(size_hint_x=0,size_hint_y=0,duration=0.0005) #THEN DISAPPEARS
+                heart__recover_animation.start(self.grid_heart_recover)
+                heart__recover_animation.bind(on_complete=self.lives_counter_add1)
+
 
         def heart5_disappear(self,*args): 
                 self.heart5_grid.clear_widgets()
@@ -766,6 +899,22 @@ class TrainerWindow(Screen):
                 self.heart2_grid.clear_widgets()
         def heart1_disappear(self,*args): 
                 self.heart2_grid.clear_widgets()
+
+        def lives_counter_add1(self,*args):
+                self.lives_counter+=1 
+                heart_image=Image(source="graphs/heart_icon.png",allow_stretch=True,keep_ratio=True)   
+                if self.lives_counter==5:
+                        self.heart5_grid.add_widget(heart_image)
+                if self.lives_counter==4:
+                        self.heart4_grid.add_widget(heart_image)
+                if self.lives_counter==3:
+                        self.heart3_grid.add_widget(heart_image)
+                if self.lives_counter==2:
+                        self.heart2_grid.add_widget(heart_image)
+                if self.lives_counter==1:
+                        self.heart1_grid.add_widget(heart_image)
+                self.electron_check() #calls electron check 
+
 
 
         def score_update(self,*args): #UPTADES THE SCORE
@@ -787,7 +936,7 @@ class TrainerWindow(Screen):
 
                 #we reactivate all lives 
                 self.lives_counter=5 
-
+                heart_image=Image(source="graphs/heart_icon.png",allow_stretch=True,keep_ratio=True) 
                 self.heart1_grid.clear_widgets() #in case the reboot option was activated by pressing menu 
                 self.heart1_grid.add_widget(self.heart[0])
                 self.heart2_grid.clear_widgets()
@@ -840,12 +989,6 @@ class TrainerWindow(Screen):
                 #we overpaint again the bug layout 
                 self.bug_layout.size_hint_x= 0.15725
                 self.bug_layout.size_hint_y=0.16
-
-
-
-
-
-
 
                      
 class GameWindow(Screen):
