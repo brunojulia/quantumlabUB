@@ -37,7 +37,8 @@ class TrainerWindow(Screen):
         left_x_w=-0.4 
         right_x_w=0.4 
         Vw=20 #if the slides for the water aren't activated
-        potential_type="Free particle" #if no potential button is pressed  
+        potential_type1="Free particle" #if no potential button is pressed
+        potential_type2="Free particle"  
         e_position=[None]*10  #we put it here so its global, maximum level is 10
         #We create the list of values x outside so its faster(no need to do it every time)
         n_steps=500 #number of steps taken to integrate the wavefunction 
@@ -161,12 +162,30 @@ class TrainerWindow(Screen):
         #choosing potentials 
 
         def harmonic_potential(self): 
+                type1_copy=None
                 if self.plots_left>0: #we can do a plot
-                        self.potential_type="Harmonic"
-                        self.button_harmonic.background_color=(0,0,1,0.8)
-                        self.button_free.background_color=(1,1,1,1)
-                        self.button_barrier.background_color=(1,1,1,1)
-                        self.button_water.background_color=(1,1,1,1)
+                        if self.potential_type1=="Harmonic": #there is a harmonic 
+                                pass 
+                        elif self.potential_type2=="Harmonic": #there is a harmonic 
+                                pass 
+                        else: #There is no harmonic
+                                if self.potential_type1!="Free particle" and self.potential_type2!="Free particle": #two potential chosen 
+                                        self.potential_type1="Free particle"
+                                        self.potential_type2="Free particle" #we reinicialise the potentials to free 
+
+                                if self.potential_type1=="Free particle" or self.potential_type1=="Harmonic": #No other potential chosen 
+                                        type1_copy="Harmonic" 
+                                        self.button_harmonic.background_color=(0,0,1,0.8) #only one button pressed 
+                                        self.button_free.background_color=(1,1,1,1)
+                                        self.button_barrier.background_color=(1,1,1,1)
+                                        self.button_water.background_color=(1,1,1,1)
+                                else: #ANOTHER POTENTIAL CHOSEN   
+                                        self.potential_type2="Harmonic"
+                                        self.button_harmonic.background_color=(0,0,1,0.8) #we press harmonic one too 
+
+                                if type1_copy=="Harmonic": self.potential_type1="Harmonic"
+
+
                         self.plot_potential()
                 else: 
                         self.button_plot_anim() #we animate the plot button and label
@@ -184,7 +203,8 @@ class TrainerWindow(Screen):
 
         def free_particle(self): 
                 if self.plots_left>0: #we can do a plot
-                        self.potential_type="Free particle"
+                        self.potential_type1="Free particle"
+                        self.potential_type2="Free particle"
                         self.button_harmonic.background_color=(1,1,1,1)
                         self.button_free.background_color=(0,0,1,0.8)
                         self.button_barrier.background_color=(1,1,1,1)
@@ -210,12 +230,26 @@ class TrainerWindow(Screen):
                 self.barrier()
                 
         def barrier(self): 
+                b_copy=None
                 if self.plots_left>0: #we can do a plot
-                        self.potential_type="Barrier"
-                        self.button_harmonic.background_color=(1,1,1,1)
-                        self.button_free.background_color=(1,1,1,1)
-                        self.button_barrier.background_color=(0,0,1,0.8)
-                        self.button_water.background_color=(1,1,1,1)
+                        if self.potential_type1=="Barrier": #there is a barrier 
+                                pass 
+                        elif self.potential_type2=="Barrier": #there is a barrier
+                                pass 
+                        else: #There is no Barrier 
+                                if self.potential_type1!="Free particle" and self.potential_type2!="Free particle": #two potential chosen 
+                                        self.potential_type1="Free particle"
+                                        self.potential_type2="Free particle" #we reinicialise the potentials to free 
+                                if self.potential_type1=="Free particle": #No other potential chosen
+                                        b_copy="Barrier"
+                                        self.button_harmonic.background_color=(1,1,1,1)
+                                        self.button_free.background_color=(1,1,1,1)
+                                        self.button_barrier.background_color=(0,0,1,0.8)
+                                        self.button_water.background_color=(1,1,1,1)
+                                else: #ANOTHER POTENTIAL CHOSEN   
+                                        self.potential_type2="Barrier"
+                                        self.button_barrier.background_color=(0,0,1,0.8) #we press barrier one too 
+                                if b_copy=="Barrier": self.potential_type1="Barrier"
                         self.plot_potential()
                 else: 
                         self.button_plot_anim() #we animate the plot button and label
@@ -238,13 +272,28 @@ class TrainerWindow(Screen):
                 self.water_well()
 
         def water_well(self): 
+                w_copy=None
                 if self.plots_left>0: #we can do a plot
-                        self.potential_type="Well"
-                        self.button_harmonic.background_color=(1,1,1,1)
-                        self.button_free.background_color=(1,1,1,1)
-                        self.button_barrier.background_color=(1,1,1,1)
-                        self.button_water.background_color=(0,0,1,0.8)
+                        if self.potential_type1=="Well": #there is a well 
+                                pass 
+                        elif self.potential_type2=="Well": #there is a well 
+                                pass 
+                        else: #There is no well 
+                                if self.potential_type1!="Free particle" and self.potential_type2!="Free particle": #two potential chosen 
+                                        self.potential_type1="Free particle"
+                                        self.potential_type2="Free particle" #we reinicialise the potentials to free 
+                                if self.potential_type1=="Free particle": #No other potential chosen
+                                        w_copy="Well"
+                                        self.button_harmonic.background_color=(1,1,1,1)
+                                        self.button_free.background_color=(1,1,1,1)
+                                        self.button_barrier.background_color=(1,1,1,1)
+                                        self.button_water.background_color=(0,0,1,0.8)
+                                else: #ANOTHER POTENTIAL CHOSEN   
+                                        self.potential_type2="Well"
+                                        self.button_water.background_color=(0,0,1,0.8) #we press barrier one too 
+                                if w_copy=="Well": self.potential_type1="Well"
                         self.plot_potential()
+                        
                 else: 
                         self.button_plot_anim() #we animate the plot button and label
 
@@ -252,29 +301,59 @@ class TrainerWindow(Screen):
 
         def potential(self,x): 
                 '''Gives the potential'''
-                if self.potential_type=="Harmonic":
-                        V=(1/2)*self.hooke_constant*(x-self.x0_harmonic)**2
+                if self.potential_type1=="Harmonic":
+                        V1=(1/2)*self.hooke_constant*(x-self.x0_harmonic)**2
                                  
-                if self.potential_type=="Free particle": #if no potential button is pressed we have a free particle
-                        V=0 
-                if self.potential_type=="Barrier":
-                        V=0 #if the condition is not satisfied V=0
+                if self.potential_type1=="Free particle": #if no potential button is pressed we have a free particle
+                        V1=0 
+                if self.potential_type1=="Barrier":
+                        V1=0 #if the condition is not satisfied V=0
                         #we check that the left position is smaller than the right one 
                         if self.left_x_b>self.right_x_b: #if the left one is bigger
                                 self.right_x_b=self.left_x_b+0.6
                         if self.left_x_b<self.right_x_b: 
-                                if x<self.left_x_b: V=0 
-                                if x>self.left_x_b and x <self.right_x_b: V=self.Vb  
-                                if x>self.right_x_b: V=0  
-                if self.potential_type=="Well":
-                        V=0 #if the condition is not satisfied V=0
+                                if x<self.left_x_b: V1=0 
+                                if x>self.left_x_b and x <self.right_x_b: V1=self.Vb  
+                                if x>self.right_x_b: V1=0  
+                if self.potential_type1=="Well":
+                        V1=0 #if the condition is not satisfied V=0
                         #we check that the left position is smaller than the right one 
                         if self.left_x_w>self.right_x_w:
                                 self.right_x_w=self.left_x_w+0.6
                         if self.left_x_w<self.right_x_w: 
-                                if x<self.left_x_w: V=self.Vw 
-                                if x>self.left_x_w and x <self.right_x_w: V=0  
-                                if x>self.right_x_w: V=self.Vw 
+                                if x<self.left_x_w: V1=self.Vw 
+                                if x>self.left_x_w and x <self.right_x_w: V1=0  
+                                if x>self.right_x_w: V1=self.Vw 
+
+                #Now potential 2 
+
+                if self.potential_type2=="Harmonic":
+                        V2=(1/2)*self.hooke_constant*(x-self.x0_harmonic)**2
+                                 
+                if self.potential_type2=="Free particle": #if no potential button is pressed we have a free particle
+                        V2=0 
+                if self.potential_type2=="Barrier":
+                        V2=0 #if the condition is not satisfied V=0
+                        #we check that the left position is smaller than the right one 
+                        if self.left_x_b>self.right_x_b: #if the left one is bigger
+                                self.right_x_b=self.left_x_b+0.6
+                        if self.left_x_b<self.right_x_b: 
+                                if x<self.left_x_b: V2=0 
+                                if x>self.left_x_b and x <self.right_x_b: V2=self.Vb  
+                                if x>self.right_x_b: V2=0  
+                if self.potential_type2=="Well":
+                        V2=0 #if the condition is not satisfied V=0
+                        #we check that the left position is smaller than the right one 
+                        if self.left_x_w>self.right_x_w:
+                                self.right_x_w=self.left_x_w+0.6
+                        if self.left_x_w<self.right_x_w: 
+                                if x<self.left_x_w: V2=self.Vw 
+                                if x>self.left_x_w and x <self.right_x_w: V2=0  
+                                if x>self.right_x_w: V2=self.Vw 
+
+
+                V=max(V1,V2) #we get the maximum value as the actual potential 
+
                 #for any potential the partcile is inside the box so: 
                 if x<-(self.L/2-self.dx/2) : V=10**10 #infinite potential
                 if x>(self.L/2-self.dx/2): V=10**10 
@@ -370,16 +449,16 @@ class TrainerWindow(Screen):
                 ax_V.legend(loc="upper right")
 
                 #MAKING THE TITLE OF THE GRAPH
-                if self.potential_type=="Harmonic":
-                        string_var="    $K(eV/\AA^2)$="+str(self.hooke_constant)
-                if self.potential_type=="Free particle": string_var=""
-                if self.potential_type=="Barrier":
-                        string_var="    $V(eV)$="+str(self.Vb)
-                if self.potential_type=="Well": 
-                        string_var="    $V(eV)$="+str(self.Vw)
+                #if self.potential_type=="Harmonic":
+                        #string_var="    $K(eV/\AA^2)$="+str(self.hooke_constant)
+                #if self.potential_type=="Free particle": string_var=""
+                #if self.potential_type=="Barrier":
+                        #string_var="    $V(eV)$="+str(self.Vb)
+                #if self.potential_type=="Well": 
+                        #string_var="    $V(eV)$="+str(self.Vw)
 
-                plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4]+"   V(x)= "+str(self.potential_type)+string_var
-                        ,loc="right")
+                plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4],loc="right")#"   V(x)= "+str(self.potential_type)+string_var
+                        
                 
                 canvas_plot=FigureCanvasKivyAgg(plt.gcf())
                 self.float_plot.clear_widgets()
@@ -409,17 +488,15 @@ class TrainerWindow(Screen):
                 ax_V.legend(loc="upper right")
 
                 #MAKING THE TITLE OF THE GRAPH
-                if self.potential_type=="Harmonic":
-                        string_var="    $K(eV/\AA^2)$="+str(self.hooke_constant)[0:4]
-                if self.potential_type=="Free particle": string_var=""
-                if self.potential_type=="Barrier":
-                        string_var="    $V(eV)$="+str(self.Vb)
-                if self.potential_type=="Well": 
-                        string_var="    $V(eV)$="+str(self.Vw)
+                #if self.potential_type=="Harmonic":
+                        #string_var="    $K(eV/\AA^2)$="+str(self.hooke_constant)[0:4]
+                #if self.potential_type=="Free particle": string_var=""
+                #if self.potential_type=="Barrier":
+                        #string_var="    $V(eV)$="+str(self.Vb)
+                #if self.potential_type=="Well": 
+                        #string_var="    $V(eV)$="+str(self.Vw)
 
-                plt.title("V(x)= "+str(self.potential_type)+string_var
-                        ,loc="right")
-                
+         
                 canvas_plot=FigureCanvasKivyAgg(plt.gcf())
                 self.float_plot.clear_widgets()
                 self.float_plot.add_widget(canvas_plot)
@@ -504,17 +581,16 @@ class TrainerWindow(Screen):
                         ax_V.legend(loc="upper right")
                         ax_phi.legend(loc="upper left")
                         #MAKING THE TITLE OF THE GRAPH
-                        if self.potential_type=="Harmonic":
-                                string_var="    $K(eV/\AA^2)$="+str(self.hooke_constant)
-                        if self.potential_type=="Free particle": string_var=""
-                        if self.potential_type=="Barrier":
-                                string_var="    $V(eV)$="+str(self.Vb)
-                        if self.potential_type=="Well": 
-                                string_var="    $V(eV)$="+str(self.Vw)
+                        #if self.potential_type=="Harmonic":
+                                #string_var="    $K(eV/\AA^2)$="+str(self.hooke_constant)
+                        #if self.potential_type=="Free particle": string_var=""
+                        #if self.potential_type=="Barrier":
+                                #string_var="    $V(eV)$="+str(self.Vb)
+                        #if self.potential_type=="Well": 
+                                #string_var="    $V(eV)$="+str(self.Vw)
 
-                        plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4]+"   V(x)= "+str(self.potential_type)+string_var
-                                ,loc="right")
-                        
+                        plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4],loc="right")#"   V(x)= "+str(self.potential_type)+string_var
+                                
                         canvas_plot=FigureCanvasKivyAgg(plt.gcf())
                         self.float_plot.clear_widgets()
                         self.float_plot.add_widget(canvas_plot)

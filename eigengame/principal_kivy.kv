@@ -587,6 +587,21 @@
 	        halign: "left"
 	        font_size: 24 
 
+	    Button: #RUBBER BUTTON 
+	    	size_hint_x: 0.075
+        	size_hint_y: 0.08
+        	pos_hint:{"right":1,"top":0.8-0.08}
+        	halign:"center"
+			valign:"middle" #
+			on_release:
+				root.free_particle() 
+			Image: #we put an image inside the button 
+				source: "graphs/rubber_icon.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width-10, self.parent.height-10 
+
+
 		Button: #MEASURE BUTTON
 			id: measure_button
 			size_hint_x: 0.075
