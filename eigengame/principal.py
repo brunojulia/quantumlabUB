@@ -25,14 +25,14 @@ import random
 class MainWindow(Screen):
         pass 
      
-class TrainerWindow(Screen):
+class GameWindow(Screen):
         float_plot=ObjectProperty(None)
         measure_layout=ObjectProperty(None)
         value_n=0#if no button is pressed
         hooke_constant=5 #if it isn't slide it
         x0_harmonic=0 #if there is no sliding
-        left_x_b=-0.4 
-        right_x_b=0.4 
+        center_b=0 
+        width_b=1
         Vb=20 #if the slides for the barrier aren't activated
         left_x_w=-0.4 
         right_x_w=0.4 
@@ -214,14 +214,14 @@ class TrainerWindow(Screen):
                         self.button_plot_anim() #we animate the plot button and label
 
 
-        def left_barrier(self,*args): 
+        def center_barrier(self,*args): 
                 ''' Takes the x position left value of the barrier from a slider''' 
-                self.left_x_b=args[1]
+                self.center_b=args[1]
                 self.barrier()
                 
-        def right_barrier(self,*args): 
+        def width_barrier(self,*args): 
                 ''' Takes the x position right value of the barrier from a slider''' 
-                self.right_x_b=args[1]
+                self.width_b=args[1]
                 self.barrier()
                 
         def V_barrier(self,*args): 
@@ -307,14 +307,12 @@ class TrainerWindow(Screen):
                 if self.potential_type1=="Free particle": #if no potential button is pressed we have a free particle
                         V1=0 
                 if self.potential_type1=="Barrier":
-                        V1=0 #if the condition is not satisfied V=0
-                        #we check that the left position is smaller than the right one 
-                        if self.left_x_b>self.right_x_b: #if the left one is bigger
-                                self.right_x_b=self.left_x_b+0.6
-                        if self.left_x_b<self.right_x_b: 
-                                if x<self.left_x_b: V1=0 
-                                if x>self.left_x_b and x <self.right_x_b: V1=self.Vb  
-                                if x>self.right_x_b: V1=0  
+                        V1=0
+                        left_x_b=self.center_b-self.width_b/2 
+                        right_x_b=self.center_b+self.width_b/2  
+                        if x<left_x_b: V1=0 
+                        if x>left_x_b and x <right_x_b: V1=self.Vb  
+                        if x>right_x_b: V1=0  
                 if self.potential_type1=="Well":
                         V1=0 #if the condition is not satisfied V=0
                         #we check that the left position is smaller than the right one 
@@ -333,14 +331,12 @@ class TrainerWindow(Screen):
                 if self.potential_type2=="Free particle": #if no potential button is pressed we have a free particle
                         V2=0 
                 if self.potential_type2=="Barrier":
-                        V2=0 #if the condition is not satisfied V=0
-                        #we check that the left position is smaller than the right one 
-                        if self.left_x_b>self.right_x_b: #if the left one is bigger
-                                self.right_x_b=self.left_x_b+0.6
-                        if self.left_x_b<self.right_x_b: 
-                                if x<self.left_x_b: V2=0 
-                                if x>self.left_x_b and x <self.right_x_b: V2=self.Vb  
-                                if x>self.right_x_b: V2=0  
+                        V2=0
+                        left_x_b=self.center_b-self.width_b/2 
+                        right_x_b=self.center_b+self.width_b/2  
+                        if x<left_x_b: V2=0 
+                        if x>left_x_b and x <right_x_b: V2=self.Vb  
+                        if x>right_x_b: V2=0  
                 if self.potential_type2=="Well":
                         V2=0 #if the condition is not satisfied V=0
                         #we check that the left position is smaller than the right one 
@@ -444,7 +440,7 @@ class TrainerWindow(Screen):
                 ax_V.plot(self.x_list_values,V_plot, label="V(x)" , color='tab:blue') 
                 ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
                 ax_V.fill_between(self.x_list_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
-                if E<40: ax_V.set_ylim((0,40)) #limit in potential axis
+                if E<40: ax_V.set_ylim((0,41)) #limit in potential axis
                 else: ax_V.set_ylim((0,E+5)) 
                 ax_V.legend(loc="upper right")
 
@@ -484,7 +480,7 @@ class TrainerWindow(Screen):
                 ax_V.set_ylabel(r"$V(eV)$")
                 ax_V.plot(self.x_list_values,V_plot, label="V(x)" , color='tab:blue') 
                 ax_V.fill_between(self.x_list_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
-                ax_V.set_ylim((0,40)) 
+                ax_V.set_ylim((0,41)) 
                 ax_V.legend(loc="upper right")
 
                 #MAKING THE TITLE OF THE GRAPH
@@ -576,7 +572,7 @@ class TrainerWindow(Screen):
                         ax_phi.fill_between(self.x_list_values, phi_square,0, facecolor='red', alpha=0.5) #paint wave_function
                         ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
                         
-                        if E<35: ax_V.set_ylim((0,40))
+                        if E<35: ax_V.set_ylim((0,42))
                         else: ax_V.set_ylim((0,E+5)) 
                         ax_V.legend(loc="upper right")
                         ax_phi.legend(loc="upper left")
@@ -758,7 +754,7 @@ class TrainerWindow(Screen):
 
                 if self.level==1: #we check if it needs to be smaller in level 1 
                         #we generate a new epsilon 
-                        if self.target_epsilon>3:  #if it's bigger than 0.08
+                        if self.target_epsilon>0.08:  #if it's bigger than 0.08
                                 self.target_epsilon=self.target_epsilon-0.05
                         else: #it's smaller 
                                 self.level=2 #plus one in level
@@ -1007,7 +1003,6 @@ class TrainerWindow(Screen):
                 self.electron_check() #calls electron check 
 
 
-
         def score_update(self,*args): #UPTADES THE SCORE
                 '''Updates the score, called by new target''' 
                 self.score+=1 #we add one point 
@@ -1043,16 +1038,18 @@ class TrainerWindow(Screen):
                 self.plots_left=3  
                 self.plots_label.text=str(self.plots_left)
 
+                self.free_particle() #deletes other potential drawn in screen 
+
                 #score 
-                self.score=0 #we add one point 
+                self.score=0 #we put the score to zero 
                 self.score_label.text=" SCORE = " +str(self.score)
 
                 for j in range(0,self.level): 
-                        self.grid_target[j].clear_widgets() #erase previous target
+                        self.grid_target[j].clear_widgets() #erase previous targets
 
                 if self.first_target==True:  self.first_grid_target.clear_widgets()
                 self.measure_layout.clear_widgets()
-                self.first_target==False 
+                self.first_target=False 
 
                 self.level=1
                 self.level_label.text="LEVEL = "+str(self.level)
@@ -1082,7 +1079,7 @@ class TrainerWindow(Screen):
                 self.bug_layout.size_hint_y=0.16
 
                      
-class GameWindow(Screen):
+class TutorialWindow(Screen):
         pass    
 
      
@@ -1094,8 +1091,8 @@ class MygameApp(App): #inherits from app (utilitza les pepietats)
     def build(self): #self argument de sempre no te arguments
         sm=ScreenManager()
         sm.add_widget(MainWindow(name="menu"))
-        sm.add_widget(TrainerWindow(name="trainer"))
         sm.add_widget(GameWindow(name="game"))
+        sm.add_widget(TutorialWindow(name="tutorial"))
         return sm #estem dibuixant la grid, cridem la classe directament de float Layot
 
 if __name__=="__main__":

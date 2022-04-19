@@ -9,7 +9,7 @@
 
 		Label: #afegim text 
 			font_size:20
-			text: "Welcome to EIGENgame.\n To learn how to design your wave function press on trainner. " 
+			text: "Welcome to EIGENgame.\n To learn how to play press TUTORIAL."  
 			multiline: True
 			pos_hint: {"center_x":0.5,"center_y":0.9} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.6
@@ -19,7 +19,7 @@
         Button: #afegim un botó 
         	font_size:19
 			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-			text: "TRAINER"
+			text: "GAME"
 			bold: True
 			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.5
@@ -27,12 +27,12 @@
             halign:"center"
 			valign:"middle" #lletra centrada
 			on_release: 
-				app.root.current="trainer" #quan el deixem anar canviem de pantalla 
+				app.root.current="game" #quan el deixem anar canviem de pantalla 
 				root.manager.transition.direction="left" #editem la transicio
 		Button: #afegim un botó 
         	font_size:19
 			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-			text: "LET'S PLAY"
+			text: "TUTORIAL"
 			bold: True
 			pos_hint: {"center_x":0.5,"center_y":0.4} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.5
@@ -40,11 +40,11 @@
             halign:"center"
 			valign:"middle" #lletra centrada
             on_release: 
-				app.root.current="game" #quan el deixem anar canviem de pantalla 
+				app.root.current="tutorial" #quan el deixem anar canviem de pantalla 
 				root.manager.transition.direction="left" #editem la transicio
 	
 
-<TrainerWindow>
+<GameWindow>
 	float_plot: float_plot
 	measure_layout: measure_layout
 	heart1_grid: heart1_grid
@@ -248,7 +248,7 @@
 				color:1,1,1,1 #tots els buttons seran aixi
 				on_release: 
 					root.barrier()
-			GridLayout: #barrieri icon
+			GridLayout: #barrier icon
 				cols:1 
 				rows:1 
 				pos_hint:{"center_x":0.46,"center_y":0.75}
@@ -259,20 +259,20 @@
 					allow_stretch: True
 	    			keep_ratio: False
 
-			Label: #inside button LEFT 
+			Label: #inside button CENTER 
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.3+0.075,"y":0.35+0.02}
-				text: "LEFT"
+				text: "CENTER"
 				bold: True
 				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
-			Label: #inside button RIGHT
+			Label: #inside button WIDTH
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.45+0.085,"y":0.35+0.02}
-				text: "RIGHT"
+				text: "WIDTH"
 				bold: True
 				color:1,1,1,1
 	            halign:"center"
@@ -287,26 +287,26 @@
 	            halign:"center"
 				valign:"middle"
 					 
-			Slider: #to choose the left of the barrier
+			Slider: #to choose the CENTER of the barrier
 			    size_hint_x: 0.16
 				size_hint_y:0.35
 				pos_hint:{"x":0.3,"y":0}	
 				min: -5
-				max: 5
-				value:-0.4
-				step: 0.05
+				max: +5
+				value:0
+				step: 0.02
 				orientation: "horizontal"
-				on_value: root.left_barrier(*args) #we call a function that saves the value of the slide
-            Slider: #to choose the right of the barrier
+				on_value: root.center_barrier(*args) #we call a function that saves the value of the slide
+            Slider: #to choose the WIDTH of the barrier
 			    size_hint_x: 0.16
 				size_hint_y:0.36
 				pos_hint:{"x":0.45,"y":0}	
-				min: -5
-				max: 5
-				value: 0.4
-				step: 0.05
+				min: 0
+				max: 10
+				value: 1
+				step: 0.02
 				orientation: "horizontal"
-				on_value: root.right_barrier(*args) #we call a function that saves the value of the slide
+				on_value: root.width_barrier(*args) #we call a function that saves the value of the slide
 			Slider: #to choose the vertical 
 				size_hint_x:0.03
 				size_hint_y:1
@@ -720,11 +720,11 @@
     		keep_ratio: False
 	
 			
-<GameWindow>
+<TutorialWindow>
 	FloatLayout: #creem una layout
 		Label: #afegim text per saber on som 
 			font_size:25
-			text: "GAME"
+			text: "Tutorial"
 			bold: True 
 			multiline: True
 			pos_hint: {"center_x":0.5,"center_y":0.5} #diccionari:{"x","y","top","bottom","left","right"}
