@@ -15,8 +15,11 @@ from kivy.uix.image import Image
 import matplotlib.pyplot as plt 
 import math as math
 import numpy as np  
+import scipy
 import scipy.special 
 import random 
+from numba import jit
+import time
 
 
 
@@ -39,9 +42,9 @@ class GameWindow(Screen):
         Vw=20 #if the slides for the water aren't activated
         potential_type1="Free particle" #if no potential button is pressed
         potential_type2="Free particle"  
-        e_position=[None]*10  #we put it here so its global, maximum level is 10
+        e_position=[None]*100  #we put it here so its global, maximum level is 100
         #We create the list of values x outside so its faster(no need to do it every time)
-        n_steps=500 #number of steps taken to integrate the wavefunction 
+        n_steps=250 #number of steps taken to integrate the wavefunction 
         L=10.0 #lenght of the box 
         x0=-L/2  
         x_list_values=[x0]
@@ -49,6 +52,16 @@ class GameWindow(Screen):
         for i in range(1,n_steps+1):
                 x_value=x0+dx*i
                 x_list_values.append(x_value)
+
+        #we make a list of values x for plotting the potential as a continuous function 
+        potential_steps=1000 
+        potential_dx=L/potential_steps
+        x_potential_values=[x0]
+        for i in range(1,potential_steps+1):
+                potential_x=x0+potential_dx*i
+                x_potential_values.append(potential_x)
+        
+
 
         #TARGET
         target_position=[None]*10 #maximum level 10
@@ -91,8 +104,8 @@ class GameWindow(Screen):
         #score 
         score=0 
         level=1
-
-
+        start=0
+        end=0
         #Choosing energies 
         def value_0(self): 
                 ''' Changes values o value_n when the button is pressed'''
@@ -356,47 +369,65 @@ class GameWindow(Screen):
 
                 return V 
 
+
+        #@jit(nopython=False)
         def matrix(self): 
                 '''This function creates the numpy array we will work with. '''
-
                 #define parameters 
                 h2_me=7.6199  # (eV*A) h**2/me
 
                 #we create the matrix with all zeros 
-                H_matrix=np.zeros((self.n_steps+1,self.n_steps+1)) #matrix 501x501 
-                for i in range(0,self.n_steps+1): #rows 
+                #H_matrix=np.zeros((self.n_steps+1,self.n_steps+1)) #matrix 501x501 
+                diagonal=np.zeros(self.n_steps+1) 
+                off_diagonal=np.zeros(self.n_steps)
+                for i in range(0,self.n_steps): #rows 
+                        diagonal[i]=h2_me/(self.dx**2)+self.potential(self.x_list_values[i])
+                        off_diagonal[i]=-h2_me/(2*self.dx**2)
                         
-                        if i==0: #first row
-                                H_matrix[i,0]= -h2_me/(2*self.dx**2)+self.potential(self.x_list_values[i])
-                                H_matrix[i,1]= h2_me/(self.dx**2)
-                                H_matrix[i,2]= -h2_me/(2*self.dx**2)
+                        #NOT TRIDIAGONAL: (slower) 
 
-                        elif i==self.n_steps: #last row 
-                                H_matrix[i,self.n_steps]=-h2_me/(2*self.dx**2)+self.potential(self.x_list_values[i])
-                                H_matrix[i,self.n_steps-1]=h2_me/(self.dx**2)
-                                H_matrix[i,self.n_steps-2]=-h2_me/(2*self.dx**2)
+                        #if i==0: #first row
+                                #ADVANCED TWO POINTS
+                                #H_matrix[i,0]= -h2_me/(2*self.dx**2)+self.potential(self.x_list_values[i])
+                                #H_matrix[i,1]= h2_me/(self.dx**2)
+                                #H_matrix[i,2]= -h2_me/(2*self.dx**2)
+
+                        
+                        #elif i==self.n_steps: #last row 
+                                #TWO POINTS BACK 
+                                #H_matrix[i,self.n_steps]=-h2_me/(2*self.dx**2)+self.potential(self.x_list_values[i])
+                                #H_matrix[i,self.n_steps-1]=h2_me/(self.dx**2)
+                                #H_matrix[i,self.n_steps-2]=-h2_me/(2*self.dx**2)
                 
-                        else: #not first nor last row 
-                                H_matrix[i,i]= h2_me/(self.dx**2)+self.potential(self.x_list_values[i])
-                                H_matrix[i,i-1]=-h2_me/(2*self.dx**2)
-                                H_matrix[i,i+1]=-h2_me/(2*self.dx**2)
-        
-                return H_matrix 
+                        #else: #not first nor last row 
+                                #H_matrix[i,i]= h2_me/(self.dx**2)+self.potential(self.x_list_values[i])
+                                #H_matrix[i,i-1]=-h2_me/(2*self.dx**2)
+                                #H_matrix[i,i+1]=-h2_me/(2*self.dx**2)
 
+                diagonal[self.n_steps]=h2_me/(self.dx**2)+self.potential(self.x_list_values[self.n_steps])
+                return diagonal,off_diagonal 
+
+
+        #@jit(nopython=False)
         def wave_function(self):
                 '''This function finds the eigenvalues and eigenvectors and normalises the eigenvector we want to plot 
                 Returns the wave function squared and the energy used'''
-                A=self.matrix()
-                eigenval,eigenvec=np.linalg.eig(A) #we compute eigenvalues and eigenvectors 
+                diag,off_diag=self.matrix()
+                #eigenval,eigenvec=np.linalg.eig(A) #we compute eigenvalues and eigenvectors 
                 #we sort the eigenvalues and eigenvectors 
-                index=np.argsort(eigenval)
-                eigenval=eigenval[index] #list of eigenvalues sorted
-                eigenvec=eigenvec[:,index] #lis of eigenvectors sorted accordingly 
+                #index=np.argsort(eigenval)
+                #eigenval=eigenval[index] #list of eigenvalues sorted
+                #eigenvec=eigenvec[:,index] #lis of eigenvectors sorted accordingly 
+
+                #we compute only the eigenvalue and eigenvector we use THEORICALLY MORE FAST
+                eigenval,eigenvec=scipy.linalg.eigh_tridiagonal(diag,off_diag,select='i',select_range=(self.value_n,self.value_n))
+                E=eigenval[0]
                 
                 #we choose the energy 
-                E=eigenval[self.value_n] 
-                wave=eigenvec[:,self.value_n]
+                #E=eigenval[self.value_n] 
+                wave=eigenvec[:,0]
                 wave=wave.tolist() #we make it a list 
+                
                 #Now we normalise 
                 integral=0 
                 for k in range(0,self.n_steps+1): 
@@ -424,22 +455,25 @@ class GameWindow(Screen):
                 ax_phi.set_ylim((0,1)) #maximum of phi_axis
                 ax_phi.xaxis.labelpad = -1
                 #we compute the eigen_values 
-                A=self.matrix()
-                eigenval,eigenvec=np.linalg.eig(A) #we compute eigenvalues and eigenvectors 
+                diag,off_diag=self.matrix()
+                #eigenval,eigenvec=np.linalg.eig(A) #we compute eigenvalues and eigenvectors 
                 #we sort the eigenvalues and eigenvectors 
-                index=np.argsort(eigenval)
-                eigenval=eigenval[index] #list of eigenvalues sorted
-                eigenvec=eigenvec[:,index] #lis of eigenvectors sorted accordingly 
-                E=eigenval[self.value_n]  #we assign Energy 
+                #index=np.argsort(eigenval)
+                #eigenval=eigenval[index] #list of eigenvalues sorted
+                #eigenvec=eigenvec[:,index] #lis of eigenvectors sorted accordingly 
+                #E=eigenval[self.value_n]  #we assign Energy 
+                #we compute the eigenvalue we use 
+                eigenval=scipy.linalg.eigh_tridiagonal(diag,off_diag,eigvals_only=True,select='i',select_range=(self.value_n,self.value_n))
+                E=eigenval[0]
                 
 
                 y2=0
-                V_plot=[self.potential(s) for s in self.x_list_values] 
+                V_plot=[self.potential(s) for s in self.x_potential_values] 
                 ax_V = ax_phi.twinx() #same x_axis
                 ax_V.set_ylabel(r"$V(eV)$")
-                ax_V.plot(self.x_list_values,V_plot, label="V(x)" , color='tab:blue') 
+                ax_V.plot(self.x_potential_values,V_plot, label="V(x)" , color='tab:blue') 
                 ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
-                ax_V.fill_between(self.x_list_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
+                ax_V.fill_between(self.x_potential_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
                 if E<40: ax_V.set_ylim((0,41)) #limit in potential axis
                 else: ax_V.set_ylim((0,E+5)) 
                 ax_V.legend(loc="upper right")
@@ -475,11 +509,11 @@ class GameWindow(Screen):
                 ax_phi.xaxis.labelpad = -1
 
                 y2=0
-                V_plot=[self.potential(s) for s in self.x_list_values] 
+                V_plot=[self.potential(s) for s in self.x_potential_values] 
                 ax_V = ax_phi.twinx() #same x_axis
                 ax_V.set_ylabel(r"$V(eV)$")
-                ax_V.plot(self.x_list_values,V_plot, label="V(x)" , color='tab:blue') 
-                ax_V.fill_between(self.x_list_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
+                ax_V.plot(self.x_potential_values,V_plot, label="V(x)" , color='tab:blue') 
+                ax_V.fill_between(self.x_potential_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
                 ax_V.set_ylim((0,41)) 
                 ax_V.legend(loc="upper right")
 
@@ -502,7 +536,7 @@ class GameWindow(Screen):
                 '''This function plots into the window the wave function.
                 It also plots the potential. Previous to plotting it computes the eigenvalues
                 and computes the eigenvector. '''
- 
+                #self.start=time.time()
                 if self.plots_left>0: #we can do a plot
                         self.plot_potential()
                         plt.clf()
@@ -517,7 +551,7 @@ class GameWindow(Screen):
                  
                         y2=0
                         #let's plot:
-                        V_plot=[self.potential(k) for k in self.x_list_values] #compute potential for every x_position
+                        V_plot=[self.potential(k) for k in self.x_potential_values] #compute potential for every x_position
                         fig, ax_phi=plt.subplots() 
                         ax_phi.set_xlabel(r"$x(\AA)$")
                         ax_phi.set_ylabel(r"$ \phi^2$")
@@ -561,13 +595,13 @@ class GameWindow(Screen):
 
                         
                         ax_phi.set_ylim((0,max(phi_square)+0.2)) #maximum of phi_axis= maxim of probability +0.2
-                        ax_phi.legend(loc="upper left")
+                        
 
                         #we plot the potential
                         ax_V = ax_phi.twinx() #same x_axis
                         ax_V.set_ylabel(r"$V(eV)$")
-                        ax_V.plot(self.x_list_values,V_plot, label="V(x)" , color='tab:blue')
-                        ax_V.fill_between(self.x_list_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
+                        ax_V.plot(self.x_potential_values,V_plot, label="V(x)" , color='tab:blue')
+                        ax_V.fill_between(self.x_potential_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
                         ax_phi.plot(self.x_list_values,phi_square,label=r"$ \phi^2(x)$" , color='tab:red')
                         ax_phi.fill_between(self.x_list_values, phi_square,0, facecolor='red', alpha=0.5) #paint wave_function
                         ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
@@ -597,6 +631,9 @@ class GameWindow(Screen):
                 else: #we animate the measure button
                         self.button_plot_anim() #we animate the plot button and plotsleft label
 
+                #self.end=time.time()
+                #print(self.end-self.start)
+
         def button_plot_anim(self): 
                 '''Animates the plot button when there's no plots left'''
                 button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
@@ -611,7 +648,7 @@ class GameWindow(Screen):
         def loading_anim(self): 
                 '''Triggers loading animation'''
                 loading_animation=Animation(color=(0,0,0,1),duration=0.000005)
-                loading_animation+=Animation(color=(0,0,0,1),duration=1)
+                loading_animation+=Animation(color=(0,0,0,1),duration=0.000005)
                 loading_animation+=Animation(color=(0,0,0,0),duration=0.00005)
                 loading_animation.start(self.loading_label) 
                 loading_animation.bind(on_complete=self.plot_wave_function)
@@ -629,7 +666,7 @@ class GameWindow(Screen):
                         self.plots_label.text=str(self.plots_left)
 
                         probabilities,E=self.wave_function() #compute the probabilities and energy 
-                        n_e=self.level+1
+                        n_e=self.level*2-1 
                         if self.level==1: n_e=1  #number of electrons we want to plot (level number)
                         self.position=random.choices(self.x_list_values,weights=probabilities,k=n_e) #computes the position accordingly to WF
                         #we create a lists of the gridslayouts with are working with 
@@ -673,7 +710,7 @@ class GameWindow(Screen):
                 else: #there is a wave function plotted 
                         self.plots_left=3  
                         self.plots_label.text=str(self.plots_left)
-                        n_e=self.level+1
+                        n_e=self.level*2-1 
                         if self.level==1: n_e=1  #number of electrons we want to plot (level number) 
                         e_grid=[None]*n_e #list of n_e elements
                         n_greens=0 #number of targets in green
@@ -754,7 +791,7 @@ class GameWindow(Screen):
 
                 if self.level==1: #we check if it needs to be smaller in level 1 
                         #we generate a new epsilon 
-                        if self.target_epsilon>0.08:  #if it's bigger than 0.08
+                        if self.target_epsilon>3:  #if it's bigger than 0.08
                                 self.target_epsilon=self.target_epsilon-0.05
                         else: #it's smaller 
                                 self.level=2 #plus one in level
@@ -772,8 +809,11 @@ class GameWindow(Screen):
                         self.level_label.text="LEVEL = "+str(self.level)
                         if self.level<=3: 
                                 self.target_epsilon=0.1
-                        else: 
+                        elif self.level==4: 
                                 self.target_epsilon=0.075
+                        elif self.level<=7: 
+                                self.target_epsilon=0.05
+                        else: self.target_epsilon=0.025
 
                 overlaping_zone=[]
                 j=0 
@@ -857,7 +897,7 @@ class GameWindow(Screen):
                 elif self.level==2:  
                         n_e=1 #we had the number of the previous level 
                 else: 
-                        n_e=self.level
+                        n_e=(self.level-1)*2-1
 
                 e_grid=[None]*(n_e) #list of n_e elements
                 for i in range(0,n_e):
