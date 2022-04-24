@@ -54,7 +54,7 @@ class GameWindow(Screen):
                 x_list_values.append(x_value)
 
         #we make a list of values x for plotting the potential as a continuous function 
-        potential_steps=1000 
+        potential_steps=500
         potential_dx=L/potential_steps
         x_potential_values=[x0]
         for i in range(1,potential_steps+1):
@@ -74,7 +74,7 @@ class GameWindow(Screen):
         yellow=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
 
         #we create the first grid target 
-        grid_target=[None]*10 #maximum level 10 
+        grid_target=[None]*15 #maximum level 15 
         grid_heart_recover=None
         grid_target[0]=GridLayout(rows=1,cols=1)
         grid_target[0].pos_hint={"center_x":target_position[0],"center_y":0.5}
@@ -103,6 +103,9 @@ class GameWindow(Screen):
 
         #score 
         score=0 
+        record=0 
+
+
         level=1
         start=0
         end=0
@@ -370,7 +373,7 @@ class GameWindow(Screen):
                 return V 
 
 
-        #@jit(nopython=False)
+        #@jit(nopython=False) #NOT  A DECREASE IN RUNTIME  
         def matrix(self): 
                 '''This function creates the numpy array we will work with. '''
                 #define parameters 
@@ -404,7 +407,8 @@ class GameWindow(Screen):
                                 #H_matrix[i,i-1]=-h2_me/(2*self.dx**2)
                                 #H_matrix[i,i+1]=-h2_me/(2*self.dx**2)
 
-                diagonal[self.n_steps]=h2_me/(self.dx**2)+self.potential(self.x_list_values[self.n_steps])
+                diagonal[self.n_steps]=h2_me/(self.dx**2)+self.potential(self.x_list_values[self.n_steps]) #not covered by loop
+                
                 return diagonal,off_diagonal 
 
 
@@ -417,9 +421,9 @@ class GameWindow(Screen):
                 #we sort the eigenvalues and eigenvectors 
                 #index=np.argsort(eigenval)
                 #eigenval=eigenval[index] #list of eigenvalues sorted
-                #eigenvec=eigenvec[:,index] #lis of eigenvectors sorted accordingly 
+                #eigenvec=eigenvec[:,index] #list of eigenvectors sorted accordingly 
 
-                #we compute only the eigenvalue and eigenvector we use THEORICALLY MORE FAST
+                #we compute only the eigenvalue and eigenvector we use: THEORICALLY FASTER
                 eigenval,eigenvec=scipy.linalg.eigh_tridiagonal(diag,off_diag,select='i',select_range=(self.value_n,self.value_n))
                 E=eigenval[0]
                 
@@ -439,9 +443,8 @@ class GameWindow(Screen):
                                 integral=integral+4*(wave[k]**2)/3
                 integral=integral*self.dx 
                 #now we have to normalize 
-                phi_norm=[element/math.sqrt(integral) for element in wave] #and we have to wave function normalised 
+                phi_square=[element**2/integral for element in wave] #and we have the wave function normalised and squared
 
-                phi_square=[component**2 for component in phi_norm]
 
                 return phi_square,E         
         
@@ -462,7 +465,8 @@ class GameWindow(Screen):
                 #eigenval=eigenval[index] #list of eigenvalues sorted
                 #eigenvec=eigenvec[:,index] #lis of eigenvectors sorted accordingly 
                 #E=eigenval[self.value_n]  #we assign Energy 
-                #we compute the eigenvalue we use 
+                
+                #we compute only the eigenvalue we use 
                 eigenval=scipy.linalg.eigh_tridiagonal(diag,off_diag,eigvals_only=True,select='i',select_range=(self.value_n,self.value_n))
                 E=eigenval[0]
                 
@@ -538,7 +542,6 @@ class GameWindow(Screen):
                 and computes the eigenvector. '''
                 #self.start=time.time()
                 if self.plots_left>0: #we can do a plot
-                        self.plot_potential()
                         plt.clf()
                         self.plots_left-=1  
                         self.plots_label.text=str(self.plots_left) #we have to update the plots left
@@ -791,7 +794,7 @@ class GameWindow(Screen):
 
                 if self.level==1: #we check if it needs to be smaller in level 1 
                         #we generate a new epsilon 
-                        if self.target_epsilon>3:  #if it's bigger than 0.08
+                        if self.target_epsilon>0.08:  #if it's bigger than 0.08
                                 self.target_epsilon=self.target_epsilon-0.05
                         else: #it's smaller 
                                 self.level=2 #plus one in level
@@ -939,8 +942,8 @@ class GameWindow(Screen):
 
                 #we have lost a live: we erase one heart 
                 heart_loss_anim=Animation(size_hint_y=1,size_hint_x=0.05) 
-                heart_loss_anim+=Animation(size_hint_y=1.1,size_hint_x=0.07,duration=0.3) #we make it bigger
-                heart_loss_anim+=Animation(size_hint_y=1,size_hint_x=0.05,duration=0.2)
+                heart_loss_anim+=Animation(size_hint_y=1.1,size_hint_x=0.07,duration=0.2) #we make it bigger
+                heart_loss_anim+=Animation(size_hint_y=1,size_hint_x=0.05,duration=0.1)
                 
                 
                 if self.lives_counter==5: #we have 5 lives
@@ -969,6 +972,18 @@ class GameWindow(Screen):
                          self.final_score_label.text="FINAL SCORE = "+ str(self.score)
                          self.final_score_label.color=(233/255, 179/255, 7/255, 1)
                          self.is_plot=False
+                         #we check if there's is a new record: 
+                         new_record=False
+                         if self.score>self.record: #we have outreached the previous record
+                                self.record=self.score  
+                                self.record_label_over.text=" NEW RECORD = "+ str(self.record)
+                                self.record_label_over.color=(233/255, 179/255, 7/255, 1)
+                                label_animation=Animation(font_size=40,duration=0.5)
+                                label_animation+=Animation(font_size=35,duration=0.5)
+                                label_animation.start(self.record_label_over)
+                         else: #not a new record 
+                                self.record_label_over.text="RECORD = "+ str(self.record)
+                                self.record_label_over.color=(233/255, 179/255, 7/255, 1)
 
                 elif self.lives_counter<5: #NOT ALL LIVES : it is possible to recover a live 
                         if random.randint(1,3)==2 and self.level==1: #one in three times  
@@ -1045,12 +1060,17 @@ class GameWindow(Screen):
 
         def score_update(self,*args): #UPTADES THE SCORE
                 '''Updates the score, called by new target''' 
-                self.score+=1 #we add one point 
+                self.score+=1 #we add one point
                 self.score_label.text=" SCORE = " +str(self.score)
                 label_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
                 label_animation1+=Animation(color=(0,0,0,1),duration=0.5)
                 #e_animation.bind(on_complete=
                 label_animation1.start(self.score_label)
+                if self.score>=self.record: 
+                        self.record_label.text= " MAX = " +str(self.score)
+                        label_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
+                        label_animation1+=Animation(color=(0,0,0,1),duration=0.5)
+                        label_animation1.start(self.record_label)
 
         def reboot(self): 
                 '''This function reboots the trainer so when you enter the game it's all new and fresh. 
@@ -1090,7 +1110,7 @@ class GameWindow(Screen):
                 if self.first_target==True:  self.first_grid_target.clear_widgets()
                 self.measure_layout.clear_widgets()
                 self.first_target=False 
-
+                self.is_live_recover=False
                 self.level=1
                 self.level_label.text="LEVEL = "+str(self.level)
 

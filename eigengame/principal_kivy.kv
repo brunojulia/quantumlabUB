@@ -58,9 +58,11 @@
 	bug_layout: bug_layout
 	plots_label: plots_label
 	score_label: score_label
+	record_label: record_label
 	level_label: level_label
 	loading_label: loading_label
 	final_score_label: final_score_label
+	record_label_over: record_label_over
 	first_grid_target: first_grid_target
 	button0: E0 
 	button1: E1
@@ -404,7 +406,6 @@
 			size_hint_x:0.15
 			size_hint_y:0.04 
 			pos_hint:{"x":0,"top":0.73}
-			#horizontal
 			Label: 
 				id: score_label
 				size_hint_x:1
@@ -415,7 +416,23 @@
 	            halign: "left"
 	            texture_size: self.size
 	            text_size: self.size
-	            font_size: 25
+	            font_size: 23
+
+	    BoxLayout: #CURRENT RECORD LAYOUT 
+			size_hint_x:0.15
+			size_hint_y:0.04 
+			pos_hint:{"x":0,"top":0.67}
+			Label: 
+				id: record_label
+				size_hint_x:1
+				size_hint_y: 1 
+				pos_hint: {"x":0,"y":0}
+				text: " MAX = 0"
+				color:0,0,0,1
+	            halign: "left"
+	            texture_size: self.size
+	            text_size: self.size
+	            font_size: 23
 
 	    BoxLayout: #LEVEL LABEL 
 	    	size_hint_x:0.15
@@ -431,7 +448,7 @@
 	            halign: "left"
 	            texture_size: self.size
 	            text_size: self.size
-	            font_size: 25 
+	            font_size: 23
 	    BoxLayout: #LOADING LABEL 
 	    	size_hint_x:0.15
 			size_hint_y:0.04 
@@ -446,7 +463,7 @@
 	            halign: "left"
 	            texture_size: self.size
 	            text_size: self.size
-	            font_size: 25 
+	            font_size: 23 
 
 		BoxLayout: #Hearts LAYOUT
 			size_hint_x:0.15
@@ -664,6 +681,18 @@
         	halign:"center"
 			valign:"middle" #lletra centrada
 			font_size: 35
+			bold: True
+
+		Label:
+    		id: record_label_over
+    		size_hint_x: 1
+        	size_hint_y: 0.2
+        	pos_hint:{"center_x":0.5,"center_y":0.1}
+        	halign:"center"
+			valign:"middle" #lletra centrada
+			font_size: 35
+			bold: True 
+
 
 
     	Button: #MENU BUTTON  
