@@ -1,0 +1,832 @@
+<MainWindow>
+	button_cat: button_cat 
+	button_esp: button_esp 
+	button_eng: button_eng
+	front_text: front_text 
+	game_button: game_button
+
+	FloatLayout: #creem una layout
+		size: root.width, root.height #layout occupies all image
+	    Image:#afegim una imatge
+    		source: "graphs/fondo2.jfif"
+    		allow_stretch: True
+    		keep_ratio: False
+    	
+
+		Label: #afegim text 
+			id: front_text
+			font_size:25
+			text: "Welcome to EIGENgame.\n To learn how to play press on TUTORIAL."  
+			multiline: True
+			bold: True
+			pos_hint: {"center_x":0.5,"center_y":0.9} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.6
+			size_hint_y:0.1 
+			halign:"center"
+			valign:"middle" #lletra centrada
+        Button: #afegim un botó 
+        	id: game_button
+        	font_size:19
+			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+			text: "GAME"
+			bold: True
+			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.5
+			size_hint_y: 0.15
+            halign:"center"
+			valign:"middle" #lletra centrada
+			on_release: 
+				app.root.current="game" #quan el deixem anar canviem de pantalla 
+				root.manager.transition.direction="left" #editem la transicio
+
+		Button: #afegim un botó 
+        	font_size:19
+			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+			text: "TUTORIAL"
+			bold: True
+			pos_hint: {"center_x":0.5,"center_y":0.4} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.5
+			size_hint_y:0.15
+            halign:"center"
+			valign:"middle" #lletra centrada
+            on_release: 
+				app.root.current="tutorial" #quan el deixem anar canviem de pantalla 
+				root.manager.transition.direction="left" #editem la transicio
+
+		BoxLayout: #for languages
+			size_hint_x: 0.2
+			size_hint_y:0.1
+			pos_hint:{"x":0.0,"y":0.0}
+			orientation: "horizontal"
+			#add buttons for languages
+			Button: #CATALAN 
+	            id: button_cat
+	        	font_size:14
+				color:1,1,1,1
+				text: "CAT"
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.catalan() 
+			Button: #ESP 
+	            id: button_esp
+	        	font_size:14
+				color:1,1,1,1
+				text: "ESP"
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.esp()
+			Button: #ENGLISH 
+	            id: button_eng
+	        	font_size:14
+	        	color:1,1,1,1
+                background_color: (0,0,1,0.8)
+				text: "ENG"
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.english()
+	
+
+<GameWindow>
+	float_plot: float_plot
+	measure_layout: measure_layout
+	heart1_grid: heart1_grid
+	heart2_grid: heart2_grid
+	heart3_grid: heart3_grid
+	heart4_grid: heart4_grid
+	heart5_grid: heart5_grid
+	game_over_layout: game_over_layout
+	plot_button: plot_button
+	measure_button:measure_button
+	bug_layout: bug_layout
+	plots_label: plots_label
+	score_label: score_label
+	record_label: record_label
+	level_label: level_label
+	loading_label: loading_label
+	final_score_label: final_score_label
+	record_label_over: record_label_over
+	first_grid_target: first_grid_target
+	button0: E0 
+	button1: E1
+	button2: E2 
+	button3: E3
+	button4: E4
+	button_free: bvf
+	button_harmonic: bvh
+	button_barrier: bvb
+	button_water: water
+	center_label: center_label 
+	width_label: width_label
+	right_label: right_label
+	left_label: left_label 
+
+
+	FloatLayout: #creem una layout for the game
+		size: root.width, root.height
+		GridLayout: #FOR PLOTTING 
+			id: float_plot
+			cols: 1
+			rows: 1
+			size_hint_x: 1
+			size_hint_y: 0.64
+			pos_hint:{"x":0,"y":0.16}
+			canvas.before: 
+				Color: 
+					rgba: (1,1,1,1) 
+				Rectangle: 
+					size: self.size 
+					pos: self.pos
+		BoxLayout: #for energy buttons
+			size_hint_x: 0.3/5
+			size_hint_y:0.4
+			pos_hint:{"x":0.0,"y":0.16}
+			orientation: "vertical"
+			#add buttons for Energy
+			Button: #E4 
+	            id: E4
+	        	font_size:14
+				color:1,1,1,1
+				text: "E4"
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.value_4()
+						
+			Button: #E3
+				id: E3
+	        	font_size:14
+				color:1,1,1,1 #tots els buttons seran aixi
+				text: "E3"
+				bold: True
+	        	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.value_3()
+					 		
+			Button: #E2
+				id: E2
+				font_size:14
+				color:1,1,1,1 #tots els buttons seran aixi
+				text: "E2"
+				bold: True
+				halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.value_2() 
+						
+			Button: #E1
+				id: E1
+				font_size:14
+				color:1,1,1,1 #tots els buttons seran aixi
+				text: "E1"
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.value_1() 
+					
+			Button: #E0
+				id: E0
+				font_size:14
+				color:1,1,1,1 #tots els buttons seran aixi
+				background_color: (0,0,1,0.8)
+				text: "E0"
+				bold: True
+				halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.value_0() 
+
+	           
+		FloatLayout: #For editing buttons 
+			size_hint_x: 1 
+			size_hint_y:0.2
+			pos_hint:{"x":0,"y":0.8}
+						 
+			FloatLayout: #we create a FloatLayout for potential buttons 
+				size_hint_x: 1
+				size_hint_y:1
+				pos_hint:{"x":0.0,"y":0.0}
+            	#add buttons for Potential 
+            	
+            	Button: #Freepartcile 
+            		id: bvf
+            		size_hint_x: 0.05
+					size_hint_y:1
+					pos_hint:{"x":0.0,"y":0.0}
+					color:1,1,1,1 
+					background_color: (0,0,1,0.8)
+					text: "FREE"
+					bold: True
+	            	halign:"center"
+					valign:"middle" #lletra centrada
+					on_release: 
+						root.free_particle()
+						
+	
+            	Button: #HARMONIC POTENTIAL 
+            		id: bvh
+            		size_hint_x: 0.25
+					size_hint_y:0.65
+					pos_hint:{"x":0.05,"y":0.35} 
+					#color:0.3,0.6,0.7,1 #estandard color 
+	            	halign:"center"
+					valign:"middle" #lletra centrada
+					on_release: 
+						root.harmonic_potential()
+				GridLayout: #harmonic icon
+					cols:1 
+					rows:1 
+					pos_hint:{"center_x":0.175,"center_y":0.70}
+					size_hint_y:0.42
+					size_hint_x:0.2
+					Image: #we put an image
+						source: "graphs/harmonic_icon.png"
+						allow_stretch: True
+		    			keep_ratio: True
+
+				Label: #inside button LEFT 
+					size_hint_x:0.32/4 
+					size_hint_y: 0.65/4 
+					pos_hint:{"center_x":0.05+0.25/4,"y":0.35+0.01}
+					text: "K"
+					bold: True
+					color:1,1,1,1
+	            	halign:"center"
+					valign:"middle"
+				Label: #inside button x-=
+					size_hint_x:0.32/4 
+					size_hint_y: 0.65/4 
+					pos_hint:{"center_x":7/40+0.25/4,"y":0.35+0.01}
+					text: "Xo"
+					bold: True
+					color:1,1,1,1
+	            	halign:"center"
+					valign:"middle"
+							
+				Slider: #to choose the hooke constant
+					size_hint_x: 0.25/2
+					size_hint_y:0.35
+					pos_hint:{"x":0.05,"y":0.0}
+					min: 0
+					max: 20
+					value:10
+					step: 0.05
+					orientation: "horizontal"
+					on_value: root.slider_value_k(*args) #we call a function that saves the value of the slide
+
+				Slider: #to choose x_0
+					size_hint_x: 0.25/2
+					size_hint_y:0.35
+					pos_hint:{"x":7.0/40.0,"y":0.0}
+					min: -5
+					max: 5
+					step: 0.025
+					orientation: "horizontal"
+					on_value: root.slider_x0(*args) #we call a function that saves the value of the slide
+
+
+
+			Button: #POTENTIAL BARRIER
+			    size_hint_x: 0.32
+				size_hint_y:0.65
+				pos_hint:{"x":0.3,"y":0.35}
+				id: bvb
+				color:1,1,1,1 #tots els buttons seran aixi
+				on_release: 
+					root.barrier()
+			GridLayout: #barrier icon
+				cols:1 
+				rows:1 
+				pos_hint:{"center_x":0.46,"center_y":0.75}
+				size_hint_y:0.5
+				size_hint_x:0.15
+				Image: #we put an image
+					source: "graphs/barrier_icon.png"
+					allow_stretch: True
+	    			keep_ratio: False
+
+			Label: #inside button CENTER 
+				id: center_label 
+				size_hint_x:0.32/4 
+				size_hint_y: 0.65/4 
+				pos_hint:{"center_x":0.3+0.075,"y":0.35+0.02}
+				text: "CENTER"
+				bold: True
+				color:1,1,1,1
+	            halign:"center"
+				valign:"middle"
+			Label: #inside button WIDTH
+				id: width_label
+				size_hint_x:0.32/4 
+				size_hint_y: 0.65/4 
+				pos_hint:{"center_x":0.45+0.085,"y":0.35+0.02}
+				text: "WIDTH"
+				bold: True
+				color:1,1,1,1
+	            halign:"center"
+				valign:"middle"
+			Label: #inside button VMAX
+				size_hint_x:0.32/4 
+				size_hint_y: 0.65/4 
+				pos_hint:{"x":0.3+0.32*3/4+0.01,"y":0.35+2.8*0.65/4}
+				text: "Vmax:"
+				bold: True
+				color:1,1,1,1
+	            halign:"center"
+				valign:"middle"
+					 
+			Slider: #to choose the CENTER of the barrier
+			    size_hint_x: 0.16
+				size_hint_y:0.35
+				pos_hint:{"x":0.3,"y":0}	
+				min: -5
+				max: +5
+				value:0
+				step: 0.02
+				orientation: "horizontal"
+				on_value: root.center_barrier(*args) #we call a function that saves the value of the slide
+            Slider: #to choose the WIDTH of the barrier
+			    size_hint_x: 0.16
+				size_hint_y:0.36
+				pos_hint:{"x":0.45,"y":0}	
+				min: 0
+				max: 10
+				value: 1
+				step: 0.02
+				orientation: "horizontal"
+				on_value: root.width_barrier(*args) #we call a function that saves the value of the slide
+			Slider: #to choose the vertical 
+				size_hint_x:0.03
+				size_hint_y:1
+				pos_hint:{"x":0.62,"y":0}
+				min: 0
+				max: 40
+				value:20
+				step: 0.25
+				orientation: "vertical"
+				on_value: root.V_barrier(*args) #we call a function that saves the value of the slide
+
+
+			Button: # well 
+			    size_hint_x: 0.32
+				size_hint_y:0.65
+				pos_hint:{"x":0.65,"y":0.35}
+				id: water
+				color:1,1,1,1 #tots els buttons seran aixi
+	            halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.water_well()
+			GridLayout: #well icon
+				cols:1 
+				rows:1 
+				pos_hint:{"center_x":0.81,"center_y":0.72}
+				size_hint_y:0.5
+				size_hint_x:0.2
+				Image: #we put an image
+					source: "graphs/well_icon.png"
+					allow_stretch: True
+	    			keep_ratio: False
+
+			Label: #inside button LEFT 
+				id: left_label
+				size_hint_x:0.32/4 
+				size_hint_y: 0.65/4 
+				pos_hint:{"center_x":0.65+0.075,"y":0.35+0.02}
+				text: "LEFT"
+				bold: True
+				color:1,1,1,1
+	            halign:"center"
+				valign:"middle"
+			Label: #inside button RIGHT
+				id: right_label
+				size_hint_x:0.32/4 
+				size_hint_y: 0.65/4 
+				pos_hint:{"center_x":0.81+0.085,"y":0.35+0.02}
+				text: "RIGHT"
+				bold: True
+				color:1,1,1,1
+	            halign:"center"
+				valign:"middle"
+			Label: #inside button 
+				size_hint_x:0.32/4 
+				size_hint_y: 0.65/4 
+				pos_hint:{"x":0.65+0.32*3/4+0.01,"y":0.35+2.8*0.65/4}
+				text: "Vmax:"
+				bold: True
+				color:1,1,1,1
+	            halign:"center"
+				valign:"middle"
+
+			Slider: #to choose the left of the barrier
+			    size_hint_x: 0.16
+				size_hint_y:0.35
+				pos_hint:{"x":0.65,"y":0}	
+				min: -5
+				max: 5
+				value: -0.4
+				step: 0.05
+				orientation: "horizontal"
+				on_value: root.left_water(*args) #we call a function that saves the value of the slide
+            Slider: #to choose the right of the barrier
+			    size_hint_x: 0.16
+				size_hint_y:0.35
+				pos_hint:{"x":0.81,"y":0}	
+				min: -5
+				max: 5
+				value: 0.4
+				step: 0.05
+				orientation: "horizontal"
+				on_value: root.right_water(*args) #we call a function that saves the value of the slide
+			Slider: #to choose the vertical 
+				size_hint_x:0.025
+				size_hint_y:1
+				pos_hint:{"x":0.97,"y":0}	
+				min: 0
+				max: 40
+				value: 20
+				step: 0.25
+				orientation: "vertical"
+				on_value: root.V_water(*args) #we call a function that saves the value of the slide
+
+	            
+		BoxLayout: #SCORE LAYOUT 
+			size_hint_x:0.15
+			size_hint_y:0.04 
+			pos_hint:{"x":0,"top":0.73}
+			Label: 
+				id: score_label
+				size_hint_x:1
+				size_hint_y: 1 
+				pos_hint:{"x":0,"y":0}
+				text: " SCORE = 0"
+				color:0,0,0,1
+	            halign: "left"
+	            texture_size: self.size
+	            text_size: self.size
+	            font_size: 23
+
+	    BoxLayout: #CURRENT RECORD LAYOUT 
+			size_hint_x:0.15
+			size_hint_y:0.04 
+			pos_hint:{"x":0,"top":0.67}
+			Label: 
+				id: record_label
+				size_hint_x:1
+				size_hint_y: 1 
+				pos_hint: {"x":0,"y":0}
+				text: " MAX = 0"
+				color:0,0,0,1
+	            halign: "left"
+	            texture_size: self.size
+	            text_size: self.size
+	            font_size: 23
+
+	    BoxLayout: #LEVEL LABEL 
+	    	size_hint_x:0.15
+			size_hint_y:0.04 
+			pos_hint:{"x":0.16,"top":0.79}
+			Label: 
+				id: level_label
+				size_hint_x:1
+				size_hint_y: 1 
+				pos_hint:{"x":0,"y":0}
+				text: " LEVEL = 1"
+				color:0,0,0,1
+	            halign: "left"
+	            texture_size: self.size
+	            text_size: self.size
+	            font_size: 23
+	    BoxLayout: #LOADING LABEL 
+	    	size_hint_x:0.15
+			size_hint_y:0.04 
+			pos_hint:{"x":0.32,"top":0.79}
+			Label: 
+				id: loading_label
+				size_hint_x:1
+				size_hint_y: 1
+				pos_hint:{"x":0,"y":0}
+				text: "Loading..."
+				color:0,0,0,0
+	            halign: "left"
+	            texture_size: self.size
+	            text_size: self.size
+	            font_size: 23 
+
+		BoxLayout: #Hearts LAYOUT
+			size_hint_x:0.15
+			size_hint_y:0.04 
+			pos_hint:{"x":0,"top":0.79}
+			#horizontal
+
+			GridLayout: #HEART1
+				id: heart1_grid
+				cols:1 
+				rows:1 
+				size_hint_y:1 
+				size_hint_x:0.05  
+				Image: #we put an image
+					source: "graphs/heart_icon.png"
+					allow_stretch: True
+    				keep_ratio: True
+    		GridLayout: #HEART2
+				id: heart2_grid
+				cols:1 
+				rows:1 
+				size_hint_y:1 
+				size_hint_x:0.05  
+				Image: #we put an image
+					source: "graphs/heart_icon.png"
+					allow_stretch: True
+    				keep_ratio: True
+    		GridLayout: #HEART3
+				id: heart3_grid
+				cols:1 
+				rows:1 
+				size_hint_y:1 
+				size_hint_x:0.05  
+				Image: #we put an image
+					source: "graphs/heart_icon.png"
+					allow_stretch: True
+    				keep_ratio: True
+    		GridLayout: #HEART4
+				id: heart4_grid
+				cols:1 
+				rows:1 
+				size_hint_y:1 
+				size_hint_x:0.05  
+				Image: #we put an image
+					source: "graphs/heart_icon.png"
+					allow_stretch: True
+    				keep_ratio: True
+    		GridLayout: #HEART5
+				id: heart5_grid
+				cols:1 
+				rows:1 
+				size_hint_y:1 
+				size_hint_x:0.05  
+				Image: #we put an image
+					source: "graphs/heart_icon.png"
+					allow_stretch: True
+    				keep_ratio: True
+
+
+        FloatLayout: #FOR THE MEASURMENT OF THE PARTICLE  
+			size_hint_x: 0.925
+			size_hint_y: 0.16
+			pos_hint:{"x":0,"y":0}
+			canvas.before: 
+				Color: 
+					rgba: (0,0,0,1) #black canvas as a background 
+				Rectangle: 
+					size: self.size 
+					pos: self.pos
+			#FloatLayout: #redlines left 
+				#size_hint_x: 0.17
+				#size_hint_y: 1
+				#pos_hint:{"x":0,"y":0}
+				#Image: #we put an image
+					#source: "graphs/redlines.png"
+					#allow_stretch: True
+    				#keep_ratio: False
+    		BoxLayout: #redlines right 
+				size_hint_x: 0.065
+				size_hint_y: 1
+				pos_hint:{"right":1,"y":0}
+				Image: #we put an image
+					source: "graphs/redlines_1.png"
+					allow_stretch: True
+    				keep_ratio: False
+    		FloatLayout: #noforbidden for the target 
+				size_hint_x: 0.765
+				size_hint_y: 1
+				pos_hint:{"x":0.17,"y":0}
+								
+    		
+    		FloatLayout: #nonforbiden zone for electron and ray 
+    			id: measure_layout
+				size_hint_x: 0.765
+				size_hint_y: 1
+				pos_hint:{"x":0.17,"y":0}
+
+				GridLayout: #FOR THE TARGET
+					id: first_grid_target
+					cols:1 
+					rows:1 
+					size_hint_y:1 
+					size_hint_x:0.4 #epsilon=0.05
+					pos_hint:{"center_x": root.target_position[0],"center_y":0.5} #gets generated in the code
+					Image: #we put an image
+						source: "graphs/yellow_target.png"
+						allow_stretch: True
+    					keep_ratio: False
+
+
+
+		Button: #PLOT WAVE FUNCTION BUTTON 
+			id: plot_button
+			size_hint_x: 0.075
+        	size_hint_y: 0.08
+        	pos_hint:{"right":1,"top":0.8}
+        	background_normal: ''
+        	background_color: 23/255, 190/255, 255/255, 1
+        	
+            halign:"center"
+			valign:"middle" #
+			on_release:
+				root.loading_anim() 
+				#root.plot_wave_function() #we plot 
+
+			Image: #we put an image inside the button 
+				source: "graphs/wave_icon.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width, self.parent.height  
+		Label: 
+			id: plots_label
+			size_hint_x:0.075/3
+			size_hint_y: 0.08/3
+			pos_hint:{"right":1.005,"top":0.8}
+			text: "3"
+			color:0,0,0,1
+	        halign: "left"
+	        font_size: 24 
+
+	    Button: #RUBBER BUTTON 
+	    	size_hint_x: 0.075
+        	size_hint_y: 0.08
+        	pos_hint:{"right":1,"top":0.8-0.08}
+        	halign:"center"
+			valign:"middle" #
+			on_release:
+				root.free_particle() 
+			Image: #we put an image inside the button 
+				source: "graphs/rubber_icon.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width-10, self.parent.height-10 
+
+
+		Button: #MEASURE BUTTON
+			id: measure_button
+			size_hint_x: 0.075
+        	size_hint_y: 0.08
+        	pos_hint:{"right":1,"y":0.08}
+        	background_normal: ''
+        	background_color: 23/255, 190/255, 255/255, 1
+            halign:"center"
+			valign:"middle" #
+			on_release: 
+				root.appear_e() #we measure and print position of the electron 
+			Image: #we put an image inside the button 
+				source: "graphs/measure.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width, self.parent.height
+
+		Button: #MENU BUTTON  
+        	size_hint_x: 0.075
+        	size_hint_y: 0.08
+        	pos_hint:{"right":1,"y":0.0}
+			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+            halign:"center"
+			valign:"middle" #lletra centrada
+            on_release: 
+            	root.reboot()
+				app.root.current="menu" #quan el deixem anar canviem de pantalla 
+				root.manager.transition.direction="right" #editem la transicio
+		GridLayout: #menu icon
+			cols:1 
+			rows:1 
+			pos_hint:{"right":1,"y":0.0}
+			size_hint_y:0.075
+			size_hint_x:0.08 
+			Image: #we put an image
+				source: "graphs/house.png"
+				allow_stretch: True
+    			keep_ratio: True
+
+	FloatLayout: #GAME OVER 
+		id: game_over_layout
+		size_hint_x:0  
+		size_hint_y:0 #initially no size so we don't see it 
+		canvas.before: 
+			Color: 
+				rgba: (1,1,1,1) 
+			Rectangle: 
+				size: self.size 
+				pos: self.pos
+		Image:#afegim una imatge
+    		source: "graphs/game_over.png"
+    		allow_stretch: True
+    		keep_ratio: True 
+
+    	Label:
+    		id: final_score_label
+    		size_hint_x: 1
+        	size_hint_y: 0.2
+        	pos_hint:{"center_x":0.5,"center_y":0.9}
+        	halign:"center"
+			valign:"middle" #lletra centrada
+			font_size: 35
+			bold: True
+
+		Label:
+    		id: record_label_over
+    		size_hint_x: 1
+        	size_hint_y: 0.2
+        	pos_hint:{"center_x":0.5,"center_y":0.1}
+        	halign:"center"
+			valign:"middle" #lletra centrada
+			font_size: 35
+			bold: True 
+
+
+
+    	Button: #MENU BUTTON  
+        	size_hint_x: 0.075
+        	size_hint_y: 0.08
+        	pos_hint:{"right":1,"y":0.0}
+			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+            halign:"center"
+			valign:"middle" #lletra centrada
+            on_release: 
+            	root.reboot()
+				app.root.current="menu" #quan el deixem anar canviem de pantalla 
+				root.manager.transition.direction="right" #editem la transicio
+		GridLayout: #menu icon
+			cols:1 
+			rows:1 
+			pos_hint:{"right":1,"y":0.0}
+			size_hint_y:0.075
+			size_hint_x:0.08 
+			Image: #we put an image
+				source: "graphs/house.png"
+				allow_stretch: True
+    			keep_ratio: True
+
+		Button: #MENU PLAY AGAIN  
+        	size_hint_x: 0.075
+        	size_hint_y: 0.08
+        	pos_hint:{"right":1,"y":0.08}
+			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+            halign:"center"
+			valign:"middle" #lletra centrada
+            on_release: 
+            	root.reboot()
+            Image: #we put an image inside the button 
+				source: "graphs/playagain.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width, self.parent.height
+
+	FloatLayout: #square bug  
+		id: bug_layout
+		size_hint_x: 0.15725  
+		size_hint_y: 0.16 #initially no size so we don't see it 
+		pos_hint:{"x":0, "y":0}
+		canvas.before: 
+			Color: 
+				rgba: (0,0,0,1) 
+			Rectangle: 
+				size: self.size 
+				pos: self.pos
+		Image: #we put an image
+			source: "graphs/redlines.png"
+			allow_stretch: True
+    		keep_ratio: False
+	
+			
+<TutorialWindow>
+	FloatLayout: #creem una layout
+		Label: #afegim text per saber on som 
+			font_size:25
+			text: "Tutorial"
+			bold: True 
+			multiline: True
+			pos_hint: {"center_x":0.5,"center_y":0.5} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.6
+			size_hint_y: 0.1 
+			halign:"center"
+			valign:"middle" #lletra centrada
+		Button: #afegim un botó per tornar al menu 
+        	font_size:14
+			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+			text: "Menu"
+			bold: True
+			pos_hint: {"right":1,"y":0} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.08
+			size_hint_y: 0.08
+            halign:"center"
+			valign:"middle" #lletra centrada
+            on_release: 
+				app.root.current="menu" #quan el deixem anar canviem de pantalla 
+				root.manager.transition.direction="right" #editem la transicio
