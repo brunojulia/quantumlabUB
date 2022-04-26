@@ -1,4 +1,10 @@
 <MainWindow>
+	button_cat: button_cat 
+	button_esp: button_esp 
+	button_eng: button_eng
+	front_text: front_text 
+	game_button: game_button
+
 	FloatLayout: #creem una layout
 		size: root.width, root.height #layout occupies all image
 	    Image:#afegim una imatge
@@ -8,15 +14,18 @@
     	
 
 		Label: #afegim text 
-			font_size:20
-			text: "Welcome to EIGENgame.\n To learn how to play press TUTORIAL."  
+			id: front_text
+			font_size:25
+			text: "Welcome to EIGENgame.\n To learn how to play press on TUTORIAL."  
 			multiline: True
+			bold: True
 			pos_hint: {"center_x":0.5,"center_y":0.9} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.6
 			size_hint_y:0.1 
 			halign:"center"
 			valign:"middle" #lletra centrada
         Button: #afegim un botó 
+        	id: game_button
         	font_size:19
 			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
 			text: "GAME"
@@ -29,6 +38,7 @@
 			on_release: 
 				app.root.current="game" #quan el deixem anar canviem de pantalla 
 				root.manager.transition.direction="left" #editem la transicio
+
 		Button: #afegim un botó 
         	font_size:19
 			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
@@ -42,6 +52,44 @@
             on_release: 
 				app.root.current="tutorial" #quan el deixem anar canviem de pantalla 
 				root.manager.transition.direction="left" #editem la transicio
+
+		BoxLayout: #for languages
+			size_hint_x: 0.2
+			size_hint_y:0.1
+			pos_hint:{"x":0.0,"y":0.0}
+			orientation: "horizontal"
+			#add buttons for languages
+			Button: #CATALAN 
+	            id: button_cat
+	        	font_size:14
+				color:1,1,1,1
+				text: "CAT"
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.catalan() 
+			Button: #ESP 
+	            id: button_esp
+	        	font_size:14
+				color:1,1,1,1
+				text: "ESP"
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.esp()
+			Button: #ENGLISH 
+	            id: button_eng
+	        	font_size:14
+	        	color:1,1,1,1
+                background_color: (0,0,1,0.8)
+				text: "ENG"
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.english()
 	
 
 <GameWindow>
@@ -73,6 +121,10 @@
 	button_harmonic: bvh
 	button_barrier: bvb
 	button_water: water
+	center_label: center_label 
+	width_label: width_label
+	right_label: right_label
+	left_label: left_label 
 
 
 	FloatLayout: #creem una layout for the game
@@ -262,6 +314,7 @@
 	    			keep_ratio: False
 
 			Label: #inside button CENTER 
+				id: center_label 
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.3+0.075,"y":0.35+0.02}
@@ -271,6 +324,7 @@
 	            halign:"center"
 				valign:"middle"
 			Label: #inside button WIDTH
+				id: width_label
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.45+0.085,"y":0.35+0.02}
@@ -343,6 +397,7 @@
 	    			keep_ratio: False
 
 			Label: #inside button LEFT 
+				id: left_label
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.65+0.075,"y":0.35+0.02}
@@ -352,6 +407,7 @@
 	            halign:"center"
 				valign:"middle"
 			Label: #inside button RIGHT
+				id: right_label
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.81+0.085,"y":0.35+0.02}

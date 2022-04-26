@@ -26,7 +26,41 @@ import time
 
 #classes that work with screenmanager 
 class MainWindow(Screen):
-        pass 
+        lang= "ENG" #by default
+        def catalan(self): 
+                '''Sets language to catalan''' 
+                self.lang="CAT" 
+                self.button_cat.background_color=(0,0,1,0.8)
+                self.button_esp.background_color=(1,1,1,1)
+                self.button_eng.background_color=(1,1,1,1)
+                self.front_text.text="Benvingut a EIGENgame.\n Per aprendre a jugar premi TUTORIAL."
+                self.game_button.text="JOC"
+                
+
+        def esp(self): 
+                '''Sets language to spanish''' 
+                self.lang="ESP"
+                self.button_cat.background_color=(1,1,1,1)
+                self.button_esp.background_color=(0,0,1,0.8)
+                self.button_eng.background_color=(1,1,1,1)
+                self.front_text.text="Bienvenido a EIGENgame.\n Para aprender a jugar pulse TUTORIAL."
+                self.game_button.text="JUEGO"
+                
+        def english(self): 
+                '''Sets language to english''' 
+                self.lang="ENG"
+                self.button_cat.background_color=(1,1,1,1)
+                self.button_esp.background_color=(1,1,1,1)
+                self.button_eng.background_color=(0,0,1,0.8)
+                self.front_text.text="Welcome to EIGENgame.\n To learn how to play press on TUTORIAL."
+                self.game_button.text="GAME"
+          
+
+
+
+
+
+
      
 class GameWindow(Screen):
         float_plot=ObjectProperty(None)
@@ -109,6 +143,7 @@ class GameWindow(Screen):
         level=1
         start=0
         end=0
+        menu=MainWindow()
         #Choosing energies 
         def value_0(self): 
                 ''' Changes values o value_n when the button is pressed'''
@@ -1137,6 +1172,26 @@ class GameWindow(Screen):
                 #we overpaint again the bug layout 
                 self.bug_layout.size_hint_x= 0.15725
                 self.bug_layout.size_hint_y=0.16
+
+        #def game_cat(self): 
+                '''Sets language to catalan''' 
+                #self.game_lang="CAT"
+                #self.button_free.text="LLIURE" 
+                #self.center_label.text="CENTRE"
+                #self.width_label.text="AMPLADA"
+                #self.left_label.text="ESQUERRA"
+                #self.right_label.text="DRETA"
+                #print(self.game_lang)
+        
+
+                
+
+                
+
+
+
+                
+
 
                      
 class TutorialWindow(Screen):
