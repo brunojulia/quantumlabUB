@@ -91,9 +91,10 @@
             on_release: 
 				root.tutorial_transition()
 
+		
 		BoxLayout: #for languages
-			size_hint_x: 0.2
-			size_hint_y:0.1
+			size_hint_x: 0.15
+			size_hint_y:0.07
 			pos_hint:{"x":0.0,"y":0.0}
 			orientation: "horizontal"
 			#add buttons for languages
@@ -101,33 +102,55 @@
 	            id: button_cat
 	        	font_size:14
 				color:1,1,1,1
-				text: "CAT"
 				bold: True
             	halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.catalan() 
+
 			Button: #ESP 
 	            id: button_esp
 	        	font_size:14
 				color:1,1,1,1
-				text: "ESP"
 				bold: True
             	halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.esp()
+				  
 			Button: #ENGLISH 
 	            id: button_eng
 	        	font_size:14
 	        	color:1,1,1,1
                 background_color: (0,0,1,0.8)
-				text: "ENG"
 				bold: True
             	halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.english()
+				
+
+		BoxLayout: #for flags
+			size_hint_x: 0.15
+			size_hint_y:0.05
+			pos_hint:{"x":0.0,"center_y":0.035}
+			orientation: "horizontal"
+			Image: #we put an image inside the button 
+				source: "graphs/cat_flag.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button					
+
+			Image: #we put an image inside the button 
+				source: "graphs/esp_flag.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width, self.parent.height  
+				
+			Image: #we put an image inside the button 
+				source: "graphs/eng_flag.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width, self.parent.height 
 
 
 	FloatLayout: #GAME_LAYOUT

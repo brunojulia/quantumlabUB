@@ -154,8 +154,17 @@ class GameWindow(Screen):
                 self.button_cat.background_color=(0,0,1,0.8)
                 self.button_esp.background_color=(1,1,1,1)
                 self.button_eng.background_color=(1,1,1,1)
+                #MENU
                 self.front_text.text="Benvingut a EIGENgame.\n Per aprendre a jugar premi TUTORIAL."
                 self.game_button.text="JOC"
+                #GAME 
+                self.center_label.text="CENTRE"
+                self.width_label.text="AMPLADA"
+                self.right_label.text="DRETA"
+                self.left_label.text="ESQUERRA"
+                self.score_label.text=" PUNTS = 0"
+                self.level_label.text="NIVELL = 1"
+
                 
 
         def esp(self): 
@@ -164,8 +173,16 @@ class GameWindow(Screen):
                 self.button_cat.background_color=(1,1,1,1)
                 self.button_esp.background_color=(0,0,1,0.8)
                 self.button_eng.background_color=(1,1,1,1)
+                #MENU
                 self.front_text.text="Bienvenido a EIGENgame.\n Para aprender a jugar pulse TUTORIAL."
                 self.game_button.text="JUEGO"
+                #GAME 
+                self.center_label.text="CENTRO"
+                self.width_label.text="ANCHO"
+                self.right_label.text="DERECHA"
+                self.left_label.text="IZQUIERDA"
+                self.score_label.text="PUNTOS = 0"
+                self.level_label.text="NIVEL = 1"
                 
         def english(self): 
                 '''Sets language to english''' 
@@ -173,8 +190,18 @@ class GameWindow(Screen):
                 self.button_cat.background_color=(1,1,1,1)
                 self.button_esp.background_color=(1,1,1,1)
                 self.button_eng.background_color=(0,0,1,0.8)
+                #MENU
                 self.front_text.text="Welcome to EIGENgame.\n To learn how to play press on TUTORIAL."
                 self.game_button.text="GAME"
+                #GAME 
+                self.center_label.text="CENTER"
+                self.width_label.text="WIDTH"
+                self.right_label.text="RIGHT"
+                self.left_label.text="LEFT"
+                self.score_label.text=" SCORE = 0"
+                self.level_label.text="LEVEL = 1"
+
+
 
         def game_transition(self): 
                 '''Goes to the game'''
@@ -240,7 +267,7 @@ class GameWindow(Screen):
 
                 self.tutorial_layout.size_hint_x=0 
                 self.tutorial_layout.size_hint_y=0
-                self.tutorial_layout.pos_hint={"x":0,"y":0} 
+                self.tutorial_layout.pos_hint={"x":-1,"y":-1} 
 
         def game_over_transition(self):
                 '''Goes to game_over'''
@@ -957,14 +984,19 @@ class GameWindow(Screen):
                                 level_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
                                 level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
                                 level_animation1.start(self.level_label) 
-                                self.level_label.text="LEVEL = "+str(self.level) 
+
+                                if self.lang=="ENG": self.level_label.text="LEVEL = "+str(self.level)
+                                elif self.lang=="ESP": self.level_label.text="NIVEL = "+str(self.level)
+                                else: self.level_label.text="NIVELL = "+str(self.level) 
                                 self.target_epsilon=0.1 #resize, note that now is smaller than at the beggining of level 1 
                 else: #we increase level inmidiatelly 
                         self.level+=1 
                         level_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
                         level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
                         level_animation1.start(self.level_label) 
-                        self.level_label.text="LEVEL = "+str(self.level)
+                        if self.lang=="ENG": self.level_label.text="LEVEL = "+str(self.level)
+                        elif self.lang=="ESP": self.level_label.text="NIVEL = "+str(self.level)
+                        else: self.level_label.text="NIVELL = "+str(self.level) 
                         if self.level<=3: 
                                 self.target_epsilon=0.1
                         elif self.level==4: 
@@ -1121,20 +1153,28 @@ class GameWindow(Screen):
                 self.lives_counter-=1  
                 if self.lives_counter==0: #if we are out of lives we show the Game Over image
                          self.game_over_transition()
-                         self.final_score_label.text="FINAL SCORE = "+ str(self.score)
+                         if self.lang=="ENG": self.final_score_label.text="FINAL SCORE = "+ str(self.score)
+                         elif self.lang=="ESP": self.final_score_label.text="PUNTUACIÓN FINAL = "+ str(self.score)
+                         else: self.final_score_label.text="PUNTUACIÓ FINAL = "+ str(self.score)
                          self.final_score_label.color=(233/255, 179/255, 7/255, 1)
                          self.is_plot=False
                          #we check if there's is a new record: 
                          new_record=False
                          if self.score>self.record: #we have outreached the previous record
-                                self.record=self.score  
-                                self.record_label_over.text=" NEW RECORD = "+ str(self.record)
+                                self.record=self.score 
+
+                                if self.lang=="ENG": self.record_label_over.text=" NEW RECORD = "+ str(self.record)
+                                elif self.lang=="ESP": self.record_label_over.text=" NUEVO RÉCORD = "+ str(self.record)
+                                else: self.record_label_over.text=" NOU RÈCORD = "+ str(self.record) 
+
                                 self.record_label_over.color=(233/255, 179/255, 7/255, 1)
                                 label_animation=Animation(font_size=40,duration=0.5)
                                 label_animation+=Animation(font_size=35,duration=0.5)
                                 label_animation.start(self.record_label_over)
                          else: #not a new record 
-                                self.record_label_over.text="RECORD = "+ str(self.record)
+                                if self.lang=="ENG": self.record_label_over.text=" RECORD = "+ str(self.record)
+                                elif self.lang=="ESP": self.record_label_over.text=" RÉCORD = "+ str(self.record)
+                                else: self.record_label_over.text=" RÈCORD = "+ str(self.record)   
                                 self.record_label_over.color=(233/255, 179/255, 7/255, 1)
 
                 elif self.lives_counter<5: #NOT ALL LIVES : it is possible to recover a live 
@@ -1212,8 +1252,10 @@ class GameWindow(Screen):
 
         def score_update(self,*args): #UPTADES THE SCORE
                 '''Updates the score, called by new target''' 
-                self.score+=1 #we add one point
-                self.score_label.text=" SCORE = " +str(self.score)
+                self.score+=1 #we add one point 
+                if self.lang=="ENG": self.score_label.text=" SCORE = " +str(self.score)
+                elif self.lang=="ESP": self.score_label.text="PUNTOS = " +str(self.score)
+                else: self.score_label.text=" PUNTS = " +str(self.score) 
                 label_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
                 label_animation1+=Animation(color=(0,0,0,1),duration=0.5)
                 #e_animation.bind(on_complete=
@@ -1254,7 +1296,10 @@ class GameWindow(Screen):
 
                 #score 
                 self.score=0 #we put the score to zero 
-                self.score_label.text=" SCORE = " +str(self.score)
+                if self.lang=="ENG": self.score_label.text=" SCORE = " +str(self.score)
+                elif self.lang=="ESP": self.score_label.text="PUNTOS = " +str(self.score)
+                else: self.score_label.text=" PUNTS = " +str(self.score)
+
 
                 for j in range(0,self.level): 
                         self.grid_target[j].clear_widgets() #erase previous targets
@@ -1264,7 +1309,9 @@ class GameWindow(Screen):
                 self.first_target=False 
                 self.is_live_recover=False
                 self.level=1
-                self.level_label.text="LEVEL = "+str(self.level)
+                if self.lang=="ENG": self.level_label.text="LEVEL = "+str(self.level)
+                elif self.lang=="ESP": self.level_label.text="NIVEL = "+str(self.level)
+                else: self.level_label.text="NIVELL = "+str(self.level) 
 
                
                  
