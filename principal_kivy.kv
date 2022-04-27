@@ -1,18 +1,58 @@
-<MainWindow>
+<GameWindow>
+	menu_layout: menu_layout
 	button_cat: button_cat 
 	button_esp: button_esp 
 	button_eng: button_eng
 	front_text: front_text 
 	game_button: game_button
 
-	FloatLayout: #creem una layout
-		size: root.width, root.height #layout occupies all image
+	game_layout: game_layout
+	float_plot: float_plot
+	measure_layout: measure_layout
+	heart1_grid: heart1_grid
+	heart2_grid: heart2_grid
+	heart3_grid: heart3_grid
+	heart4_grid: heart4_grid
+	heart5_grid: heart5_grid
+	game_over_layout: game_over_layout
+	plot_button: plot_button
+	measure_button:measure_button
+	plots_label: plots_label
+	score_label: score_label
+	record_label: record_label
+	level_label: level_label
+	loading_label: loading_label
+	final_score_label: final_score_label
+	record_label_over: record_label_over
+	first_grid_target: first_grid_target
+	button0: E0 
+	button1: E1
+	button2: E2 
+	button3: E3
+	button4: E4
+	button_free: bvf
+	button_harmonic: bvh
+	button_barrier: bvb
+	button_water: water
+	center_label: center_label 
+	width_label: width_label
+	right_label: right_label
+	left_label: left_label 
+
+	bug_layout: bug_layout
+
+	tutorial_layout: tutorial_layout
+
+	FloatLayout: #MENU LAYOUT
+		id: menu_layout
+		#size: root.width, root.height #layout occupies all image
+		size_hint_x:1 
+		size_hint_y:1
 	    Image:#afegim una imatge
     		source: "graphs/fondo2.jfif"
     		allow_stretch: True
     		keep_ratio: False
     	
-
 		Label: #afegim text 
 			id: front_text
 			font_size:25
@@ -36,8 +76,7 @@
             halign:"center"
 			valign:"middle" #lletra centrada
 			on_release: 
-				app.root.current="game" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="left" #editem la transicio
+				root.game_transition()
 
 		Button: #afegim un botó 
         	font_size:19
@@ -50,8 +89,7 @@
             halign:"center"
 			valign:"middle" #lletra centrada
             on_release: 
-				app.root.current="tutorial" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="left" #editem la transicio
+				root.tutorial_transition()
 
 		BoxLayout: #for languages
 			size_hint_x: 0.2
@@ -90,45 +128,13 @@
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.english()
-	
-
-<GameWindow>
-	float_plot: float_plot
-	measure_layout: measure_layout
-	heart1_grid: heart1_grid
-	heart2_grid: heart2_grid
-	heart3_grid: heart3_grid
-	heart4_grid: heart4_grid
-	heart5_grid: heart5_grid
-	game_over_layout: game_over_layout
-	plot_button: plot_button
-	measure_button:measure_button
-	bug_layout: bug_layout
-	plots_label: plots_label
-	score_label: score_label
-	record_label: record_label
-	level_label: level_label
-	loading_label: loading_label
-	final_score_label: final_score_label
-	record_label_over: record_label_over
-	first_grid_target: first_grid_target
-	button0: E0 
-	button1: E1
-	button2: E2 
-	button3: E3
-	button4: E4
-	button_free: bvf
-	button_harmonic: bvh
-	button_barrier: bvb
-	button_water: water
-	center_label: center_label 
-	width_label: width_label
-	right_label: right_label
-	left_label: left_label 
 
 
-	FloatLayout: #creem una layout for the game
-		size: root.width, root.height
+	FloatLayout: #GAME_LAYOUT
+		id: game_layout
+		size_hint_x:0  
+		size_hint_y:0 #initially no size so we don't see it 
+		pos_hint:{"x":-1,"y":-1}
 		GridLayout: #FOR PLOTTING 
 			id: float_plot
 			cols: 1
@@ -701,8 +707,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
             	root.reboot()
-				app.root.current="menu" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="right" #editem la transicio
+				root.menu_transition()
 		GridLayout: #menu icon
 			cols:1 
 			rows:1 
@@ -717,7 +722,8 @@
 	FloatLayout: #GAME OVER 
 		id: game_over_layout
 		size_hint_x:0  
-		size_hint_y:0 #initially no size so we don't see it 
+		size_hint_y:0 #initially no size so we don't see it
+		pos_hint:{"x":-1,"y":-1} 
 		canvas.before: 
 			Color: 
 				rgba: (1,1,1,1) 
@@ -760,8 +766,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
             	root.reboot()
-				app.root.current="menu" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="right" #editem la transicio
+				root.menu_transition()
 		GridLayout: #menu icon
 			cols:1 
 			rows:1 
@@ -782,6 +787,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
             	root.reboot()
+            	root.game_transition()
             Image: #we put an image inside the button 
 				source: "graphs/playagain.png"
 				center_x:self.parent.center_x
@@ -790,9 +796,9 @@
 
 	FloatLayout: #square bug  
 		id: bug_layout
-		size_hint_x: 0.15725  
-		size_hint_y: 0.16 #initially no size so we don't see it 
-		pos_hint:{"x":0, "y":0}
+		size_hint_x: 0 #0.15725  
+		size_hint_y: 0 #0.16  
+		pos_hint:{"x":-1,"y":-1}
 		canvas.before: 
 			Color: 
 				rgba: (0,0,0,1) 
@@ -804,9 +810,12 @@
 			allow_stretch: True
     		keep_ratio: False
 	
-			
-<TutorialWindow>
-	FloatLayout: #creem una layout
+
+	FloatLayout: #TUTOTIAL LAYOUT 
+		size_hint_x:0 
+		size_hint_y:0
+		pos_hint:{"x":-1,"y":-1} 
+		id:tutorial_layout
 		Label: #afegim text per saber on som 
 			font_size:25
 			text: "Tutorial"
@@ -828,5 +837,4 @@
             halign:"center"
 			valign:"middle" #lletra centrada
             on_release: 
-				app.root.current="menu" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="right" #editem la transicio
+				root.menu_transition()

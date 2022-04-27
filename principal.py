@@ -143,7 +143,128 @@ class GameWindow(Screen):
         level=1
         start=0
         end=0
-        menu=MainWindow()
+        lang= "ENG" #by default
+
+        #MENU FUNCTIONALITY 
+        
+        #SELECTING LANGUAGE 
+        def catalan(self): 
+                '''Sets language to catalan''' 
+                self.lang="CAT" 
+                self.button_cat.background_color=(0,0,1,0.8)
+                self.button_esp.background_color=(1,1,1,1)
+                self.button_eng.background_color=(1,1,1,1)
+                self.front_text.text="Benvingut a EIGENgame.\n Per aprendre a jugar premi TUTORIAL."
+                self.game_button.text="JOC"
+                
+
+        def esp(self): 
+                '''Sets language to spanish''' 
+                self.lang="ESP"
+                self.button_cat.background_color=(1,1,1,1)
+                self.button_esp.background_color=(0,0,1,0.8)
+                self.button_eng.background_color=(1,1,1,1)
+                self.front_text.text="Bienvenido a EIGENgame.\n Para aprender a jugar pulse TUTORIAL."
+                self.game_button.text="JUEGO"
+                
+        def english(self): 
+                '''Sets language to english''' 
+                self.lang="ENG"
+                self.button_cat.background_color=(1,1,1,1)
+                self.button_esp.background_color=(1,1,1,1)
+                self.button_eng.background_color=(0,0,1,0.8)
+                self.front_text.text="Welcome to EIGENgame.\n To learn how to play press on TUTORIAL."
+                self.game_button.text="GAME"
+
+        def game_transition(self): 
+                '''Goes to the game'''
+                self.game_over_layout.size_hint_x=0 
+                self.game_over_layout.size_hint_y=0
+                self.game_over_layout.pos_hint={"x":-1,"y":-1}
+
+                self.menu_layout.size_hint_y=0
+                self.menu_layout.size_hint_x=0
+                self.menu_layout.pos_hint={"x":-1,"y":-1}
+
+                self.bug_layout.size_hint_x=0.15725  
+                self.bug_layout.size_hint_y=0.16
+                self.bug_layout.pos_hint={"x":0,"y":0}
+
+                self.game_layout.size_hint_x=1 
+                self.game_layout.size_hint_y=1 
+                self.game_layout.pos_hint={"x":0,"y":0}
+
+                self.tutorial_layout.size_hint_x=0 
+                self.tutorial_layout.size_hint_y=0 
+                self.tutorial_layout.pos_hint={"x":-1,"y":-1}
+
+        def tutorial_transition(self): 
+                '''Goes to the tutorial'''
+                self.game_over_layout.size_hint_x=0 
+                self.game_over_layout.size_hint_y=0
+                self.game_over_layout.pos_hint={"x":-1,"y":-1}
+
+                self.menu_layout.size_hint_y=0
+                self.menu_layout.size_hint_x=0
+                self.menu_layout.pos_hint={"x":-1,"y":-1}
+
+                self.bug_layout.size_hint_x=0  
+                self.bug_layout.size_hint_y=0
+                self.bug_layout.pos_hint={"x":-1,"y":-1}
+
+                self.game_layout.size_hint_x=0 
+                self.game_layout.size_hint_y=0 
+                self.game_layout.pos_hint={"x":-1,"y":-1}
+
+                self.tutorial_layout.size_hint_x=1 
+                self.tutorial_layout.size_hint_y=1  
+                self.tutorial_layout.pos_hint={"x":0,"y":0}
+
+        def menu_transition(self):
+                '''Goes to the tutorial'''
+                self.game_over_layout.size_hint_x=0 
+                self.game_over_layout.size_hint_y=0
+                self.game_over_layout.pos_hint={"x":-1,"y":-1}
+
+                self.menu_layout.size_hint_y=1
+                self.menu_layout.size_hint_x=1
+                self.menu_layout.pos_hint={"x":0,"y":0}
+
+                self.bug_layout.size_hint_x=0  
+                self.bug_layout.size_hint_y=0
+                self.bug_layout.pos_hint={"x":-1,"y":-1}
+
+                self.game_layout.size_hint_x=0 
+                self.game_layout.size_hint_y=0 
+                self.game_layout.pos_hint={"x":-1,"y":-1}
+
+                self.tutorial_layout.size_hint_x=0 
+                self.tutorial_layout.size_hint_y=0
+                self.tutorial_layout.pos_hint={"x":0,"y":0} 
+
+        def game_over_transition(self):
+                '''Goes to game_over'''
+                self.game_over_layout.size_hint_x=1
+                self.game_over_layout.size_hint_y=1
+                self.game_over_layout.pos_hint={"x":0,"y":0}
+
+                self.menu_layout.size_hint_y=0
+                self.menu_layout.size_hint_x=0
+                self.menu_layout.pos_hint={"x":-1,"y":-1}
+
+                self.bug_layout.size_hint_x=0  
+                self.bug_layout.size_hint_y=0
+                self.bug_layout.pos_hint={"x":-1,"y":-1}
+
+                self.game_layout.size_hint_x=0 
+                self.game_layout.size_hint_y=0 
+                self.game_layout.pos_hint={"x":-1,"y":-1}
+
+                self.tutorial_layout.size_hint_x=0 
+                self.tutorial_layout.size_hint_y=0
+                self.tutorial_layout.pos_hint={"x":0,"y":0}  
+
+
         #Choosing energies 
         def value_0(self): 
                 ''' Changes values o value_n when the button is pressed'''
@@ -304,7 +425,6 @@ class GameWindow(Screen):
                         self.plot_potential()
                 else: 
                         self.button_plot_anim() #we animate the plot button and label
-
 
 
         def left_water(self,*args): 
@@ -1000,10 +1120,7 @@ class GameWindow(Screen):
                 #after erasing the heart we update the counter
                 self.lives_counter-=1  
                 if self.lives_counter==0: #if we are out of lives we show the Game Over image
-                         self.bug_layout.size_hint_x=0
-                         self.bug_layout.size_hint_y=0
-                         self.game_over_layout.size_hint_x=1 
-                         self.game_over_layout.size_hint_y=1
+                         self.game_over_transition()
                          self.final_score_label.text="FINAL SCORE = "+ str(self.score)
                          self.final_score_label.color=(233/255, 179/255, 7/255, 1)
                          self.is_plot=False
@@ -1173,29 +1290,7 @@ class GameWindow(Screen):
                 self.bug_layout.size_hint_x= 0.15725
                 self.bug_layout.size_hint_y=0.16
 
-        #def game_cat(self): 
-                '''Sets language to catalan''' 
-                #self.game_lang="CAT"
-                #self.button_free.text="LLIURE" 
-                #self.center_label.text="CENTRE"
-                #self.width_label.text="AMPLADA"
-                #self.left_label.text="ESQUERRA"
-                #self.right_label.text="DRETA"
-                #print(self.game_lang)
-        
-
-                
-
-                
-
-
-
-                
-
-
-                     
-class TutorialWindow(Screen):
-        pass    
+          
 
      
 Builder.load_file("principal_kivy.kv") #d'aquesta manera li podem dir al fitxer kv com volguem
@@ -1205,9 +1300,7 @@ class MygameApp(App): #inherits from app (utilitza les pepietats)
     #aqesta classe fa que la grid aparegui a la pantalla
     def build(self): #self argument de sempre no te arguments
         sm=ScreenManager()
-        sm.add_widget(MainWindow(name="menu"))
         sm.add_widget(GameWindow(name="game"))
-        sm.add_widget(TutorialWindow(name="tutorial"))
         return sm #estem dibuixant la grid, cridem la classe directament de float Layot
 
 if __name__=="__main__":
