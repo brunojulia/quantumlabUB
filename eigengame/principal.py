@@ -255,99 +255,86 @@ class GameWindow(Screen):
         #Choosing energies 
         def value_0(self): 
                 ''' Changes values o value_n when the button is pressed'''
-                if self.plots_left>0: #we can do a plot
-                        self.value_n=0 
-                        self.button0.background_color=(0,0,1,0.8)
-                        self.button1.background_color=(1,1,1,1)
-                        self.button2.background_color=(1,1,1,1)
-                        self.button3.background_color=(1,1,1,1)
-                        self.button4.background_color=(1,1,1,1)
-                        self.plot_energy() #changes the color of every button to remark the one pressed
-                else: 
-                        self.button_plot_anim() #we animate the plot button and label
+                self.value_n=0 
+                self.button0.background_color=(0,0,1,0.8)
+                self.button1.background_color=(1,1,1,1)
+                self.button2.background_color=(1,1,1,1)
+                self.button3.background_color=(1,1,1,1)
+                self.button4.background_color=(1,1,1,1)
+                self.plot_energy() #changes the color of every button to remark the one pressed        
 
         def value_1(self): 
                 ''' Changes values o value_n when the button is pressed'''
-                if self.plots_left>0: #we can do a plot
-                        self.value_n=1 
-                        self.button0.background_color=(1,1,1,1)
-                        self.button1.background_color=(0,0,1,0.8)
-                        self.button2.background_color=(1,1,1,1)
-                        self.button3.background_color=(1,1,1,1)
-                        self.button4.background_color=(1,1,1,1)
-                        self.plot_energy()
-                else: 
-                        self.button_plot_anim() #we animate the plot button and label
+                self.value_n=1 
+                self.button0.background_color=(1,1,1,1)
+                self.button1.background_color=(0,0,1,0.8)
+                self.button2.background_color=(1,1,1,1)
+                self.button3.background_color=(1,1,1,1)
+                self.button4.background_color=(1,1,1,1)
+                self.plot_energy()
+        
 
         def value_2(self): 
                 ''' Changes values o value_n when the button is pressed'''
-                if self.plots_left>0: #we can do a plot
-                        self.value_n=2
-                        self.button0.background_color=(1,1,1,1)
-                        self.button1.background_color=(1,1,1,1)
-                        self.button2.background_color=(0,0,1,0.8)
-                        self.button3.background_color=(1,1,1,1)
-                        self.button4.background_color=(1,1,1,1)
-                        self.plot_energy()
-                else: 
-                        self.button_plot_anim() #we animate the plot button and label
+                self.value_n=2
+                self.button0.background_color=(1,1,1,1)
+                self.button1.background_color=(1,1,1,1)
+                self.button2.background_color=(0,0,1,0.8)
+                self.button3.background_color=(1,1,1,1)
+                self.button4.background_color=(1,1,1,1)
+                self.plot_energy()
+               
 
         def value_3(self): 
                 ''' Changes values o value_n when the button is pressed'''
-                if self.plots_left>0: #we can do a plot
-                        self.value_n=3
-                        self.button0.background_color=(1,1,1,1)
-                        self.button1.background_color=(1,1,1,1)
-                        self.button2.background_color=(1,1,1,1)
-                        self.button3.background_color=(0,0,1,0.8)
-                        self.button4.background_color=(1,1,1,1)
-                        self.plot_energy()
-                else: 
-                        self.button_plot_anim() #we animate the plot button and label
+                self.value_n=3
+                self.button0.background_color=(1,1,1,1)
+                self.button1.background_color=(1,1,1,1)
+                self.button2.background_color=(1,1,1,1)
+                self.button3.background_color=(0,0,1,0.8)
+                self.button4.background_color=(1,1,1,1)
+                self.plot_energy()
+              
 
         def value_4(self): 
                 ''' Changes values o value_n when the button is pressed'''
-                if self.plots_left>0: #we can do a plot
-                        self.value_n=4
-                        self.button0.background_color=(1,1,1,1)
-                        self.button1.background_color=(1,1,1,1)
-                        self.button2.background_color=(1,1,1,1)
-                        self.button3.background_color=(1,1,1,1)
-                        self.button4.background_color=(0,0,1,0.8)
-                        self.plot_energy()
-                else:  
-                        self.button_plot_anim() #we animate the plot button and label
+        
+                self.value_n=4
+                self.button0.background_color=(1,1,1,1)
+                self.button1.background_color=(1,1,1,1)
+                self.button2.background_color=(1,1,1,1)
+                self.button3.background_color=(1,1,1,1)
+                self.button4.background_color=(0,0,1,0.8)
+                self.plot_energy()
         
         #choosing potentials 
 
         def harmonic_potential(self): 
                 type1_copy=None
-                if self.plots_left>0: #we can do a plot
-                        if self.potential_type1=="Harmonic": #there is a harmonic 
-                                pass 
-                        elif self.potential_type2=="Harmonic": #there is a harmonic 
-                                pass 
-                        else: #There is no harmonic
-                                if self.potential_type1!="Free particle" and self.potential_type2!="Free particle": #two potential chosen 
-                                        self.potential_type1="Free particle"
-                                        self.potential_type2="Free particle" #we reinicialise the potentials to free 
+                if self.potential_type1=="Harmonic": #there is a harmonic 
+                        pass 
+                elif self.potential_type2=="Harmonic": #there is a harmonic 
+                        pass 
+                else: #There is no harmonic
+                        if self.potential_type1!="Free particle" and self.potential_type2!="Free particle": #two potential chosen 
+                                self.potential_type1="Free particle"
+                                self.potential_type2="Free particle" #we reinicialise the potentials to free 
 
-                                if self.potential_type1=="Free particle" or self.potential_type1=="Harmonic": #No other potential chosen 
-                                        type1_copy="Harmonic" 
-                                        self.button_harmonic.background_color=(0,0,1,0.8) #only one button pressed 
-                                        self.button_free.background_color=(1,1,1,1)
-                                        self.button_barrier.background_color=(1,1,1,1)
-                                        self.button_water.background_color=(1,1,1,1)
-                                else: #ANOTHER POTENTIAL CHOSEN   
-                                        self.potential_type2="Harmonic"
-                                        self.button_harmonic.background_color=(0,0,1,0.8) #we press harmonic one too 
+                        if self.potential_type1=="Free particle" or self.potential_type1=="Harmonic": #No other potential chosen 
+                                type1_copy="Harmonic" 
+                                self.button_harmonic.background_color=(0,0,1,0.8) #only one button pressed 
+                                self.button_free.background_color=(1,1,1,1)
+                                self.button_barrier.background_color=(1,1,1,1)
+                                self.button_water.background_color=(1,1,1,1)
+                        else: #ANOTHER POTENTIAL CHOSEN   
+                                self.potential_type2="Harmonic"
+                                self.button_harmonic.background_color=(0,0,1,0.8) #we press harmonic one too 
 
-                                if type1_copy=="Harmonic": self.potential_type1="Harmonic"
+                        if type1_copy=="Harmonic": self.potential_type1="Harmonic"
 
 
-                        self.plot_potential()
-                else: 
-                        self.button_plot_anim() #we animate the plot button and label
+                self.plot_potential()
+               
 
         def slider_value_k(self,*args):
                 ''' Takes the hooke constant value from a slider''' 
@@ -361,16 +348,14 @@ class GameWindow(Screen):
                 
 
         def free_particle(self): 
-                if self.plots_left>0: #we can do a plot
-                        self.potential_type1="Free particle"
-                        self.potential_type2="Free particle"
-                        self.button_harmonic.background_color=(1,1,1,1)
-                        self.button_free.background_color=(0,0,1,0.8)
-                        self.button_barrier.background_color=(1,1,1,1)
-                        self.button_water.background_color=(1,1,1,1)
-                        self.plot_potential()
-                else:
-                        self.button_plot_anim() #we animate the plot button and label
+                self.potential_type1="Free particle"
+                self.potential_type2="Free particle"
+                self.button_harmonic.background_color=(1,1,1,1)
+                self.button_free.background_color=(0,0,1,0.8)
+                self.button_barrier.background_color=(1,1,1,1)
+                self.button_water.background_color=(1,1,1,1)
+                self.plot_potential()
+                
 
 
         def center_barrier(self,*args): 
@@ -390,28 +375,26 @@ class GameWindow(Screen):
                 
         def barrier(self): 
                 b_copy=None
-                if self.plots_left>0: #we can do a plot
-                        if self.potential_type1=="Barrier": #there is a barrier 
-                                pass 
-                        elif self.potential_type2=="Barrier": #there is a barrier
-                                pass 
-                        else: #There is no Barrier 
-                                if self.potential_type1!="Free particle" and self.potential_type2!="Free particle": #two potential chosen 
-                                        self.potential_type1="Free particle"
-                                        self.potential_type2="Free particle" #we reinicialise the potentials to free 
-                                if self.potential_type1=="Free particle": #No other potential chosen
-                                        b_copy="Barrier"
-                                        self.button_harmonic.background_color=(1,1,1,1)
-                                        self.button_free.background_color=(1,1,1,1)
-                                        self.button_barrier.background_color=(0,0,1,0.8)
-                                        self.button_water.background_color=(1,1,1,1)
-                                else: #ANOTHER POTENTIAL CHOSEN   
-                                        self.potential_type2="Barrier"
-                                        self.button_barrier.background_color=(0,0,1,0.8) #we press barrier one too 
-                                if b_copy=="Barrier": self.potential_type1="Barrier"
-                        self.plot_potential()
-                else: 
-                        self.button_plot_anim() #we animate the plot button and label
+                if self.potential_type1=="Barrier": #there is a barrier 
+                        pass 
+                elif self.potential_type2=="Barrier": #there is a barrier
+                        pass 
+                else: #There is no Barrier 
+                        if self.potential_type1!="Free particle" and self.potential_type2!="Free particle": #two potential chosen 
+                                self.potential_type1="Free particle"
+                                self.potential_type2="Free particle" #we reinicialise the potentials to free 
+                        if self.potential_type1=="Free particle": #No other potential chosen
+                                b_copy="Barrier"
+                                self.button_harmonic.background_color=(1,1,1,1)
+                                self.button_free.background_color=(1,1,1,1)
+                                self.button_barrier.background_color=(0,0,1,0.8)
+                                self.button_water.background_color=(1,1,1,1)
+                        else: #ANOTHER POTENTIAL CHOSEN   
+                                self.potential_type2="Barrier"
+                                self.button_barrier.background_color=(0,0,1,0.8) #we press barrier one too 
+                        if b_copy=="Barrier": self.potential_type1="Barrier"
+                self.plot_potential()
+               
 
 
         def left_water(self,*args): 
@@ -431,30 +414,26 @@ class GameWindow(Screen):
 
         def water_well(self): 
                 w_copy=None
-                if self.plots_left>0: #we can do a plot
-                        if self.potential_type1=="Well": #there is a well 
-                                pass 
-                        elif self.potential_type2=="Well": #there is a well 
-                                pass 
-                        else: #There is no well 
-                                if self.potential_type1!="Free particle" and self.potential_type2!="Free particle": #two potential chosen 
-                                        self.potential_type1="Free particle"
-                                        self.potential_type2="Free particle" #we reinicialise the potentials to free 
-                                if self.potential_type1=="Free particle": #No other potential chosen
-                                        w_copy="Well"
-                                        self.button_harmonic.background_color=(1,1,1,1)
-                                        self.button_free.background_color=(1,1,1,1)
-                                        self.button_barrier.background_color=(1,1,1,1)
-                                        self.button_water.background_color=(0,0,1,0.8)
-                                else: #ANOTHER POTENTIAL CHOSEN   
-                                        self.potential_type2="Well"
-                                        self.button_water.background_color=(0,0,1,0.8) #we press barrier one too 
-                                if w_copy=="Well": self.potential_type1="Well"
-                        self.plot_potential()
+                if self.potential_type1=="Well": #there is a well 
+                        pass 
+                elif self.potential_type2=="Well": #there is a well 
+                        pass 
+                else: #There is no well 
+                        if self.potential_type1!="Free particle" and self.potential_type2!="Free particle": #two potential chosen 
+                                self.potential_type1="Free particle"
+                                self.potential_type2="Free particle" #we reinicialise the potentials to free 
+                        if self.potential_type1=="Free particle": #No other potential chosen
+                                w_copy="Well"
+                                self.button_harmonic.background_color=(1,1,1,1)
+                                self.button_free.background_color=(1,1,1,1)
+                                self.button_barrier.background_color=(1,1,1,1)
+                                self.button_water.background_color=(0,0,1,0.8)
+                        else: #ANOTHER POTENTIAL CHOSEN   
+                                self.potential_type2="Well"
+                                self.button_water.background_color=(0,0,1,0.8) #we press barrier one too 
+                        if w_copy=="Well": self.potential_type1="Well"
+                self.plot_potential()
                         
-                else: 
-                        self.button_plot_anim() #we animate the plot button and label
-
 
 
         def potential(self,x): 
@@ -682,111 +661,123 @@ class GameWindow(Screen):
                 '''This function plots into the window the wave function.
                 It also plots the potential. Previous to plotting it computes the eigenvalues
                 and computes the eigenvector. '''
-                #self.start=time.time()
-                if self.plots_left>0: #we can do a plot
-                        plt.clf()
-                        self.plots_left-=1  
-                        self.plots_label.text=str(self.plots_left) #we have to update the plots left
-                        #we animate the plotsleft 
-                        label_animation1=Animation(font_size=25,duration=0.5)
-                        label_animation1+=Animation(font_size=20,duration=0.5)
-                        label_animation1.start(self.plots_label)
-                
-                        phi_square, E=self.wave_function()#we compute the eigen_values  and assign E 
+                plt.clf()
+                self.plots_left-=1  
+                self.plots_label.text=str(self.plots_left) #we have to update the plots left
+                #we animate the plotsleft 
+                label_animation1=Animation(font_size=25,duration=0.5)
+                label_animation1+=Animation(font_size=20,duration=0.5)
+                label_animation1.start(self.plots_label)
+        
+                phi_square, E=self.wave_function()#we compute the eigen_values  and assign E 
                  
-                        y2=0
-                        #let's plot:
-                        V_plot=[self.potential(k) for k in self.x_potential_values] #compute potential for every x_position
-                        fig, ax_phi=plt.subplots() 
-                        ax_phi.set_xlabel(r"$x(\AA)$")
-                        ax_phi.set_ylabel(r"$ \phi^2$")
-                        ax_phi.xaxis.labelpad = -1
-
-                        #CHECKING
-                        #we check free partcile with theory to see if we are right 
-                        #x_4= np.linspace(-5,5,401)
-                        #y_4=((1/math.sqrt(5))*np.sin(4*math.pi*x_4/10))**2 #plot E4
-                        #y_4=((1/math.sqrt(5))*np.cos(5*math.pi*x_4/10))**2 #plot E5
-                        #ax_phi.plot(x_4,y_4,label= "Analytic", color='blue')
-
-                        #we check HARMONIC behavoior
-                        #h2_me=(7.6199)  # (eV*A) h**2/me
-                        #h_planck=(6.582119569*10**(-16)/(2*np.pi))
-                        #me_evA=((h_planck**2)/h2_me)
-                        #w_freq=np.sqrt(self.hooke_constant/me_evA) #computing w 
-                        #constant=np.sqrt(np.sqrt(np.pi*h_planck/np.sqrt(self.hooke_constant*me_evA))*(2**self.value_n)*np.math.factorial(self.value_n))
-                        #constant=1/constant
-                        #E_harmonica=h_planck*w_freq+(self.value_n+1/2) #computing energy for the oscillator analitically
-                        #psi=np.sqrt(me_evA*w_freq/h_planck)*(x_4-self.x0_harmonic) #change of variable
-                        #hermite=scipy.special.eval_hermite(self.value_n,psi) #computing the hermite polinomail
-                        #phi_harm=constant*np.exp(-me_evA*w_freq*((x_4-self.x0_harmonic)**2)/(2*h_planck))*hermite #computing the wave function
-                        #phi_harm=phi_harm**2 
-                        #print(self.hooke_constant)
-
-                        #ax_phi.plot(x_4,phi_harm,label= "Analytic", color='blue')
-
-                        #we check integral value
-                        #integral_prova=0 
-                        #for k in range(0,self.n_steps+1): 
-                                #if k==0 or k==self.n_steps: #extrem values 
-                                        #integral_prova=integral_prova +(phi_square[k])/3
-                                #elif (k % 2) == 0:  #even number
-                                        #integral_prova=integral_prova+2*(phi_square[k])/3
-                                #else: #odd number 
-                                        #integral_prova=integral_prova+4*(phi_square[k])/3
-                        #integral_prova=integral_prova*self.dx 
-                        #print(integral_prova)
-
-
+                y2=0
+                #let's plot:
+                V_plot=[self.potential(k) for k in self.x_potential_values] #compute potential for every x_position
+                fig, ax_phi=plt.subplots() 
+                ax_phi.set_xlabel(r"$x(\AA)$")
+                ax_phi.set_ylabel(r"$ \phi^2$")
+                ax_phi.xaxis.labelpad = -1
                         
-                        ax_phi.set_ylim((0,max(phi_square)+0.2)) #maximum of phi_axis= maxim of probability +0.2
+                ax_phi.set_ylim((0,max(phi_square)+0.2)) #maximum of phi_axis= maxim of probability +0.2
                         
 
-                        #we plot the potential
-                        ax_V = ax_phi.twinx() #same x_axis
-                        ax_V.set_ylabel(r"$V(eV)$")
-                        ax_V.plot(self.x_potential_values,V_plot, label="V(x)" , color='tab:blue')
-                        ax_V.fill_between(self.x_potential_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
-                        ax_phi.plot(self.x_list_values,phi_square,label=r"$ \phi^2(x)$" , color='tab:red')
-                        ax_phi.fill_between(self.x_list_values, phi_square,0, facecolor='red', alpha=0.5) #paint wave_function
-                        ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
+                #we plot the potential
+                ax_V = ax_phi.twinx() #same x_axis
+                ax_V.set_ylabel(r"$V(eV)$")
+                ax_V.plot(self.x_potential_values,V_plot, label="V(x)" , color='tab:blue')
+                ax_V.fill_between(self.x_potential_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
+                ax_phi.plot(self.x_list_values,phi_square,label=r"$ \phi^2(x)$" , color='purple')
+                ax_phi.fill_between(self.x_list_values, phi_square,0, facecolor='purple', alpha=0.7) #paint wave_function
+                ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
                         
-                        if E<35: ax_V.set_ylim((0,42))
-                        else: ax_V.set_ylim((0,E+5)) 
-                        ax_V.legend(loc="upper right")
-                        ax_phi.legend(loc="upper left")
-                        #MAKING THE TITLE OF THE GRAPH
-                        #if self.potential_type=="Harmonic":
-                                #string_var="    $K(eV/\AA^2)$="+str(self.hooke_constant)
-                        #if self.potential_type=="Free particle": string_var=""
-                        #if self.potential_type=="Barrier":
-                                #string_var="    $V(eV)$="+str(self.Vb)
-                        #if self.potential_type=="Well": 
-                                #string_var="    $V(eV)$="+str(self.Vw)
+                if E<35: ax_V.set_ylim((0,42))
+                else: ax_V.set_ylim((0,E+5)) 
+                ax_V.legend(loc="upper right")
+                ax_phi.legend(loc="upper left")
 
-                        plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4],loc="right")#"   V(x)= "+str(self.potential_type)+string_var
+                plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4],loc="right")#"   V(x)= "+str(self.potential_type)+string_var
                                 
-                        canvas_plot=FigureCanvasKivyAgg(plt.gcf())
-                        self.float_plot.clear_widgets()
-                        self.float_plot.add_widget(canvas_plot)
-                        self.is_plot=True #there is a wave function plotted
-
+                canvas_plot=FigureCanvasKivyAgg(plt.gcf())
+                self.float_plot.clear_widgets()
+                self.float_plot.add_widget(canvas_plot)
+                self.is_plot=True #there is a wave function plotted
+                #now we can measure a particle 
+                self.measure_button.disabled=False 
+                #we are out of plots 
+                if self.plots_left==0: 
+                        self.disable_plotting()
+                        self.button_measure_anim()
 
                 
-                else: #we animate the measure button
-                        self.button_plot_anim() #we animate the plot button and plotsleft label
+                
 
-                #self.end=time.time()
-                #print(self.end-self.start)
+                
+        def disable_plotting(self): 
+                '''Disables all buttons related to plotting so we can't plot nothing'''
+                #disabling ploting
+                self.plot_button.disabled=True 
+                #disbaling energies
+                self.button0.disabled=True 
+                self.button1.disabled=True
+                self.button2.disabled=True
+                self.button3.disabled=True
+                self.button4.disabled=True
+                #disabling potential buttons 
+                self.button_free.disabled=True 
+                self.button_harmonic.disabled=True 
+                self.button_barrier.disabled=True 
+                self.button_water.disabled=True 
+                self.rubber_button.disabled=True 
+                #disabling sliders
+                self.hooke_slider.disabled=True
+                self.x0_slider.disabled=True
+                self.center_slider.disabled=True
+                self.width_slider.disabled=True
+                self.vb_slider.disabled=True
+                self.left_slider.disabled=True
+                self.right_slider.disabled=True
+                self.vw_slider.disabled=True
 
-        def button_plot_anim(self): 
-                '''Animates the plot button when there's no plots left'''
+
+        def able_plotting(self):
+                '''Ables all buttons related to plotting so we can't plot nothing'''
+                #abling ploting
+                self.plot_button.disabled=False 
+                #abling energies
+                self.button0.disabled=False 
+                self.button1.disabled=False 
+                self.button2.disabled=False 
+                self.button3.disabled=False 
+                self.button4.disabled=False 
+                #abling potential buttons 
+                self.button_free.disabled=False  
+                self.button_harmonic.disabled=False  
+                self.button_barrier.disabled=False  
+                self.button_water.disabled=False  
+                self.rubber_button.disabled=False  
+                #abling sliders
+                self.hooke_slider.disabled=False 
+                self.x0_slider.disabled=False 
+                self.center_slider.disabled=False 
+                self.width_slider.disabled=False 
+                self.vb_slider.disabled=False 
+                self.left_slider.disabled=False 
+                self.right_slider.disabled=False 
+                self.vw_slider.disabled=False 
+
+        def button_measure_anim(self): 
+                '''Animates the measure button when there's no plots left'''
                 button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
                 button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
                 button_animation.start(self.measure_button)
 
                 #we animate the plotsleft 
                 label_animation=Animation(font_size=30,duration=0.5)
+                label_animation+=Animation(font_size=20,duration=0.5)
+                label_animation+=Animation(font_size=30,duration=0.5)
                 label_animation+=Animation(font_size=20,duration=0.5)
                 label_animation.start(self.plots_label)
 
@@ -801,126 +792,115 @@ class GameWindow(Screen):
         def appear_e(self): 
                 '''Manages the live recovery, when the process of live recovery is finished we call teh functions that checks 
                 the targets'''
-                if self.is_plot==False: #There is no wave function plotted 
-                        #we don't measure and do something 
-                        button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
-                        button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
-                        button_animation.start(self.plot_button)
-                else: #there is a wave function plotted 
-                        self.plots_left=3  
-                        self.plots_label.text=str(self.plots_left)
+                self.able_plotting()
+                self.plots_left=3  
+                self.plots_label.text=str(self.plots_left)
 
-                        probabilities,E=self.wave_function() #compute the probabilities and energy 
-                        n_e=self.level*2-1 
-                        if self.level==1: n_e=1  #number of electrons we want to plot (level number)
-                        self.position=random.choices(self.x_list_values,weights=probabilities,k=n_e) #computes the position accordingly to WF
-                        #we create a lists of the gridslayouts with are working with 
-                        e_grid=[None]*n_e #list of n_e elements
-                        n_greens=0 #number of targets in green
-                        targets_achieved=[]
-                        for i in range(0,n_e): #we add the electrons to the measure layout 
-                                e_graphs=Image(source="graphs/electron.png",allow_stretch=True,keep_ratio=False) #we import image
+                probabilities,E=self.wave_function() #compute the probabilities and energy 
+                n_e=self.level*2-1 
+                if self.level==1: n_e=1  #number of electrons we want to plot (level number)
+                self.position=random.choices(self.x_list_values,weights=probabilities,k=n_e) #computes the position accordingly to WF
+                #we create a lists of the gridslayouts with are working with 
+                e_grid=[None]*n_e #list of n_e elements
+                n_greens=0 #number of targets in green
+                targets_achieved=[]
+                for i in range(0,n_e): #we add the electrons to the measure layout 
+                        e_graphs=Image(source="graphs/electron.png",allow_stretch=True,keep_ratio=False) #we import image
+                        self.e_position[i]=(self.position[i]+5)/10
+                        e_grid[i]=GridLayout(rows=1,cols=1) #we create a gridlayout to put the image 
+                        e_grid[i].pos_hint={"center_x":self.e_position[i],"center_y":0.5} #we put the gridlayout in the position we want
+                        e_grid[i].size_hint_x=0.06
+                        e_grid[i].size_hint_y=0.25 #size of gridlayout
+                        e_grid[i].add_widget(e_graphs) #add the image to the gridLayout
+                        self.measure_layout.add_widget(e_grid[i]) #we add the electron grid layout to the float layout
+                
+                #checking whether we have touched the live 
+                if self.is_live_recover==True: 
+                        heart_position=self.target_position[0]
+                        is_heart_achived=False 
+                        for i in range(0,n_e): 
                                 self.e_position[i]=(self.position[i]+5)/10
-                                e_grid[i]=GridLayout(rows=1,cols=1) #we create a gridlayout to put the image 
-                                e_grid[i].pos_hint={"center_x":self.e_position[i],"center_y":0.5} #we put the gridlayout in the position we want
-                                e_grid[i].size_hint_x=0.06
-                                e_grid[i].size_hint_y=0.25 #size of gridlayout
-                                e_grid[i].add_widget(e_graphs) #add the image to the gridLayout
-                                self.measure_layout.add_widget(e_grid[i]) #we add the electron grid layout to the float layout
-                        
-                        #checking whether we have touched the live 
-                        if self.is_live_recover==True: 
-                                heart_position=self.target_position[0]
-                                is_heart_achived=False 
-                                for i in range(0,n_e): 
-                                        self.e_position[i]=(self.position[i]+5)/10
-                                        if self.e_position[i]>(heart_position-self.target_epsilon) \
-                                        and self.e_position[i]<(heart_position+self.target_epsilon):  
-                                                #green target: live recovered  
-                                                self.live_recovered()
-                                                is_heart_achived=True 
-                                                break
-                                if is_heart_achived==False: self.electron_check() #no live recovered 
+                                if self.e_position[i]>(heart_position-self.target_epsilon) \
+                                and self.e_position[i]<(heart_position+self.target_epsilon):  
+                                        #green target: live recovered  
+                                        self.live_recovered()
+                                        is_heart_achived=True 
+                                        break
+                        if is_heart_achived==False: self.electron_check() #no live recovered 
 
 
-                        else: self.electron_check() #no live recovered 
+                else: self.electron_check() #no live recovered 
 
         def electron_check(self,*args): 
                 '''Plots the electron after pressing the measure button'''
-                if self.is_plot==False: #There is no wave function plotted 
-                        #we don't measure and do something 
-                        button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
-                        button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
-                        button_animation.start(self.plot_button)
-                else: #there is a wave function plotted 
-                        self.plots_left=3  
-                        self.plots_label.text=str(self.plots_left)
-                        n_e=self.level*2-1 
-                        if self.level==1: n_e=1  #number of electrons we want to plot (level number) 
-                        e_grid=[None]*n_e #list of n_e elements
-                        n_greens=0 #number of targets in green
-                        targets_achieved=[]
+                self.plots_left=3  
+                self.plots_label.text=str(self.plots_left)
+                n_e=self.level*2-1 
+                if self.level==1: n_e=1  #number of electrons we want to plot (level number) 
+                e_grid=[None]*n_e #list of n_e elements
+                n_greens=0 #number of targets in green
+                targets_achieved=[]
 
 
-                        for i in range(0,n_e): #we add the electrons to the measure layout 
+                for i in range(0,n_e): #we add the electrons to the measure layout 
 
-                                for j in range(0,self.level): #we check the targets  
-                                        if self.e_position[i]>(self.target_position[j]-self.target_epsilon) \
-                                        and self.e_position[i]<(self.target_position[j]+self.target_epsilon):  #green target 
-                                                if j not in targets_achieved: 
-                                                        targets_achieved.append(j) #add green target
-                                                        n_greens+=1 
-                                                        #we have a list of the green targets achieved   
-                        
-                        if n_greens<self.level: #not all targets in green
+                        for j in range(0,self.level): #we check the targets  
+                                if self.e_position[i]>(self.target_position[j]-self.target_epsilon) \
+                                and self.e_position[i]<(self.target_position[j]+self.target_epsilon):  #green target 
+                                        if j not in targets_achieved: 
+                                                targets_achieved.append(j) #add green target
+                                                n_greens+=1 
+                                                #we have a list of the green targets achieved   
+                
+                if n_greens<self.level: #not all targets in green
 
-                                for j in range(0,self.level): 
-                                        if self.first_target==False: #not the first target: 
-                                                self.grid_target[j].clear_widgets() #erase previous target
-                                                if j in targets_achieved: #we are on a green target 
-                                                        first_green=Image(source="graphs/green_target.png",allow_stretch=True,keep_ratio=False)
-                                                        self.grid_target[j].add_widget(first_green)#we turn into green the rectangle
-                                                        target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
-                                                        target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
-                                                        target_anim.start(self.grid_target[j])  
-                                                else: #j no in targets_achieved   
-                                                        new_red= Image(source="graphs/red_target.png",allow_stretch=True,keep_ratio=False)
-                                                        self.grid_target[j].add_widget(new_red)#we turn into green the rectangle
-                                                        target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
-                                                        target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
-                                                        target_anim.start(self.grid_target[j])  
-                                                if j==(self.level-1): #the last one 
-                                                        target_anim.bind(on_complete=self.same_target)
-                                        else: #the first target 
-                                                self.first_grid_target.clear_widgets()
-                                                first_red=Image(source="graphs/red_target.png",allow_stretch=True,keep_ratio=False)
-                                                self.first_grid_target.add_widget(first_red)#we turn into red the rectangle
-                                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
-                                                target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
-                                                target_anim.start(self.first_grid_target)  
-                                                target_anim.bind(on_complete=self.same_target)
-
-       
-                        else: #all greens 
-                                for j in range(0,self.level): 
-                                        if self.first_target==False: #not the first target: 
-                                                self.grid_target[j].clear_widgets() #erase previous target
-                                                new_green=Image(source="graphs/green_target.png",allow_stretch=True,keep_ratio=False)
-                                                self.grid_target[j].add_widget(new_green)#we turn into green the rectangle
-                                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
-                                                target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
-                                                target_anim.start(self.grid_target[j]) 
-                                                if j==(self.level-1): #the last one 
-                                                        target_anim.bind(on_complete=self.new_target)
-                                                        #when the animation is done we generate a new rectangle  
-                                        else: #the first target 
-                                                self.first_grid_target.clear_widgets()
+                        for j in range(0,self.level): 
+                                if self.first_target==False: #not the first target: 
+                                        self.grid_target[j].clear_widgets() #erase previous target
+                                        if j in targets_achieved: #we are on a green target 
                                                 first_green=Image(source="graphs/green_target.png",allow_stretch=True,keep_ratio=False)
-                                                self.first_grid_target.add_widget(first_green)#we turn into green the rectangle
+                                                self.grid_target[j].add_widget(first_green)#we turn into green the rectangle
                                                 target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
                                                 target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
-                                                target_anim.start(self.first_grid_target)  
+                                                target_anim.start(self.grid_target[j])  
+                                        else: #j no in targets_achieved   
+                                                new_red= Image(source="graphs/red_target.png",allow_stretch=True,keep_ratio=False)
+                                                self.grid_target[j].add_widget(new_red)#we turn into green the rectangle
+                                                target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
+                                                target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
+                                                target_anim.start(self.grid_target[j])  
+                                        if j==(self.level-1): #the last one 
+                                                target_anim.bind(on_complete=self.same_target)
+                                else: #the first target 
+                                        self.first_grid_target.clear_widgets()
+                                        first_red=Image(source="graphs/red_target.png",allow_stretch=True,keep_ratio=False)
+                                        self.first_grid_target.add_widget(first_red)#we turn into red the rectangle
+                                        target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
+                                        target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
+                                        target_anim.start(self.first_grid_target)  
+                                        target_anim.bind(on_complete=self.same_target)
+
+
+                else: #all greens 
+                        for j in range(0,self.level): 
+                                if self.first_target==False: #not the first target: 
+                                        self.grid_target[j].clear_widgets() #erase previous target
+                                        new_green=Image(source="graphs/green_target.png",allow_stretch=True,keep_ratio=False)
+                                        self.grid_target[j].add_widget(new_green)#we turn into green the rectangle
+                                        target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
+                                        target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
+                                        target_anim.start(self.grid_target[j]) 
+                                        if j==(self.level-1): #the last one 
                                                 target_anim.bind(on_complete=self.new_target)
+                                                #when the animation is done we generate a new rectangle  
+                                else: #the first target 
+                                        self.first_grid_target.clear_widgets()
+                                        first_green=Image(source="graphs/green_target.png",allow_stretch=True,keep_ratio=False)
+                                        self.first_grid_target.add_widget(first_green)#we turn into green the rectangle
+                                        target_anim=Animation(size_hint_x=self.target_epsilon*2, size_hint_y=1,duration=1) #we make the target appear
+                                        target_anim+=Animation(size_hint_x=0, size_hint_y=0,duration=0.005)
+                                        target_anim.start(self.first_grid_target)  
+                                        target_anim.bind(on_complete=self.new_target)
 
 
         def new_target(self,*args): #GREEN
@@ -1250,6 +1230,7 @@ class GameWindow(Screen):
 
                 #we reactivate plots 
                 self.plots_left=3  
+                self.able_plotting()
                 self.plots_label.text=str(self.plots_left)
 
                 self.free_particle() #deletes other potential drawn in screen 
@@ -1292,6 +1273,7 @@ class GameWindow(Screen):
                 #we clear the plot 
                 self.float_plot.clear_widgets()
                 self.is_plot=False #no wave function plotted
+                self.measure_button.disabled=True 
 
                 #we overpaint again the bug layout 
                 self.bug_layout.size_hint_x= 0.15725

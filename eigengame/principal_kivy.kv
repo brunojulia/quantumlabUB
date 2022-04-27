@@ -17,6 +17,7 @@
 	game_over_layout: game_over_layout
 	plot_button: plot_button
 	measure_button:measure_button
+	rubber_button:rubber_button 
 	plots_label: plots_label
 	score_label: score_label
 	record_label: record_label
@@ -34,6 +35,14 @@
 	button_harmonic: bvh
 	button_barrier: bvb
 	button_water: water
+	hooke_slider:hooke_slider
+	x0_slider:x0_slider
+	center_slider: center_slider
+	width_slider: width_slider
+	vb_slider:vb_slider
+	left_slider: left_slider 
+	right_slider: right_slider 
+	vw_slider:vw_slider 
 	center_label: center_label 
 	width_label: width_label
 	right_label: right_label
@@ -67,7 +76,7 @@
         Button: #afegim un botó 
         	id: game_button
         	font_size:19
-			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+			color:1,1,1,1 #tots els buttons seran aixi
 			text: "GAME"
 			bold: True
 			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
@@ -80,7 +89,7 @@
 
 		Button: #afegim un botó 
         	font_size:19
-			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+			color:1,1,1,1 #tots els buttons seran aixi
 			text: "TUTORIAL"
 			bold: True
 			pos_hint: {"center_x":0.5,"center_y":0.4} #diccionari:{"x","y","top","bottom","left","right"}
@@ -187,6 +196,12 @@
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.value_4()
+				canvas.before:
+		    		Color: 
+		    			rgba: 0,0,0,1
+		    		Rectangle: 
+		    			size: self.size
+		    			pos: self.pos
 						
 			Button: #E3
 				id: E3
@@ -198,6 +213,12 @@
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.value_3()
+				canvas.before:
+		    		Color: 
+		    			rgba: 0,0,0,1
+		    		Rectangle: 
+		    			size: self.size
+		    			pos: self.pos
 					 		
 			Button: #E2
 				id: E2
@@ -210,6 +231,12 @@
 				on_release: 
 					root.value_2() 
 						
+				canvas.before:
+			    	Color: 
+			    		rgba: 0,0,0,1
+			    	Rectangle: 
+			    		size: self.size
+			    		pos: self.pos
 			Button: #E1
 				id: E1
 				font_size:14
@@ -219,7 +246,13 @@
             	halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
-					root.value_1() 
+					root.value_1()
+				canvas.before:
+			    	Color: 
+			    		rgba: 0,0,0,1
+			    	Rectangle: 
+			    		size: self.size
+			    		pos: self.pos 
 					
 			Button: #E0
 				id: E0
@@ -232,12 +265,19 @@
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.value_0() 
+				canvas.before:
+			    	Color: 
+			    		rgba: 0,0,0,1
+			    	Rectangle: 
+			    		size: self.size
+			    		pos: self.pos
 
 	           
 		FloatLayout: #For editing buttons 
 			size_hint_x: 1 
 			size_hint_y:0.2
 			pos_hint:{"x":0,"y":0.8}
+			
 						 
 			FloatLayout: #we create a FloatLayout for potential buttons 
 				size_hint_x: 1
@@ -301,22 +341,26 @@
 					valign:"middle"
 							
 				Slider: #to choose the hooke constant
+				    id: hooke_slider
 					size_hint_x: 0.25/2
 					size_hint_y:0.35
 					pos_hint:{"x":0.05,"y":0.0}
 					min: 0
 					max: 20
+					disabled: False
 					value:10
 					step: 0.05
 					orientation: "horizontal"
 					on_value: root.slider_value_k(*args) #we call a function that saves the value of the slide
 
 				Slider: #to choose x_0
+				    id: x0_slider
 					size_hint_x: 0.25/2
 					size_hint_y:0.35
 					pos_hint:{"x":7.0/40.0,"y":0.0}
 					min: -5
 					max: 5
+					disabled: False 
 					step: 0.025
 					orientation: "horizontal"
 					on_value: root.slider_x0(*args) #we call a function that saves the value of the slide
@@ -373,8 +417,10 @@
 				valign:"middle"
 					 
 			Slider: #to choose the CENTER of the barrier
+				id: center_slider
 			    size_hint_x: 0.16
 				size_hint_y:0.35
+				disabled: False
 				pos_hint:{"x":0.3,"y":0}	
 				min: -5
 				max: +5
@@ -383,7 +429,9 @@
 				orientation: "horizontal"
 				on_value: root.center_barrier(*args) #we call a function that saves the value of the slide
             Slider: #to choose the WIDTH of the barrier
+            	id: width_slider
 			    size_hint_x: 0.16
+			    disabled: False
 				size_hint_y:0.36
 				pos_hint:{"x":0.45,"y":0}	
 				min: 0
@@ -393,6 +441,8 @@
 				orientation: "horizontal"
 				on_value: root.width_barrier(*args) #we call a function that saves the value of the slide
 			Slider: #to choose the vertical 
+				id: vb_slider
+				disabled: False
 				size_hint_x:0.03
 				size_hint_y:1
 				pos_hint:{"x":0.62,"y":0}
@@ -456,6 +506,8 @@
 				valign:"middle"
 
 			Slider: #to choose the left of the barrier
+			    id: left_slider 
+			    disabled: False
 			    size_hint_x: 0.16
 				size_hint_y:0.35
 				pos_hint:{"x":0.65,"y":0}	
@@ -466,16 +518,21 @@
 				orientation: "horizontal"
 				on_value: root.left_water(*args) #we call a function that saves the value of the slide
             Slider: #to choose the right of the barrier
+            	id: right_slider 
+			    disabled: False
 			    size_hint_x: 0.16
 				size_hint_y:0.35
 				pos_hint:{"x":0.81,"y":0}	
 				min: -5
 				max: 5
+				disabled: False
 				value: 0.4
 				step: 0.05
 				orientation: "horizontal"
 				on_value: root.right_water(*args) #we call a function that saves the value of the slide
 			Slider: #to choose the vertical 
+			    id: vw_slider 
+			    disabled: False
 				size_hint_x:0.025
 				size_hint_y:1
 				pos_hint:{"x":0.97,"y":0}	
@@ -667,12 +724,18 @@
         	pos_hint:{"right":1,"top":0.8}
         	background_normal: ''
         	background_color: 23/255, 190/255, 255/255, 1
-        	
+        	disabled: False 
             halign:"center"
 			valign:"middle" #
 			on_release:
 				root.loading_anim() 
 				#root.plot_wave_function() #we plot 
+			canvas.before:
+		    	Color: 
+		    		rgba: 0,0,0,1
+		    	Rectangle: 
+		    		size: self.size
+		    		pos: self.pos
 
 			Image: #we put an image inside the button 
 				source: "graphs/wave_icon.png"
@@ -685,11 +748,13 @@
 			size_hint_y: 0.08/3
 			pos_hint:{"right":1.005,"top":0.8}
 			text: "3"
-			color:0,0,0,1
+			color:1,1,1,1
+			bold: True
 	        halign: "left"
 	        font_size: 24 
 
 	    Button: #RUBBER BUTTON 
+	    	id: rubber_button 
 	    	size_hint_x: 0.075
         	size_hint_y: 0.08
         	pos_hint:{"right":1,"top":0.8-0.08}
@@ -697,6 +762,12 @@
 			valign:"middle" #
 			on_release:
 				root.free_particle() 
+			canvas.before:
+		    	Color: 
+		    		rgba: 0,0,0,1
+		    	Rectangle: 
+		    		size: self.size
+		    		pos: self.pos
 			Image: #we put an image inside the button 
 				source: "graphs/rubber_icon.png"
 				center_x:self.parent.center_x
@@ -711,15 +782,23 @@
         	pos_hint:{"right":1,"y":0.08}
         	background_normal: ''
         	background_color: 23/255, 190/255, 255/255, 1
+        	disabled: True
             halign:"center"
 			valign:"middle" #
 			on_release: 
-				root.appear_e() #we measure and print position of the electron 
+				root.appear_e() #we measure and print position of the electron  
+		    canvas.before:
+		    	Color: 
+		    		rgba: 0,0,0,1
+		    	Rectangle: 
+		    		size: self.size
+		    		pos: self.pos  	    
 			Image: #we put an image inside the button 
 				source: "graphs/measure.png"
 				center_x:self.parent.center_x
 				center_y:self.parent.center_y #we put the image in the middle of the button
 				size: self.parent.width, self.parent.height
+		    
 
 		Button: #MENU BUTTON  
         	size_hint_x: 0.075
