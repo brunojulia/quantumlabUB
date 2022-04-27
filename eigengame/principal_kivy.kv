@@ -1,50 +1,12 @@
-<MainWindow>
-	FloatLayout: #creem una layout
-		size: root.width, root.height #layout occupies all image
-	    Image:#afegim una imatge
-    		source: "graphs/fondo2.jfif"
-    		allow_stretch: True
-    		keep_ratio: False
-    	
-
-		Label: #afegim text 
-			font_size:20
-			text: "Welcome to EIGENgame.\n To learn how to play press TUTORIAL."  
-			multiline: True
-			pos_hint: {"center_x":0.5,"center_y":0.9} #diccionari:{"x","y","top","bottom","left","right"}
-			size_hint_x: 0.6
-			size_hint_y:0.1 
-			halign:"center"
-			valign:"middle" #lletra centrada
-        Button: #afegim un botó 
-        	font_size:19
-			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-			text: "GAME"
-			bold: True
-			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
-			size_hint_x: 0.5
-			size_hint_y: 0.15
-            halign:"center"
-			valign:"middle" #lletra centrada
-			on_release: 
-				app.root.current="game" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="left" #editem la transicio
-		Button: #afegim un botó 
-        	font_size:19
-			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-			text: "TUTORIAL"
-			bold: True
-			pos_hint: {"center_x":0.5,"center_y":0.4} #diccionari:{"x","y","top","bottom","left","right"}
-			size_hint_x: 0.5
-			size_hint_y:0.15
-            halign:"center"
-			valign:"middle" #lletra centrada
-            on_release: 
-				app.root.current="tutorial" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="left" #editem la transicio
-	
-
 <GameWindow>
+	menu_layout: menu_layout
+	button_cat: button_cat 
+	button_esp: button_esp 
+	button_eng: button_eng
+	front_text: front_text 
+	game_button: game_button
+
+	game_layout: game_layout
 	float_plot: float_plot
 	measure_layout: measure_layout
 	heart1_grid: heart1_grid
@@ -55,7 +17,6 @@
 	game_over_layout: game_over_layout
 	plot_button: plot_button
 	measure_button:measure_button
-	bug_layout: bug_layout
 	plots_label: plots_label
 	score_label: score_label
 	record_label: record_label
@@ -73,10 +34,130 @@
 	button_harmonic: bvh
 	button_barrier: bvb
 	button_water: water
+	center_label: center_label 
+	width_label: width_label
+	right_label: right_label
+	left_label: left_label 
+
+	bug_layout: bug_layout
+
+	tutorial_layout: tutorial_layout
+
+	FloatLayout: #MENU LAYOUT
+		id: menu_layout
+		#size: root.width, root.height #layout occupies all image
+		size_hint_x:1 
+		size_hint_y:1
+	    Image:#afegim una imatge
+    		source: "graphs/fondo2.jfif"
+    		allow_stretch: True
+    		keep_ratio: False
+    	
+		Label: #afegim text 
+			id: front_text
+			font_size:25
+			text: "Welcome to EIGENgame.\n To learn how to play press on TUTORIAL."  
+			multiline: True
+			bold: True
+			pos_hint: {"center_x":0.5,"center_y":0.9} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.6
+			size_hint_y:0.1 
+			halign:"center"
+			valign:"middle" #lletra centrada
+        Button: #afegim un botó 
+        	id: game_button
+        	font_size:19
+			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+			text: "GAME"
+			bold: True
+			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.5
+			size_hint_y: 0.15
+            halign:"center"
+			valign:"middle" #lletra centrada
+			on_release: 
+				root.game_transition()
+
+		Button: #afegim un botó 
+        	font_size:19
+			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
+			text: "TUTORIAL"
+			bold: True
+			pos_hint: {"center_x":0.5,"center_y":0.4} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.5
+			size_hint_y:0.15
+            halign:"center"
+			valign:"middle" #lletra centrada
+            on_release: 
+				root.tutorial_transition()
+
+		
+		BoxLayout: #for languages
+			size_hint_x: 0.15
+			size_hint_y:0.07
+			pos_hint:{"x":0.0,"y":0.0}
+			orientation: "horizontal"
+			#add buttons for languages
+			Button: #CATALAN 
+	            id: button_cat
+	        	font_size:14
+				color:1,1,1,1
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.catalan() 
+
+			Button: #ESP 
+	            id: button_esp
+	        	font_size:14
+				color:1,1,1,1
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.esp()
+				  
+			Button: #ENGLISH 
+	            id: button_eng
+	        	font_size:14
+	        	color:1,1,1,1
+                background_color: (0,0,1,0.8)
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.english()
+				
+
+		BoxLayout: #for flags
+			size_hint_x: 0.15
+			size_hint_y:0.05
+			pos_hint:{"x":0.0,"center_y":0.035}
+			orientation: "horizontal"
+			Image: #we put an image inside the button 
+				source: "graphs/cat_flag.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button					
+
+			Image: #we put an image inside the button 
+				source: "graphs/esp_flag.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width, self.parent.height  
+				
+			Image: #we put an image inside the button 
+				source: "graphs/eng_flag.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width, self.parent.height 
 
 
-	FloatLayout: #creem una layout for the game
-		size: root.width, root.height
+	FloatLayout: #GAME_LAYOUT
+		id: game_layout
+		size_hint_x:0  
+		size_hint_y:0 #initially no size so we don't see it 
+		pos_hint:{"x":-1,"y":-1}
 		GridLayout: #FOR PLOTTING 
 			id: float_plot
 			cols: 1
@@ -262,6 +343,7 @@
 	    			keep_ratio: False
 
 			Label: #inside button CENTER 
+				id: center_label 
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.3+0.075,"y":0.35+0.02}
@@ -271,6 +353,7 @@
 	            halign:"center"
 				valign:"middle"
 			Label: #inside button WIDTH
+				id: width_label
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.45+0.085,"y":0.35+0.02}
@@ -343,6 +426,7 @@
 	    			keep_ratio: False
 
 			Label: #inside button LEFT 
+				id: left_label
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.65+0.075,"y":0.35+0.02}
@@ -352,6 +436,7 @@
 	            halign:"center"
 				valign:"middle"
 			Label: #inside button RIGHT
+				id: right_label
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.81+0.085,"y":0.35+0.02}
@@ -569,7 +654,7 @@
 					size_hint_x:0.4 #epsilon=0.05
 					pos_hint:{"center_x": root.target_position[0],"center_y":0.5} #gets generated in the code
 					Image: #we put an image
-						source: "graphs/yellow_target.png"
+						source: "graphs/blue_target.png"
 						allow_stretch: True
     					keep_ratio: False
 
@@ -645,8 +730,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
             	root.reboot()
-				app.root.current="menu" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="right" #editem la transicio
+				root.menu_transition()
 		GridLayout: #menu icon
 			cols:1 
 			rows:1 
@@ -661,7 +745,8 @@
 	FloatLayout: #GAME OVER 
 		id: game_over_layout
 		size_hint_x:0  
-		size_hint_y:0 #initially no size so we don't see it 
+		size_hint_y:0 #initially no size so we don't see it
+		pos_hint:{"x":-1,"y":-1} 
 		canvas.before: 
 			Color: 
 				rgba: (1,1,1,1) 
@@ -704,8 +789,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
             	root.reboot()
-				app.root.current="menu" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="right" #editem la transicio
+				root.menu_transition()
 		GridLayout: #menu icon
 			cols:1 
 			rows:1 
@@ -726,6 +810,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
             	root.reboot()
+            	root.game_transition()
             Image: #we put an image inside the button 
 				source: "graphs/playagain.png"
 				center_x:self.parent.center_x
@@ -734,9 +819,9 @@
 
 	FloatLayout: #square bug  
 		id: bug_layout
-		size_hint_x: 0.15725  
-		size_hint_y: 0.16 #initially no size so we don't see it 
-		pos_hint:{"x":0, "y":0}
+		size_hint_x: 0 #0.15725  
+		size_hint_y: 0 #0.16  
+		pos_hint:{"x":-1,"y":-1}
 		canvas.before: 
 			Color: 
 				rgba: (0,0,0,1) 
@@ -748,9 +833,12 @@
 			allow_stretch: True
     		keep_ratio: False
 	
-			
-<TutorialWindow>
-	FloatLayout: #creem una layout
+
+	FloatLayout: #TUTORIAL LAYOUT 
+		size_hint_x:0 
+		size_hint_y:0
+		pos_hint:{"x":-1,"y":-1} 
+		id:tutorial_layout
 		Label: #afegim text per saber on som 
 			font_size:25
 			text: "Tutorial"
@@ -772,5 +860,4 @@
             halign:"center"
 			valign:"middle" #lletra centrada
             on_release: 
-				app.root.current="menu" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="right" #editem la transicio
+				root.menu_transition()

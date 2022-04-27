@@ -24,9 +24,6 @@ import time
 
 
 
-#classes that work with screenmanager 
-class MainWindow(Screen):
-        pass 
      
 class GameWindow(Screen):
         float_plot=ObjectProperty(None)
@@ -71,7 +68,7 @@ class GameWindow(Screen):
         while (target_position[0]-target_epsilon)<0 or (target_position[0]+target_epsilon)>1: 
                 target_position[0]=random.random() #we generate a new target position 
         
-        yellow=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+        yellow=Image(source="graphs/blue_target.png",allow_stretch=True,keep_ratio=False)
 
         #we create the first grid target 
         grid_target=[None]*15 #maximum level 15 
@@ -109,6 +106,152 @@ class GameWindow(Screen):
         level=1
         start=0
         end=0
+        lang= "ENG" #by default
+
+        #MENU FUNCTIONALITY 
+        
+        #SELECTING LANGUAGE 
+        def catalan(self): 
+                '''Sets language to catalan''' 
+                self.lang="CAT" 
+                self.button_cat.background_color=(0,0,1,0.8)
+                self.button_esp.background_color=(1,1,1,1)
+                self.button_eng.background_color=(1,1,1,1)
+                #MENU
+                self.front_text.text="Benvingut a EIGENgame.\n Per aprendre a jugar premi TUTORIAL."
+                self.game_button.text="JOC"
+                #GAME 
+                self.center_label.text="CENTRE"
+                self.width_label.text="AMPLADA"
+                self.right_label.text="DRETA"
+                self.left_label.text="ESQUERRA"
+                self.score_label.text=" PUNTS = 0"
+                self.level_label.text="NIVELL = 1"
+
+        def esp(self): 
+                '''Sets language to spanish''' 
+                self.lang="ESP"
+                self.button_cat.background_color=(1,1,1,1)
+                self.button_esp.background_color=(0,0,1,0.8)
+                self.button_eng.background_color=(1,1,1,1)
+                #MENU
+                self.front_text.text="Bienvenido a EIGENgame.\n Para aprender a jugar pulse TUTORIAL."
+                self.game_button.text="JUEGO"
+                #GAME 
+                self.center_label.text="CENTRO"
+                self.width_label.text="ANCHO"
+                self.right_label.text="DERECHA"
+                self.left_label.text="IZQUIERDA"
+                self.score_label.text="PUNTOS = 0"
+                self.level_label.text="NIVEL = 1"
+                
+        def english(self): 
+                '''Sets language to english''' 
+                self.lang="ENG"
+                self.button_cat.background_color=(1,1,1,1)
+                self.button_esp.background_color=(1,1,1,1)
+                self.button_eng.background_color=(0,0,1,0.8)
+                #MENU
+                self.front_text.text="Welcome to EIGENgame.\n To learn how to play press on TUTORIAL."
+                self.game_button.text="GAME"
+                #GAME 
+                self.center_label.text="CENTER"
+                self.width_label.text="WIDTH"
+                self.right_label.text="RIGHT"
+                self.left_label.text="LEFT"
+                self.score_label.text=" SCORE = 0"
+                self.level_label.text="LEVEL = 1"
+
+
+        def game_transition(self): 
+                '''Goes to the game'''
+                self.game_over_layout.size_hint_x=0 
+                self.game_over_layout.size_hint_y=0
+                self.game_over_layout.pos_hint={"x":-1,"y":-1}
+
+                self.menu_layout.size_hint_y=0
+                self.menu_layout.size_hint_x=0
+                self.menu_layout.pos_hint={"x":-1,"y":-1}
+
+                self.bug_layout.size_hint_x=0.15725  
+                self.bug_layout.size_hint_y=0.16
+                self.bug_layout.pos_hint={"x":0,"y":0}
+
+                self.game_layout.size_hint_x=1 
+                self.game_layout.size_hint_y=1 
+                self.game_layout.pos_hint={"x":0,"y":0}
+
+                self.tutorial_layout.size_hint_x=0 
+                self.tutorial_layout.size_hint_y=0 
+                self.tutorial_layout.pos_hint={"x":-1,"y":-1}
+
+        def tutorial_transition(self): 
+                '''Goes to the tutorial'''
+                self.game_over_layout.size_hint_x=0 
+                self.game_over_layout.size_hint_y=0
+                self.game_over_layout.pos_hint={"x":-1,"y":-1}
+
+                self.menu_layout.size_hint_y=0
+                self.menu_layout.size_hint_x=0
+                self.menu_layout.pos_hint={"x":-1,"y":-1}
+
+                self.bug_layout.size_hint_x=0  
+                self.bug_layout.size_hint_y=0
+                self.bug_layout.pos_hint={"x":-1,"y":-1}
+
+                self.game_layout.size_hint_x=0 
+                self.game_layout.size_hint_y=0 
+                self.game_layout.pos_hint={"x":-1,"y":-1}
+
+                self.tutorial_layout.size_hint_x=1 
+                self.tutorial_layout.size_hint_y=1  
+                self.tutorial_layout.pos_hint={"x":0,"y":0}
+
+        def menu_transition(self):
+                '''Goes to the tutorial'''
+                self.game_over_layout.size_hint_x=0 
+                self.game_over_layout.size_hint_y=0
+                self.game_over_layout.pos_hint={"x":-1,"y":-1}
+
+                self.menu_layout.size_hint_y=1
+                self.menu_layout.size_hint_x=1
+                self.menu_layout.pos_hint={"x":0,"y":0}
+
+                self.bug_layout.size_hint_x=0  
+                self.bug_layout.size_hint_y=0
+                self.bug_layout.pos_hint={"x":-1,"y":-1}
+
+                self.game_layout.size_hint_x=0 
+                self.game_layout.size_hint_y=0 
+                self.game_layout.pos_hint={"x":-1,"y":-1}
+
+                self.tutorial_layout.size_hint_x=0 
+                self.tutorial_layout.size_hint_y=0
+                self.tutorial_layout.pos_hint={"x":-1,"y":-1} 
+
+        def game_over_transition(self):
+                '''Goes to game_over'''
+                self.game_over_layout.size_hint_x=1
+                self.game_over_layout.size_hint_y=1
+                self.game_over_layout.pos_hint={"x":0,"y":0}
+
+                self.menu_layout.size_hint_y=0
+                self.menu_layout.size_hint_x=0
+                self.menu_layout.pos_hint={"x":-1,"y":-1}
+
+                self.bug_layout.size_hint_x=0  
+                self.bug_layout.size_hint_y=0
+                self.bug_layout.pos_hint={"x":-1,"y":-1}
+
+                self.game_layout.size_hint_x=0 
+                self.game_layout.size_hint_y=0 
+                self.game_layout.pos_hint={"x":-1,"y":-1}
+
+                self.tutorial_layout.size_hint_x=0 
+                self.tutorial_layout.size_hint_y=0
+                self.tutorial_layout.pos_hint={"x":0,"y":0}  
+
+
         #Choosing energies 
         def value_0(self): 
                 ''' Changes values o value_n when the button is pressed'''
@@ -269,7 +412,6 @@ class GameWindow(Screen):
                         self.plot_potential()
                 else: 
                         self.button_plot_anim() #we animate the plot button and label
-
 
 
         def left_water(self,*args): 
@@ -802,14 +944,19 @@ class GameWindow(Screen):
                                 level_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
                                 level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
                                 level_animation1.start(self.level_label) 
-                                self.level_label.text="LEVEL = "+str(self.level) 
+
+                                if self.lang=="ENG": self.level_label.text="LEVEL = "+str(self.level)
+                                elif self.lang=="ESP": self.level_label.text="NIVEL = "+str(self.level)
+                                else: self.level_label.text="NIVELL = "+str(self.level) 
                                 self.target_epsilon=0.1 #resize, note that now is smaller than at the beggining of level 1 
                 else: #we increase level inmidiatelly 
                         self.level+=1 
                         level_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
                         level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
                         level_animation1.start(self.level_label) 
-                        self.level_label.text="LEVEL = "+str(self.level)
+                        if self.lang=="ENG": self.level_label.text="LEVEL = "+str(self.level)
+                        elif self.lang=="ESP": self.level_label.text="NIVEL = "+str(self.level)
+                        else: self.level_label.text="NIVELL = "+str(self.level) 
                         if self.level<=3: 
                                 self.target_epsilon=0.1
                         elif self.level==4: 
@@ -841,7 +988,7 @@ class GameWindow(Screen):
                                                         self.grid_target[j].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
                                                         self.grid_target[j].size_hint_x=self.target_epsilon*2
                                                         self.grid_target[j].size_hint_y=1
-                                                        yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                                                        yellow_image=Image(source="graphs/blue_target.png",allow_stretch=True,keep_ratio=False)
                                                         self.grid_target[j].add_widget(yellow_image) 
                                                         self.measure_layout.add_widget(self.grid_target[j])
                                                         j=j+1 #going to the next iteration         
@@ -860,7 +1007,7 @@ class GameWindow(Screen):
                                 self.grid_target[j].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
                                 self.grid_target[j].size_hint_x=self.target_epsilon*2
                                 self.grid_target[j].size_hint_y=1
-                                yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                                yellow_image=Image(source="graphs/blue_target.png",allow_stretch=True,keep_ratio=False)
                                 self.grid_target[j].add_widget(yellow_image) 
                                 self.measure_layout.add_widget(self.grid_target[j])
                                 j=j+1 #going to the next iteration
@@ -926,13 +1073,13 @@ class GameWindow(Screen):
                         self.grid_target[0].pos_hint={"center_x":self.target_position[0],"center_y":0.5}
                         self.grid_target[0].size_hint_x=self.target_epsilon*2
                         self.grid_target[0].size_hint_y=1
-                        first_yellow=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                        first_yellow=Image(source="graphs/blue_target.png",allow_stretch=True,keep_ratio=False)
                         self.grid_target[0].add_widget(first_yellow) 
                         self.measure_layout.add_widget(self.grid_target[0])
                 else: 
                         for j in range(0,self.level):
                                 self.grid_target[j].clear_widgets() #erase previous target 
-                                yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                                yellow_image=Image(source="graphs/blue_target.png",allow_stretch=True,keep_ratio=False)
                                 self.grid_target[j].add_widget(yellow_image)#we turn into yellow
                                 self.grid_target[j].size_hint_x=self.target_epsilon*2 #resize
                                 self.grid_target[j].size_hint_y=1 
@@ -965,24 +1112,29 @@ class GameWindow(Screen):
                 #after erasing the heart we update the counter
                 self.lives_counter-=1  
                 if self.lives_counter==0: #if we are out of lives we show the Game Over image
-                         self.bug_layout.size_hint_x=0
-                         self.bug_layout.size_hint_y=0
-                         self.game_over_layout.size_hint_x=1 
-                         self.game_over_layout.size_hint_y=1
-                         self.final_score_label.text="FINAL SCORE = "+ str(self.score)
+                         self.game_over_transition()
+                         if self.lang=="ENG": self.final_score_label.text="FINAL SCORE = "+ str(self.score)
+                         elif self.lang=="ESP": self.final_score_label.text="PUNTUACIÓN FINAL = "+ str(self.score)
+                         else: self.final_score_label.text="PUNTUACIÓ FINAL = "+ str(self.score)
                          self.final_score_label.color=(233/255, 179/255, 7/255, 1)
                          self.is_plot=False
                          #we check if there's is a new record: 
                          new_record=False
                          if self.score>self.record: #we have outreached the previous record
-                                self.record=self.score  
-                                self.record_label_over.text=" NEW RECORD = "+ str(self.record)
+                                self.record=self.score 
+
+                                if self.lang=="ENG": self.record_label_over.text=" NEW RECORD = "+ str(self.record)
+                                elif self.lang=="ESP": self.record_label_over.text=" NUEVO RÉCORD = "+ str(self.record)
+                                else: self.record_label_over.text=" NOU RÈCORD = "+ str(self.record) 
+
                                 self.record_label_over.color=(233/255, 179/255, 7/255, 1)
                                 label_animation=Animation(font_size=40,duration=0.5)
                                 label_animation+=Animation(font_size=35,duration=0.5)
                                 label_animation.start(self.record_label_over)
                          else: #not a new record 
-                                self.record_label_over.text="RECORD = "+ str(self.record)
+                                if self.lang=="ENG": self.record_label_over.text=" RECORD = "+ str(self.record)
+                                elif self.lang=="ESP": self.record_label_over.text=" RÉCORD = "+ str(self.record)
+                                else: self.record_label_over.text=" RÈCORD = "+ str(self.record)   
                                 self.record_label_over.color=(233/255, 179/255, 7/255, 1)
 
                 elif self.lives_counter<5: #NOT ALL LIVES : it is possible to recover a live 
@@ -1060,8 +1212,10 @@ class GameWindow(Screen):
 
         def score_update(self,*args): #UPTADES THE SCORE
                 '''Updates the score, called by new target''' 
-                self.score+=1 #we add one point
-                self.score_label.text=" SCORE = " +str(self.score)
+                self.score+=1 #we add one point 
+                if self.lang=="ENG": self.score_label.text=" SCORE = " +str(self.score)
+                elif self.lang=="ESP": self.score_label.text="PUNTOS = " +str(self.score)
+                else: self.score_label.text=" PUNTS = " +str(self.score) 
                 label_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
                 label_animation1+=Animation(color=(0,0,0,1),duration=0.5)
                 #e_animation.bind(on_complete=
@@ -1102,7 +1256,10 @@ class GameWindow(Screen):
 
                 #score 
                 self.score=0 #we put the score to zero 
-                self.score_label.text=" SCORE = " +str(self.score)
+                if self.lang=="ENG": self.score_label.text=" SCORE = " +str(self.score)
+                elif self.lang=="ESP": self.score_label.text="PUNTOS = " +str(self.score)
+                else: self.score_label.text=" PUNTS = " +str(self.score)
+
 
                 for j in range(0,self.level): 
                         self.grid_target[j].clear_widgets() #erase previous targets
@@ -1112,7 +1269,9 @@ class GameWindow(Screen):
                 self.first_target=False 
                 self.is_live_recover=False
                 self.level=1
-                self.level_label.text="LEVEL = "+str(self.level)
+                if self.lang=="ENG": self.level_label.text="LEVEL = "+str(self.level)
+                elif self.lang=="ESP": self.level_label.text="NIVEL = "+str(self.level)
+                else: self.level_label.text="NIVELL = "+str(self.level) 
 
                
                  
@@ -1124,7 +1283,7 @@ class GameWindow(Screen):
                 self.grid_target[0].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
                 self.grid_target[0].size_hint_x=self.target_epsilon*2
                 self.grid_target[0].size_hint_y=1
-                yellow_image=Image(source="graphs/yellow_target.png",allow_stretch=True,keep_ratio=False)
+                yellow_image=Image(source="graphs/blue_target.png",allow_stretch=True,keep_ratio=False)
                 self.grid_target[0].add_widget(yellow_image) 
                 self.measure_layout.add_widget(self.grid_target[0])
         
@@ -1138,9 +1297,7 @@ class GameWindow(Screen):
                 self.bug_layout.size_hint_x= 0.15725
                 self.bug_layout.size_hint_y=0.16
 
-                     
-class TutorialWindow(Screen):
-        pass    
+          
 
      
 Builder.load_file("principal_kivy.kv") #d'aquesta manera li podem dir al fitxer kv com volguem
@@ -1150,9 +1307,7 @@ class MygameApp(App): #inherits from app (utilitza les pepietats)
     #aqesta classe fa que la grid aparegui a la pantalla
     def build(self): #self argument de sempre no te arguments
         sm=ScreenManager()
-        sm.add_widget(MainWindow(name="menu"))
         sm.add_widget(GameWindow(name="game"))
-        sm.add_widget(TutorialWindow(name="tutorial"))
         return sm #estem dibuixant la grid, cridem la classe directament de float Layot
 
 if __name__=="__main__":
