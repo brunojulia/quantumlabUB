@@ -249,7 +249,7 @@ class GameWindow(Screen):
 
                 self.tutorial_layout.size_hint_x=0 
                 self.tutorial_layout.size_hint_y=0
-                self.tutorial_layout.pos_hint={"x":0,"y":0}  
+                self.tutorial_layout.pos_hint={"x":-1,"y":-1}  
 
 
         #Choosing energies 
@@ -612,13 +612,14 @@ class GameWindow(Screen):
                 #if self.potential_type=="Well": 
                         #string_var="    $V(eV)$="+str(self.Vw)
 
-                plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4],loc="right")#"   V(x)= "+str(self.potential_type)+string_var
+                #plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4],loc="right")#"   V(x)= "+str(self.potential_type)+string_var
                         
                 
                 canvas_plot=FigureCanvasKivyAgg(plt.gcf())
                 self.float_plot.clear_widgets()
                 self.float_plot.add_widget(canvas_plot)
                 self.is_plot=False #no wave function plotted
+                self.measure_button.disabled=True
 
         def plot_potential(self): 
                 '''This function plots the potential
@@ -656,6 +657,7 @@ class GameWindow(Screen):
                 self.float_plot.clear_widgets()
                 self.float_plot.add_widget(canvas_plot)
                 self.is_plot=False #no wave function plotted
+                self.measure_button.disabled=True 
 
         def plot_wave_function(self,*args):
                 '''This function plots into the window the wave function.
@@ -696,8 +698,8 @@ class GameWindow(Screen):
                 ax_V.legend(loc="upper right")
                 ax_phi.legend(loc="upper left")
 
-                plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4],loc="right")#"   V(x)= "+str(self.potential_type)+string_var
-                                
+                #plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4],loc="right")#"   V(x)= "+str(self.potential_type)+string_var
+                
                 canvas_plot=FigureCanvasKivyAgg(plt.gcf())
                 self.float_plot.clear_widgets()
                 self.float_plot.add_widget(canvas_plot)
