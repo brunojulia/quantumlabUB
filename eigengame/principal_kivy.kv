@@ -48,9 +48,10 @@
 	right_label: right_label
 	left_label: left_label 
 
-	bug_layout: bug_layout
-
 	tutorial_layout: tutorial_layout
+	tutorial_label:tutorial_label
+
+	bug_layout: bug_layout
 
 	FloatLayout: #MENU LAYOUT
 		id: menu_layout
@@ -87,6 +88,7 @@
 			color:1,1,1,1 #tots els buttons seran aixi
 			text: "GAME"
 			font_name:'Ranchers'
+			disabled: True 
 			bold: False
 			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.5
@@ -109,6 +111,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
 				root.tutorial_transition()
+				root.tutorial_first_step()
 
 		
 		BoxLayout: #for languages
@@ -701,6 +704,24 @@
 					allow_stretch: True
     				keep_ratio: True
 
+    	BoxLayout: #Tutorial LAYOUT
+    		id: tutorial_layout 
+    		size_hint_x:0
+			size_hint_y: 0
+			pos_hint:{"x":-1,"y":-1}
+			Label: 
+				id: tutorial_label
+				font_name: 'Ranchers'
+				size_hint_x:1
+				size_hint_y: 1 
+				pos_hint:{"x":0.5,"y":0.6}
+				text: "First, create your potential \n You can start by creating an harmonic potential "
+				color:0,0,0,1
+	            halign: "center"
+	            texture_size: self.size
+	            text_size: self.size
+	            font_size: 35
+
 
         FloatLayout: #FOR THE MEASURMENT OF THE PARTICLE  
 			size_hint_x: 0.925
@@ -953,30 +974,4 @@
     		keep_ratio: False
 	
 
-	FloatLayout: #TUTORIAL LAYOUT 
-		size_hint_x:0 
-		size_hint_y:0
-		pos_hint:{"x":-1,"y":-1} 
-		id:tutorial_layout
-		Label: #afegim text per saber on som 
-			font_size:25
-			text: "Tutorial"
-			bold: True 
-			multiline: True
-			pos_hint: {"center_x":0.5,"center_y":0.5} #diccionari:{"x","y","top","bottom","left","right"}
-			size_hint_x: 0.6
-			size_hint_y: 0.1 
-			halign:"center"
-			valign:"middle" #lletra centrada
-		Button: #afegim un botó per tornar al menu 
-        	font_size:14
-			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-			text: "Menu"
-			bold: True
-			pos_hint: {"right":1,"y":0} #diccionari:{"x","y","top","bottom","left","right"}
-			size_hint_x: 0.08
-			size_hint_y: 0.08
-            halign:"center"
-			valign:"middle" #lletra centrada
-            on_release: 
-				root.menu_transition()
+	
