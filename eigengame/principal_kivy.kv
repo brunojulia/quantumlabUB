@@ -26,6 +26,7 @@
 	final_score_label: final_score_label
 	record_label_over: record_label_over
 	first_grid_target: first_grid_target
+	energy_layout: energy_layout
 	button0: E0 
 	button1: E1
 	button2: E2 
@@ -33,6 +34,8 @@
 	button4: E4
 	button_free: bvf
 	button_harmonic: bvh
+	harm_icon: harm_icon
+	barrier_icon: barrier_icon
 	button_barrier: bvb
 	button_water: water
 	hooke_slider:hooke_slider
@@ -194,6 +197,7 @@
 					size: self.size 
 					pos: self.pos
 		BoxLayout: #for energy buttons
+			id: energy_layout
 			size_hint_x: 0.3/5
 			size_hint_y:0.4
 			pos_hint:{"x":0.0,"y":0.16}
@@ -319,8 +323,8 @@
 					on_release: 
 						root.free_particle()
 						
-	
-            	Button: #HARMONIC POTENTIAL 
+				
+				Button: #HARMONIC POTENTIAL 
             		id: bvh
             		size_hint_x: 0.25
 					size_hint_y:0.65
@@ -330,7 +334,9 @@
 					valign:"middle" #lletra centrada
 					on_release: 
 						root.harmonic_potential()
+            	
 				GridLayout: #harmonic icon
+					id: harm_icon
 					cols:1 
 					rows:1 
 					pos_hint:{"center_x":0.175,"center_y":0.70}
@@ -388,6 +394,7 @@
 					step: 0.025
 					orientation: "horizontal"
 					on_value: root.slider_x0(*args) #we call a function that saves the value of the slide
+				
 
 
 
@@ -400,6 +407,7 @@
 				on_release: 
 					root.barrier()
 			GridLayout: #barrier icon
+				id: barrier_icon
 				cols:1 
 				rows:1 
 				pos_hint:{"center_x":0.46,"center_y":0.75}

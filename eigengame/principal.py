@@ -1340,6 +1340,14 @@ class GameWindow(Screen):
 
                 self.tutorial_step=1 
 
+                button_animation=Animation(size_hint_x=0.22,size_hint_y=0.5,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.2,size_hint_y=0.42,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.22,size_hint_y=0.5,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.2,size_hint_y=.42,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.22,size_hint_y=0.5,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.2,size_hint_y=.42,duration=0.5)
+                button_animation.start(self.harm_icon)
+
                 #disabling ploting
                 self.plot_button.disabled=True 
                 #disbaling energies
@@ -1374,6 +1382,14 @@ class GameWindow(Screen):
                 else: self.tutorial_label.text='Ara, afegeix-li una barrera al teu potencial'
 
                 self.tutorial_step=2
+
+                button_animation=Animation(size_hint_x=0.17,size_hint_y=0.65,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.15,size_hint_y=0.5,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.17,size_hint_y=0.65,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.15,size_hint_y=.5,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.17,size_hint_y=0.65,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.15,size_hint_y=.5,duration=0.5)
+                button_animation.start(self.barrier_icon)               
 
                 #disabling ploting
                 self.plot_button.disabled=True 
@@ -1410,6 +1426,12 @@ class GameWindow(Screen):
 
                 self.tutorial_step=3
 
+                button_animation=Animation(size_hint_x=0.07,size_hint_y=0.45,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.06,size_hint_y=0.4,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.07,size_hint_y=0.45,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.06,size_hint_y=0.4,duration=0.5)
+                button_animation.start(self.energy_layout)
+
                 #disabling ploting
                 self.plot_button.disabled=True 
                 #disbaling energies
@@ -1444,6 +1466,13 @@ class GameWindow(Screen):
                 else: self.tutorial_label.text="És el moment de dibuixar la funció d'ona"
 
                 self.tutorial_step=4
+                button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
+                button_animation.start(self.plot_button)
 
                 #disabling ploting
                 self.plot_button.disabled=False
@@ -1480,6 +1509,14 @@ class GameWindow(Screen):
 
                 self.tutorial_step=5
 
+                button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
+                button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
+                button_animation.start(self.measure_button)
+
                 #disabling ploting
                 self.plot_button.disabled=True
                 #disbaling energies
@@ -1505,13 +1542,13 @@ class GameWindow(Screen):
                 self.vw_slider.disabled=True 
 
         def tutorial_six_step_green(self): 
-                '''six step  green consisting in repating all the porcedura again ''' 
+                '''six step  green consisting in repeating all the porcedura again ''' 
                 self.tutorial_layout.size_hint_y=1
                 self.tutorial_layout.size_hint_x=1
                 self.tutorial_layout.pos_hint={'x': 0, 'y':0}
                 if self.lang=="ENG": self.tutorial_label.text="You made it! \n Now repeat the procedure and make another measure" 
                 elif self.lang=="ESP": self.tutorial_label.text='Lo lograste! \n Ahora repite el procedimiento y haz otra medida ' 
-                else: self.tutorial_label.text="Ho has aconseguit! \n Ara repeteix el procediment is fes una altra mesura"
+                else: self.tutorial_label.text="Ho has aconseguit! \n Ara repeteix el procediment i fes una altra mesura"
 
                 self.tutorial_step=6
 
