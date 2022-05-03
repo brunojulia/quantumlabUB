@@ -1,50 +1,12 @@
-<MainWindow>
-	FloatLayout: #creem una layout
-		size: root.width, root.height #layout occupies all image
-	    Image:#afegim una imatge
-    		source: "graphs/fondo2.jfif"
-    		allow_stretch: True
-    		keep_ratio: False
-    	
-
-		Label: #afegim text 
-			font_size:20
-			text: "Welcome to EIGENgame.\n To learn how to play press TUTORIAL."  
-			multiline: True
-			pos_hint: {"center_x":0.5,"center_y":0.9} #diccionari:{"x","y","top","bottom","left","right"}
-			size_hint_x: 0.6
-			size_hint_y:0.1 
-			halign:"center"
-			valign:"middle" #lletra centrada
-        Button: #afegim un botó 
-        	font_size:19
-			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-			text: "GAME"
-			bold: True
-			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
-			size_hint_x: 0.5
-			size_hint_y: 0.15
-            halign:"center"
-			valign:"middle" #lletra centrada
-			on_release: 
-				app.root.current="game" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="left" #editem la transicio
-		Button: #afegim un botó 
-        	font_size:19
-			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-			text: "TUTORIAL"
-			bold: True
-			pos_hint: {"center_x":0.5,"center_y":0.4} #diccionari:{"x","y","top","bottom","left","right"}
-			size_hint_x: 0.5
-			size_hint_y:0.15
-            halign:"center"
-			valign:"middle" #lletra centrada
-            on_release: 
-				app.root.current="tutorial" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="left" #editem la transicio
-	
-
 <GameWindow>
+	menu_layout: menu_layout
+	button_cat: button_cat 
+	button_esp: button_esp 
+	button_eng: button_eng
+	front_text: front_text 
+	game_button: game_button
+
+	game_layout: game_layout
 	float_plot: float_plot
 	measure_layout: measure_layout
 	heart1_grid: heart1_grid
@@ -55,7 +17,7 @@
 	game_over_layout: game_over_layout
 	plot_button: plot_button
 	measure_button:measure_button
-	bug_layout: bug_layout
+	rubber_button:rubber_button 
 	plots_label: plots_label
 	score_label: score_label
 	record_label: record_label
@@ -64,6 +26,7 @@
 	final_score_label: final_score_label
 	record_label_over: record_label_over
 	first_grid_target: first_grid_target
+	energy_layout: energy_layout
 	button0: E0 
 	button1: E1
 	button2: E2 
@@ -71,12 +34,155 @@
 	button4: E4
 	button_free: bvf
 	button_harmonic: bvh
+	harm_icon: harm_icon
+	barrier_icon: barrier_icon
 	button_barrier: bvb
 	button_water: water
+	hooke_slider:hooke_slider
+	x0_slider:x0_slider
+	center_slider: center_slider
+	width_slider: width_slider
+	vb_slider:vb_slider
+	left_slider: left_slider 
+	right_slider: right_slider 
+	vw_slider:vw_slider 
+	center_label: center_label 
+	width_label: width_label
+	right_label: right_label
+	left_label: left_label 
+
+	tutorial_layout: tutorial_layout
+	tutorial_label:tutorial_label
+
+	bug_layout: bug_layout
+
+	FloatLayout: #MENU LAYOUT
+		id: menu_layout
+		#size: root.width, root.height #layout occupies all image
+		size_hint_x:1 
+		size_hint_y:1
+	    #Image:#afegim una imatge
+    		#source: "graphs/fondo_posible.jpg"
+    		#allow_stretch: True
+    		#keep_ratio: False
+    	canvas.before: 
+			Color: 
+				rgba: (0,0,0,1) 
+			Rectangle: 
+				size: self.size 
+				pos: self.pos
+
+    	
+		Label: #afegim text 
+			id: front_text
+			font_size:33
+			text: "Welcome to EIGENgame.\n To learn how to play press on TUTORIAL."  
+			multiline: True
+			font_name:'Ranchers'
+			bold: True
+			pos_hint: {"center_x":0.5,"center_y":0.9} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.6
+			size_hint_y:0.1 
+			halign:"center"
+			valign:"middle" #lletra centrada
+        Button: #afegim un botó 
+        	id: game_button
+        	font_size:44
+			color:1,1,1,1 #tots els buttons seran aixi
+			text: "GAME"
+			font_name:'Ranchers'
+			disabled: True 
+			bold: False
+			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.5
+			size_hint_y: 0.15
+            halign:"center"
+			valign:"middle" #lletra centrada
+			on_release: 
+				root.game_transition()
+
+		Button: #afegim un botó 
+        	font_size:44
+			color:1,1,1,1 #tots els buttons seran aixi
+			text: "TUTORIAL"
+			font_name:'Ranchers'
+			bold: True
+			pos_hint: {"center_x":0.5,"center_y":0.4} #diccionari:{"x","y","top","bottom","left","right"}
+			size_hint_x: 0.5
+			size_hint_y:0.15
+            halign:"center"
+			valign:"middle" #lletra centrada
+            on_release: 
+				root.tutorial_transition()
+				root.tutorial_first_step()
+
+		
+		BoxLayout: #for languages
+			size_hint_x: 0.15
+			size_hint_y:0.07
+			pos_hint:{"x":0.0,"y":0.0}
+			orientation: "horizontal"
+			#add buttons for languages
+			Button: #CATALAN 
+	            id: button_cat
+	        	font_size:14
+				color:1,1,1,1
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.catalan() 
+
+			Button: #ESP 
+	            id: button_esp
+	        	font_size:14
+				color:1,1,1,1
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.esp()
+				  
+			Button: #ENGLISH 
+	            id: button_eng
+	        	font_size:14
+	        	color:1,1,1,1
+                background_color: (0,0,1,0.8)
+				bold: True
+            	halign:"center"
+				valign:"middle" #lletra centrada
+				on_release: 
+					root.english()
+				
+
+		BoxLayout: #for flags
+			size_hint_x: 0.15
+			size_hint_y:0.05
+			pos_hint:{"x":0.0,"center_y":0.035}
+			orientation: "horizontal"
+			Image: #we put an image inside the button 
+				source: "graphs/cat_flag.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button					
+
+			Image: #we put an image inside the button 
+				source: "graphs/esp_flag.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width, self.parent.height  
+				
+			Image: #we put an image inside the button 
+				source: "graphs/eng_flag.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y #we put the image in the middle of the button
+				size: self.parent.width, self.parent.height 
 
 
-	FloatLayout: #creem una layout for the game
-		size: root.width, root.height
+	FloatLayout: #GAME_LAYOUT
+		id: game_layout
+		size_hint_x:0  
+		size_hint_y:0 #initially no size so we don't see it 
+		pos_hint:{"x":-1,"y":-1}
 		GridLayout: #FOR PLOTTING 
 			id: float_plot
 			cols: 1
@@ -91,6 +197,7 @@
 					size: self.size 
 					pos: self.pos
 		BoxLayout: #for energy buttons
+			id: energy_layout
 			size_hint_x: 0.3/5
 			size_hint_y:0.4
 			pos_hint:{"x":0.0,"y":0.16}
@@ -98,65 +205,101 @@
 			#add buttons for Energy
 			Button: #E4 
 	            id: E4
-	        	font_size:14
+	        	font_size:18
 				color:1,1,1,1
 				text: "E4"
+				font_name: 'Ranchers'
 				bold: True
             	halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.value_4()
+				canvas.before:
+		    		Color: 
+		    			rgba: 0,0,0,1
+		    		Rectangle: 
+		    			size: self.size
+		    			pos: self.pos
 						
 			Button: #E3
 				id: E3
-	        	font_size:14
+	        	font_size:18
 				color:1,1,1,1 #tots els buttons seran aixi
 				text: "E3"
+				font_name: 'Ranchers'
 				bold: True
 	        	halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.value_3()
+				canvas.before:
+		    		Color: 
+		    			rgba: 0,0,0,1
+		    		Rectangle: 
+		    			size: self.size
+		    			pos: self.pos
 					 		
 			Button: #E2
 				id: E2
-				font_size:14
+				font_size:18
 				color:1,1,1,1 #tots els buttons seran aixi
 				text: "E2"
+				font_name: 'Ranchers'
 				bold: True
 				halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.value_2() 
 						
+				canvas.before:
+			    	Color: 
+			    		rgba: 0,0,0,1
+			    	Rectangle: 
+			    		size: self.size
+			    		pos: self.pos
 			Button: #E1
 				id: E1
-				font_size:14
+				font_size:18
 				color:1,1,1,1 #tots els buttons seran aixi
 				text: "E1"
+				font_name: 'Ranchers'
 				bold: True
             	halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
-					root.value_1() 
+					root.value_1()
+				canvas.before:
+			    	Color: 
+			    		rgba: 0,0,0,1
+			    	Rectangle: 
+			    		size: self.size
+			    		pos: self.pos 
 					
 			Button: #E0
 				id: E0
-				font_size:14
+				font_size:18
 				color:1,1,1,1 #tots els buttons seran aixi
 				background_color: (0,0,1,0.8)
 				text: "E0"
+				font_name: 'Ranchers'
 				bold: True
 				halign:"center"
 				valign:"middle" #lletra centrada
 				on_release: 
 					root.value_0() 
+				canvas.before:
+			    	Color: 
+			    		rgba: 0,0,0,1
+			    	Rectangle: 
+			    		size: self.size
+			    		pos: self.pos
 
 	           
 		FloatLayout: #For editing buttons 
 			size_hint_x: 1 
 			size_hint_y:0.2
 			pos_hint:{"x":0,"y":0.8}
+			
 						 
 			FloatLayout: #we create a FloatLayout for potential buttons 
 				size_hint_x: 1
@@ -172,14 +315,16 @@
 					color:1,1,1,1 
 					background_color: (0,0,1,0.8)
 					text: "FREE"
+					font_size:18
+					font_name: 'Ranchers'
 					bold: True
 	            	halign:"center"
 					valign:"middle" #lletra centrada
 					on_release: 
 						root.free_particle()
 						
-	
-            	Button: #HARMONIC POTENTIAL 
+				
+				Button: #HARMONIC POTENTIAL 
             		id: bvh
             		size_hint_x: 0.25
 					size_hint_y:0.65
@@ -189,7 +334,9 @@
 					valign:"middle" #lletra centrada
 					on_release: 
 						root.harmonic_potential()
+            	
 				GridLayout: #harmonic icon
+					id: harm_icon
 					cols:1 
 					rows:1 
 					pos_hint:{"center_x":0.175,"center_y":0.70}
@@ -205,6 +352,8 @@
 					size_hint_y: 0.65/4 
 					pos_hint:{"center_x":0.05+0.25/4,"y":0.35+0.01}
 					text: "K"
+					font_name: 'Ranchers'
+					font_size:18
 					bold: True
 					color:1,1,1,1
 	            	halign:"center"
@@ -214,31 +363,38 @@
 					size_hint_y: 0.65/4 
 					pos_hint:{"center_x":7/40+0.25/4,"y":0.35+0.01}
 					text: "Xo"
+					font_name: 'Ranchers'
+					font_size:18
 					bold: True
 					color:1,1,1,1
 	            	halign:"center"
 					valign:"middle"
 							
 				Slider: #to choose the hooke constant
+				    id: hooke_slider
 					size_hint_x: 0.25/2
 					size_hint_y:0.35
 					pos_hint:{"x":0.05,"y":0.0}
 					min: 0
 					max: 20
+					disabled: False
 					value:10
 					step: 0.05
 					orientation: "horizontal"
 					on_value: root.slider_value_k(*args) #we call a function that saves the value of the slide
 
 				Slider: #to choose x_0
+				    id: x0_slider
 					size_hint_x: 0.25/2
 					size_hint_y:0.35
 					pos_hint:{"x":7.0/40.0,"y":0.0}
 					min: -5
 					max: 5
+					disabled: False 
 					step: 0.025
 					orientation: "horizontal"
 					on_value: root.slider_x0(*args) #we call a function that saves the value of the slide
+				
 
 
 
@@ -251,6 +407,7 @@
 				on_release: 
 					root.barrier()
 			GridLayout: #barrier icon
+				id: barrier_icon
 				cols:1 
 				rows:1 
 				pos_hint:{"center_x":0.46,"center_y":0.75}
@@ -262,20 +419,26 @@
 	    			keep_ratio: False
 
 			Label: #inside button CENTER 
+				id: center_label 
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.3+0.075,"y":0.35+0.02}
 				text: "CENTER"
+				font_name: 'Ranchers'
+				font_size:18
 				bold: True
 				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
 			Label: #inside button WIDTH
+				id: width_label
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.45+0.085,"y":0.35+0.02}
 				text: "WIDTH"
+				font_name: 'Ranchers'
 				bold: True
+				font_size:18
 				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
@@ -284,14 +447,18 @@
 				size_hint_y: 0.65/4 
 				pos_hint:{"x":0.3+0.32*3/4+0.01,"y":0.35+2.8*0.65/4}
 				text: "Vmax:"
+				font_size:18
 				bold: True
+				font_name: 'Ranchers'
 				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
 					 
 			Slider: #to choose the CENTER of the barrier
+				id: center_slider
 			    size_hint_x: 0.16
 				size_hint_y:0.35
+				disabled: False
 				pos_hint:{"x":0.3,"y":0}	
 				min: -5
 				max: +5
@@ -300,7 +467,9 @@
 				orientation: "horizontal"
 				on_value: root.center_barrier(*args) #we call a function that saves the value of the slide
             Slider: #to choose the WIDTH of the barrier
+            	id: width_slider
 			    size_hint_x: 0.16
+			    disabled: False
 				size_hint_y:0.36
 				pos_hint:{"x":0.45,"y":0}	
 				min: 0
@@ -310,6 +479,8 @@
 				orientation: "horizontal"
 				on_value: root.width_barrier(*args) #we call a function that saves the value of the slide
 			Slider: #to choose the vertical 
+				id: vb_slider
+				disabled: False
 				size_hint_x:0.03
 				size_hint_y:1
 				pos_hint:{"x":0.62,"y":0}
@@ -343,19 +514,25 @@
 	    			keep_ratio: False
 
 			Label: #inside button LEFT 
+				id: left_label
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.65+0.075,"y":0.35+0.02}
 				text: "LEFT"
+				font_name: 'Ranchers'
+				font_size:18
 				bold: True
 				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
 			Label: #inside button RIGHT
+				id: right_label
 				size_hint_x:0.32/4 
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.81+0.085,"y":0.35+0.02}
 				text: "RIGHT"
+				font_name: 'Ranchers'
+				font_size:18
 				bold: True
 				color:1,1,1,1
 	            halign:"center"
@@ -365,12 +542,16 @@
 				size_hint_y: 0.65/4 
 				pos_hint:{"x":0.65+0.32*3/4+0.01,"y":0.35+2.8*0.65/4}
 				text: "Vmax:"
+				font_size:18
+				font_name: 'Ranchers'
 				bold: True
 				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
 
 			Slider: #to choose the left of the barrier
+			    id: left_slider 
+			    disabled: False
 			    size_hint_x: 0.16
 				size_hint_y:0.35
 				pos_hint:{"x":0.65,"y":0}	
@@ -381,16 +562,21 @@
 				orientation: "horizontal"
 				on_value: root.left_water(*args) #we call a function that saves the value of the slide
             Slider: #to choose the right of the barrier
+            	id: right_slider 
+			    disabled: False
 			    size_hint_x: 0.16
 				size_hint_y:0.35
 				pos_hint:{"x":0.81,"y":0}	
 				min: -5
 				max: 5
+				disabled: False
 				value: 0.4
 				step: 0.05
 				orientation: "horizontal"
 				on_value: root.right_water(*args) #we call a function that saves the value of the slide
 			Slider: #to choose the vertical 
+			    id: vw_slider 
+			    disabled: False
 				size_hint_x:0.025
 				size_hint_y:1
 				pos_hint:{"x":0.97,"y":0}	
@@ -416,7 +602,8 @@
 	            halign: "left"
 	            texture_size: self.size
 	            text_size: self.size
-	            font_size: 23
+	            font_name: 'Ranchers'
+	            font_size: 25
 
 	    BoxLayout: #CURRENT RECORD LAYOUT 
 			size_hint_x:0.15
@@ -424,6 +611,7 @@
 			pos_hint:{"x":0,"top":0.67}
 			Label: 
 				id: record_label
+				font_name: 'Ranchers'
 				size_hint_x:1
 				size_hint_y: 1 
 				pos_hint: {"x":0,"y":0}
@@ -432,7 +620,7 @@
 	            halign: "left"
 	            texture_size: self.size
 	            text_size: self.size
-	            font_size: 23
+	            font_size: 25
 
 	    BoxLayout: #LEVEL LABEL 
 	    	size_hint_x:0.15
@@ -440,6 +628,7 @@
 			pos_hint:{"x":0.16,"top":0.79}
 			Label: 
 				id: level_label
+				font_name: 'Ranchers'
 				size_hint_x:1
 				size_hint_y: 1 
 				pos_hint:{"x":0,"y":0}
@@ -448,7 +637,7 @@
 	            halign: "left"
 	            texture_size: self.size
 	            text_size: self.size
-	            font_size: 23
+	            font_size: 25
 	    BoxLayout: #LOADING LABEL 
 	    	size_hint_x:0.15
 			size_hint_y:0.04 
@@ -459,11 +648,12 @@
 				size_hint_y: 1
 				pos_hint:{"x":0,"y":0}
 				text: "Loading..."
+				font_name: 'Ranchers'
 				color:0,0,0,0
 	            halign: "left"
 	            texture_size: self.size
 	            text_size: self.size
-	            font_size: 23 
+	            font_size: 25
 
 		BoxLayout: #Hearts LAYOUT
 			size_hint_x:0.15
@@ -522,6 +712,24 @@
 					allow_stretch: True
     				keep_ratio: True
 
+    	BoxLayout: #Tutorial LAYOUT
+    		id: tutorial_layout 
+    		size_hint_x:0
+			size_hint_y: 0
+			pos_hint:{"x":-1,"y":-1}
+			Label: 
+				id: tutorial_label
+				font_name: 'Ranchers'
+				size_hint_x:1
+				size_hint_y: 1 
+				pos_hint:{"x":0.5,"y":0.6}
+				text: "First, create your potential \n You can start by creating an harmonic potential "
+				color:0,0,0,1
+	            halign: "center"
+	            texture_size: self.size
+	            text_size: self.size
+	            font_size: 35
+
 
         FloatLayout: #FOR THE MEASURMENT OF THE PARTICLE  
 			size_hint_x: 0.925
@@ -569,7 +777,7 @@
 					size_hint_x:0.4 #epsilon=0.05
 					pos_hint:{"center_x": root.target_position[0],"center_y":0.5} #gets generated in the code
 					Image: #we put an image
-						source: "graphs/yellow_target.png"
+						source: "graphs/blue_target.png"
 						allow_stretch: True
     					keep_ratio: False
 
@@ -582,12 +790,18 @@
         	pos_hint:{"right":1,"top":0.8}
         	background_normal: ''
         	background_color: 23/255, 190/255, 255/255, 1
-        	
+        	disabled: False 
             halign:"center"
 			valign:"middle" #
 			on_release:
 				root.loading_anim() 
 				#root.plot_wave_function() #we plot 
+			canvas.before:
+		    	Color: 
+		    		rgba: 0,0,0,1
+		    	Rectangle: 
+		    		size: self.size
+		    		pos: self.pos
 
 			Image: #we put an image inside the button 
 				source: "graphs/wave_icon.png"
@@ -600,11 +814,14 @@
 			size_hint_y: 0.08/3
 			pos_hint:{"right":1.005,"top":0.8}
 			text: "3"
-			color:0,0,0,1
+			font_name: 'Ranchers'
+			color:1,1,1,1
+			bold: True
 	        halign: "left"
 	        font_size: 24 
 
 	    Button: #RUBBER BUTTON 
+	    	id: rubber_button 
 	    	size_hint_x: 0.075
         	size_hint_y: 0.08
         	pos_hint:{"right":1,"top":0.8-0.08}
@@ -612,6 +829,12 @@
 			valign:"middle" #
 			on_release:
 				root.free_particle() 
+			canvas.before:
+		    	Color: 
+		    		rgba: 0,0,0,1
+		    	Rectangle: 
+		    		size: self.size
+		    		pos: self.pos
 			Image: #we put an image inside the button 
 				source: "graphs/rubber_icon.png"
 				center_x:self.parent.center_x
@@ -626,15 +849,23 @@
         	pos_hint:{"right":1,"y":0.08}
         	background_normal: ''
         	background_color: 23/255, 190/255, 255/255, 1
+        	disabled: True
             halign:"center"
 			valign:"middle" #
 			on_release: 
-				root.appear_e() #we measure and print position of the electron 
+				root.appear_e() #we measure and print position of the electron  
+		    canvas.before:
+		    	Color: 
+		    		rgba: 0,0,0,1
+		    	Rectangle: 
+		    		size: self.size
+		    		pos: self.pos  	    
 			Image: #we put an image inside the button 
 				source: "graphs/measure.png"
 				center_x:self.parent.center_x
 				center_y:self.parent.center_y #we put the image in the middle of the button
 				size: self.parent.width, self.parent.height
+		    
 
 		Button: #MENU BUTTON  
         	size_hint_x: 0.075
@@ -645,8 +876,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
             	root.reboot()
-				app.root.current="menu" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="right" #editem la transicio
+				root.menu_transition()
 		GridLayout: #menu icon
 			cols:1 
 			rows:1 
@@ -661,10 +891,11 @@
 	FloatLayout: #GAME OVER 
 		id: game_over_layout
 		size_hint_x:0  
-		size_hint_y:0 #initially no size so we don't see it 
+		size_hint_y:0 #initially no size so we don't see it
+		pos_hint:{"x":-1,"y":-1} 
 		canvas.before: 
 			Color: 
-				rgba: (1,1,1,1) 
+				rgba: (0,0,0,1) 
 			Rectangle: 
 				size: self.size 
 				pos: self.pos
@@ -680,8 +911,9 @@
         	pos_hint:{"center_x":0.5,"center_y":0.9}
         	halign:"center"
 			valign:"middle" #lletra centrada
-			font_size: 35
+			font_size: 40
 			bold: True
+			font_name: 'Ranchers'
 
 		Label:
     		id: record_label_over
@@ -690,8 +922,9 @@
         	pos_hint:{"center_x":0.5,"center_y":0.1}
         	halign:"center"
 			valign:"middle" #lletra centrada
-			font_size: 35
+			font_size: 40
 			bold: True 
+			font_name: 'Ranchers'
 
 
 
@@ -704,8 +937,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
             	root.reboot()
-				app.root.current="menu" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="right" #editem la transicio
+				root.menu_transition()
 		GridLayout: #menu icon
 			cols:1 
 			rows:1 
@@ -726,6 +958,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
             	root.reboot()
+            	root.game_transition()
             Image: #we put an image inside the button 
 				source: "graphs/playagain.png"
 				center_x:self.parent.center_x
@@ -734,9 +967,9 @@
 
 	FloatLayout: #square bug  
 		id: bug_layout
-		size_hint_x: 0.15725  
-		size_hint_y: 0.16 #initially no size so we don't see it 
-		pos_hint:{"x":0, "y":0}
+		size_hint_x: 0 #0.15725  
+		size_hint_y: 0 #0.16  
+		pos_hint:{"x":-1,"y":-1}
 		canvas.before: 
 			Color: 
 				rgba: (0,0,0,1) 
@@ -748,29 +981,5 @@
 			allow_stretch: True
     		keep_ratio: False
 	
-			
-<TutorialWindow>
-	FloatLayout: #creem una layout
-		Label: #afegim text per saber on som 
-			font_size:25
-			text: "Tutorial"
-			bold: True 
-			multiline: True
-			pos_hint: {"center_x":0.5,"center_y":0.5} #diccionari:{"x","y","top","bottom","left","right"}
-			size_hint_x: 0.6
-			size_hint_y: 0.1 
-			halign:"center"
-			valign:"middle" #lletra centrada
-		Button: #afegim un botó per tornar al menu 
-        	font_size:14
-			color:0.3,0.6,0.7,1 #tots els buttons seran aixi
-			text: "Menu"
-			bold: True
-			pos_hint: {"right":1,"y":0} #diccionari:{"x","y","top","bottom","left","right"}
-			size_hint_x: 0.08
-			size_hint_y: 0.08
-            halign:"center"
-			valign:"middle" #lletra centrada
-            on_release: 
-				app.root.current="menu" #quan el deixem anar canviem de pantalla 
-				root.manager.transition.direction="right" #editem la transicio
+
+	
