@@ -53,8 +53,7 @@
 
 	tutorial_layout: tutorial_layout
 	tutorial_label:tutorial_label
-
-	bug_layout: bug_layout
+	next_button: next_button
 
 	FloatLayout: #MENU LAYOUT
 		id: menu_layout
@@ -78,7 +77,7 @@
 			font_size:33
 			text: "Welcome to EIGENgame.\n To learn how to play press on TUTORIAL."  
 			multiline: True
-			font_name:'Ranchers'
+			font_name:'ranchers'
 			bold: True
 			pos_hint: {"center_x":0.5,"center_y":0.9} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.6
@@ -90,7 +89,7 @@
         	font_size:44
 			color:1,1,1,1 #tots els buttons seran aixi
 			text: "GAME"
-			font_name:'Ranchers'
+			font_name:'ranchers'
 			disabled: True 
 			bold: False
 			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
@@ -105,7 +104,7 @@
         	font_size:44
 			color:1,1,1,1 #tots els buttons seran aixi
 			text: "TUTORIAL"
-			font_name:'Ranchers'
+			font_name:'ranchers'
 			bold: True
 			pos_hint: {"center_x":0.5,"center_y":0.4} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.5
@@ -114,7 +113,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
 				root.tutorial_transition()
-				root.tutorial_first_step()
+				root.tutorial_first_step_grey()
 
 		
 		BoxLayout: #for languages
@@ -208,7 +207,7 @@
 	        	font_size:18
 				color:1,1,1,1
 				text: "E4"
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				bold: True
             	halign:"center"
 				valign:"middle" #lletra centrada
@@ -226,7 +225,7 @@
 	        	font_size:18
 				color:1,1,1,1 #tots els buttons seran aixi
 				text: "E3"
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				bold: True
 	        	halign:"center"
 				valign:"middle" #lletra centrada
@@ -244,7 +243,7 @@
 				font_size:18
 				color:1,1,1,1 #tots els buttons seran aixi
 				text: "E2"
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				bold: True
 				halign:"center"
 				valign:"middle" #lletra centrada
@@ -262,7 +261,7 @@
 				font_size:18
 				color:1,1,1,1 #tots els buttons seran aixi
 				text: "E1"
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				bold: True
             	halign:"center"
 				valign:"middle" #lletra centrada
@@ -281,7 +280,7 @@
 				color:1,1,1,1 #tots els buttons seran aixi
 				background_color: (0,0,1,0.8)
 				text: "E0"
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				bold: True
 				halign:"center"
 				valign:"middle" #lletra centrada
@@ -316,7 +315,7 @@
 					background_color: (0,0,1,0.8)
 					text: "FREE"
 					font_size:18
-					font_name: 'Ranchers'
+					font_name: 'ranchers'
 					bold: True
 	            	halign:"center"
 					valign:"middle" #lletra centrada
@@ -352,7 +351,7 @@
 					size_hint_y: 0.65/4 
 					pos_hint:{"center_x":0.05+0.25/4,"y":0.35+0.01}
 					text: "K"
-					font_name: 'Ranchers'
+					font_name: 'ranchers'
 					font_size:18
 					bold: True
 					color:1,1,1,1
@@ -363,7 +362,7 @@
 					size_hint_y: 0.65/4 
 					pos_hint:{"center_x":7/40+0.25/4,"y":0.35+0.01}
 					text: "Xo"
-					font_name: 'Ranchers'
+					font_name: 'ranchers'
 					font_size:18
 					bold: True
 					color:1,1,1,1
@@ -424,7 +423,7 @@
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.3+0.075,"y":0.35+0.02}
 				text: "CENTER"
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				font_size:18
 				bold: True
 				color:1,1,1,1
@@ -436,7 +435,7 @@
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.45+0.085,"y":0.35+0.02}
 				text: "WIDTH"
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				bold: True
 				font_size:18
 				color:1,1,1,1
@@ -449,7 +448,7 @@
 				text: "Vmax:"
 				font_size:18
 				bold: True
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				color:1,1,1,1
 	            halign:"center"
 				valign:"middle"
@@ -519,7 +518,7 @@
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.65+0.075,"y":0.35+0.02}
 				text: "LEFT"
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				font_size:18
 				bold: True
 				color:1,1,1,1
@@ -531,7 +530,7 @@
 				size_hint_y: 0.65/4 
 				pos_hint:{"center_x":0.81+0.085,"y":0.35+0.02}
 				text: "RIGHT"
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				font_size:18
 				bold: True
 				color:1,1,1,1
@@ -543,7 +542,7 @@
 				pos_hint:{"x":0.65+0.32*3/4+0.01,"y":0.35+2.8*0.65/4}
 				text: "Vmax:"
 				font_size:18
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				bold: True
 				color:1,1,1,1
 	            halign:"center"
@@ -602,7 +601,7 @@
 	            halign: "left"
 	            texture_size: self.size
 	            text_size: self.size
-	            font_name: 'Ranchers'
+	            font_name: 'ranchers'
 	            font_size: 25
 
 	    BoxLayout: #CURRENT RECORD LAYOUT 
@@ -611,7 +610,7 @@
 			pos_hint:{"x":0,"top":0.67}
 			Label: 
 				id: record_label
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				size_hint_x:1
 				size_hint_y: 1 
 				pos_hint: {"x":0,"y":0}
@@ -628,7 +627,7 @@
 			pos_hint:{"x":0.16,"top":0.79}
 			Label: 
 				id: level_label
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				size_hint_x:1
 				size_hint_y: 1 
 				pos_hint:{"x":0,"y":0}
@@ -648,7 +647,7 @@
 				size_hint_y: 1
 				pos_hint:{"x":0,"y":0}
 				text: "Loading..."
-				font_name: 'Ranchers'
+				font_name: 'ranchers'
 				color:0,0,0,0
 	            halign: "left"
 	            texture_size: self.size
@@ -712,23 +711,6 @@
 					allow_stretch: True
     				keep_ratio: True
 
-    	BoxLayout: #Tutorial LAYOUT
-    		id: tutorial_layout 
-    		size_hint_x:0
-			size_hint_y: 0
-			pos_hint:{"x":-1,"y":-1}
-			Label: 
-				id: tutorial_label
-				font_name: 'Ranchers'
-				size_hint_x:1
-				size_hint_y: 1 
-				pos_hint:{"x":0.5,"y":0.6}
-				text: "First, create your potential \n You can start by creating an harmonic potential "
-				color:0,0,0,1
-	            halign: "center"
-	            texture_size: self.size
-	            text_size: self.size
-	            font_size: 35
 
 
         FloatLayout: #FOR THE MEASURMENT OF THE PARTICLE  
@@ -749,14 +731,14 @@
 					#source: "graphs/redlines.png"
 					#allow_stretch: True
     				#keep_ratio: False
-    		BoxLayout: #redlines right 
-				size_hint_x: 0.065
-				size_hint_y: 1
-				pos_hint:{"right":1,"y":0}
-				Image: #we put an image
-					source: "graphs/redlines_1.png"
-					allow_stretch: True
-    				keep_ratio: False
+    		#BoxLayout: #redlines right 
+				#size_hint_x: 0.02
+				#size_hint_y: 1
+				#pos_hint:{"right":1,"y":0}
+				#Image: #we put an image
+					#source: "graphs/redlines_1.png"
+					#allow_stretch: True
+    				#keep_ratio: False
     		FloatLayout: #noforbidden for the target 
 				size_hint_x: 0.765
 				size_hint_y: 1
@@ -765,9 +747,10 @@
     		
     		FloatLayout: #nonforbiden zone for electron and ray 
     			id: measure_layout
-				size_hint_x: 0.765
+				size_hint_x:0.84 #0.765
 				size_hint_y: 1
-				pos_hint:{"x":0.17,"y":0}
+				pos_hint:{"x":0.135,"y":0} #x:0.17
+
 
 				GridLayout: #FOR THE TARGET
 					id: first_grid_target
@@ -787,7 +770,7 @@
 			id: plot_button
 			size_hint_x: 0.075
         	size_hint_y: 0.08
-        	pos_hint:{"right":1,"top":0.8}
+        	pos_hint:{"x":0,"y":0.08}
         	background_normal: ''
         	background_color: 23/255, 190/255, 255/255, 1
         	disabled: False 
@@ -812,9 +795,9 @@
 			id: plots_label
 			size_hint_x:0.075/3
 			size_hint_y: 0.08/3
-			pos_hint:{"right":1.005,"top":0.8}
+			pos_hint:{"right":0.080,"top":0.08+0.08}
 			text: "3"
-			font_name: 'Ranchers'
+			font_name: 'ranchers'
 			color:1,1,1,1
 			bold: True
 	        halign: "left"
@@ -824,7 +807,7 @@
 	    	id: rubber_button 
 	    	size_hint_x: 0.075
         	size_hint_y: 0.08
-        	pos_hint:{"right":1,"top":0.8-0.08}
+        	pos_hint:{"x":0,"y":0.}
         	halign:"center"
 			valign:"middle" #
 			on_release:
@@ -888,6 +871,44 @@
 				allow_stretch: True
     			keep_ratio: True
 
+    	FloatLayout: #Tutorial LAYOUT
+    		id: tutorial_layout 
+    		size_hint_x:0
+			size_hint_y: 0
+			pos_hint:{"x":-1,"y":-1}
+			canvas.before: 
+				Color: 
+					rgba: (0,0,0,0.90) #black canvas as a background 
+				Rectangle: 
+					size: self.size 
+					pos: self.pos
+
+			Label: 
+				id: tutorial_label
+				font_name: 'ranchers'
+				size_hint_x:1
+				size_hint_y: 0.5 
+				pos_hint:{"center_x":0.5,"y":0.6}
+				text: "First, create your potential \n You can start by creating an harmonic potential "
+				color:1,1,1,1
+	            halign: "center"
+	            texture_size: self.size
+	            text_size: self.size
+	            font_size: 35
+
+	        Button: #next on tutorial 
+	        	id: next_button
+	        	size_hint_x: 0.2
+				size_hint_y:0.1 
+	        	text: "NEXT"
+	        	font_name: 'ranchers'
+	        	color: 1,1,1,1
+	        	font_size: 35
+	        	pos_hint:{"center_x":0.5,"y":0.4}
+	            halign:"center"
+	            on_release: 
+					root.next_step()
+
 	FloatLayout: #GAME OVER 
 		id: game_over_layout
 		size_hint_x:0  
@@ -913,7 +934,7 @@
 			valign:"middle" #lletra centrada
 			font_size: 40
 			bold: True
-			font_name: 'Ranchers'
+			font_name: 'ranchers'
 
 		Label:
     		id: record_label_over
@@ -924,7 +945,7 @@
 			valign:"middle" #lletra centrada
 			font_size: 40
 			bold: True 
-			font_name: 'Ranchers'
+			font_name: 'ranchers'
 
 
 
@@ -965,21 +986,7 @@
 				center_y:self.parent.center_y #we put the image in the middle of the button
 				size: self.parent.width, self.parent.height
 
-	FloatLayout: #square bug  
-		id: bug_layout
-		size_hint_x: 0 #0.15725  
-		size_hint_y: 0 #0.16  
-		pos_hint:{"x":-1,"y":-1}
-		canvas.before: 
-			Color: 
-				rgba: (0,0,0,1) 
-			Rectangle: 
-				size: self.size 
-				pos: self.pos
-		Image: #we put an image
-			source: "graphs/redlines.png"
-			allow_stretch: True
-    		keep_ratio: False
+
 	
 
 	
