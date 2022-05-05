@@ -113,7 +113,7 @@
 			valign:"middle" #lletra centrada
             on_release: 
 				root.tutorial_transition()
-				root.tutorial_first_step_grey()
+				root.tutorial_explanation()
 
 		
 		BoxLayout: #for languages
@@ -889,7 +889,7 @@
 				size_hint_x:1
 				size_hint_y: 0.5 
 				pos_hint:{"center_x":0.5,"y":0.6}
-				text: "First, create your potential \n You can start by creating an harmonic potential "
+				text: "The goal is to create a wave function  \n so when you measure the electron it appears in the target "
 				color:1,1,1,1
 	            halign: "center"
 	            texture_size: self.size
@@ -908,6 +908,7 @@
 	            halign:"center"
 	            on_release: 
 					root.next_step()
+
 
 	FloatLayout: #GAME OVER 
 		id: game_over_layout

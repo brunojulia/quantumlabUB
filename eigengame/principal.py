@@ -134,8 +134,9 @@ class GameWindow(Screen):
                 self.left_label.text="ESQUERRA"
                 self.score_label.text=" PUNTS = 0"
                 self.level_label.text="NIVELL = 1"
+                self.next_button.text="SEGÜENT"
 
-                self.tutorial_label.text= "Primer, crea  el teu potencial \n Per començar crea un potencial harmònic "
+                
 
         def esp(self): 
                 '''Sets language to spanish''' 
@@ -153,8 +154,7 @@ class GameWindow(Screen):
                 self.left_label.text="IZQUIERDA"
                 self.score_label.text="PUNTOS = 0"
                 self.level_label.text="NIVEL = 1"
-
-                self.tutorial_label.text= "Primero, crea tu potencial \n Para empezar crea un potencial harmónico "
+                self.next_button.text="SIGUIENTE"
                 
         def english(self): 
                 '''Sets language to english''' 
@@ -172,7 +172,7 @@ class GameWindow(Screen):
                 self.left_label.text="LEFT"
                 self.score_label.text=" SCORE = 0"
                 self.level_label.text="LEVEL = 1"
-                self.tutorial_label.text= "First, create your potential \n You can start by creating an harmonic potential "
+                self.next_button.text="NEXT"
 
 
         def game_transition(self): 
@@ -1336,16 +1336,35 @@ class GameWindow(Screen):
         #TUTORIAL 
         def next_step(self): 
                 '''Linked to button next''' 
+                if self.tutorial_step==0:
+                        bug_animation=Animation(size_hint_x=0,size_hint_y=0,pos_hint={'x': -1, 'y':-1}, duration=0.00001) 
+                        bug_animation.start(self.tutorial_layout)
+                        bug_animation.bind(on_complete=self.tutorial_first_step_grey)
                 if self.tutorial_step==1: self.tutorial_first_step()
                 if self.tutorial_step==2: self.tutorial_second_step()
                 if self.tutorial_step==3: self.tutorial_third_step()
                 if self.tutorial_step==4: self.tutorial_forth_step()
                 if self.tutorial_step==5: self.tutorial_fifth_step()
                 if self.tutorial_step==6: self.tutorial_six_step()
+
+        def tutorial_explanation(self): 
+                self.tutorial_layout.size_hint_y=1
+                self.tutorial_layout.size_hint_x=1
+                self.tutorial_layout.pos_hint={'x': 0, 'y':0}
+
+                self.tutorial_step=0 
+                self.next_button.disabled=False
+
+                if self.lang=="ENG": self.tutorial_label.text= "The goal is to create a wave function  \n so when you measure the electron it appears in the target "
+                elif self.lang=="ESP": self.tutorial_label.text="El objectivo es crear una función de onda \n tal que cuando midas el electron este aparezca en el objetivo " 
+                else: self.tutorial_label.text="L'objectiu és crear una funció d'ona \n tal que quan mesuris l'electró aquest aparegui en l'objectiu. "
+
+                self.all_buttons_disabled()
                 
 
-        def tutorial_first_step_grey(self): 
+        def tutorial_first_step_grey(self,*args): 
                 '''First step consisting in choosing a potential''' 
+                #NO APAREIX
                 self.tutorial_layout.size_hint_y=1
                 self.tutorial_layout.size_hint_x=1
                 self.tutorial_layout.pos_hint={'x': 0, 'y':0}
