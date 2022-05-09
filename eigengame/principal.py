@@ -12,7 +12,6 @@ from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.properties import ObjectProperty
 from kivy.animation import Animation 
 from kivy.uix.image import Image
-import os 
 import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm, rcParams
 plt.rcParams.update({'font.size': 13}) #matplotlib fontsize
@@ -21,7 +20,6 @@ import numpy as np
 import scipy
 import scipy.special 
 import random 
-from numba import jit
 import time
 
 
@@ -115,6 +113,10 @@ class GameWindow(Screen):
         tutorial=True 
         tutorial_step=1 
 
+        
+
+
+
         #MENU FUNCTIONALITY 
         
         #SELECTING LANGUAGE 
@@ -192,6 +194,12 @@ class GameWindow(Screen):
 
                 self.tutorial=False
 
+                #remarking color of labels for bug in executable 
+                self.record_label.color=(0,0,0,1)
+                self.level_label.color=(0,0,0,1)
+                self.score_label.color=(0,0,0,1)
+                self.plots_label.color=(1,1,1,1)
+
 
         def tutorial_transition(self): 
                 '''Goes to the tutorial'''
@@ -209,6 +217,12 @@ class GameWindow(Screen):
                 self.game_layout.pos_hint={"x":0,"y":0}
 
                 self.tutorial=True
+
+                #remarking color of labels for bug in executable 
+                self.record_label.color=(0,0,0,1)
+                self.level_label.color=(0,0,0,1)
+                self.score_label.color=(0,0,0,1)
+                self.plots_label.color=(1,1,1,1)
 
         def menu_transition(self):
                 '''Goes to the tutorial'''
@@ -592,14 +606,12 @@ class GameWindow(Screen):
                 '''This function plots the energy line for a estatic potential'''
                 plt.clf()
 
-                fpath = os.path.join(rcParams["datapath"], "/Users/34626/OneDrive/Escritorio/6e SEMESTRE/PRACS DEMPRESA/eigengame/ranchers.ttf")
-                prop = fm.FontProperties(fname=fpath)
-                fname = os.path.split(fpath)[1]
+               
 
 
                 fig, ax_phi=plt.subplots()
-                ax_phi.set_xlabel('$x(\AA)$'.format(fname), fontproperties=prop) 
-                ax_phi.set_ylabel("$ \phi^2$".format(fname), fontproperties=prop) # dont' work because ranchers d'oesnt support LATEX
+                ax_phi.set_xlabel('$x(\AA)$') 
+                ax_phi.set_ylabel("$ \phi^2$") # dont' work because ranchers d'oesnt support LATEX
                 ax_phi.set_ylim((0,1)) #maximum of phi_axis
                 ax_phi.xaxis.labelpad = -1
                 #we compute the eigen_values 
@@ -619,7 +631,7 @@ class GameWindow(Screen):
                 y2=0
                 V_plot=[self.potential(s) for s in self.x_potential_values] 
                 ax_V = ax_phi.twinx() #same x_axis
-                ax_V.set_ylabel("$V(eV)$".format(fname), fontproperties=prop)
+                ax_V.set_ylabel("$V(eV)$")
                 ax_V.plot(self.x_potential_values,V_plot, label="V(x)" , color='tab:blue') 
                 ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
                 ax_V.fill_between(self.x_potential_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
