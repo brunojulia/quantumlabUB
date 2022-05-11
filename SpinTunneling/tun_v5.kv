@@ -1,0 +1,296 @@
+#:kivy 1.10.0
+#:import Factory kivy.factory.Factory
+
+<MyScreenManager>:
+    StartingScreen:
+    TunnelingScreen:
+    GameScreen:
+
+<StartingScreen>:
+    name: 'starting'
+
+    BoxLayout:
+        orientation: 'vertical'
+        padding: [root.width/10]
+
+        Label:
+            text: "Menu v4"
+
+        BoxLayout:
+            canvas.before:
+                Color:
+                    rgba: (1,1,1,1)
+        #buttons
+            orientation: 'vertical'
+            #padding: [self.width/5, 0]
+            padding: [self.width/3, self.width/10]
+            spacing: self.height/10
+            size_hint_y: 2
+
+            Button:
+                id: dc_to_ys
+                size_hint_y:0.2
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "Spin Tunneling"
+                on_press: root.transition_ST()
+                canvas.before:
+                    Color:
+                        rgba: .5, .5, .5, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+
+            Button:
+                id: dc_to_ss
+                size_hint_y:0.2
+                pos_hint_y:0.333
+                background_color: (0, 0, 0, 1)
+                markup: True
+                text: "Game"
+                on_press: root.transition_Game()
+                canvas.before:
+                    Color:
+                        rgba: .5, .5, .5, 1
+                    Line:
+                        width: 2
+                        rectangle: self.x, self.y, self.width, self.height
+
+
+<TunnelingScreen>
+    name: 'Tunneling'
+    box1:box_st
+
+    # Grafic
+    BoxLayout:
+        id:box_st
+        orientation:'vertical'
+        size_hint:0.7,0.7
+        pos_hint: {'x':0.02,'y':0.2}
+
+    # Botons Spin
+	BoxLayout:
+	    orientation: 'vertical'
+		size_hint:0.2,0.1
+		pos_hint: {'x':0.7,'y':0.7}
+
+		BoxLayout:
+		    orientation: 'horizontal'
+		    size_hint_y: .1
+
+		    Button:
+		        id: s1
+		        size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (1, 0.5, 1, 1) if root.s==1 else (1, 1, 1, 1)
+                markup: True
+                text: "S=1"
+                on_press: root.s=1
+
+            Button:
+		        id: s2
+		        size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (1, 0.5, 1, 1) if root.s==2 else (1, 1, 1, 1)
+                markup: True
+                text: "S=2"
+                on_press: root.s=2
+
+        BoxLayout:
+		    orientation: 'horizontal'
+		    size_hint_y: .1
+
+		    Button:
+		        id: s3
+		        size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (1, 0.5, 1, 1) if root.s==3 else (1, 1, 1, 1)
+                markup: True
+                text: "S=3"
+                on_press: root.s=3
+
+            Button:
+		        id: s4
+		        size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (1, 0.5, 1, 1) if root.s==4 else (1, 1, 1, 1)
+                markup: True
+                text: "S=4"
+                on_press: root.s=4
+
+    BoxLayout:
+	    #orientation: 'horizontal'
+		size_hint:0.2,0.1
+		pos_hint: {'x':0.7,'y':0.5}
+
+    	Button:
+		    id: H1
+		    size_hint_x:0.5
+            pos_hint_x:0
+            background_color: (1, 0.5, 1, 1) if root.H_type==1 else (1, 1, 1, 1)
+            markup: True
+            text: "H1"
+            on_press: root.H_type=1
+
+        Button:
+		    id: H2
+		    size_hint_x:0.5
+            pos_hint_y:0
+            background_color: (1, 0.5, 1, 1) if root.H_type==2 else (1, 1, 1, 1)
+            markup: True
+            text: "H2"
+            on_press: root.H_type=2
+
+    BoxLayout:
+	    #orientation: 'horizontal'
+		size_hint:0.2,0.05
+		pos_hint: {'x':0.7,'y':0.3}
+
+
+        TextInput:
+			orientation: 'horizontal'
+			id: alpha_text
+			multiline: False
+		    size_hint_x:0.5
+            pos_hint_y:0
+            background_color: (1, 1, 1, 1)
+            markup: True
+
+        Button:
+            id: alpha_button
+            size_hint_x:0.5
+            pos_hint_x:0
+            background_color: (1, 1, 1, 1)
+            markup: True
+            text: "Enviar"
+            on_press: root.send_but()
+
+    Button:
+        id: back_YSD
+        text:'Back'
+        on_press:root.transition_SScreen()
+        pos_hint:{'x':0.0,'y':0.00}
+        size_hint:0.15,0.025
+        background_color:(1,1,1,1)
+
+
+<GameScreen>
+    name: 'Game'
+    FloatLayout:
+        Background:
+            id:background
+            canvas.before:
+                Rectangle:
+                    size: self.size
+                    pos:self.pos
+                    source: "sky.png"
+
+    # Botons Spin
+	BoxLayout:
+	    orientation: 'vertical'
+		size_hint:0.1,0.1
+		pos_hint: {'x':0.55,'y':0.025}
+
+		BoxLayout:
+		    orientation: 'horizontal'
+		    size_hint_y: .1
+
+		    Button:
+		        id: s1
+		        size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (1, 0.5, 1, 1) if root.s==1 else (1, 1, 1, 1)
+                markup: True
+                text: "S=1"
+                on_press: root.s=1
+
+            Button:
+		        id: s2
+		        size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (1, 0.5, 1, 1) if root.s==2 else (1, 1, 1, 1)
+                markup: True
+                text: "S=2"
+                on_press: root.s=2
+
+        BoxLayout:
+		    orientation: 'horizontal'
+		    size_hint_y: .1
+
+		    Button:
+		        id: s3
+		        size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (1, 0.5, 1, 1) if root.s==3 else (1, 1, 1, 1)
+                markup: True
+                text: "S=3"
+                on_press: root.s=3
+
+            Button:
+		        id: s4
+		        size_hint_x:0.5
+                pos_hint_x:0
+                background_color: (1, 0.5, 1, 1) if root.s==4 else (1, 1, 1, 1)
+                markup: True
+                text: "S=4"
+                on_press: root.s=4
+
+    BoxLayout:
+	    #orientation: 'horizontal'
+        size_hint:0.1,0.05
+		pos_hint: {'x':0.70,'y':0.075}
+
+    	Button:
+		    id: H1
+		    size_hint_x:0.5
+            pos_hint_x:0
+            background_color: (1, 0.5, 1, 1) if root.H_type==1 else (1, 1, 1, 1)
+            markup: True
+            text: "H1"
+            on_press: root.H_type=1
+
+        Button:
+		    id: H2
+		    size_hint_x:0.5
+            pos_hint_y:0
+            background_color: (1, 0.5, 1, 1) if root.H_type==2 else (1, 1, 1, 1)
+            markup: True
+            text: "H2"
+            on_press: root.H_type=2
+
+    BoxLayout:
+	    #orientation: 'horizontal'
+		size_hint:0.1,0.05
+		pos_hint: {'x':0.70,'y':0.025}
+
+
+        TextInput:
+			orientation: 'horizontal'
+			id: alpha_text
+			multiline: False
+		    size_hint_x:0.5
+            pos_hint_y:0
+            background_color: (1, 1, 1, 1)
+            markup: True
+
+    BoxLayout:
+        size_hint:0.1,0.05
+		pos_hint: {'x':0.85,'y':0.05}
+
+        Button:
+            id: alpha_button
+            size_hint_x:0.5
+            pos_hint_x:0
+            background_color: (1, 1, 1, 1)
+            markup: True
+            text: "Enviar"
+            on_press: root.send_but(),root.drawcall()
+
+    Button:
+        id: back_YSD
+        text:'Back'
+        on_press:root.transition_SScreen()
+        pos_hint:{'x':0.0,'y':0.00}
+        size_hint:0.15,0.025
+        background_color:(1,1,1,1)
+
