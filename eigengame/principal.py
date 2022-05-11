@@ -12,13 +12,14 @@ from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.properties import ObjectProperty
 from kivy.animation import Animation 
 from kivy.uix.image import Image
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+from matplotlib import font_manager as fm, rcParams
+plt.rcParams.update({'font.size': 13}) #matplotlib fontsize
 import math as math
 import numpy as np  
 import scipy
 import scipy.special 
 import random 
-from numba import jit
 import time
 
 
@@ -112,6 +113,10 @@ class GameWindow(Screen):
         tutorial=True 
         tutorial_step=1 
 
+        
+
+
+
         #MENU FUNCTIONALITY 
         
         #SELECTING LANGUAGE 
@@ -131,8 +136,9 @@ class GameWindow(Screen):
                 self.left_label.text="ESQUERRA"
                 self.score_label.text=" PUNTS = 0"
                 self.level_label.text="NIVELL = 1"
+                self.next_button.text="SEGÜENT"
 
-                self.tutorial_label.text= "Primer, crea  el teu potencial \n Per començar crea un potencial harmònic "
+                
 
         def esp(self): 
                 '''Sets language to spanish''' 
@@ -150,8 +156,7 @@ class GameWindow(Screen):
                 self.left_label.text="IZQUIERDA"
                 self.score_label.text="PUNTOS = 0"
                 self.level_label.text="NIVEL = 1"
-
-                self.tutorial_label.text= "Primero, crea tu potencial \n Para empezar crea un potencial harmónico "
+                self.next_button.text="SIGUIENTE"
                 
         def english(self): 
                 '''Sets language to english''' 
@@ -169,7 +174,7 @@ class GameWindow(Screen):
                 self.left_label.text="LEFT"
                 self.score_label.text=" SCORE = 0"
                 self.level_label.text="LEVEL = 1"
-                self.tutorial_label.text= "First, create your potential \n You can start by creating an harmonic potential "
+                self.next_button.text="NEXT"
 
 
         def game_transition(self): 
@@ -182,15 +187,18 @@ class GameWindow(Screen):
                 self.menu_layout.size_hint_x=0
                 self.menu_layout.pos_hint={"x":-1,"y":-1}
 
-                self.bug_layout.size_hint_x=0.15725  
-                self.bug_layout.size_hint_y=0.16
-                self.bug_layout.pos_hint={"x":0,"y":0}
 
                 self.game_layout.size_hint_x=1 
                 self.game_layout.size_hint_y=1 
                 self.game_layout.pos_hint={"x":0,"y":0}
 
                 self.tutorial=False
+
+                #remarking color of labels for bug in executable 
+                self.record_label.color=(0,0,0,1)
+                self.level_label.color=(0,0,0,1)
+                self.score_label.color=(0,0,0,1)
+                self.plots_label.color=(1,1,1,1)
 
 
         def tutorial_transition(self): 
@@ -203,15 +211,18 @@ class GameWindow(Screen):
                 self.menu_layout.size_hint_x=0
                 self.menu_layout.pos_hint={"x":-1,"y":-1}
 
-                self.bug_layout.size_hint_x=0.15725  
-                self.bug_layout.size_hint_y=0.16
-                self.bug_layout.pos_hint={"x":0,"y":0}
 
                 self.game_layout.size_hint_x=1 
                 self.game_layout.size_hint_y=1 
                 self.game_layout.pos_hint={"x":0,"y":0}
 
                 self.tutorial=True
+
+                #remarking color of labels for bug in executable 
+                self.record_label.color=(0,0,0,1)
+                self.level_label.color=(0,0,0,1)
+                self.score_label.color=(0,0,0,1)
+                self.plots_label.color=(1,1,1,1)
 
         def menu_transition(self):
                 '''Goes to the tutorial'''
@@ -223,9 +234,6 @@ class GameWindow(Screen):
                 self.menu_layout.size_hint_x=1
                 self.menu_layout.pos_hint={"x":0,"y":0}
 
-                self.bug_layout.size_hint_x=0  
-                self.bug_layout.size_hint_y=0
-                self.bug_layout.pos_hint={"x":-1,"y":-1}
 
                 self.game_layout.size_hint_x=0 
                 self.game_layout.size_hint_y=0 
@@ -243,9 +251,6 @@ class GameWindow(Screen):
                 self.menu_layout.size_hint_x=0
                 self.menu_layout.pos_hint={"x":-1,"y":-1}
 
-                self.bug_layout.size_hint_x=0  
-                self.bug_layout.size_hint_y=0
-                self.bug_layout.pos_hint={"x":-1,"y":-1}
 
                 self.game_layout.size_hint_x=0 
                 self.game_layout.size_hint_y=0 
@@ -265,7 +270,7 @@ class GameWindow(Screen):
 
                 if self.tutorial==True: #we are on tutorial 
                         if self.tutorial_step==3: #tutorial step one 
-                                self.tutorial_forth_step()        
+                                self.tutorial_forth_step_grey()        
 
         def value_1(self): 
                 ''' Changes values o value_n when the button is pressed'''
@@ -279,7 +284,7 @@ class GameWindow(Screen):
 
                 if self.tutorial==True: #we are on tutorial 
                         if self.tutorial_step==3: #tutorial step one 
-                                self.tutorial_forth_step()   
+                                self.tutorial_forth_step_grey()   
         
 
         def value_2(self): 
@@ -294,7 +299,7 @@ class GameWindow(Screen):
 
                 if self.tutorial==True: #we are on tutorial 
                         if self.tutorial_step==3: #tutorial step one 
-                                self.tutorial_forth_step()   
+                                self.tutorial_forth_step_grey()   
                
 
         def value_3(self): 
@@ -309,7 +314,7 @@ class GameWindow(Screen):
 
                 if self.tutorial==True: #we are on tutorial 
                         if self.tutorial_step==3: #tutorial step one 
-                                self.tutorial_forth_step()   
+                                self.tutorial_forth_step_grey()   
               
 
         def value_4(self): 
@@ -325,7 +330,7 @@ class GameWindow(Screen):
 
                 if self.tutorial==True: #we are on tutorial 
                         if self.tutorial_step==3: #tutorial step one 
-                                self.tutorial_forth_step()   
+                                self.tutorial_forth_step_grey()   
         
         #choosing potentials 
 
@@ -357,7 +362,7 @@ class GameWindow(Screen):
 
                 if self.tutorial==True: #we are on tutorial 
                         if self.tutorial_step==1: #tutorial step one 
-                                self.tutorial_second_step()
+                                self.tutorial_second_step_grey()
                
 
         def slider_value_k(self,*args):
@@ -421,7 +426,7 @@ class GameWindow(Screen):
 
                 if self.tutorial==True: #we are on tutorial 
                         if self.tutorial_step==2: #tutorial step 2 
-                                self.tutorial_third_step()
+                                self.tutorial_third_step_grey()
                
 
 
@@ -600,10 +605,13 @@ class GameWindow(Screen):
         def plot_energy(self):
                 '''This function plots the energy line for a estatic potential'''
                 plt.clf()
-                
+
+               
+
+
                 fig, ax_phi=plt.subplots()
-                ax_phi.set_xlabel(r"$x(\AA)$")
-                ax_phi.set_ylabel(r"$ \phi^2$")
+                ax_phi.set_xlabel('$x(\AA)$') 
+                ax_phi.set_ylabel("$ \phi^2$") # dont' work because ranchers d'oesnt support LATEX
                 ax_phi.set_ylim((0,1)) #maximum of phi_axis
                 ax_phi.xaxis.labelpad = -1
                 #we compute the eigen_values 
@@ -623,13 +631,15 @@ class GameWindow(Screen):
                 y2=0
                 V_plot=[self.potential(s) for s in self.x_potential_values] 
                 ax_V = ax_phi.twinx() #same x_axis
-                ax_V.set_ylabel(r"$V(eV)$")
+                ax_V.set_ylabel("$V(eV)$")
                 ax_V.plot(self.x_potential_values,V_plot, label="V(x)" , color='tab:blue') 
                 ax_V.axhline(y=E, color='g', linestyle='-',label="E") #we plot the Energy value too 
                 ax_V.fill_between(self.x_potential_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
                 if E<40: ax_V.set_ylim((0,41)) #limit in potential axis
                 else: ax_V.set_ylim((0,E+5)) 
                 ax_V.legend(loc="upper right")
+                ax_V.set_xlim((-5,5))
+                
 
                 #MAKING THE TITLE OF THE GRAPH
                 #if self.potential_type=="Harmonic":
@@ -641,8 +651,6 @@ class GameWindow(Screen):
                         #string_var="    $V(eV)$="+str(self.Vw)
 
                 #plt.title("E"+str(self.value_n)+"(eV)="+str(E)[0:4],loc="right")#"   V(x)= "+str(self.potential_type)+string_var
-                        
-                
                 canvas_plot=FigureCanvasKivyAgg(plt.gcf())
                 self.float_plot.clear_widgets()
                 self.float_plot.add_widget(canvas_plot)
@@ -670,6 +678,7 @@ class GameWindow(Screen):
                 ax_V.fill_between(self.x_potential_values, V_plot,y2, facecolor='blue', alpha=0.3) #paint potential
                 ax_V.set_ylim((0,41)) 
                 ax_V.legend(loc="upper right")
+                ax_V.set_xlim((-5,5))
 
                 #MAKING THE TITLE OF THE GRAPH
                 #if self.potential_type=="Harmonic":
@@ -723,6 +732,7 @@ class GameWindow(Screen):
                         
                 if E<35: ax_V.set_ylim((0,42))
                 else: ax_V.set_ylim((0,E+5)) 
+                ax_V.set_xlim((-5,5))
                 ax_V.legend(loc="upper right")
                 ax_phi.legend(loc="upper left")
 
@@ -741,7 +751,7 @@ class GameWindow(Screen):
 
                 if self.tutorial==True: #we are on tutorial 
                         if self.tutorial_step==4: #tutorial step one 
-                                self.tutorial_fifth_step()
+                                self.tutorial_fifth_step_grey()
 
                              
         def disable_plotting(self): 
@@ -1077,15 +1087,23 @@ class GameWindow(Screen):
 
                 if self.tutorial==True: #we are on tutorial 
                         if self.tutorial_step==5: #tutorial step one 
-                                self.tutorial_six_step_green()
+                                self.tutorial_six_step_green_grey()
                         elif self.tutorial_step==6: #tutorial step one 
                                 if self.lang=="ENG": self.tutorial_label.text="TUTORIAL COMPLETED!" 
                                 elif self.lang=="ESP": self.tutorial_label.text='¡TUTORIAL COMPLETADO!' 
                                 else: self.tutorial_label.text="TUTORIAL COMPLETAT"
-                                tutorial_animation=Animation(font_size=45,duration=0.2)
-                                tutorial_animation+=Animation(font_size=35,duration=0.2)
-                                tutorial_animation+=Animation(font_size=45,duration=0.2)
-                                tutorial_animation+=Animation(font_size=35,duration=0.2)
+
+                                grey_animation=Animation(size_hint_x=0,size_hint_y=0,pos_hint={'x': -1, 'y':-1}, duration=1.5)
+                                grey_animation+=Animation(size_hint_x=1,size_hint_y=1,pos_hint={'x': 0, 'y':0}, duration=0.0005)
+                                grey_animation.start(self.tutorial_layout)
+                                self.next_button.disabled=True
+
+
+                                tutorial_animation=Animation(font_size=35,duration=2)
+                                tutorial_animation+=Animation(font_size=45,duration=0.25)
+                                tutorial_animation+=Animation(font_size=35,duration=0.25)
+                                tutorial_animation+=Animation(font_size=45,duration=0.25)
+                                tutorial_animation+=Animation(font_size=35,duration=0.25)
                                 tutorial_animation.start(self.tutorial_label)
                                 tutorial_animation.bind(on_complete=self.tutorial_final_step)
 
@@ -1191,7 +1209,7 @@ class GameWindow(Screen):
 
                 if self.tutorial==True: #we are on tutorial 
                         if self.tutorial_step==5 or self.tutorial_step==6 : #tutorial step one 
-                                self.tutorial_six_step_red()
+                                self.tutorial_six_step_red_grey()
 
 
 
@@ -1326,19 +1344,58 @@ class GameWindow(Screen):
                 self.is_plot=False #no wave function plotted
                 self.measure_button.disabled=True 
 
-                #we overpaint again the bug layout 
-                self.bug_layout.size_hint_x= 0.15725
-                self.bug_layout.size_hint_y=0.16
 
         #TUTORIAL 
+        def next_step(self): 
+                '''Linked to button next''' 
+                if self.tutorial_step==0:
+                        bug_animation=Animation(size_hint_x=0,size_hint_y=0,pos_hint={'x': -1, 'y':-1}, duration=0.00001) 
+                        bug_animation.start(self.tutorial_layout)
+                        bug_animation.bind(on_complete=self.tutorial_first_step_grey)
+                if self.tutorial_step==1: self.tutorial_first_step()
+                if self.tutorial_step==2: self.tutorial_second_step()
+                if self.tutorial_step==3: self.tutorial_third_step()
+                if self.tutorial_step==4: self.tutorial_forth_step()
+                if self.tutorial_step==5: self.tutorial_fifth_step()
+                if self.tutorial_step==6: self.tutorial_six_step()
 
-        def tutorial_first_step(self): 
+        def tutorial_explanation(self): 
+                self.tutorial_layout.size_hint_y=1
+                self.tutorial_layout.size_hint_x=1
+                self.tutorial_layout.pos_hint={'x': 0, 'y':0}
+
+                self.tutorial_step=0 
+                self.next_button.disabled=False
+
+                if self.lang=="ENG": self.tutorial_label.text= "The goal is to create a wave function  \n so when you measure the electron it appears in the target "
+                elif self.lang=="ESP": self.tutorial_label.text="El objectivo es crear una función de onda \n tal que cuando midas el electron este aparezca en el objetivo " 
+                else: self.tutorial_label.text="L'objectiu és crear una funció d'ona \n tal que quan mesuris l'electró aquest aparegui en l'objectiu. "
+
+                self.all_buttons_disabled()
+                
+
+        def tutorial_first_step_grey(self,*args): 
                 '''First step consisting in choosing a potential''' 
+                #NO APAREIX
                 self.tutorial_layout.size_hint_y=1
                 self.tutorial_layout.size_hint_x=1
                 self.tutorial_layout.pos_hint={'x': 0, 'y':0}
 
                 self.tutorial_step=1 
+                self.next_button.disabled=False
+
+                if self.lang=="ENG": self.tutorial_label.text= "First, create your potential \n You can start by creating an harmonic potential "
+                elif self.lang=="ESP": self.tutorial_label.text="Primero, crea tu potencial \n Para empezar crea un potencial harmónico " 
+                else: self.tutorial_label.text="Primer, crea  el teu potencial \n Per començar crea un potencial harmònic "
+
+                self.all_buttons_disabled()
+
+        def tutorial_first_step(self): 
+                '''First step consisting in choosing a potential'''
+                self.tutorial_layout.size_hint_y=0
+                self.tutorial_layout.size_hint_x=0
+                self.tutorial_layout.pos_hint={'x': -1, 'y':-1}
+
 
                 button_animation=Animation(size_hint_x=0.22,size_hint_y=0.5,duration=0.5)
                 button_animation+=Animation(size_hint_x=0.2,size_hint_y=0.42,duration=0.5)
@@ -1372,14 +1429,26 @@ class GameWindow(Screen):
                 self.right_slider.disabled=True 
                 self.vw_slider.disabled=True 
 
-        def tutorial_second_step(self): 
-                '''Second step consisting in choosing a potential''' 
-                self.tutorial_layout.size_hint_y=1
-                self.tutorial_layout.size_hint_x=1
-                self.tutorial_layout.pos_hint={'x': 0, 'y':0}
+
+        def tutorial_second_step_grey(self): 
+                '''First step consisting in choosing a potential''' 
+                grey_animation=Animation(size_hint_x=0,size_hint_y=0,pos_hint={'x': -1, 'y':-1}, duration=1.25)
+                grey_animation+=Animation(size_hint_x=1,size_hint_y=1,pos_hint={'x': 0, 'y':0}, duration=0.0005)
+                grey_animation.start(self.tutorial_layout)
+
+                self.tutorial_step=2 
+
                 if self.lang=="ENG": self.tutorial_label.text='Now, try adding a barrier to your potential' 
                 elif self.lang=="ESP": self.tutorial_label.text='Ahora, añadele una barrera a tu potencial' 
                 else: self.tutorial_label.text='Ara, afegeix-li una barrera al teu potencial'
+
+                self.all_buttons_disabled()
+
+        def tutorial_second_step(self): 
+                '''Second step consisting in choosing a potential''' 
+                self.tutorial_layout.size_hint_y=0
+                self.tutorial_layout.size_hint_x=0
+                self.tutorial_layout.pos_hint={'x': -1, 'y':-1}
 
                 self.tutorial_step=2
 
@@ -1415,15 +1484,26 @@ class GameWindow(Screen):
                 self.right_slider.disabled=True 
                 self.vw_slider.disabled=True 
 
-        def tutorial_third_step(self): 
-                '''Third step consisting in choosing a energy ''' 
-                self.tutorial_layout.size_hint_y=1
-                self.tutorial_layout.size_hint_x=1
-                self.tutorial_layout.pos_hint={'x': 0, 'y':0}
+        def tutorial_third_step_grey(self): 
+                '''First step consisting in choosing a potential''' 
+                grey_animation=Animation(size_hint_x=0,size_hint_y=0,pos_hint={'x': -1, 'y':-1}, duration=1.25)
+                grey_animation+=Animation(size_hint_x=1,size_hint_y=1,pos_hint={'x': 0, 'y':0}, duration=0.0005)
+                grey_animation.start(self.tutorial_layout)
+
+                self.tutorial_step=3 
+
                 if self.lang=="ENG": self.tutorial_label.text="Once we have the potential, \n let's choose an energy level" 
                 elif self.lang=="ESP": self.tutorial_label.text='Ya tenemos el potencial, \n toca escoger un nivel energético' 
                 else: self.tutorial_label.text='Ja tenim el potencial, \n toca escollir un nivell energètic'
 
+                self.all_buttons_disabled()
+
+        def tutorial_third_step(self): 
+                '''Third step consisting in choosing a energy ''' 
+                self.tutorial_layout.size_hint_y=0
+                self.tutorial_layout.size_hint_x=0
+                self.tutorial_layout.pos_hint={'x': -1, 'y':-1}
+                
                 self.tutorial_step=3
 
                 button_animation=Animation(size_hint_x=0.07,size_hint_y=0.45,duration=0.5)
@@ -1455,16 +1535,27 @@ class GameWindow(Screen):
                 self.left_slider.disabled=True
                 self.right_slider.disabled=True 
                 self.vw_slider.disabled=True 
-                
-        def tutorial_forth_step(self): 
-                '''Forth step consisting in ploting the wave function ''' 
-                self.tutorial_layout.size_hint_y=1
-                self.tutorial_layout.size_hint_x=1
-                self.tutorial_layout.pos_hint={'x': 0, 'y':0}
+
+        def tutorial_forth_step_grey(self): 
+                '''First step consisting in choosing a potential''' 
+                grey_animation=Animation(size_hint_x=0,size_hint_y=0,pos_hint={'x': -1, 'y':-1}, duration=1.25)
+                grey_animation+=Animation(size_hint_x=1,size_hint_y=1,pos_hint={'x': 0, 'y':0}, duration=0.0005)
+                grey_animation.start(self.tutorial_layout)
+
+                self.tutorial_step=4
+
                 if self.lang=="ENG": self.tutorial_label.text="Let's plot the wave function" 
                 elif self.lang=="ESP": self.tutorial_label.text='Ahora a dibujar la función de onda' 
                 else: self.tutorial_label.text="És el moment de dibuixar la funció d'ona"
 
+                self.all_buttons_disabled()
+                
+        def tutorial_forth_step(self): 
+                '''Forth step consisting in ploting the wave function ''' 
+                self.tutorial_layout.size_hint_y=0
+                self.tutorial_layout.size_hint_x=0
+                self.tutorial_layout.pos_hint={'x': -1, 'y':-1}
+        
                 self.tutorial_step=4
                 button_animation=Animation(size_hint_x=0.085,size_hint_y=0.095,duration=0.5)
                 button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
@@ -1474,6 +1565,7 @@ class GameWindow(Screen):
                 button_animation+=Animation(size_hint_x=0.075,size_hint_y=0.08,duration=0.5)
                 button_animation.start(self.plot_button)
 
+               
                 #disabling ploting
                 self.plot_button.disabled=False
                 #disbaling energies
@@ -1498,14 +1590,27 @@ class GameWindow(Screen):
                 self.right_slider.disabled=True 
                 self.vw_slider.disabled=True 
 
-        def tutorial_fifth_step(self): 
-                '''Fifth step consisting in measuring the electron ''' 
-                self.tutorial_layout.size_hint_y=1
-                self.tutorial_layout.size_hint_x=1
-                self.tutorial_layout.pos_hint={'x': 0, 'y':0}
+        def tutorial_fifth_step_grey(self): 
+                '''First step consisting in choosing a potential''' 
+                grey_animation=Animation(size_hint_x=0,size_hint_y=0,pos_hint={'x': -1, 'y':-1}, duration=1.25)
+                grey_animation+=Animation(size_hint_x=1,size_hint_y=1,pos_hint={'x': 0, 'y':0}, duration=0.0005)
+                grey_animation.start(self.tutorial_layout)
+
+                self.tutorial_step=5
+
                 if self.lang=="ENG": self.tutorial_label.text="Let's measure the position of the electron" 
                 elif self.lang=="ESP": self.tutorial_label.text='A mesurar la posición del electron' 
                 else: self.tutorial_label.text="Mesura la posició de l'electró"
+                
+
+                self.all_buttons_disabled()
+
+        def tutorial_fifth_step(self): 
+                '''Fifth step consisting in measuring the electron ''' 
+                self.tutorial_layout.size_hint_y=0
+                self.tutorial_layout.size_hint_x=0
+                self.tutorial_layout.pos_hint={'x': -1, 'y':-1}
+                
 
                 self.tutorial_step=5
 
@@ -1541,52 +1646,42 @@ class GameWindow(Screen):
                 self.right_slider.disabled=True 
                 self.vw_slider.disabled=True 
 
-        def tutorial_six_step_green(self): 
-                '''six step  green consisting in repeating all the porcedura again ''' 
-                self.tutorial_layout.size_hint_y=1
-                self.tutorial_layout.size_hint_x=1
-                self.tutorial_layout.pos_hint={'x': 0, 'y':0}
+
+        def tutorial_six_step_green_grey(self): 
+                '''First step consisting in choosing a potential''' 
+                grey_animation=Animation(size_hint_x=0,size_hint_y=0,pos_hint={'x': -1, 'y':-1}, duration=2)
+                grey_animation+=Animation(size_hint_x=1,size_hint_y=1,pos_hint={'x': 0, 'y':0}, duration=0.0005)
+                grey_animation.start(self.tutorial_layout)
+
+                self.tutorial_step=6
                 if self.lang=="ENG": self.tutorial_label.text="You made it! \n Now repeat the procedure and make another measure" 
                 elif self.lang=="ESP": self.tutorial_label.text='Lo lograste! \n Ahora repite el procedimiento y haz otra medida ' 
                 else: self.tutorial_label.text="Ho has aconseguit! \n Ara repeteix el procediment i fes una altra mesura"
 
+                self.all_buttons_disabled()
+
+        def tutorial_six_step_red_grey(self): 
+                '''First step consisting in choosing a potential''' 
+                grey_animation=Animation(size_hint_x=0,size_hint_y=0,pos_hint={'x': -1, 'y':-1}, duration=1.25)
+                grey_animation+=Animation(size_hint_x=1,size_hint_y=1,pos_hint={'x': 0, 'y':0}, duration=0.0005)
+                grey_animation.start(self.tutorial_layout)
+
                 self.tutorial_step=6
-
-                #disabling ploting
-                self.plot_button.disabled=False
-                #disbaling energies
-                self.button0.disabled=False
-                self.button1.disabled=False
-                self.button2.disabled=False
-                self.button3.disabled=False
-                self.button4.disabled=False
-                #disabling potential buttons 
-                self.button_free.disabled=False
-                self.button_harmonic.disabled=False 
-                self.button_barrier.disabled=False
-                self.button_water.disabled=False
-                self.rubber_button.disabled=False
-                #disabling sliders
-                self.hooke_slider.disabled=False
-                self.x0_slider.disabled=False
-                self.center_slider.disabled=False
-                self.width_slider.disabled=False
-                self.vb_slider.disabled=False
-                self.left_slider.disabled=False
-                self.right_slider.disabled=False 
-                self.vw_slider.disabled=False
-
-        def tutorial_six_step_red(self): 
-                '''six step  red consisting in repating all the porcedura again ''' 
-                self.tutorial_layout.size_hint_y=1
-                self.tutorial_layout.size_hint_x=1
-                self.tutorial_layout.pos_hint={'x': 0, 'y':0}
                 if self.lang=="ENG": self.tutorial_label.text="You missed! \n Now repeat the procedure and make another measure" 
                 elif self.lang=="ESP": self.tutorial_label.text='Fallaste! \n Ahora repite el procedimiento y haz otra medida ' 
-                else: self.tutorial_label.text="Has fallat! \n Ara repeteix el procediment is fes una altra mesura"
+                else: self.tutorial_label.text="Has fallat! \n Ara repeteix el procediment i fes una altra mesura"
+
+                self.all_buttons_disabled()
+
+        def tutorial_six_step(self): 
+                '''six step  green consisting in repeating all the porcedura again ''' 
+                self.tutorial_layout.size_hint_y=0
+                self.tutorial_layout.size_hint_x=0
+                self.tutorial_layout.pos_hint={'x': -1, 'y':-1}
+                
 
                 self.tutorial_step=6
-                
+
                 #disabling ploting
                 self.plot_button.disabled=False
                 #disbaling energies
@@ -1610,6 +1705,8 @@ class GameWindow(Screen):
                 self.left_slider.disabled=False
                 self.right_slider.disabled=False 
                 self.vw_slider.disabled=False
+
+        
 
         def tutorial_final_step(self,*args): 
                 '''Tutorial completed''' 
@@ -1619,6 +1716,34 @@ class GameWindow(Screen):
                 self.tutorial_layout.size_hint_y=0
                 self.tutorial_layout.size_hint_x=0
                 self.tutorial_layout.pos_hint={'x': -1, 'y':-1}
+
+
+        def all_buttons_disabled(self):
+                '''Disables all buttons''' 
+                #disabling ploting
+                self.plot_button.disabled=True 
+                #disbaling energies
+                self.button0.disabled=True 
+                self.button1.disabled=True
+                self.button2.disabled=True
+                self.button3.disabled=True
+                self.button4.disabled=True
+                #disabling potential buttons 
+                self.button_free.disabled=True
+                self.button_harmonic.disabled=True 
+                self.button_barrier.disabled=True 
+                self.button_water.disabled=True
+                self.rubber_button.disabled=True
+                #disabling sliders
+                self.hooke_slider.disabled=True
+                self.x0_slider.disabled=True
+                self.center_slider.disabled=True
+                self.width_slider.disabled=True
+                self.vb_slider.disabled=True
+                self.left_slider.disabled=True
+                self.right_slider.disabled=True 
+                self.vw_slider.disabled=True 
+
 
 
 
