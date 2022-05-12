@@ -208,6 +208,19 @@ class GameWindow(Screen):
                 else: 
                         self.score_label.text=" PUNTS = " +str(self.score) 
                         self.level_label.text="NIVELL = "+str(self.level)
+
+                bug_exe_animation1=Animation(color=(0,0,0,0.95),duration=0.5)
+                bug_exe_animation1+=Animation(color=(0,0,0,1),duration=0.1)
+                bug_exe_animation3=Animation(color=(0,0,0,0.95),duration=0.5)
+                bug_exe_animation3+=Animation(color=(0,0,0,1),duration=0.1)
+                bug_exe_animation4=Animation(color=(0,0,0,0.95),duration=0.5)
+                bug_exe_animation4+=Animation(color=(0,0,0,1),duration=0.1)
+                bug_exe_animation2=Animation(color=(1,1,1,0.95),duration=0.5)
+                bug_exe_animation2+=Animation(color=(1,1,1,1),duration=0.1)
+                bug_exe_animation1.start(self.score_label)
+                bug_exe_animation3.start(self.record_label)
+                bug_exe_animation4.start(self.level_label)
+                bug_exe_animation2.start(self.plots_label)
                 
 
         def tutorial_transition(self): 
@@ -1448,11 +1461,15 @@ class GameWindow(Screen):
 
                 bug_exe_animation1=Animation(color=(0,0,0,0.95),duration=0.5)
                 bug_exe_animation1+=Animation(color=(0,0,0,1),duration=0.1)
+                bug_exe_animation3=Animation(color=(0,0,0,0.95),duration=0.5)
+                bug_exe_animation3+=Animation(color=(0,0,0,1),duration=0.1)
+                bug_exe_animation4=Animation(color=(0,0,0,0.95),duration=0.5)
+                bug_exe_animation4+=Animation(color=(0,0,0,1),duration=0.1)
                 bug_exe_animation2=Animation(color=(1,1,1,0.95),duration=0.5)
                 bug_exe_animation2+=Animation(color=(1,1,1,1),duration=0.1)
                 bug_exe_animation1.start(self.score_label)
-                bug_exe_animation1.start(self.record_label)
-                bug_exe_animation1.start(self.level_label)
+                bug_exe_animation3.start(self.record_label)
+                bug_exe_animation4.start(self.level_label)
                 bug_exe_animation2.start(self.plots_label)
 
                 #disabling ploting
