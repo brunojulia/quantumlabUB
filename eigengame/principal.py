@@ -242,7 +242,6 @@ class GameWindow(Screen):
                         self.level_label.text="NIVEL = "+str(self.level)
                 else: 
                         self.score_label.text=" PUNTS = " +str(self.score) 
-                        self.score_label.text="PUNTOS = " +str(self.score)
                         self.record_label.text=" MAX = " +str(self.record)
                         self.level_label.text="NIVELL = "+str(self.level)
                 
@@ -1428,6 +1427,33 @@ class GameWindow(Screen):
                 button_animation+=Animation(size_hint_x=0.22,size_hint_y=0.5,duration=0.5)
                 button_animation+=Animation(size_hint_x=0.2,size_hint_y=.42,duration=0.5)
                 button_animation.start(self.harm_icon)
+
+                #remarking color of labels for bug in executable 
+                self.record_label.color=(0,0,0,1)
+                self.level_label.color=(0,0,0,1)
+                self.score_label.color=(0,0,0,1)
+                self.plots_label.color=(1,1,1,1)
+                if self.lang=="ENG": 
+                        self.score_label.text=" SCORE = " +str(self.score)
+                        self.record_label.text=" MAX = " +str(self.record)
+                        self.level_label.text="LEVEL = "+str(self.level)
+                elif self.lang=="ESP": 
+                        self.score_label.text="PUNTOS = " +str(self.score)
+                        self.record_label.text=" MAX = " +str(self.record)
+                        self.level_label.text="NIVEL = "+str(self.level)
+                else: 
+                        self.score_label.text=" PUNTS = " +str(self.score) 
+                        self.record_label.text=" MAX = " +str(self.record)
+                        self.level_label.text="NIVELL = "+str(self.level)
+
+                bug_exe_animation1=Animation(color=(0,0,0,0.95),duration=0.5)
+                bug_exe_animation1+=Animation(color=(0,0,0,1),duration=0.1)
+                bug_exe_animation2=Animation(color=(1,1,1,0.95),duration=0.5)
+                bug_exe_animation2+=Animation(color=(1,1,1,1),duration=0.1)
+                bug_exe_animation1.start(self.score_label)
+                bug_exe_animation1.start(self.record_label)
+                bug_exe_animation1.start(self.level_label)
+                bug_exe_animation2.start(self.plots_label)
 
                 #disabling ploting
                 self.plot_button.disabled=True 
