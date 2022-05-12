@@ -199,7 +199,16 @@ class GameWindow(Screen):
                 self.level_label.color=(0,0,0,1)
                 self.score_label.color=(0,0,0,1)
                 self.plots_label.color=(1,1,1,1)
-
+                if self.lang=="ENG": 
+                        self.score_label.text=" SCORE = " +str(self.score)
+                        self.level_label.text="LEVEL = "+str(self.level)
+                elif self.lang=="ESP": 
+                        self.score_label.text="PUNTOS = " +str(self.score)
+                        self.level_label.text="NIVEL = "+str(self.level)
+                else: 
+                        self.score_label.text=" PUNTS = " +str(self.score) 
+                        self.level_label.text="NIVELL = "+str(self.level)
+                
 
         def tutorial_transition(self): 
                 '''Goes to the tutorial'''
@@ -223,6 +232,20 @@ class GameWindow(Screen):
                 self.level_label.color=(0,0,0,1)
                 self.score_label.color=(0,0,0,1)
                 self.plots_label.color=(1,1,1,1)
+                if self.lang=="ENG": 
+                        self.score_label.text=" SCORE = " +str(self.score)
+                        self.record_label.text=" MAX = " +str(self.record)
+                        self.level_label.text="LEVEL = "+str(self.level)
+                elif self.lang=="ESP": 
+                        self.score_label.text="PUNTOS = " +str(self.score)
+                        self.record_label.text=" MAX = " +str(self.record)
+                        self.level_label.text="NIVEL = "+str(self.level)
+                else: 
+                        self.score_label.text=" PUNTS = " +str(self.score) 
+                        self.score_label.text="PUNTOS = " +str(self.score)
+                        self.record_label.text=" MAX = " +str(self.record)
+                        self.level_label.text="NIVELL = "+str(self.level)
+                
 
         def menu_transition(self):
                 '''Goes to the tutorial'''
@@ -238,6 +261,7 @@ class GameWindow(Screen):
                 self.game_layout.size_hint_x=0 
                 self.game_layout.size_hint_y=0 
                 self.game_layout.pos_hint={"x":-1,"y":-1}
+
 
                 
 
