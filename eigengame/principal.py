@@ -1314,11 +1314,7 @@ class GameWindow(Screen):
         def reboot(self): 
                 '''This function reboots the trainer so when you enter the game it's all new and fresh. 
                 It's activated when you press the button '''
-
-                #we delete the gameover layout again 
-                self.game_over_layout.size_hint_x=0 
-                self.game_over_layout.size_hint_y=0 
-
+ 
                 #we reactivate all lives 
                 self.lives_counter=5 
                 heart_image=Image(source="graphs/heart_icon.png",allow_stretch=True,keep_ratio=True) 
@@ -1366,7 +1362,7 @@ class GameWindow(Screen):
                 while (self.target_position[0]-self.target_epsilon)<0 or (self.target_position[0]+self.target_epsilon)>1: 
                         self.target_position[0]=random.random() #we generate a new target position 
                 self.grid_target[0]=GridLayout(rows=1,cols=1) #new target
-                self.grid_target[0].pos_hint={"center_x":self.target_position[j],"center_y":0.5}
+                self.grid_target[0].pos_hint={"center_x":self.target_position[0],"center_y":0.5}
                 self.grid_target[0].size_hint_x=self.target_epsilon*2
                 self.grid_target[0].size_hint_y=1
                 yellow_image=Image(source="graphs/blue_target.png",allow_stretch=True,keep_ratio=False)
