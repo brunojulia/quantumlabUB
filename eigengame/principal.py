@@ -647,7 +647,7 @@ class GameWindow(Screen):
 
                 fig, ax_phi=plt.subplots()
                 ax_phi.set_xlabel('$x(\AA)$') 
-                ax_phi.set_ylabel("$ \phi^2$") # dont' work because ranchers d'oesnt support LATEX
+                ax_phi.set_ylabel("$ \phi^2(\AA^{-1})$") # dont' work because ranchers d'oesnt support LATEX
                 ax_phi.set_ylim((0,1)) #maximum of phi_axis
                 ax_phi.xaxis.labelpad = -1
                 #we compute the eigen_values 
@@ -702,7 +702,7 @@ class GameWindow(Screen):
 
                 fig, ax_phi=plt.subplots()
                 ax_phi.set_xlabel(r"$x(\AA)$")
-                ax_phi.set_ylabel(r"$ \phi^2$")
+                ax_phi.set_ylabel(r"$ \phi^2(\AA^{-1})$")
                 ax_phi.set_ylim((0,1)) #maximum of phi_axis
                 ax_phi.xaxis.labelpad = -1
 
@@ -751,7 +751,7 @@ class GameWindow(Screen):
                 V_plot=[self.potential(k) for k in self.x_potential_values] #compute potential for every x_position
                 fig, ax_phi=plt.subplots() 
                 ax_phi.set_xlabel(r"$x(\AA)$")
-                ax_phi.set_ylabel(r"$ \phi^2$")
+                ax_phi.set_ylabel(r"$ \phi^2(\AA^{-1})$")
                 ax_phi.xaxis.labelpad = -1
                         
                 ax_phi.set_ylim((0,max(phi_square)+0.2)) #maximum of phi_axis= maxim of probability +0.2
