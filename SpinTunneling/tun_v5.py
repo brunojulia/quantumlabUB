@@ -16,9 +16,12 @@ from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty,ReferenceListProperty,\
     NumericProperty,StringProperty,ListProperty,BooleanProperty
 from kivy.config import Config
+from kivy.graphics import Color
+Config.set('graphics', 'resizable', False)
 Config.set('graphics', 'width', '900')
 Config.set('graphics', 'height', '600')
-Window.clearcolor = (1, 1, 1, 1)
+
+Window.clearcolor = (0,0.08,0.31,1)
 
 
 class tun_v5App(App):
@@ -29,13 +32,21 @@ class tun_v5App(App):
 class MyScreenManager(ScreenManager):
     def  __init__(self, **kwargs):
         super(MyScreenManager, self).__init__(**kwargs)
+
+        # with self.canvas:
+        #     self.bg = Rectangle(source='Title.png', pos=(200,362), size=(400,176))
+
         self.get_screen('Tunneling').stpseudo_init()
-       # self.get_screen("Game").gpseudo_init()
-    
+        # self.get_screen("Game").gpseudo_init()
+
+
 
 class StartingScreen(Screen):
     def __init__(self,**kwargs):
         super(StartingScreen,self).__init__(**kwargs)
+        with self.canvas:
+            self.bg = Rectangle(source='Title.png', pos=(220,370), size=(1196*0.3,579*0.3))
+            # self.bg = Rectangle(source='Title.png', pos=(450-1196 * 0.3/1.6, 370), size=(1196 * 0.3, 579 * 0.3))
 
     def transition_ST(self):
         """Transicio del starting a l Spin Tunneling"""
@@ -52,12 +63,14 @@ class StartingScreen(Screen):
         self.manager.current = 'Game'
 
 class TunnelingScreen(Screen):
+
     H_type= NumericProperty(0)
     s= NumericProperty(0)
 
 
     def __init__(self,**kwargs):
         super(TunnelingScreen,self).__init__(**kwargs)
+        # Window.clearcolor = (0, 0.08, 0.31, 1)
 
     def stpseudo_init(self):
         self.plot, self.axs =plt.subplots(1)
@@ -122,7 +135,8 @@ class TunnelingScreen(Screen):
                 norma = (list(map(sum, zip(norma, mod2[i + 1]))))
 
         temps=self.sol.t
-
+        plt.xlabel("t'")
+        plt.ylabel('Probabilitat')
         plt.plot(temps, norma, label='Norma')
         plt.axhline(y=1, xmin=t0, xmax=tf, ls='dashed')
         for i in range(self.mlt):
@@ -190,6 +204,9 @@ class GameScreen(Screen):
         self.manager.current = 'starting'
 
     def send_but(self):
+
+        plt.clf()
+
         self.mlt = int(2 * self.s + 1)
 
         # Definicio de parametres generals per descriure l,Hamiltonia per un spin s
@@ -276,7 +293,7 @@ class GameScreen(Screen):
                 mi = self.m[i]
                 mi_t = np.transpose(mi)
                 e=np.dot(mi, (np.dot(self.H(t_j), mi_t)))
-                ene_i.append(abs(e))
+                ene_i.append(e.real)
             ene.append(ene_i)
         return ene
 
@@ -321,16 +338,18 @@ class Background(Widget):
         GameScreen.Counter=0
         GameScreen.ft=GameScreen.ft+1
 
+        for i in e:
+            print(i)
 
-        #print(GameScreen.gene)
+        # print(GameScreen.gene)
 
     def freshrate(self,dt):
         # self.comptador=GameScreen.Comptador
         if GameScreen.estat==1:
             if GameScreen.Counter==0:
-                #print(GameScreen.Comptador)
-                self.mlt=GameScreen.mlt
-                self.s=int((self.mlt-1)/2)
+                # print(GameScreen.Comptador)
+                self.mlt=int(GameScreen.mlt)
+                self.s=(self.mlt-1)/2.
                 self.prob_space = 350. / self.mlt
                 self.prob=[]
                 self.vel=[]
@@ -351,11 +370,14 @@ class Background(Widget):
                         y.append((self.ene[i+1][j]-self.ene[i][j])/(self.t[i+1]-self.t[i]))
                     self.vel.append(x)
                     self.evel.append(y)
-                #print(self.evel)
+                # print(self.evel)
                 with self.canvas:
+
                     for i in range(self.mlt):
+
                         exec(f"self.tag_{i} = Label(pos=(30+i*self.prob_space+self.prob_space/2.-15,125),"
                              f" size=(30, 20),text='|' + str(i-self.s) + '>')")
+                        Color(0,21,79,0.8, mode='rgba')
                         exec(f'self.rec_{i} = Rectangle(pos=(30+i*self.prob_space,150), '
                              f'size=(self.prob_space-10, 250*self.prob[0][i]))')
 
