@@ -186,6 +186,7 @@
             orientation:'horizontal'
             Label:
                 text: 'a='+str(a_slider.value)
+                bold: True
 
             Slider:
                 id:a_slider
@@ -200,6 +201,7 @@
             orientation:'horizontal'
             Label:
                 text: 'E/D='+str(alpha_slider.value)
+                bold: True
             Slider:
                 id:alpha_slider
                 value:0.1
@@ -211,7 +213,7 @@
     BoxLayout:
 	    #orientation: 'horizontal'
 		size_hint:0.2,0.05
-		pos_hint: {'x':0.7,'y':0.1}
+		pos_hint: {'x':0.7,'y':0.2}
 
 
         #TextInput:
@@ -273,6 +275,7 @@
                 orientation:'horizontal'
                 Label:
                     text: 'a='+str(a_slider.value)
+                    bold: True
 
                 Slider:
                     id:a_slider
@@ -287,6 +290,8 @@
                 orientation:'horizontal'
                 Label:
                     text: 'E/D='+str(alpha_slider.value)
+                    bold: True
+
                 Slider:
                     id:alpha_slider
                     value:0.1
@@ -352,9 +357,9 @@
                 on_press: root.s=2.5
 
     BoxLayout:
-	    #orientation: 'horizontal'
-        size_hint:0.1,0.05
-		pos_hint: {'x':0.70,'y':0.075}
+	    orientation: 'vertical'
+        size_hint:0.2,0.1
+		pos_hint: {'x':0.70,'y':0.025}
 
     	Button:
 		    id: H1
@@ -378,20 +383,20 @@
             bold: True
             on_press: root.H_type=2
 
-    BoxLayout:
-	    #orientation: 'horizontal'
-		size_hint:0.1,0.05
-		pos_hint: {'x':0.70,'y':0.025}
+  #   BoxLayout:
+	 #    #orientation: 'horizontal'
+		# size_hint:0.1,0.05
+		# pos_hint: {'x':0.70,'y':0.025}
 
 
-        TextInput:
-			orientation: 'horizontal'
-			id: alpha_text
-			multiline: False
-		    size_hint_x:0.5
-            pos_hint_y:0
-            background_color: (1, 1, 1, 1)
-            markup: True
+  #       TextInput:
+		# 	orientation: 'horizontal'
+		# 	id: alpha_text
+		# 	multiline: False
+		#     size_hint_x:0.5
+  #           pos_hint_y:0
+  #           background_color: (1, 1, 1, 1)
+  #           markup: True
 
     BoxLayout:
         size_hint:0.1,0.05

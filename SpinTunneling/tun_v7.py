@@ -88,7 +88,7 @@ class TunnelingScreen(Screen):
 
     def send_but(self):
 
-        print(self.a)
+        #print(self.a)
         plt.clf()
         self.mlt = int(2 * self.s + 1)
 
@@ -139,11 +139,10 @@ class TunnelingScreen(Screen):
 
         temps=self.sol.t
         plt.xlabel("t'")
-        plt.ylabel('Probabilitat')
+        plt.ylabel('Probability')
         plt.plot(temps, norma, label='Norma')
         plt.axhline(y=1, xmin=t0, xmax=tf, ls='dashed')
         for i in range(self.mlt):
-            print('HOLA'+ str(i))
             # plt.plot(t,mod2[i],label='|'+str(int(i-s))+'>')
             plt.plot(temps, mod2[i], label='|' + str(int(i - self.s)*(-1)) + '>')
         plt.legend()
@@ -245,7 +244,7 @@ class GameScreen(Screen):
             else:
                 self.y0.append(1 + 0j)
 
-        print(self.a)
+        #print(self.a)
         # self.alpha=0.1
         # self.a=0.01
         self.ti = [self.t0, self.tf]
@@ -348,14 +347,14 @@ class Background(Widget):
         GameScreen.ft=GameScreen.ft+1
 
         with self.canvas:
-            self.en_t = Rectangle(source='energia.png', pos=(550, 450),size=(744*0.15,200*0.15))
-            self.pro_t = Rectangle(source='prob.png', pos=(100, 450),size=(1301*0.15, 200*0.15))
+            self.en_t = Rectangle(source='energy.png', pos=(565, 450),size=(711*0.15,200*0.15))
+            self.pro_t = Rectangle(source='prob2.png', pos=(100, 450),size=(1203*0.15, 200*0.15))
             # self.en_t = Rectangle(source='energy.png', pos=(220, 370), size=(1196 * 0.3, 579 * 0.3))
             # self.pro_t = Rectangle(source='prob.png', pos=(220, 370), size=(1196 * 0.3, 579 * 0.3))
 
         # print(GameScreen.gene)
-        for i in GameScreen.gene:
-            print(i)
+        #for i in GameScreen.gene:
+            #print(i)
     def freshrate(self,dt):
         # print(GameScreen.Counter)
         if GameScreen.estat==1:
@@ -371,7 +370,7 @@ class Background(Widget):
                 self.t = GameScreen.gtime
                 self.ene = GameScreen.gene
                 GameScreen.gpos = [l.tolist() for l in GameScreen.gpos]
-                self.timer=0
+                self.timer=-50
 
                 if GameScreen.ft == 1:
                     with self.canvas:
@@ -438,6 +437,7 @@ class Background(Widget):
                     self.vel.append(x)
                     self.evel.append(y)
 
+
                 # print(self.evel)
 
                 if self.mlt==3:
@@ -446,18 +446,18 @@ class Background(Widget):
                     self.rec0.pos = (30 + 1 * self.prob_space, 150)
                     self.rec_1.pos=(30+2*self.prob_space,150)
 
-                    self.erec1.pos = (500 + 0 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][0] * 100)
-                    self.erec0.pos = (500 + 1 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][1] * 100)
-                    self.erec_1.pos = (500 + 2 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][2] * 100)
+                    self.erec1.pos = (480 + 0 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][0] * 100)
+                    self.erec0.pos = (480 + 1 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][1] * 100)
+                    self.erec_1.pos = (480 + 2 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][2] * 100)
 
 
                     self.tag1.pos=(30+0*self.prob_space+self.prob_space/2.-15,125)
                     self.tag0.pos=(30+1*self.prob_space+self.prob_space/2.-15,125)
                     self.tag_1.pos=(30+2*self.prob_space+self.prob_space/2.-15,125)
 
-                    self.etag1.pos = (495+0*self.prob_space-15,125)
-                    self.etag0.pos = (495+1*self.prob_space-15,125)
-                    self.etag_1.pos = (495+2*self.prob_space-15,125)
+                    self.etag1.pos = (475+0*self.prob_space-15,125)
+                    self.etag0.pos = (475+1*self.prob_space-15,125)
+                    self.etag_1.pos = (475+2*self.prob_space-15,125)
 
 
                     self.rec1.size = (self.prob_space-10, 250*self.prob[0][0])
@@ -515,11 +515,11 @@ class Background(Widget):
                     self.rec_1.pos = (30 + 3 * self.prob_space, 150)
                     self.rec_2.pos = (30 + 4 * self.prob_space, 150)
 
-                    self.erec2.pos = (500 + 0 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][0] * 100)
-                    self.erec1.pos = (500 + 1 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][1] * 100)
-                    self.erec0.pos = (500 + 2 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][2] * 100)
-                    self.erec_1.pos = (500 + 3 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][3] * 100)
-                    self.erec_2.pos = (500 + 4 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][4] * 100)
+                    self.erec2.pos = (480 + 0 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][0] * 100)
+                    self.erec1.pos = (480 + 1 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][1] * 100)
+                    self.erec0.pos = (480 + 2 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][2] * 100)
+                    self.erec_1.pos = (480 + 3 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][3] * 100)
+                    self.erec_2.pos = (480 + 4 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][4] * 100)
 
 
                     self.tag2.pos = (30 + 0 * self.prob_space + self.prob_space / 2. - 15, 125)
@@ -528,11 +528,11 @@ class Background(Widget):
                     self.tag_1.pos = (30 + 3 * self.prob_space + self.prob_space / 2. - 15, 125)
                     self.tag_2.pos = (30 + 4 * self.prob_space + self.prob_space / 2. - 15, 125)
 
-                    self.etag2.pos = (495 + 0 * self.prob_space - 15, 125)
-                    self.etag1.pos = (495 + 1 * self.prob_space - 15, 125)
-                    self.etag0.pos = (495 + 2 * self.prob_space - 15, 125)
-                    self.etag_1.pos = (495 + 3 * self.prob_space - 15, 125)
-                    self.etag_2.pos = (495 + 4 * self.prob_space - 15, 125)
+                    self.etag2.pos = (475 + 0 * self.prob_space - 15, 125)
+                    self.etag1.pos = (475 + 1 * self.prob_space - 15, 125)
+                    self.etag0.pos = (475 + 2 * self.prob_space - 15, 125)
+                    self.etag_1.pos = (475 + 3 * self.prob_space - 15, 125)
+                    self.etag_2.pos = (475 + 4 * self.prob_space - 15, 125)
 
 
                     self.rec2.size = (self.prob_space - 10, 250 * self.prob[0][0])
@@ -587,10 +587,10 @@ class Background(Widget):
                     self.rec_12.pos = (30 + 2 * self.prob_space, 150)
                     self.rec_32.pos = (30 + 3 * self.prob_space, 150)
 
-                    self.erec32.pos = (500 + 0 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][0] * 100)
-                    self.erec12.pos = (500 + 1 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][1] * 100)
-                    self.erec_12.pos = (500 + 2 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][2] * 100)
-                    self.erec_32.pos = (500 + 3 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][3] * 100)
+                    self.erec32.pos = (480 + 0 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][0] * 100)
+                    self.erec12.pos = (480 + 1 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][1] * 100)
+                    self.erec_12.pos = (480 + 2 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][2] * 100)
+                    self.erec_32.pos = (480 + 3 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][3] * 100)
 
 
                     self.tag32.pos = (30 + 0 * self.prob_space + self.prob_space / 2. - 15, 125)
@@ -598,10 +598,10 @@ class Background(Widget):
                     self.tag_12.pos = (30 + 2 * self.prob_space + self.prob_space / 2. - 15, 125)
                     self.tag_32.pos = (30 + 3 * self.prob_space + self.prob_space / 2. - 15, 125)
 
-                    self.etag32.pos = (495 + 0 * self.prob_space - 15, 125)
-                    self.etag12.pos = (495 + 1 * self.prob_space - 15, 125)
-                    self.etag_12.pos = (495 + 2 * self.prob_space - 15, 125)
-                    self.etag_32.pos = (495 + 3 * self.prob_space - 15, 125)
+                    self.etag32.pos = (475 + 0 * self.prob_space - 15, 125)
+                    self.etag12.pos = (475 + 1 * self.prob_space - 15, 125)
+                    self.etag_12.pos = (475 + 2 * self.prob_space - 15, 125)
+                    self.etag_32.pos = (475 + 3 * self.prob_space - 15, 125)
 
 
                     self.rec32.size = (self.prob_space - 10, 250 * self.prob[0][0])
@@ -651,17 +651,17 @@ class Background(Widget):
                     # Movem aquells que volem que es mostrin
                     self.rec52.pos = (30 + 0 * self.prob_space, 150)
                     self.rec32.pos = (30 + 1 * self.prob_space, 150)
-                    self.rec12.pos = (30 + 1 * self.prob_space, 150)
+                    self.rec12.pos = (30 + 2 * self.prob_space, 150)
                     self.rec_12.pos = (30 + 3 * self.prob_space, 150)
                     self.rec_32.pos = (30 + 4 * self.prob_space, 150)
                     self.rec_52.pos = (30 + 5 * self.prob_space, 150)
 
-                    self.erec52.pos = (500 + 0 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][0] * 100)
-                    self.erec32.pos = (500 + 1 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][1] * 100)
-                    self.erec12.pos = (500 + 2 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][2] * 100)
-                    self.erec_12.pos = (500 + 3 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][3] * 100)
-                    self.erec_32.pos = (500 + 4 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][4] * 100)
-                    self.erec_52.pos = (500 + 5 * self.prob_space - self.prob_space / 2., 300 + self.ene[0][5] * 100)
+                    self.erec52.pos = (480 + 0 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][0] * 100)
+                    self.erec32.pos = (480 + 1 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][1] * 100)
+                    self.erec12.pos = (480 + 2 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][2] * 100)
+                    self.erec_12.pos = (480 + 3 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][3] * 100)
+                    self.erec_32.pos = (480 + 4 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][4] * 100)
+                    self.erec_52.pos = (480 + 5 * self.prob_space - self.prob_space / 2., 370 + self.ene[0][5] * 100)
 
                     self.tag52.pos = (30 + 0 * self.prob_space + self.prob_space / 2. - 15, 125)
                     self.tag32.pos = (30 + 1 * self.prob_space + self.prob_space / 2. - 15, 125)
@@ -670,12 +670,12 @@ class Background(Widget):
                     self.tag_32.pos = (30 + 4 * self.prob_space + self.prob_space / 2. - 15, 125)
                     self.tag_52.pos = (30 + 5 * self.prob_space + self.prob_space / 2. - 15, 125)
 
-                    self.etag52.pos = (495 + 0 * self.prob_space - 15, 125)
-                    self.etag32.pos = (495 + 1 * self.prob_space - 15, 125)
-                    self.etag12.pos = (495 + 2 * self.prob_space - 15, 125)
-                    self.etag_12.pos = (495 + 3 * self.prob_space - 15, 125)
-                    self.etag_32.pos = (495 + 4 * self.prob_space - 15, 125)
-                    self.etag_52.pos = (495 + 5 * self.prob_space - 15, 125)
+                    self.etag52.pos = (475 + 0 * self.prob_space - 15, 125)
+                    self.etag32.pos = (475 + 1 * self.prob_space - 15, 125)
+                    self.etag12.pos = (475 + 2 * self.prob_space - 15, 125)
+                    self.etag_12.pos = (475 + 3 * self.prob_space - 15, 125)
+                    self.etag_32.pos = (475 + 4 * self.prob_space - 15, 125)
+                    self.etag_52.pos = (475 + 5 * self.prob_space - 15, 125)
 
                     self.rec52.size = (self.prob_space - 10, 250 * self.prob[0][0])
                     self.rec32.size = (self.prob_space - 10, 250 * self.prob[0][1])
@@ -756,10 +756,10 @@ class Background(Widget):
                 #         exec(f'self.rec_{i} = Rectangle(pos=(30+i*self.prob_space,150), '
                 #              f'size=(self.prob_space-10, 250*self.prob[0][i]))')
                 #
-                #         exec(f"self.tag_{i} = Label(pos=(495+i*self.prob_space-15,125),"
+                #         exec(f"self.tag_{i} = Label(pos=(475+i*self.prob_space-15,125),"
                 #              f" size=(30, 20),text='|' + str(i-self.s) + '>')")
-                #         exec(f'self.erec_{i} = Rectangle(pos=(500+i*self.prob_space-self.prob_space/2.,'
-                #              f'300+self.ene[0][i]*100), '
+                #         exec(f'self.erec_{i} = Rectangle(pos=(480+i*self.prob_space-self.prob_space/2.,'
+                #              f'370+self.ene[0][i]*100), '
                 #              f'size=(self.prob_space-10, 10))')
 
                         # exec(f'self.rec_{i} = Rectangle(pos=(55+i*self.prob_space,150), '
@@ -876,8 +876,9 @@ class Background(Widget):
                 self.rec_52.size = (x5, y5 + self.vel[GameScreen.Comptador][5] * 5 * 250 * dt)
                 self.erec_52.pos = (m, n + self.evel[GameScreen.Comptador][5] * 5 * 10 * dt)
 
+            print(self.timer, ti)
+            #self.timer = self.timer + 5*dt
 
-            self.timer = self.timer + 5*dt
 
         else:
             pass
