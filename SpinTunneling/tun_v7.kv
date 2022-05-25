@@ -106,18 +106,22 @@
 		        id: s1
 		        size_hint_x:0.5
                 pos_hint_x:0
-                background_color: (1, 0.5, 1, 1) if root.s==1 else (1, 1, 1, 1)
+                background_color: (2.44,1.75,0.27,1) if root.s==1 else (255,255,255,1)
                 markup: True
                 text: "S=1"
+                color:(0,0.08,0.31,1)
+                bold: True
                 on_press: root.s=1
 
             Button:
 		        id: s2
 		        size_hint_x:0.5
                 pos_hint_x:0
-                background_color: (1, 0.5, 1, 1) if root.s==1.5 else (1, 1, 1, 1)
+                background_color: (2.44,1.75,0.27,1) if root.s==1.5 else (255,255,255,1)
                 markup: True
                 text: "S=3/2"
+                color:(0,0.08,0.31,1)
+                bold: True
                 on_press: root.s=1.5
 
         BoxLayout:
@@ -128,74 +132,111 @@
 		        id: s3
 		        size_hint_x:0.5
                 pos_hint_x:0
-                background_color: (1, 0.5, 1, 1) if root.s==2 else (1, 1, 1, 1)
+                background_color: (2.44,1.75,0.27,1) if root.s==2 else (255,255,255,1)
                 markup: True
                 text: "S=2"
+                color:(0,0.08,0.31,1)
+                bold: True
                 on_press: root.s=2
 
             Button:
 		        id: s4
 		        size_hint_x:0.5
                 pos_hint_x:0
-                background_color: (1, 0.5, 1, 1) if root.s==2.5 else (1, 1, 1, 1)
+                background_color: (2.44,1.75,0.27,1) if root.s==2.5 else (255,255,255,1)
                 markup: True
                 text: "S=5/2"
+                color:(0,0.08,0.31,1)
+                bold: True
                 on_press: root.s=2.5
 
     BoxLayout:
 	    #orientation: 'horizontal'
-		size_hint:0.2,0.1
-		pos_hint: {'x':0.7,'y':0.5}
+		size_hint:0.2,0.05
+		pos_hint: {'x':0.7,'y':0.6}
 
     	Button:
 		    id: H1
 		    size_hint_x:0.5
             pos_hint_x:0
-            background_color: (1, 0.5, 1, 1) if root.H_type==1 else (1, 1, 1, 1)
+            background_color: (2.44,1.75,0.27,1) if root.H_type==1 else (255,255,255,1)
             markup: True
             text: "H1"
+            color:(0,0.08,0.31,1)
+            bold: True
             on_press: root.H_type=1
 
         Button:
 		    id: H2
 		    size_hint_x:0.5
             pos_hint_y:0
-            background_color: (1, 0.5, 1, 1) if root.H_type==2 else (1, 1, 1, 1)
+            background_color: (2.44,1.75,0.27,1) if root.H_type==2 else (255,255,255,1)
             markup: True
             text: "H2"
+            color:(0,0.08,0.31,1)
+            bold: True
             on_press: root.H_type=2
+
+    BoxLayout:
+	    orientation: 'vertical'
+		size_hint:0.2,0.1
+		pos_hint: {'x':0.7,'y':0.4}
+
+        BoxLayout:
+            orientation:'horizontal'
+            Label:
+                text: 'a='+str(a_slider.value)
+                bold: True
+
+            Slider:
+                id:a_slider
+                value:0.01
+                min: 0.00
+                max: 0.020
+                step: 0.001
+                on_value: root.a=a_slider.value
+
+
+        BoxLayout:
+            orientation:'horizontal'
+            Label:
+                text: 'E/D='+str(alpha_slider.value)
+                bold: True
+            Slider:
+                id:alpha_slider
+                value:0.1
+                min: 0.00
+                max: 1
+                step: 0.01
+                on_value: root.alpha=alpha_slider.value
 
     BoxLayout:
 	    #orientation: 'horizontal'
 		size_hint:0.2,0.05
-		pos_hint: {'x':0.7,'y':0.3}
+		pos_hint: {'x':0.7,'y':0.2}
 
 
-        TextInput:
-			orientation: 'horizontal'
-			id: alpha_text
-			multiline: False
-		    size_hint_x:0.5
-            pos_hint_y:0
-            background_color: (1, 1, 1, 1)
-            markup: True
 
         Button:
             id: alpha_button
             size_hint_x:0.5
             pos_hint_x:0
-            background_color: (1, 1, 1, 1)
+            background_color: (2.44,1.75,0.27,1)
             markup: True
-            text: "Enviar"
+            text: "SEND"
+            color:(0,0.08,0.31,1)
+            bold: True
             on_press: root.send_but()
 
     Button:
         id: back_YSD
         text:'Back'
+        color:(0,0.08,0.31,1)
+        bold: True
         on_press:root.transition_SScreen()
         pos_hint:{'x':0.0,'y':0.00}
         size_hint:0.15,0.025
-        background_color:(1,1,1,1)
+        background_color:(2.44,1.75,0.27,1)
 
 
 <GameScreen>
@@ -212,6 +253,44 @@
                     #source: "sky.png"
 
     # Botons Spin
+    BoxLayout:
+	    orientation: 'vertical'
+		size_hint:0.3,0.1
+		pos_hint: {'x':0.15,'y':0.025}
+
+        BoxLayout:
+            orientation: 'vertical'
+            size_hint:1,0.1
+            pos_hint: {'x':0,'y':0.4}
+
+            BoxLayout:
+                orientation:'horizontal'
+                Label:
+                    text: 'a='+str(a_slider.value)
+                    bold: True
+
+                Slider:
+                    id:a_slider
+                    value:0.01
+                    min: 0.00
+                    max: 0.020
+                    step: 0.001
+                    on_value: root.a=a_slider.value
+
+
+            BoxLayout:
+                orientation:'horizontal'
+                Label:
+                    text: 'E/D='+str(alpha_slider.value)
+                    bold: True
+
+                Slider:
+                    id:alpha_slider
+                    value:0.1
+                    min: 0.00
+                    max: 1
+                    step: 0.01
+                    on_value: root.alpha=alpha_slider.value
 	BoxLayout:
 	    orientation: 'vertical'
 		size_hint:0.1,0.1
@@ -225,18 +304,22 @@
 		        id: s1
 		        size_hint_x:0.5
                 pos_hint_x:0
-                background_color: (1, 0.5, 1, 1) if root.s==1 else (1, 1, 1, 1)
+                background_color: (2.44,1.75,0.27,1) if root.s==1 else (255,255,255,1)
                 markup: True
                 text: "1"
+                color:(0,0.08,0.31,1)
+                bold: True
                 on_press: root.s=1
 
             Button:
 		        id: s2
 		        size_hint_x:0.5
                 pos_hint_x:0
-                background_color: (1, 0.5, 1, 1) if root.s==1.5 else (1, 1, 1, 1)
+                background_color: (2.44,1.75,0.27,1) if root.s==1.5 else (255,255,255,1)
                 markup: True
                 text: "3/2"
+                color:(0,0.08,0.31,1)
+                bold: True
                 on_press: root.s=1.5
 
         BoxLayout:
@@ -247,57 +330,65 @@
 		        id: s3
 		        size_hint_x:0.5
                 pos_hint_x:0
-                background_color: (1, 0.5, 1, 1) if root.s==2 else (1, 1, 1, 1)
+                background_color: (2.44,1.75,0.27,1) if root.s==2 else (255,255,255,1)
                 markup: True
                 text: "2"
+                color:(0,0.08,0.31,1)
+                bold: True
                 on_press: root.s=2
 
             Button:
 		        id: s4
 		        size_hint_x:0.5
                 pos_hint_x:0
-                background_color: (1, 0.5, 1, 1) if root.s==2.5 else (1, 1, 1, 1)
+                background_color: (2.44,1.75,0.27,1) if root.s==2.5 else (255,255,255,1)
                 markup: True
                 text: "5/2"
+                color:(0,0.08,0.31,1)
+                bold: True
                 on_press: root.s=2.5
 
     BoxLayout:
-	    #orientation: 'horizontal'
-        size_hint:0.1,0.05
-		pos_hint: {'x':0.70,'y':0.075}
+	    orientation: 'vertical'
+        size_hint:0.2,0.1
+		pos_hint: {'x':0.70,'y':0.025}
 
     	Button:
 		    id: H1
 		    size_hint_x:0.5
             pos_hint_x:0
-            background_color: (1, 0.5, 1, 1) if root.H_type==1 else (1, 1, 1, 1)
+            background_color: (2.44,1.75,0.27,1) if root.H_type==1 else (255,255,255,1)
             markup: True
             text: "H1"
+            color:(0,0.08,0.31,1)
+            bold: True
             on_press: root.H_type=1
 
         Button:
 		    id: H2
 		    size_hint_x:0.5
             pos_hint_y:0
-            background_color: (1, 0.5, 1, 1) if root.H_type==2 else (1, 1, 1, 1)
+            background_color: (2.44,1.75,0.27,1) if root.H_type==2 else (255,255,255,1)
             markup: True
             text: "H2"
+            color:(0,0.08,0.31,1)
+            bold: True
             on_press: root.H_type=2
 
-    BoxLayout:
-	    #orientation: 'horizontal'
-		size_hint:0.1,0.05
-		pos_hint: {'x':0.70,'y':0.025}
+  #   BoxLayout:
+	 #    #orientation: 'horizontal'
+		# size_hint:0.1,0.05
+		# pos_hint: {'x':0.70,'y':0.025}
 
 
-        TextInput:
-			orientation: 'horizontal'
-			id: alpha_text
-			multiline: False
-		    size_hint_x:0.5
-            pos_hint_y:0
-            background_color: (1, 1, 1, 1)
-            markup: True
+  #       TextInput:
+		# 	orientation: 'horizontal'
+		# 	id: alpha_text
+		# 	multiline: False
+		#     size_hint_x:0.5
+  #           pos_hint_y:0
+  #           background_color: (1, 1, 1, 1)
+  #           markup: True
 
     BoxLayout:
         size_hint:0.1,0.05
@@ -307,16 +398,20 @@
             id: alpha_button
             size_hint_x:0.5
             pos_hint_x:0
-            background_color: (1, 1, 1, 1)
+            background_color: (2.44,1.75,0.27,1)
             markup: True
-            text: "Enviar"
+            text: "SEND"
+            color:(0,0.08,0.31,1)
+            bold: True
             on_press: root.send_but(),root.drawcall()
 
     Button:
         id: back_YSD
         text:'Back'
+        color:(0,0.08,0.31,1)
+        bold: True
         on_press:root.transition_SScreen()
         pos_hint:{'x':0.0,'y':0.00}
         size_hint:0.15,0.025
-        background_color:(1,1,1,1)
+        background_color:(2.44,1.75,0.27,1)
 
