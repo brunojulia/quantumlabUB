@@ -640,7 +640,8 @@ class GameWindow(Screen):
         
         def plot_energy(self):
                 '''This function plots the energy line for a estatic potential'''
-                plt.clf()
+                #plt.clf()
+                plt.close()
 
                
 
@@ -698,7 +699,7 @@ class GameWindow(Screen):
                 This function won't plot energy in order to not having to compute the eigenvalues
                 every time the potential is changing'''
                 #clear previous plot 
-                plt.clf()
+                plt.close()
 
                 fig, ax_phi=plt.subplots()
                 ax_phi.set_xlabel(r"$x(\AA)$")
@@ -736,7 +737,7 @@ class GameWindow(Screen):
                 '''This function plots into the window the wave function.
                 It also plots the potential. Previous to plotting it computes the eigenvalues
                 and computes the eigenvector. '''
-                plt.clf()
+                plt.close()
                 self.plots_left-=1  
                 self.plots_label.text=str(self.plots_left) #we have to update the plots left
                 #we animate the plotsleft 
