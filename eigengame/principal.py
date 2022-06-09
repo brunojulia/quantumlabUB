@@ -877,6 +877,7 @@ class GameWindow(Screen):
                 probabilities,E=self.wave_function() #compute the probabilities and energy 
                 n_e=self.level*2-1 
                 if self.level==1: n_e=1  #number of electrons we want to plot (level number)
+                elif self.level>3: n_e=self.level*2
                 self.position=random.choices(self.x_list_values,weights=probabilities,k=n_e) #computes the position accordingly to WF
                 #we create a lists of the gridslayouts with are working with 
                 e_grid=[None]*n_e #list of n_e elements
@@ -992,10 +993,12 @@ class GameWindow(Screen):
                 
                 self.first_target=False 
 
+                second_shot=False
+
                 if self.level==1: #we check if it needs to be smaller in level 1 
                         #we generate a new epsilon 
                         if self.target_epsilon>0.08:  #if it's bigger than 0.08
-                                self.target_epsilon=self.target_epsilon-0.05
+                                self.target_epsilon=self.target_epsilon-0.05 
                         else: #it's smaller 
                                 self.level=2 #plus one in level
                                 #once we know for sure the new level 
@@ -1007,6 +1010,40 @@ class GameWindow(Screen):
                                 elif self.lang=="ESP": self.level_label.text="NIVEL = "+str(self.level)
                                 else: self.level_label.text="NIVELL = "+str(self.level) 
                                 self.target_epsilon=0.1 #resize, note that now is smaller than at the beggining of level 1 
+
+                elif self.level==2: #we check if it needs to be smaller in level 2
+                        if self.target_epsilon>0.08: #initially in this level epsilon=0.1
+                                self.target_epsilon=self.target_epsilon-0.025
+                                second_shot=True 
+                        else: #it's smaller 
+                                self.level=3 #plus one in level
+                                second_shot=False
+                                #once we know for sure the new level 
+                                level_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
+                                level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
+                                level_animation1.start(self.level_label) 
+
+                                if self.lang=="ENG": self.level_label.text="LEVEL = "+str(self.level)
+                                elif self.lang=="ESP": self.level_label.text="NIVEL = "+str(self.level)
+                                else: self.level_label.text="NIVELL = "+str(self.level) 
+                                self.target_epsilon=0.1 #resize, note that now is smaller than at the beggining of level 1
+                elif self.level==3:
+                        if self.target_epsilon>0.08: #initially in this level epsilon=0.1
+                                self.target_epsilon=self.target_epsilon-0.025
+                                second_shot=True
+                        else: #it's smaller 
+                                self.level=4 #plus one in level
+                                second_shot=False
+                                #once we know for sure the new level 
+                                level_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
+                                level_animation1+=Animation(color=(0,0,0,1),duration=0.5)
+                                level_animation1.start(self.level_label) 
+
+                                if self.lang=="ENG": self.level_label.text="LEVEL = "+str(self.level)
+                                elif self.lang=="ESP": self.level_label.text="NIVEL = "+str(self.level)
+                                else: self.level_label.text="NIVELL = "+str(self.level) 
+                                self.target_epsilon=0.075 #resize, note that now is smaller than at the beggining of level 1  
+
                 else: #we increase level inmidiatelly 
                         self.level+=1 
                         level_animation1=Animation(color=(233/255, 179/255, 7/255, 1),duration=0.5)
@@ -1102,10 +1139,18 @@ class GameWindow(Screen):
                 #UPDATING THE SCORE + ELECTRON ANIMATION TO THE SCORE
                 if self.level==1: 
                         n_e=1 #we had one electron 
-                elif self.level==2:  
-                        n_e=1 #we had the number of the previous level 
+                elif self.level==2 and second_shot==False:
+                        n_e=1
+                elif self.level==2 and second_shot==True:  
+                        n_e=3 
+                elif self.level==3 and second_shot==False:
+                        n_e=3 
+                elif self.level==3 and second_shot==True:
+                        n_e=5 
+                elif self.level==4: 
+                        n_e=5
                 else: 
-                        n_e=(self.level-1)*2-1
+                        n_e=(self.level-1)*2
 
                 e_grid=[None]*(n_e) #list of n_e elements
                 for i in range(0,n_e):
