@@ -66,7 +66,7 @@
     		#keep_ratio: False
     	canvas.before: 
 			Color: 
-				rgba: (0,0,0,1) 
+				rgba: (1,1,1,1) 
 			Rectangle: 
 				size: self.size 
 				pos: self.pos
@@ -77,9 +77,10 @@
 			font_size:33
 			text: "Welcome to EIGENgame.\n To learn how to play press on TUTORIAL."  
 			multiline: True
+			color:0, 0, 0, 1
 			font_name:'ranchers'
 			bold: True
-			pos_hint: {"center_x":0.5,"center_y":0.9} #diccionari:{"x","y","top","bottom","left","right"}
+			pos_hint: {"center_x":0.5,"center_y":0.8} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.6
 			size_hint_y:0.1 
 			halign:"center"
@@ -87,10 +88,10 @@
         Button: #afegim un botó 
         	id: game_button
         	font_size:44
-			color:1,1,1,1 #tots els buttons seran aixi
+			color: 23/255, 190/255, 255/255, 1 #tots els buttons seran aixi
 			text: "GAME"
 			font_name:'ranchers'
-			disabled: True 
+			disabled: False 
 			bold: False
 			pos_hint: {"center_x":0.5,"center_y":0.6} #diccionari:{"x","y","top","bottom","left","right"}
 			size_hint_x: 0.5
@@ -102,7 +103,7 @@
 
 		Button: #afegim un botó 
         	font_size:44
-			color:1,1,1,1 #tots els buttons seran aixi
+			color: 23/255, 190/255, 255/255, 1
 			text: "TUTORIAL"
 			font_name:'ranchers'
 			bold: True
@@ -115,41 +116,49 @@
 				root.tutorial_transition()
 				root.tutorial_explanation()
 
-		FloatLayout: #institutional logos 
-			size_hint_x:0.3
+		GridLayout: #institutional logos
+			cols: 1
+			rows: 1 
+			size_hint_x:0.25
 			size_hint_y:0.1
-			pos_hint:{"right":1,"y":-0.001+0.1}
+			pos_hint:{"x":0,"y":0}
 			Image: #Nano logo 
 				source: "graphs/logo_nano.jpg"
-				center_x:self.parent.center_x
-				center_y:self.parent.center_y
+				x:self.parent.x
+				y:self.parent.y
 				size: self.parent.width, self.parent.height 
 				allow_stretch: True
-		    	keep_ratio: False 
+		    	keep_ratio: True 
+ 
 
-		FloatLayout: #institutional logos 
-			size_hint_x:0.3
+		GridLayout: #UB
+			cols: 1
+			rows: 1
+			size_hint_x:0.25
 			size_hint_y:0.1
-			pos_hint:{"right":1,"y":-0.001}
-			Image: #iccub logo 
-				source: "graphs/logoiccub.png"
-				center_x:self.parent.center_x
-				center_y:self.parent.center_y
-				size: self.parent.width, self.parent.height 
-				allow_stretch: True
-		    	keep_ratio: False
-
-		FloatLayout: #institutional logos 
-			size_hint_x:0.2
-			size_hint_y:0.1
-			pos_hint:{"right":1,"y":0.9}
+			pos_hint:{"center_x":0.47,"y":0}
 			Image: #iccub logo 
 				source: "graphs/ub_logo.png"
-				center_x:self.parent.center_x
-				center_y:self.parent.center_y
+				x:self.parent.x
+				y:self.parent.y
 				size: self.parent.width, self.parent.height 
 				allow_stretch: True
-		    	keep_ratio: False
+		    	keep_ratio: True
+
+		GridLayout: #ICCUB
+			cols: 1
+			rows: 1
+			size_hint_x:0.3
+			size_hint_y:0.1
+			pos_hint:{"right":0.98,"y":0}
+			Image: #iccub logo 
+				source: "graphs/logoiccub.png"
+				x:self.parent.x
+				y:self.parent.y
+				size: self.parent.width, self.parent.height 
+				allow_stretch: True
+		    	keep_ratio: True
+
 			 
 			
 
@@ -157,7 +166,7 @@
 		BoxLayout: #for languages
 			size_hint_x: 0.15
 			size_hint_y:0.07
-			pos_hint:{"x":0.0,"y":0.0}
+			pos_hint:{"right":1.0,"top":1}
 			orientation: "horizontal"
 			#add buttons for languages
 			Button: #CATALAN 
@@ -195,7 +204,7 @@
 		BoxLayout: #for flags
 			size_hint_x: 0.15
 			size_hint_y:0.05
-			pos_hint:{"x":0.0,"center_y":0.035}
+			pos_hint:{"right":1.0,"center_y":1-0.035}
 			orientation: "horizontal"
 			Image: #we put an image inside the button 
 				source: "graphs/cat_flag.png"
@@ -761,22 +770,7 @@
 				Rectangle: 
 					size: self.size 
 					pos: self.pos
-			#FloatLayout: #redlines left 
-				#size_hint_x: 0.17
-				#size_hint_y: 1
-				#pos_hint:{"x":0,"y":0}
-				#Image: #we put an image
-					#source: "graphs/redlines.png"
-					#allow_stretch: True
-    				#keep_ratio: False
-    		#BoxLayout: #redlines right 
-				#size_hint_x: 0.02
-				#size_hint_y: 1
-				#pos_hint:{"right":1,"y":0}
-				#Image: #we put an image
-					#source: "graphs/redlines_1.png"
-					#allow_stretch: True
-    				#keep_ratio: False
+			
     		FloatLayout: #noforbidden for the target 
 				size_hint_x: 0.765
 				size_hint_y: 1
