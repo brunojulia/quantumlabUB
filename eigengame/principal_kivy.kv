@@ -115,7 +115,45 @@
 				root.tutorial_transition()
 				root.tutorial_explanation()
 
-		
+		FloatLayout: #institutional logos 
+			size_hint_x:0.3
+			size_hint_y:0.1
+			pos_hint:{"right":1,"y":-0.001+0.1}
+			Image: #Nano logo 
+				source: "graphs/logo_nano.jpg"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y
+				size: self.parent.width, self.parent.height 
+				allow_stretch: True
+		    	keep_ratio: False 
+
+		FloatLayout: #institutional logos 
+			size_hint_x:0.3
+			size_hint_y:0.1
+			pos_hint:{"right":1,"y":-0.001}
+			Image: #iccub logo 
+				source: "graphs/logoiccub.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y
+				size: self.parent.width, self.parent.height 
+				allow_stretch: True
+		    	keep_ratio: False
+
+		FloatLayout: #institutional logos 
+			size_hint_x:0.2
+			size_hint_y:0.1
+			pos_hint:{"right":1,"y":0.9}
+			Image: #iccub logo 
+				source: "graphs/ub_logo.png"
+				center_x:self.parent.center_x
+				center_y:self.parent.center_y
+				size: self.parent.width, self.parent.height 
+				allow_stretch: True
+		    	keep_ratio: False
+			 
+			
+
+
 		BoxLayout: #for languages
 			size_hint_x: 0.15
 			size_hint_y:0.07
