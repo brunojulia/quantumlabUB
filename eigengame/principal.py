@@ -1861,7 +1861,7 @@ class GameWindow(Screen):
      
 Builder.load_file("principal_kivy.kv") #d'aquesta manera li podem dir al fitxer kv com volguem
 
-class MygameApp(App): #inherits from app (utilitza les pepietats)
+class EigenGameApp(App): #inherits from app (utilitza les pepietats)
     #    def __init__() No fem INIT perquè ja agafa el init de App
     #aqesta classe fa que la grid aparegui a la pantalla
     def build(self): #self argument de sempre no te arguments
@@ -1872,4 +1872,4 @@ class MygameApp(App): #inherits from app (utilitza les pepietats)
 if __name__=="__main__":
 #no hi ha run defininda a la class... està dins de App!
         Window.maximize() #opens in full screen 
-        MygameApp().run() #run method inside App class
+        EigenGameApp().run() #run method inside App class

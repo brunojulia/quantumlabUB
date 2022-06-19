@@ -88,7 +88,7 @@
         Button: #afegim un botó 
         	id: game_button
         	font_size:44
-			color: 23/255, 190/255, 255/255, 1 #tots els buttons seran aixi
+			color: 23/255, 190/255, 255/255, 1 
 			text: "GAME"
 			font_name:'ranchers'
 			disabled: False 
@@ -171,8 +171,10 @@
 			#add buttons for languages
 			Button: #CATALAN 
 	            id: button_cat
-	        	font_size:14
-				color:1,1,1,1
+	            text: "CAT"
+	            font_name:'ranchers'
+	            color: 23/255, 190/255, 255/255, 1
+	        	font_size:18
 				bold: True
             	halign:"center"
 				valign:"middle" #lletra centrada
@@ -181,8 +183,10 @@
 
 			Button: #ESP 
 	            id: button_esp
-	        	font_size:14
-				color:1,1,1,1
+	            text: "CAST"
+	            font_name:'ranchers'
+	            color: 23/255, 190/255, 255/255, 1
+	        	font_size:18
 				bold: True
             	halign:"center"
 				valign:"middle" #lletra centrada
@@ -191,8 +195,10 @@
 				  
 			Button: #ENGLISH 
 	            id: button_eng
-	        	font_size:14
-	        	color:1,1,1,1
+	            text: "ENG"
+	            font_name:'ranchers'
+	            color: 23/255, 190/255, 255/255, 1
+	        	font_size:18
                 background_color: (0,0,1,0.8)
 				bold: True
             	halign:"center"
@@ -201,27 +207,27 @@
 					root.english()
 				
 
-		BoxLayout: #for flags
-			size_hint_x: 0.15
-			size_hint_y:0.05
-			pos_hint:{"right":1.0,"center_y":1-0.035}
-			orientation: "horizontal"
-			Image: #we put an image inside the button 
-				source: "graphs/cat_flag.png"
-				center_x:self.parent.center_x
-				center_y:self.parent.center_y #we put the image in the middle of the button					
+		#BoxLayout: #for flags
+			#size_hint_x: 0.15
+			#size_hint_y:0.05
+			#pos_hint:{"right":1.0,"center_y":1-0.035}
+			#orientation: "horizontal"
+			#Image: #we put an image inside the button 
+				#source: "graphs/cat_flag.png"
+				#center_x:self.parent.center_x
+				#center_y:self.parent.center_y #we put the image in the middle of the button					
 
-			Image: #we put an image inside the button 
-				source: "graphs/esp_flag.png"
-				center_x:self.parent.center_x
-				center_y:self.parent.center_y #we put the image in the middle of the button
-				size: self.parent.width, self.parent.height  
+			#Image: #we put an image inside the button 
+				#source: "graphs/esp_flag.png"
+				#center_x:self.parent.center_x
+				#center_y:self.parent.center_y #we put the image in the middle of the button
+				#size: self.parent.width, self.parent.height  
 				
-			Image: #we put an image inside the button 
-				source: "graphs/eng_flag.png"
-				center_x:self.parent.center_x
-				center_y:self.parent.center_y #we put the image in the middle of the button
-				size: self.parent.width, self.parent.height 
+			#Image: #we put an image inside the button 
+				#source: "graphs/eng_flag.png"
+				#center_x:self.parent.center_x
+				#center_y:self.parent.center_y #we put the image in the middle of the button
+				#size: self.parent.width, self.parent.height 
 
 
 	FloatLayout: #GAME_LAYOUT
