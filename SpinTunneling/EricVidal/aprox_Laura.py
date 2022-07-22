@@ -7,6 +7,9 @@ Created on Fri Nov 12 19:31:51 2021
 import numpy as np
 from matplotlib import pyplot as plt
 
+
+s=1     #Spin
+dim=int(2*s+1)
 #Parametres Hamiltonia
 hbar = 1.
 a=0.1
@@ -20,8 +23,6 @@ Sz = hbar*np.array([[1,0,0],[0,0,0],[0,0,-1]])
 Sxy2 = np.dot(Sx,Sx)-np.dot(Sy,Sy)
 Sz2 = np.dot(Sz,Sz)
 
-
-
 # Hamiltonia depenent del temps amb unitats d'energia entre D
 def Hamiltonia(t):
     Ham = -Sz2 - a * hbar * t * Sz + alpha * (Sxy2)
@@ -29,9 +30,6 @@ def Hamiltonia(t):
 
 # Base de vectors propis de spin 1: |1>, |0> i |-1>
 mm=[]    #Conjunt dels 3 vects propis
-s=1     #Spin
-dim=int(2*s+1)
-
 for i in range(dim):
     m_i = [0]*(dim-1-i)+[1]+[0]*(i) #Corre l'1 des del final fins al principi
     mm.append(m_i)
@@ -43,7 +41,7 @@ a_m[0]=1+0j
 
 
 # Equacions diferencials de primer ordre associades a les diferents a_m
-def dam(t, am, i):
+def dam(i, t, am):
     m_i=np.array([mm[i]])   #element de la base corresponent al coef am_i
     
     sum_H=0.    #sera equa dif a falta dun factor
@@ -51,72 +49,76 @@ def dam(t, am, i):
         m_k=np.array([mm[k]])
         m_k=np.transpose(m_k)   #element del coef k
         sum_H += am[k]*np.dot(m_i,(np.dot(Hamiltonia(t),m_k)))
-        
+        if (k==i):
+            eigenterm=am[k]*np.dot(m_i,(np.dot(Hamiltonia(t),m_k)))
+    if (n<10):
+        sumterm=sum_H-eigenterm
+        print(k,sumterm)
     dam_i=-1j*sum_H   #equa dif
     
     return dam_i
 
 
-# Funcio que utilitza el metode Runge Kutta4 per resoldre les equacions 
-# diferencials de primer ordre            
-def RK4(t, h, am, dim_s):
-    for i in range(dim_s):   #apliquem un pas de RK4 per a totes les ED acoblades
-            k0 = h*dam(t,am,i)
-            k1 = h*dam(t+0.5*h,am+0.5*k0,i)
-            k2 = h*dam(t+0.5*h,am+0.5*k1,i)
-            k3 = h*dam(t+0.5*h,am+k2,i)
-            am[i] = am[i] + (k0+2*k1+2*k2+k3)/6.
+#RK4 algorithm for solve 1 step of ODE         
+def RK4(t, am, fun_dif):
+    '''Inputs: s (int) total spin, t (int or float) time, am (array (dim,1))
+    coefficients of each state, h (int or float) step.
+    Outputs: ak (complex array dim 2s+1) 1 step.
+    This function returns every differential equation solution for coefficients
+    time evolution.'''
+    for k in range(dim):   #apliquem un pas de RK4 per a totes les ED acoblades
+            k1 = h*fun_dif(k, t, am)
+            k2 = h*fun_dif(k, t + h/2, am + k1/2)
+            k3 = h*fun_dif(k, t + h/2, am + k2/2)
+            k4 = h*fun_dif(k, t + h, am + k3)
+            am[k] = am[k] + (k1 + 2*k2 + 2*k3 + k4)/6
     return am
-
-#Parametres de RK
+#Evolution time frame
 t0=-10
 tf=10
-nstep=2000
-h=(tf-t0)/nstep
 
-t=t0    #Valor inicial del temps
+#RK4 steps
+nstep = 20000   #number
+h = (tf-t0)/nstep   #step
 
-#Llistes buides per a probabilitat dels coeficients, temps i
-#probabilitat de la funcio d'ona (normalitzada en teoria)
-a1=[0]*(nstep+1)
-a2=[0]*(nstep+1)
-a3=[0]*(nstep+1)
-ti=[0]*(nstep+1)
-mod=[0]*(nstep+1)
+t=t0    #Initial time
 
-#CI
+#Array to save coefficients probabilities, time, and states norm
+asave=np.zeros((dim, nstep+1), dtype='float')
+ti=np.zeros(nstep+1, dtype='float')
+norm=np.zeros(nstep+1, dtype='float')
+
+#IC
 ti[0]=t0
-a1[0]=abs(a_m[0])**2
-a2[0]=abs(a_m[1])**2
-a3[0]=abs(a_m[2])**2
-mod[0]=a1[0]+a2[0]+a3[0]
+for i in range(dim):
+    print(type(np.abs(a_m[i])**2))
+    asave[i,0]=np.abs(a_m[i])**2
+    norm[0] = norm[0]+asave[i,0]
 
+
+#System resolution 
 for n in range(nstep):
-    print(n)    #print del numero d'operacio que porta (PODRIA SER UN CARGANDO)
+    print(n)    #print step number (PODRIA SER UN CARGANDO)
+    a_m=RK4(t, a_m, dam)  #RK4 step
     
-    a_m=RK4(t, h, a_m, dim)  #pas de RK4
-    
-    #Guardem valor de prob, t, norma a llista
-    a1[n+1]=abs(a_m[0])**2
-    a2[n+1]=abs(a_m[1])**2
-    a3[n+1]=abs(a_m[2])**2
-    
-    mod[n+1]=a1[n]+a2[n]+a3[n]
-    
-    #Canviem de pas per inputs del proxim pas de RK4
-    t=t+h
+    #Save every value to afterwards plot evo in time, and continue RK4 
+    for i in range(dim):
+        asave[i,n+1]=np.abs(a_m[i])**2
+        norm[n+1] = norm[n+1]+asave[i,n+1]
     ti[n+1]=t
+    
+    #Input time for next step
+    t=t0+n*h
+    
 
-plt.title('N='+str(nstep))
-plt.xlabel("t'")
-plt.ylabel('a^2')
+plt.title('Straight forward operators RK4: '+'N='+str(nstep))
+plt.xlabel('t')
+plt.ylabel('$|a|^2$')
 plt.axhline(y=1.0,linestyle='--',color='grey')
-plt.plot(ti, a1,'-',label='m=-1')
-plt.plot(ti, a2,'-',label='m=0')
-plt.plot(ti, a3,'-',label='m=1')
-plt.plot(ti, mod,'-',label='norma')
+for i in range(dim):
+    plt.plot(ti, asave[i,:],'-',label='m='+str(i-s))
+plt.plot(ti, norm,'-',label='norma')
 plt.legend()
 
 plt.show()
-
 

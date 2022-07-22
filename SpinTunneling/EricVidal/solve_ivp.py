@@ -34,8 +34,10 @@ print(odes(0, x0, D, h, B))
 #declare a time vector (time window) and parameters
 p=(D, h, B)
 
+tlin=np.linspace(-10,10,200)
+
 #solve
-x=solve_ivp(odes,[-10,10], x0, args=p)
+x=solve_ivp(odes,[-10,10], x0,t_eval=tlin, args=p)
 
 t=x.t[:]
 a_1 = x.y[0,:]
@@ -50,9 +52,9 @@ sumat[1,:]=a02[:]
 sumat[2,:]=a12[:]
 norm = np.sum(sumat, axis=0)
 
-plt.title('Test')
+plt.title('System solved, solve_ivp')
 plt.xlabel("t")
-plt.ylabel('a^2')
+plt.ylabel('$|a|^2$')
 plt.axhline(y=1.0,linestyle='--',color='grey')
 plt.plot(t, a_12,'-',label='m=-1')
 plt.plot(t, a02,'-',label='m=0')

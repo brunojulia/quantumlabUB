@@ -14,11 +14,9 @@ Nterm1=s*(s+1)
 
 #Hamiltonian Parameters
 D=1
-h=0.1
+hz=0.1
 B=0.1
 
-#CI SON LES CONSIDERADES PER LAURA PERO EN REALITAT NO SERIA MES LOGIC
-#TOTES EQUIPROBS?
 #Initial conditions taking into account that eigenstates are orthonormal
 a_m=np.zeros((dim,1),dtype=complex)
 a_m[0]=1+0j
@@ -39,7 +37,7 @@ def Nm(m):
 
 #PER TESTEJAR SI EL METODE ES CORRECTE, COMPARAREM AMB LAURA
 #definition of ODE's
-def dak1(s, k, t, am):
+def dak1(k, t, am):
     '''Inputs: s (int) total spin, k (int) quantum magnetic number,
     t (int or float) time, am (array (dim,1)) coefficients of each state.
     Outputs: dak (complex) time derivative of a_k.
@@ -52,7 +50,7 @@ def dak1(s, k, t, am):
         exit()
         
     #eigenvalues term
-    eigenterm=am[k]*(-D*kreal**2-h*t*kreal)
+    eigenterm=am[k]*(-D*kreal**2-hz*t*kreal)
     
     #summatory term
     sumterm=0
@@ -75,28 +73,25 @@ def dak1(s, k, t, am):
     return dak
 
 #RK4 algorithm for solve 1 step of ODE         
-def RK4(s, t, am, h):
+def RK4(t, am, fun_dif):
     '''Inputs: s (int) total spin, t (int or float) time, am (array (dim,1))
     coefficients of each state, h (int or float) step.
     Outputs: ak (complex array dim 2s+1) 1 step.
     This function returns every differential equation solution for coefficients
     time evolution.'''
-    
-    #dak1(s, k, t, am)
-    for k in range(dim):
-            k0 = dak1(s, k, t, am)
-            k1 = dak1(s, k, t + h/2, am + h*k0/2)
-            k2 = dak1(s, k, t + h/2, am + h*k1/2)
-            k3 = dak1(s, k, t + h/2, am + h*k2)
-            am[k] = am[k] + h*(k0 + 2*k1 + 2*k2 + k3)/6
+    for k in range(dim):   #apliquem un pas de RK4 per a totes les ED acoblades
+            k1 = h*fun_dif(k, t, am)
+            k2 = h*fun_dif(k, t + h/2, am + k1/2)
+            k3 = h*fun_dif(k, t + h/2, am + k2/2)
+            k4 = h*fun_dif(k, t + h, am + k3)
+            am[k] = am[k] + (k1 + 2*k2 + 2*k3 + k4)/6
     return am
-
 #Evolution time frame
 t0=-10
 tf=10
 
 #RK4 steps
-nstep = 2000   #number
+nstep = 20000   #number
 h = (tf-t0)/nstep   #step
 
 t=t0    #Initial time
@@ -106,9 +101,10 @@ asave=np.zeros((dim, nstep+1), dtype='float')
 ti=np.zeros(nstep+1, dtype='float')
 norm=np.zeros(nstep+1, dtype='float')
 
-#CI
+#IC
 ti[0]=t0
 for i in range(dim):
+    print(type(np.abs(a_m[i])**2))
     asave[i,0]=np.abs(a_m[i])**2
     norm[0] = norm[0]+asave[i,0]
 
@@ -116,20 +112,21 @@ for i in range(dim):
 #System resolution 
 for n in range(nstep):
     print(n)    #print step number (PODRIA SER UN CARGANDO)
-    a_m=RK4(s, t, a_m, h)  #RK4 step
+    a_m=RK4(t, a_m, dak1)  #RK4 step
     
     #Save every value to afterwards plot evo in time, and continue RK4 
     for i in range(dim):
         asave[i,n+1]=np.abs(a_m[i])**2
         norm[n+1] = norm[n+1]+asave[i,n+1]
+    ti[n+1]=t
     
     #Input time for next step
-    t=t+h
-    ti[n+1]=t
+    t=t0+n*h
+    
 
-plt.title('N='+str(nstep))
-plt.xlabel("t")
-plt.ylabel('a^2')
+plt.title('General spin method RK4: '+'N='+str(nstep))
+plt.xlabel('t')
+plt.ylabel('$|a|^2$')
 plt.axhline(y=1.0,linestyle='--',color='grey')
 for i in range(dim):
     plt.plot(ti, asave[i,:],'-',label='m='+str(i-s))
@@ -137,5 +134,4 @@ plt.plot(ti, norm,'-',label='norma')
 plt.legend()
 
 plt.show()
-
 

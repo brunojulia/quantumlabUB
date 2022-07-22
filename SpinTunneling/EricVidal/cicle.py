@@ -124,14 +124,39 @@ a_m=solve_ivp(odes, At, a_m0, args=p)
 t=a_m.t[:]  #time
 
 aplot=[]
+a_m0inv=[]
 for i in range(dim):
-    aplot.append(np.abs(a_m.y[i,:])**2)     #Probabilities coeff^2
+    prob_i=np.abs(a_m.y[i,:])**2
+    aplot.append(prob_i.tolist())      #Probabilities coeff^2
+    a_m0inv.append(a_m.y[i,-1])             #IC for inverse case
+    
+#CHANGE OF STATE
+hz2=-hz
+At2=[At[1],At[1]+(At[1]-At[0])]
 
-norm = np.sum(aplot, axis=0)    #Norm (sum of probs)
+p=(D, hz2, B)
+
+#solve
+a_m2=solve_ivp(odes, At2, a_m0inv, args=p)   #Note At2 and a_m0inv
+
+#Plotting parameters
+t2=a_m2.t[:]  #time
+t=t.tolist()
+t2=t2.tolist()
+tplot=t+t2
+
+aplot2=[]
+aplot_tot=[]
+for i in range(dim):
+    prob_i=np.abs(a_m2.y[i,:])**2
+    aplot2.append(prob_i.tolist())     #Probabilities coeff^2
+    aplot_tot.append(aplot[i]+aplot2[i])
+
+norm = np.sum(aplot_tot, axis=0)    #Norm (sum of probs)
 
 #Plot
 plt.figure()
-plt.subplot(221)
+plt.subplot(211)
 plt.title('General spin method, solve_ivp')
 plt.xlabel('t')
 plt.ylabel('$|a|^2$')
@@ -139,32 +164,23 @@ plt.axhline(y=1.0,linestyle='--',color='grey')
 for i in range(s):
     plt.axvline(x=time_n[i],linestyle='--',color='grey')
 for i in range(dim):
-    plt.plot(t, aplot[i],'-',label='m='+str(i-s))
-plt.plot(t, norm,'-',label='norma')
+    plt.plot(tplot, aplot_tot[i],'-',label='m='+str(i-s))
+plt.plot(tplot, norm,'-',label='norma')
 plt.legend()
-plt.subplot(222)
-plt.title('States energies if $\mathcal{H}_0$')
-plt.xlabel('t')
-plt.ylabel('$E$')
-for i in range(s):
-    plt.axvline(x=time_n[i],linestyle='--',color='grey')
-for i in range(dim):
-    plt.plot(At, energies[i],'-',label='$E_{'+str(i-s)+'}$')
-plt.legend()
-
 
 #Magnetization
-magne=np.zeros(np.size(aplot[0]))
+aplot_tot=np.array(aplot_tot)
+magne=np.zeros(np.size(aplot_tot[0]))
 for i in range(dim):
-    magne=magne+aplot[i]*(i-s)
+    magne=magne+aplot_tot[i]*(i-s)
     
     
-plt.subplot(223)
+plt.subplot(212)
 plt.title('Principi Cicle')
 plt.xlabel('t')
 plt.ylabel('M')
 for i in range(s):
     plt.axvline(x=time_n[i],linestyle='--',color='grey')
-plt.plot(t, magne,'-')
+plt.plot(tplot, magne,'-')
 plt.show()
 plt.tight_layout()

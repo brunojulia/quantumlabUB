@@ -61,7 +61,7 @@ m=[]
 s=1
 dam_res=[0]*(2*s+1)
 alpha=0.1
-a=0.1
+a=0.01
 t0=-10.
 tf=10.
 
@@ -77,7 +77,7 @@ a_m[0]=1+0j
 
 #Execucio de les funcions           
 
-nstep=20000
+nstep=2000
 h=(tf-t0)/nstep
 t=t0
 a1=[0]*(nstep+1)
