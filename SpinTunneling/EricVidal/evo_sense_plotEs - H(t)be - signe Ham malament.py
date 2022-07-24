@@ -10,34 +10,19 @@ from matplotlib import pyplot as plt
 from scipy.integrate import solve_ivp
 
 #Arbitrary spin to study
-s=3     #total spin
+s = 2     #total spin
 dim=round(2*s+1)    #in order to work when s is half-integer with int dim
 Nterm1=s*(s+1)      #1st term of N+-
 
+tf = 50
 #Hamiltonian Parameters
-D=10
-hz=2.5
-B=0.62
+D = 10
+alpha = -1.5
+H0 = -(tf/2)*np.abs(alpha)
+B = 0.7
 
 #Time span
-At=[-35,35]
-
-#Transition times
-#Because of Hamiltonian symetry transitions can only occur s times
-#which correspond to each level from the metastable state opposite to the true
-#ground state, and then goes up or down dependig which is the true ground state
-#m=s or m=-s, and changes from steps of 2
-time_n=[]
-for i in range(s):
-    time_n.append(-(D/hz)*(2*i))
-
-#States energies if H_0
-energies=[]
-for i in range(dim):
-    energies.append([])
-for i in range(dim):
-    for j in range(2):
-        energies[i].append(-D*(i-s)**2-hz*At[j]*(i-s))
+At = [0,tf]
 
 #IC
 a_m0=[]
@@ -74,7 +59,7 @@ def dak1(s, k, t, am):
         exit()
         
     #eigenvalues term
-    eigenterm=am[k]*(-D*kreal**2-hz*t*kreal)
+    eigenterm=am[k]*(-D*kreal**2-(H0-alpha*t)*kreal)
     
     #summatory term
     sumterm=0
@@ -97,7 +82,7 @@ def dak1(s, k, t, am):
     dak=-1j*(eigenterm+sumterm)
     return dak
 
-def odes(t, a_m, D, hz, B):
+def odes(t, a_m):
     '''Input: t (int or float) time and a_m (1D list) coefficients. D, h, B
     (int or floats) are Hamiltonian parameters that could be omitted because
     they are global variables as s (spin).
@@ -110,78 +95,33 @@ def odes(t, a_m, D, hz, B):
     return system
 
 #test the defined function odes
-print(odes(0, a_m0, D, hz, B))
+print(odes(0, a_m0))
 
 #%% 3. Resolution and plotting
 
 #Declare a time vector (time window) and parameters
-p=(D, hz, B)
+#p=(D, hz, B)
 
 #solve
-a_m=solve_ivp(odes, At, a_m0, args=p)
+a_m=solve_ivp(odes, At, a_m0)#, args=p)
 
 #Plotting parameters
 t=a_m.t[:]  #time
 
 aplot=[]
-a_m0inv=[]
 for i in range(dim):
-    prob_i=np.abs(a_m.y[i,:])**2
-    aplot.append(prob_i.tolist())      #Probabilities coeff^2
-    a_m0inv.append(a_m.y[i,-1])             #IC for inverse case
-    
-#CHANGE OF STATE
-hz2=-hz
-#At2=[At[1],At[1]+(At[1]-At[0])]
+    aplot.append(np.abs(a_m.y[i,:])**2)     #Probabilities coeff^2
 
-p=(D, hz2, B)
-
-#solve
-a_m2=solve_ivp(odes, At, a_m0inv, args=p)   #Note At2 and a_m0inv
-
-#Plotting parameters
-t2=a_m2.t[:]  #time
-t2=t2+70
-t=t.tolist()
-t2=t2.tolist()
-tplot=t+t2
-
-aplot2=[]
-aplot_tot=[]
-for i in range(dim):
-    prob_i=np.abs(a_m2.y[i,:])**2
-    aplot2.append(prob_i.tolist())     #Probabilities coeff^2
-    aplot_tot.append(aplot[i]+aplot2[i])
-
-norm = np.sum(aplot_tot, axis=0)    #Norm (sum of probs)
+norm = np.sum(aplot, axis=0)    #Norm (sum of probs)
 
 #Plot
 plt.figure()
-plt.subplot(211)
 plt.title('General spin method, solve_ivp')
 plt.xlabel('t')
 plt.ylabel('$|a|^2$')
 plt.axhline(y=1.0,linestyle='--',color='grey')
-for i in range(s):
-    plt.axvline(x=time_n[i],linestyle='--',color='grey')
 for i in range(dim):
-    plt.plot(tplot, aplot_tot[i],'-',label='m='+str(i-s))
-plt.plot(tplot, norm,'-',label='norma')
+    plt.plot(t, aplot[i],'-',label='m='+str(i-s))
+plt.plot(t, norm,'-',label='norma')
 plt.legend()
-
-#Magnetization
-aplot_tot=np.array(aplot_tot)
-magne=np.zeros(np.size(aplot_tot[0]))
-for i in range(dim):
-    magne=magne+aplot_tot[i]*(i-s)
-    
-    
-plt.subplot(212)
-plt.title('Principi Cicle')
-plt.xlabel('t')
-plt.ylabel('M')
-for i in range(s):
-    plt.axvline(x=time_n[i],linestyle='--',color='grey')
-plt.plot(tplot, magne,'-')
 plt.show()
-plt.tight_layout()

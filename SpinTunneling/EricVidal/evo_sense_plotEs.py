@@ -22,23 +22,6 @@ B=0.62
 #Time span
 At=[-35,35]
 
-#Transition times
-#Because of Hamiltonian symetry transitions can only occur s times
-#which correspond to each level from the metastable state opposite to the true
-#ground state, and then goes up or down dependig which is the true ground state
-#m=s or m=-s, and changes from steps of 2
-time_n=[]
-for i in range(s):
-    time_n.append(-(D/hz)*(2*i))
-
-#States energies if H_0
-energies=[]
-for i in range(dim):
-    energies.append([])
-for i in range(dim):
-    for j in range(2):
-        energies[i].append(-D*(i-s)**2-hz*At[j]*(i-s))
-
 #IC
 a_m0=[]
 
@@ -124,64 +107,19 @@ a_m=solve_ivp(odes, At, a_m0, args=p)
 t=a_m.t[:]  #time
 
 aplot=[]
-a_m0inv=[]
 for i in range(dim):
-    prob_i=np.abs(a_m.y[i,:])**2
-    aplot.append(prob_i.tolist())      #Probabilities coeff^2
-    a_m0inv.append(a_m.y[i,-1])             #IC for inverse case
-    
-#CHANGE OF STATE
-hz2=-hz
-#At2=[At[1],At[1]+(At[1]-At[0])]
+    aplot.append(np.abs(a_m.y[i,:])**2)     #Probabilities coeff^2
 
-p=(D, hz2, B)
-
-#solve
-a_m2=solve_ivp(odes, At, a_m0inv, args=p)   #Note At2 and a_m0inv
-
-#Plotting parameters
-t2=a_m2.t[:]  #time
-t2=t2+70
-t=t.tolist()
-t2=t2.tolist()
-tplot=t+t2
-
-aplot2=[]
-aplot_tot=[]
-for i in range(dim):
-    prob_i=np.abs(a_m2.y[i,:])**2
-    aplot2.append(prob_i.tolist())     #Probabilities coeff^2
-    aplot_tot.append(aplot[i]+aplot2[i])
-
-norm = np.sum(aplot_tot, axis=0)    #Norm (sum of probs)
+norm = np.sum(aplot, axis=0)    #Norm (sum of probs)
 
 #Plot
 plt.figure()
-plt.subplot(211)
 plt.title('General spin method, solve_ivp')
 plt.xlabel('t')
 plt.ylabel('$|a|^2$')
 plt.axhline(y=1.0,linestyle='--',color='grey')
-for i in range(s):
-    plt.axvline(x=time_n[i],linestyle='--',color='grey')
 for i in range(dim):
-    plt.plot(tplot, aplot_tot[i],'-',label='m='+str(i-s))
-plt.plot(tplot, norm,'-',label='norma')
+    plt.plot(t, aplot[i],'-',label='m='+str(i-s))
+plt.plot(t, norm,'-',label='norma')
 plt.legend()
-
-#Magnetization
-aplot_tot=np.array(aplot_tot)
-magne=np.zeros(np.size(aplot_tot[0]))
-for i in range(dim):
-    magne=magne+aplot_tot[i]*(i-s)
-    
-    
-plt.subplot(212)
-plt.title('Principi Cicle')
-plt.xlabel('t')
-plt.ylabel('M')
-for i in range(s):
-    plt.axvline(x=time_n[i],linestyle='--',color='grey')
-plt.plot(tplot, magne,'-')
 plt.show()
-plt.tight_layout()
