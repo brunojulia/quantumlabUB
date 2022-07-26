@@ -15,19 +15,19 @@ dim=round(2*s+1)    #in order to work when s is half-integer with int dim
 Nterm1=s*(s+1)      #1st term of N+-
 
 #Hamiltonian Parameters
-D=10
-hz=2.5
-B=0.62
+D=4.5
+hz=0.6
+B=0.4
 
 #Time span
-At=[-35,35]
+At=[-5,40]
 
 #IC
 a_m0=[]
-
+a_m0.append(1+0j)
 for i in range(dim-1):
     a_m0.append(0+0j)
-a_m0.append(1+0j)
+
 #%% 2. Coupled differential equations
 #WE HAVE TO TAKE INTO ACCOUNT THAT M DOESNT GO FROM -S TO S
 #IT GOES FROM 0 TO DIM-1=2s

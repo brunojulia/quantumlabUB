@@ -17,8 +17,8 @@ Nterm1=s*(s+1)      #1st term of N+-
 tf = 50
 #Hamiltonian Parameters
 D = 10
-alpha = -1.5
-H0 = -(tf/2)*np.abs(alpha)
+alpha = 1.5
+H0 = (tf/2)*np.abs(alpha)
 B = 0.7
 
 #Time span
@@ -59,7 +59,7 @@ def dak1(s, k, t, am):
         exit()
         
     #eigenvalues term
-    eigenterm=am[k]*(-D*kreal**2-(H0-alpha*t)*kreal)
+    eigenterm=am[k]*(-D*kreal**2+(H0-alpha*t)*kreal)
     
     #summatory term
     sumterm=0

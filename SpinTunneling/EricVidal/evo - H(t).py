@@ -10,16 +10,16 @@ from matplotlib import pyplot as plt
 from scipy.integrate import solve_ivp
 
 #Arbitrary spin to study
-s = 4     #total spin
+s = 2     #total spin
 dim=round(2*s+1)    #in order to work when s is half-integer with int dim
 Nterm1=s*(s+1)      #1st term of N+-
 
-tf = 70
+tf = 50
 #Hamiltonian Parameters
-D = 7
-alpha = 1.7
+D = 10
+alpha = 4.5
 H0 = (tf/2)*np.abs(alpha)
-B = 0.35
+B = 0.3
 
 #Time span
 At = [0,tf]
@@ -39,7 +39,7 @@ a_m0.append(1+0j)
 #m=s or m=-s, and changes from steps of 2
 time_n=[]
 for i in range(s):
-    time_n.append((D/alpha)*(2*i)+H0/alpha)
+    time_n.append(-(D/alpha)*(2*i)+H0/alpha)
 
 #States energies if H_0
 energies=[]

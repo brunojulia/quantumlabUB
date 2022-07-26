@@ -39,7 +39,7 @@ a_m0.append(1+0j)
 #m=s or m=-s, and changes from steps of 2
 time_n=[]
 for i in range(s):
-    time_n.append((D/alpha)*(2*i)+H0/alpha)
+    time_n.append(-(D/alpha)*(2*i)+H0/alpha)
 
 #States energies if H_0
 energies=[]
