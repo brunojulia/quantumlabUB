@@ -15,12 +15,12 @@ dim=round(2*s+1)    #in order to work when s is half-integer with int dim
 Nterm1=s*(s+1)      #1st term of N+-
 
 #Hamiltonian Parameters
-D=4.5
-hz=0.6
-B=0.4
+D=5
+hz=0.7
+B=1.6
 
 #Time span
-At=[-5,40]
+At=[-5,30]
 
 #IC
 a_m0=[]

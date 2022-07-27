@@ -10,17 +10,17 @@ from matplotlib import pyplot as plt
 from scipy.integrate import solve_ivp
 
 #Arbitrary spin to study
-s=3     #total spin
+s=2     #total spin
 dim=round(2*s+1)    #in order to work when s is half-integer with int dim
 Nterm1=s*(s+1)      #1st term of N+-
 
 #Hamiltonian Parameters
 D=5
 hz=2.5
-B=0.7
+hx=0.6
 
 #Time span
-At=[-5,30]
+At=[-5,40]
 
 #IC
 a_m0=[]
@@ -28,25 +28,6 @@ a_m0.append(1+0j)
 for i in range(dim-1):
     a_m0.append(0+0j)
 
-
-
-
-#Transition times
-#Because of Hamiltonian symetry transitions can only occur s times
-#which correspond to each level from the metastable state opposite to the true
-#ground state, and then goes up or down dependig which is the true ground state
-#m=s or m=-s, and changes from steps of 2
-time_n=[]
-for i in range(s):
-    time_n.append((D/hz)*(2*i))
-
-#States energies if H_0
-energies=[]
-for i in range(dim):
-    energies.append([])
-for i in range(dim):
-    for j in range(2):
-        energies[i].append(-D*(i-s)**2-hz*At[j]*(i-s))
 #%% 2. Coupled differential equations
 #WE HAVE TO TAKE INTO ACCOUNT THAT M DOESNT GO FROM -S TO S
 #IT GOES FROM 0 TO DIM-1=2s
@@ -82,24 +63,24 @@ def dak1(s, k, t, am):
     sumterm=0
     for m in range(dim):
         #first we apply Kronicker deltas
-        if (k==(m+2)):
-            sumtermpos=Np(m)*Np(m+1)
+        if (k==(m+1)):
+            sumtermpos=Np(m)
         else:
             sumtermpos=0
             
-        if (k==(m-2)):
-            sumtermneg=Nm(m)*Nm(m-1)
+        if (k==(m-1)):
+            sumtermneg=Nm(m)
         else:
             sumtermneg=0
             
         #and obtain summatory term along the for
-        sumterm += am[m]*(B/2)*(sumtermpos+sumtermneg)
+        sumterm += am[m]*(-hx/2)*(sumtermpos+sumtermneg)
     
     #finally obtaining the result of one differential equation
     dak=-1j*(eigenterm+sumterm)
     return dak
 
-def odes(t, a_m, D, hz, B):
+def odes(t, a_m):
     '''Input: t (int or float) time and a_m (1D list) coefficients. D, h, B
     (int or floats) are Hamiltonian parameters that could be omitted because
     they are global variables as s (spin).
@@ -112,15 +93,12 @@ def odes(t, a_m, D, hz, B):
     return system
 
 #test the defined function odes
-print(odes(0, a_m0, D, hz, B))
+print(odes(0, a_m0))
 
 #%% 3. Resolution and plotting
 
-#Declare a time vector (time window) and parameters
-p=(D, hz, B)
-
 #solve
-a_m=solve_ivp(odes, At, a_m0, args=p)
+a_m=solve_ivp(odes, At, a_m0)
 
 #Plotting parameters
 t=a_m.t[:]  #time
@@ -133,40 +111,12 @@ norm = np.sum(aplot, axis=0)    #Norm (sum of probs)
 
 #Plot
 plt.figure()
-plt.subplot(221)
 plt.title('General spin method, solve_ivp')
 plt.xlabel('t')
 plt.ylabel('$|a|^2$')
 plt.axhline(y=1.0,linestyle='--',color='grey')
-for i in range(s):
-    plt.axvline(x=time_n[i],linestyle='--',color='grey')
 for i in range(dim):
     plt.plot(t, aplot[i],'-',label='m='+str(i-s))
 plt.plot(t, norm,'-',label='norma')
 plt.legend()
-plt.subplot(222)
-plt.title('States energies if $\mathcal{H}_0$')
-plt.xlabel('t')
-plt.ylabel('$E$')
-for i in range(s):
-    plt.axvline(x=time_n[i],linestyle='--',color='grey')
-for i in range(dim):
-    plt.plot(At, energies[i],'-',label='$E_{'+str(i-s)+'}$')
-plt.legend()
-
-
-#Magnetization
-magne=np.zeros(np.size(aplot[0]))
-for i in range(dim):
-    magne=magne+aplot[i]*(i-s)
-    
-    
-plt.subplot(223)
-plt.title('Principi Cicle')
-plt.xlabel('t')
-plt.ylabel('M')
-for i in range(s):
-    plt.axvline(x=time_n[i],linestyle='--',color='grey')
-plt.plot(t, magne,'-')
 plt.show()
-plt.tight_layout()
