@@ -28,7 +28,7 @@ start = time.time()
 
 
 #Arbitrary spin to study
-s=1     #total spin
+s=3     #total spin
 dim=round(2*s+1)    #in order to work when s is half-integer with int dim
 Nterm1=s*(s+1)      #1st term of N+-
 

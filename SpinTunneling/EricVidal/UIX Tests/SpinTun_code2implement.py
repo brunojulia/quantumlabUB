@@ -10,34 +10,19 @@ from matplotlib import pyplot as plt
 from scipy.integrate import solve_ivp
 
 #Arbitrary spin to study
-s=3     #total spin
+s = 3     #total spin
 dim=round(2*s+1)    #in order to work when s is half-integer with int dim
 Nterm1=s*(s+1)      #1st term of N+-
 
+tf = 70
 #Hamiltonian Parameters
-D=10
-hz=2.5
-B=0.62
+D = 7
+alpha = 1.7
+H0 = (tf/2)*np.abs(alpha)
+B = 0.35
 
 #Time span
-At=[-35,35]
-
-#Transition times
-#Because of Hamiltonian symetry transitions can only occur s times
-#which correspond to each level from the metastable state opposite to the true
-#ground state, and then goes up or down dependig which is the true ground state
-#m=s or m=-s, and changes from steps of 2
-time_n=[]
-for i in range(s):
-    time_n.append(-(D/hz)*(2*i))
-
-#States energies if H_0
-energies=[]
-for i in range(dim):
-    energies.append([])
-for i in range(dim):
-    for j in range(2):
-        energies[i].append(-D*(i-s)**2-hz*At[j]*(i-s))
+At = [0,tf]
 
 #IC
 a_m0=[]
@@ -45,6 +30,33 @@ a_m0=[]
 for i in range(dim-1):
     a_m0.append(0+0j)
 a_m0.append(1+0j)
+
+
+#States energies if H_0
+energies=[]
+for i in range(dim):
+    energies.append([])
+for i in range(dim):
+    for j in range(2):
+        energies[i].append(-D*(i-s)**2+(H0-alpha*At[j])*(i-s))
+        
+#Transition times
+time_n=[]
+yintersec_n=[]
+for i in range(s):
+    x1=At[1]
+    energies_y=energies[2*i]
+    energies_z=energies[2*i+2]
+    y0=energies_y[0]
+    y1=energies_y[1]
+    z0=energies_z[0]
+    z1=energies_z[1]
+    xintersec=x1*((z0-y0)/((y1-y0)-(z1-z0)))
+    yintersec=y0+xintersec*((y1-y0)/x1)
+    time_n.append(xintersec)
+    yintersec_n.append(yintersec)
+    
+    
 #%% 2. Coupled differential equations
 #WE HAVE TO TAKE INTO ACCOUNT THAT M DOESNT GO FROM -S TO S
 #IT GOES FROM 0 TO DIM-1=2s
@@ -74,7 +86,7 @@ def dak1(s, k, t, am):
         exit()
         
     #eigenvalues term
-    eigenterm=am[k]*(-D*kreal**2-hz*t*kreal)
+    eigenterm=am[k]*(-D*kreal**2+(H0-alpha*t)*kreal)
     
     #summatory term
     sumterm=0
@@ -121,64 +133,69 @@ a_m=solve_ivp(odes, At, a_m0)
 t=a_m.t[:]  #time
 
 aplot=[]
-a_m0inv=[]
+totenergy_temp=[]
 for i in range(dim):
+    totenergy_n=[]
     prob_i=np.abs(a_m.y[i,:])**2
-    aplot.append(prob_i.tolist())      #Probabilities coeff^2
-    a_m0inv.append(a_m.y[i,-1])             #IC for inverse case
-    
-#CHANGE OF STATE
-hz2=-hz
-#At2=[At[1],At[1]+(At[1]-At[0])]
+    aplot.append(prob_i)     #Probabilities coeff^2
+    for j in range(len(t)):
+        totenergy_n.append(prob_i[j]*(-D*(i-s)**2+(H0-alpha*t[j])*(i-s)))
+    totenergy_temp.append(totenergy_n)
 
-p=(D, hz2, B)
-
-#solve
-a_m2=solve_ivp(odes, At, a_m0inv)   #Note At2 and a_m0inv
-
-#Plotting parameters
-t2=a_m2.t[:]  #time
-t2=t2+70
-t=t.tolist()
-t2=t2.tolist()
-tplot=t+t2
-
-aplot2=[]
-aplot_tot=[]
-for i in range(dim):
-    prob_i=np.abs(a_m2.y[i,:])**2
-    aplot2.append(prob_i.tolist())     #Probabilities coeff^2
-    aplot_tot.append(aplot[i]+aplot2[i])
-
-norm = np.sum(aplot_tot, axis=0)    #Norm (sum of probs)
+norm = np.sum(aplot, axis=0)    #Norm (sum of probs)
+totenergy = np.sum(totenergy_temp, axis=0)    #Total energy (sum of each spin energy*prob)
 
 #Plot
 plt.figure()
-plt.subplot(211)
-plt.title('General spin method, solve_ivp')
+plt.subplot(231)
+plt.title('Spin probabilties') #General spin method, solve_ivp
 plt.xlabel('t')
 plt.ylabel('$|a|^2$')
 plt.axhline(y=1.0,linestyle='--',color='grey')
-for i in range(s):
-    plt.axvline(x=time_n[i],linestyle='--',color='grey')
+
+#Probabilities
 for i in range(dim):
-    plt.plot(tplot, aplot_tot[i],'-',label='m='+str(i-s))
-plt.plot(tplot, norm,'-',label='norma')
-plt.legend()
+    plt.plot(t, aplot[i],'-',label='m='+str(i-s))
+plt.plot(t, norm,'-',label='norma')
+plt.legend(bbox_to_anchor=(1,1), loc="upper left")
+
+
+plt.subplot(233)
+plt.title('States energies if $\mathcal{H}_0$')
+plt.xlabel('t')
+plt.ylabel('$E$')
+for i in range(dim):
+    plt.plot(At, energies[i],'-',label='$E_{'+str(i-s)+'}$')
+
+plt.plot(t, totenergy,'k--',label='$E_{tot}$',)
+
+plt.plot(time_n, yintersec_n, 'ro')     #Transition point
+
+plt.legend(bbox_to_anchor=(1,1), loc="upper left")
+
 
 #Magnetization
-aplot_tot=np.array(aplot_tot)
-magne=np.zeros(np.size(aplot_tot[0]))
+magne=np.zeros(np.size(aplot[0]))
 for i in range(dim):
-    magne=magne+aplot_tot[i]*(i-s)
+    magne=magne+aplot[i]*(i-s)
     
     
-plt.subplot(212)
-plt.title('Principi Cicle')
+plt.subplot(234)
+plt.title('Cicle amb t')
 plt.xlabel('t')
 plt.ylabel('M')
-for i in range(s):
-    plt.axvline(x=time_n[i],linestyle='--',color='grey')
-plt.plot(tplot, magne,'-')
+plt.plot(t, magne,'-')
+
+plt.subplot(236)
+plt.title('Cicle Histèresis')
+plt.xlabel('H')
+plt.ylabel('M')
+plt.plot(H0-alpha*t, magne,'-')
+
 plt.show()
 plt.tight_layout()
+
+#THIS IS IN CASE THAT WE FINALLY WANNA PLOT VERTICAL LINES TO SHOW WHERE THE
+#TRANSITIONS SHOULD OCCUR
+#for i in range(s):
+#    plt.axvline(x=time_n[i],linestyle='--',color='grey')

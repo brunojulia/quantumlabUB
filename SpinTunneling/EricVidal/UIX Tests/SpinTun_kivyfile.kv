@@ -1,0 +1,622 @@
+<Reso_P>:
+    Label:
+        text: "You pressed the button"
+        size_hint: 0.6, 0.2
+        pos_hint: {"x":0.2, "top":1}
+
+    Button:
+        text: "You pressed the button"
+        size_hint: 0.8, 0.2
+        pos_hint: {"x":0.1, "y":0.1}
+
+
+<Starting_Screen>:
+    name: 'Starting'
+    
+    #Starting LAYOUT
+    FloatLayout: 
+		id: menu_layout
+		
+		#size: root.width, root.height #layout that occupies all image
+		size_hint_x:1 
+		size_hint_y:1
+    	
+    	#Sets bg color
+    	canvas.before: 
+			Color: 
+				rgba: (1,1,1,1) 
+			Rectangle: 
+				size: self.size 
+				pos: self.pos
+				
+        #App Logo
+        GridLayout:
+			cols: 1
+			rows: 1 
+			size_hint_x:1
+			size_hint_y:1
+			pos_hint:{"x":0,"y":0}
+			Image:  
+				source: "graphs/ST_logo.png"
+				x:self.parent.x
+				y:self.parent.y
+				size: self.parent.width, self.parent.height 
+				allow_stretch: True
+		    	keep_ratio: True 
+    
+<Menu_Screen>:
+    name: 'Menu'
+    
+    #MENU LAYOUT
+    FloatLayout: 
+		id: menu_layout
+		
+		#size: root.width, root.height #layout that occupies all image
+		size_hint_x:1 
+		size_hint_y:1
+    	
+    	#Sets bg color
+    	canvas.before: 
+			Color: 
+				rgba: (1,1,1,1) 
+			Rectangle: 
+				size: self.size 
+				pos: self.pos
+				
+        #TOP SCREEN
+        FloatLayout: 
+			size_hint_x: 1 
+			size_hint_y:0.25
+			pos_hint:{"x":0,"y":0.75}
+			
+			#App Logo
+            GridLayout:
+    			cols: 1
+    			rows: 1 
+    			size_hint_x:0.25
+    			size_hint_y:1
+    			pos_hint:{"left":0.9,"top":0.9}
+    			Image:  
+    				source: "graphs/ST_logo.png"
+    				x:self.parent.x
+    				y:self.parent.y
+    				size: self.parent.width, self.parent.height 
+    				allow_stretch: True
+    		    	keep_ratio: True
+
+			#Title
+            Label:  
+    			id: front_title
+			
+    			text: "SPIN TUNNELING"
+    			font_size:72
+    			font_name:'07558_CenturyGothic' 
+    			bold: True
+    			color:0, 0, 0, 1
+    			multiline: True
+			
+    			pos_hint: {"center_x":0.5,"center_y":0.5}
+    			#diccionary to assign pos:{"x","y","top","bottom","left","right"}
+			
+    			size_hint_x: 0.6
+    			size_hint_y:0.1 
+    			halign:"center"
+    			valign:"middle" #centered paragraph sentences
+            
+            #Text
+            Label:  
+    			id: welcome_text
+    			
+    			text: "WELCOME TO SPIN TUNNELING, THE EXPERIENCE YOU HAVE TO GO THROUGH." 
+    			font_size:28
+    			font_name:'39335_UniversCondensed' 
+    			bold: False
+    			color:0, 0, 0, 1
+    			multiline: True
+			
+    			pos_hint: {"center_x":0.5,"center_y":0.15}			
+    			size_hint_x: 0.6
+    			size_hint_y:0.1 
+    			halign:"center"
+    			valign:"middle" #centered paragraph sentences
+            
+            BoxLayout: #for languages
+    			size_hint_x: 0.15
+    			size_hint_y:0.3
+    			pos_hint:{"right":0.98,"top":0.9}
+    			orientation: "horizontal"
+			
+    			#add buttons for languages
+			
+    			#CATALAN
+    			Button: 
+    	            id: button_cat
+    	            text: "CAT"
+    	            font_name:'39335_UniversCondensed'
+    	            color: 23/255, 190/255, 255/255, 1
+    	        	font_size:18
+    				bold: True
+                	halign:"center"
+    				valign:"middle"
+    				on_release: #root.catalan() 
+				
+                #ESP
+    			Button:  
+    	            id: button_esp
+    	            text: "CAST"
+    	            font_name:'39335_UniversCondensed'
+    	            color: 23/255, 190/255, 255/255, 1
+    	        	font_size:18
+    				bold: True
+                	halign:"center"
+    				valign:"middle"
+    				on_release: #root.esp()
+				
+    			#ENGLISH	  
+    			Button:  
+    	            id: button_eng
+    	            text: "ENG"
+    	            font_name:'39335_UniversCondensed'
+    	            color: 23/255, 190/255, 255/255, 1
+    	        	font_size:18
+                    background_color: (0,0,1,0.8)
+    				bold: True
+                	halign:"center"
+    				valign:"middle"
+    				on_release: #root.english()
+				
+        #MIDDLE SCREEN
+        FloatLayout: 
+			size_hint_x: 1 
+			size_hint_y:0.5
+			pos_hint:{"x":0,"y":0.25}
+			
+            #Text
+            Label:  
+    			id: front_text
+    			
+    			text: "Instructions \n or \n explanation (e.g. information btns will contain the physical explanation.)" 
+    			font_size:28
+    			font_name:'39335_UniversCondensed' 
+    			bold: False
+    			color:0, 0, 0, 1
+    			multiline: True
+    			
+    			pos_hint: {"left":0.9,"top":0.9}			
+    			size_hint_x: 0.8
+    			size_hint_y:0.2 
+    			halign:"left"
+    			valign: "top"
+
+
+            Button:
+                id: btn_exp
+                
+                text: "EXPERIMENT" if btn_exp.state == "normal" else "Sth Incoming"
+                font_size:44
+                font_name:'39335_UniversCondensed'
+                bold: False
+    			color: 23/255, 190/255, 255/255, 1
+    			disabled: False 
+    			
+    			pos_hint: {"center_x":0.35,"center_y":0.5}
+    			size_hint_x: 0.25
+    			size_hint_y: 0.15
+                halign:"center"
+    			valign:"middle"
+                
+
+            Button:
+                id: btn_reso
+                
+                text: "RESONANCE"
+                font_size:44
+                font_name:'39335_UniversCondensed'
+                bold: False
+    			color: 23/255, 190/255, 255/255, 1
+    			disabled: False 
+    			
+    			pos_hint: {"center_x":0.35,"center_y":0.3}
+    			size_hint_x: 0.25
+    			size_hint_y: 0.15
+                halign:"center"
+    			valign:"middle"
+    			
+                on_press:
+                    root.manager.current = 'Resonance'
+                    
+            Button:
+                id: btn_tut
+                
+                text: "TUTORIAL" if btn_tut.state == "normal" else "Sth Incoming"
+                font_size:44
+                font_name:'39335_UniversCondensed'
+                bold: False
+    			color: 23/255, 190/255, 255/255, 1
+    			disabled: False 
+    			
+    			pos_hint: {"center_x":0.65,"center_y":0.5}
+    			size_hint_x: 0.25
+    			size_hint_y: 0.15
+                halign:"center"
+    			valign:"middle"
+    			
+    		Button:
+                id: btn_game
+                
+                text: "GAME" if btn_game.state == "normal" else "Sth Incoming"
+                font_size:44
+                font_name:'39335_UniversCondensed'
+                bold: False
+    			color: 23/255, 190/255, 255/255, 1
+    			disabled: False 
+    			
+    			pos_hint: {"center_x":0.65,"center_y":0.3}
+    			size_hint_x: 0.25
+    			size_hint_y: 0.15
+                halign:"center"
+    			valign:"middle"
+         
+        #Bottom SCREEN
+        FloatLayout: 
+			size_hint_x: 1 
+			size_hint_y:0.25
+			pos_hint:{"x":0,"y":0}
+			
+			GridLayout:
+    			cols: 1
+    			rows: 2
+    			
+    			#Tutors
+    			Label
+        			id: tutors_text
+        			
+        			text: "Tutors: \n Dr. Carles Calero & Dr. Bruno Julia" #Julià Cant plot accents
+        			font_size:28
+        			font_name:'39335_UniversCondensed' 
+        			bold: False
+        			color:0, 0, 0, 1
+        			multiline: True
+        			
+        			pos_hint: {"x":0,"y":0}			
+        			size_hint_x: 0.4
+        			size_hint_y:1
+        			halign:"left"
+        			valign: "top"
+    			 
+                #Institutional Logos
+                GridLayout:
+        			cols: 3
+        			rows: 1 
+        			
+        			#Nano logo
+        			Image:  
+        				source: "graphs/logo_nano.jpg"
+        				x:self.parent.x
+        				y:self.parent.y
+        				size: self.parent.width, self.parent.height 
+            			allow_stretch: True
+        		    	keep_ratio: True 
+                     
+                #UB
+        			Image: #iccub logo 
+        				source: "graphs/ub_logo.png"
+        				x:self.parent.x
+        				y:self.parent.y
+        				size: self.parent.width, self.parent.height 
+        				allow_stretch: True
+        		    	keep_ratio: True
+    		    	
+    		    	
+                #ICCUB   			
+        			Image: #iccub logo 
+        				source: "graphs/logoiccub.png"
+        				x:self.parent.x
+        				y:self.parent.y
+        				size: self.parent.width, self.parent.height 
+        				allow_stretch: True
+        		    	keep_ratio: True
+    
+    
+        
+		#BoxLayout: #for flags
+			#size_hint_x: 0.15
+			#size_hint_y:0.05
+			#pos_hint:{"right":1.0,"center_y":1-0.035}
+			#orientation: "horizontal"
+			#Image: #we put an image inside the button 
+				#source: "graphs/cat_flag.png"
+				#center_x:self.parent.center_x
+				#center_y:self.parent.center_y #we put the image in the middle of the button					
+
+			#Image: #we put an image inside the button 
+				#source: "graphs/esp_flag.png"
+				#center_x:self.parent.center_x
+				#center_y:self.parent.center_y #we put the image in the middle of the button
+				#size: self.parent.width, self.parent.height  
+				
+			#Image: #we put an image inside the button 
+				#source: "graphs/eng_flag.png"
+				#center_x:self.parent.center_x
+				#center_y:self.parent.center_y #we put the image in the middle of the button
+				#size: self.parent.width, self.parent.height
+
+
+
+
+
+
+
+
+
+
+<Resonance_Screen>
+    name:'Resonance'
+    
+    graphic_box1:graphic_box1
+    
+    #Resonance LAYOUT
+    FloatLayout: 
+		id: resonance_layout
+		
+		#size: root.width, root.height #layout that occupies all image
+		size_hint_x:1 
+		size_hint_y:1
+    	
+    	#Sets bg color
+    	canvas.before: 
+			Color: 
+				rgba: (1,1,1,1) 
+			Rectangle: 
+				size: self.size 
+				pos: self.pos
+				
+        #TOP SCREEN
+        FloatLayout: 
+			size_hint_x: 1 
+			size_hint_y:0.2
+			pos_hint:{"x":0,"y":0.8}
+			
+			#Information PopUp
+            Button:
+                id: popup_reso
+                
+                text: "i" if popup_reso.state == "normal" else "Sth Incoming"
+                font_size:44
+                font_name:'00803_AbrazoScriptSSiBold'
+                bold: True
+    			color: 255/255, 255/255, 255/255, 1
+    			disabled: False 
+    			background_color: 0, 0, 0, 1
+    			
+    			pos_hint: {"center_x":0.05,"center_y":0.6}
+    			size_hint_x: 0.05
+    			size_hint_y: 0.4
+                halign:"center"
+    			valign:"middle"
+    			on_release:
+        			root.popup_btn()
+
+			#Title
+            Label:  
+    			id: front_title
+			
+    			text: "RESONANCE"
+    			font_size:60
+    			font_name:'07558_CenturyGothic' 
+    			bold: True
+    			color:0, 0, 0, 1
+    			multiline: True
+			
+    			pos_hint: {"center_x":0.25,"center_y":0.6}
+    			#diccionary to assign pos:{"x","y","top","bottom","left","right"}
+			
+    			size_hint_x: 0.6
+    			size_hint_y:0.1 
+    			halign:"center"
+    			valign:"middle" #centered paragraph sentences
+            
+            #Text
+            Label:  
+    			id: explanation_text
+    			
+    			text: "Feel free to try whatever you want and analyse what is happening." 
+    			font_size:20
+    			font_name:'39335_UniversCondensed' 
+    			bold: False
+    			color:0, 0, 0, 1
+    			multiline: True
+			
+    			pos_hint: {"center_x":0.6,"center_y":0.45}			
+    			size_hint_x: 0.6
+    			size_hint_y:0.1 
+    			halign:"center"
+    			valign:"middle" #centered paragraph sentences
+            
+            
+            BoxLayout: #for languages
+    			size_hint_x: 0.15
+    			size_hint_y:0.3
+    			pos_hint:{"right":0.98,"top":0.9}
+    			orientation: "horizontal"
+			
+    			#add buttons for languages
+			
+    			#CATALAN
+    			Button: 
+    	            id: button_cat
+    	            text: "CAT"
+    	            font_name:'39335_UniversCondensed'
+    	            color: 23/255, 190/255, 255/255, 1
+    	        	font_size:18
+    				bold: True
+                	halign:"center"
+    				valign:"middle" #lletra centrada
+    				on_release: #root.catalan() 
+				
+                #ESP
+    			Button:  
+    	            id: button_esp
+    	            text: "CAST"
+    	            font_name:'39335_UniversCondensed'
+    	            color: 23/255, 190/255, 255/255, 1
+    	        	font_size:18
+    				bold: True
+                	halign:"center"
+    				valign:"middle" #lletra centrada
+    				on_release: #root.esp()
+				
+    			#ENGLISH	  
+    			Button:  
+    	            id: button_eng
+    	            text: "ENG"
+    	            font_name:'39335_UniversCondensed'
+    	            color: 23/255, 190/255, 255/255, 1
+    	        	font_size:18
+                    background_color: (0,0,1,0.8)
+    				bold: True
+                	halign:"center"
+    				valign:"middle" #lletra centrada
+    				on_release: #root.english()
+    				
+    				
+    				
+        #MIDDLE SCREEN
+        FloatLayout: 
+			size_hint_x: 0.8 
+			size_hint_y:0.12
+			pos_hint:{"x":0.1,"y":0.7}
+			
+			#Sets bg color
+        	canvas.before: 
+    			Color: 
+    				rgba: (0, 0.08, 0.31, 1) 
+    			Rectangle: 
+    				size: self.size 
+    				pos: self.pos
+
+            #HAMILTONIANS
+
+            #SPIN VALUE
+            BoxLayout:
+                id:spin_box
+        
+                orientation:'horizontal'
+                size_hint:0.15,0.4
+                pos_hint:{'center_x':0.45, 'center_y': 0.5}
+                
+                #Text
+                Label:  
+        			id: spin_text
+        			
+        			text: "Spin = " 
+        			font_size:20
+        			font_name:'39335_UniversCondensed' 
+        			bold: False
+        			color:1, 1, 1, 1
+
+        			halign:"center"
+        			valign:"middle" #centered paragraph sentences
+            
+                
+                Spinner:
+                    id: spinner_id
+                    
+                    # initially text on spinner
+                    text: "1"
+                    # total values on spinner
+                    values: ["1", "2", "3", "4", "5"]
+                    
+                    # Callback 
+                    on_text:
+                        root.spinner_clicked(spinner_id.text)
+          
+                
+  
+                # declaring size of the spinner
+                # and the position of it
+                #size_hint: 0.05, 0.4
+                
+        
+            #SLIDERS
+            GridLayout:
+    			cols: 4
+    			rows: 1 
+        		size_hint: 0.4,0.1
+        		pos_hint: {'x':0.5,'center_y':0.5}
+        
+                Label:
+                    text: 'a='+str(a_slider.value)
+                    bold: True
+    
+                Slider:
+                    id:a_slider
+                    value:0.01
+                    min: 0.00
+                    max: 0.020
+                    step: 0.001
+                    on_value:
+                        root.a=a_slider.value
+                        
+                Label:
+                    text: 'E/D='+str(alpha_slider.value)
+                    bold: True
+                Slider:
+                    id:alpha_slider
+                    value:0.1
+                    min: 0.00
+                    max: 1
+                    step: 0.01
+                    on_value:
+                        root.alpha=alpha_slider.value
+        
+
+            Button:
+                id: send_btn
+                
+                text: "SEND"
+                font_size:32
+                font_name:'39335_UniversCondensed'
+                bold: False
+        		color: 23/255, 190/255, 255/255, 1
+        		disabled: False 
+        
+                pos_hint: {"right":0.98,"center_y":0.5}
+                size_hint_x: 0.1
+                size_hint_y: 0.55
+                halign:"center"
+                valign:"middle"
+                on_press:
+                    root.send_but()
+
+    
+    
+    
+    # GRAFIC
+    BoxLayout:
+        id:graphic_box1
+        
+        orientation:'vertical'
+        size_hint:0.4,0.4
+        pos_hint: {'x':0.05,'y':0.2}
+
+
+    # BACK
+    Button:
+        id: back_btn
+        
+        text:'Back'
+        font_size:44
+        font_name:'00803_AbrazoScriptSSiBold'
+        bold: True
+    	color: 255/255, 255/255, 255/255, 1
+    	disabled: False 
+    	background_color: 0, 0, 0, 1
+        
+        pos_hint:{'left':0.8,'bottom':0.8}
+        size_hint:0.1,0.1
+        halign:"center"
+    	valign:"middle"
+        
+        on_press:
+            root.manager.current = 'Menu'

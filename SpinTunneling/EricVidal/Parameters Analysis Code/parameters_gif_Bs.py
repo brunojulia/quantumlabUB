@@ -28,7 +28,7 @@ start = time.time()
 
 
 #Arbitrary spin to study
-s=1     #total spin
+s=2     #total spin
 dim=round(2*s+1)    #in order to work when s is half-integer with int dim
 Nterm1=s*(s+1)      #1st term of N+-
 
@@ -37,7 +37,6 @@ counter=0
 filenames = []
 
 #Hamiltonian Parameters
-D=1
 for D in np.linspace(1, 10, 5):
     for hz in np.linspace(0.1, 3.1, 10):
         for B in np.linspace(0.1, 3.1, 50):
