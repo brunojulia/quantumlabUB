@@ -107,7 +107,7 @@
             Label:  
     			id: welcome_text
     			
-    			text: "WELCOME TO SPIN TUNNELING, THE EXPERIENCE YOU HAVE TO GO THROUGH." 
+    			text: "WELCOME TO SPIN TUNNELING, THE EXPERIENCE YOU MUST GO THROUGH." 
     			font_size:28
     			font_name:'39335_UniversCondensed' 
     			bold: False
@@ -496,7 +496,30 @@
     				pos: self.pos
 
             #HAMILTONIANS
+            Button:
+                id: Ham1_btn
+                
+                color:1,1,1,1
+                
+			    pos_hint:{"x":0.05,"center_y":0.5}
+				size_hint_y:0.3
+				size_hint_x:0.2
+				
+	            halign:"center"
+				valign:"middle"
+				#on_release: 
 
+			GridLayout:
+				cols:1 
+				rows:1 
+				pos_hint:{"x":0.051,"center_y":0.5}
+				size_hint_y:0.28
+				size_hint_x:0.18
+				Image: #we put an image
+					source: "graphs/Ham_1.png"
+					allow_stretch: True
+	    			keep_ratio: False
+    		
             #SPIN VALUE
             BoxLayout:
                 id:spin_box
@@ -545,28 +568,33 @@
         		size_hint: 0.4,0.1
         		pos_hint: {'x':0.5,'center_y':0.5}
         
+                #D
                 Label:
-                    text: 'a='+str(a_slider.value)
+                    text: 'D = '+str(D_slider.value)
                     bold: True
-    
                 Slider:
-                    id:a_slider
+                    id:D_slider
+                    
                     value:0.01
                     min: 0.00
                     max: 0.020
                     step: 0.001
+                    
                     on_value:
-                        root.a=a_slider.value
-                        
+                        root.D=D_slider.value
+                
+                #alpha        
                 Label:
-                    text: 'E/D='+str(alpha_slider.value)
+                    text: 'alpha = '+str(alpha_slider.value)
                     bold: True
                 Slider:
                     id:alpha_slider
+                    
                     value:0.1
                     min: 0.00
                     max: 1
                     step: 0.01
+                    
                     on_value:
                         root.alpha=alpha_slider.value
         
@@ -586,8 +614,9 @@
                 size_hint_y: 0.55
                 halign:"center"
                 valign:"middle"
+                
                 on_press:
-                    root.send_but()
+                    root.send()
 
     
     
