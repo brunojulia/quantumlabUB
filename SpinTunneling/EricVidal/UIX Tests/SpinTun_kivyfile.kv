@@ -495,38 +495,53 @@
     				size: self.size 
     				pos: self.pos
 
-            #HAMILTONIANS
-            Button:
-                id: Ham1_btn
+            #HAMILTONIAN VALUE
+            BoxLayout:
+                id:ham_box
+        
+                orientation:'horizontal'
+                size_hint:0.2,0.4
+                pos_hint:{'x':0.05, 'center_y': 0.5}
                 
-                color:1,1,1,1
-                
-			    pos_hint:{"x":0.05,"center_y":0.5}
-				size_hint_y:0.3
-				size_hint_x:0.2
-				
-	            halign:"center"
-				valign:"middle"
-				#on_release: 
+                #Text
+                Label:  
+        			id: spin_text
+        			
+        			text: "Hamiltonian: " 
+        			font_size:20
+        			font_name:'39335_UniversCondensed' 
+        			bold: False
+        			color:1, 1, 1, 1
 
-			GridLayout:
-				cols:1 
-				rows:1 
-				pos_hint:{"x":0.051,"center_y":0.5}
-				size_hint_y:0.28
-				size_hint_x:0.18
-				Image: #we put an image
-					source: "graphs/Ham_1.png"
-					allow_stretch: True
-	    			keep_ratio: False
+        			halign:"center"
+        			valign:"middle" #centered paragraph sentences
+            
+                
+                Spinner:
+                    id: spinner_ham
+                    
+                    # initially text on spinner
+                    text: "H1"
+                    # total values on spinner
+                    values: ["H1", "H2", "H3"]
+                    
+                    # Callback 
+                    on_text:
+                        root.spinner_clicked_ham(spinner_ham.text)
+          
+                
+  
+                # declaring size of the spinner
+                # and the position of it
+                #size_hint: 0.05, 0.4
     		
             #SPIN VALUE
             BoxLayout:
                 id:spin_box
         
                 orientation:'horizontal'
-                size_hint:0.15,0.4
-                pos_hint:{'center_x':0.45, 'center_y': 0.5}
+                size_hint:0.1,0.4
+                pos_hint:{'center_x':0.35, 'center_y': 0.5}
                 
                 #Text
                 Label:  
@@ -543,7 +558,7 @@
             
                 
                 Spinner:
-                    id: spinner_id
+                    id: spinner_s
                     
                     # initially text on spinner
                     text: "1"
@@ -552,7 +567,7 @@
                     
                     # Callback 
                     on_text:
-                        root.spinner_clicked(spinner_id.text)
+                        root.spinner_clicked_s(spinner_s.text)
           
                 
   
@@ -565,8 +580,8 @@
             GridLayout:
     			cols: 4
     			rows: 1 
-        		size_hint: 0.4,0.1
-        		pos_hint: {'x':0.5,'center_y':0.5}
+        		size_hint: 0.43,0.1
+        		pos_hint: {'x':0.42,'center_y':0.5}
         
                 #D
                 Label:
@@ -583,10 +598,18 @@
                     on_value:
                         root.D=D_slider.value
                 
-                #alpha        
-                Label:
-                    text: 'alpha = '+str(alpha_slider.value)
-                    bold: True
+                #alpha
+                BoxLayout:
+                    orientation: 'horizontal'
+                    Label:
+                        text: 'a'
+                        font_name: '13051_EisagoGreekSSi'
+                        bold: True
+                        
+                    Label:
+                        text: ' = '+str(alpha_slider.value)
+                        bold: True
+                        
                 Slider:
                     id:alpha_slider
                     
@@ -619,8 +642,33 @@
                     root.send()
 
     
-    
-    
+        #2nd MIDDLE SCREEN
+        FloatLayout: 
+			size_hint_x: 0.8 
+			size_hint_y:0.05
+			pos_hint:{"x":0.1,"y":0.62}
+			
+			#Sets bg color
+        	canvas.before: 
+    			Color: 
+    				rgba: (0, 0.08, 0.31, 1) 
+    			Rectangle: 
+    				size: self.size 
+    				pos: self.pos
+    				
+    				
+            #HAMILTONIANS Labels
+            BoxLayout:
+        	    orientation: 'horizontal'
+        		size_hint:0.8,0.9
+        		pos_hint: {'center_x':0.5,'center_y':0.5}
+        
+                Image: #we put an image
+    				source: "graphs/Ham_1.png"
+    				allow_stretch: True
+    	    		keep_ratio: False
+    	    		#size_hint:0.9,0.9
+
     # GRAFIC
     BoxLayout:
         id:graphic_box1

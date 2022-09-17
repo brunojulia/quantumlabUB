@@ -87,8 +87,12 @@ class Resonance_Screen(Screen):
     D = NumericProperty(0.01)
     alpha = NumericProperty(0.1)
     
-    def spinner_clicked(self, value):
+    def spinner_clicked_s(self, value):
         self.s = int(value)
+    
+    def spinner_clicked_ham(self, value):
+        #self.ham = int(value)
+        pass
 
     def send(self):
 
