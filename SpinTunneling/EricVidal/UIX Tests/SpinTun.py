@@ -71,8 +71,6 @@ def reso_popup():
     popupWindow.open()    
 
 
-count=0     #In order to initialize the  exp gif
-
 #SCREENS
 class Starting_Screen(Screen):
     pass
@@ -124,8 +122,8 @@ class Resonance_Screen(Screen):
     #so i did a done animation instead of a loading animation
     def done_anim(self):
             
-            anim = Animation(angle2 = 360, duration=2)
-            anim += Animation(angle = 360, duration=2)
+            anim = Animation(angle2 = 360, duration=0.1)
+            anim += Animation(angle = 360, duration=1.2)
             anim.repeat = False
             anim.start(self)
             
@@ -166,7 +164,7 @@ class Resonance_Screen(Screen):
         #Hamiltonian Parameters
         #D = 7
         #alpha = 1.7
-        H0 = (tf/2)*np.abs(self.alpha)
+        self.H0 = (tf/2)*np.abs(self.alpha)
         #B = 0.35
         
         #Time span
@@ -188,7 +186,7 @@ class Resonance_Screen(Screen):
             energies.append([])
         for i in range(self.dim):
             for j in range(2):
-                energies[i].append(-self.D*(i-self.s)**2+(H0-self.alpha*At[j])*(i-self.s))
+                energies[i].append(-self.D*(i-self.s)**2+(self.H0-self.alpha*At[j])*(i-self.s))
                 
         #Transition times
         time_n=[]
@@ -235,7 +233,7 @@ class Resonance_Screen(Screen):
                 exit()
                 
             #eigenvalues term
-            eigenterm=am[k]*(-self.D*kreal**2+(H0-self.alpha*t)*kreal)
+            eigenterm=am[k]*(-self.D*kreal**2+(self.H0-self.alpha*t)*kreal)
             
             #summatory term
             sumterm=0
@@ -285,7 +283,7 @@ class Resonance_Screen(Screen):
             prob_i=np.abs(a_m.y[i,:])**2
             self.aplot.append(prob_i)     #Probabilities coeff^2
             for j in range(len(t)):
-                totenergy_n.append(prob_i[j]*(-self.D*(i-self.s)**2+(H0-self.alpha*t[j])*(i-self.s)))
+                totenergy_n.append(prob_i[j]*(-self.D*(i-self.s)**2+(self.H0-self.alpha*t[j])*(i-self.s)))
             totenergy_temp.append(totenergy_n)
         
         self.norm = np.sum(self.aplot, axis=0)    #self.norm (sum of probs)
@@ -384,8 +382,8 @@ class Experiment_Screen(Screen):
     #so i did a done animation instead of a loading animation
     def done_anim(self):
             
-            anim = Animation(angle2 = 360, duration=2)
-            anim += Animation(angle = 360, duration=2)
+            anim = Animation(angle2 = 360, duration=0.1)
+            anim += Animation(angle = 360, duration=1.2)
             anim.repeat = False
             anim.start(self)
             
@@ -431,7 +429,7 @@ class Experiment_Screen(Screen):
         #Hamiltonian Parameters
         #D = 7
         #alpha = 1.7
-        H0 = (tf/2)*np.abs(self.alpha)
+        self.H0 = (tf/2)*np.abs(self.alpha)
         #B = 0.35
         
         #Time span
@@ -453,7 +451,7 @@ class Experiment_Screen(Screen):
             energies.append([])
         for i in range(self.dim):
             for j in range(2):
-                energies[i].append(-self.D*(i-self.s)**2+(H0-self.alpha*At[j])*(i-self.s))
+                energies[i].append(-self.D*(i-self.s)**2+(self.H0-self.alpha*At[j])*(i-self.s))
                 
         #Transition times
         time_n=[]
@@ -488,7 +486,7 @@ class Experiment_Screen(Screen):
                 exit()
                 
             #eigenvalues term
-            eigenterm=am[k]*(-self.D*kreal**2+(H0-self.alpha*t)*kreal)
+            eigenterm=am[k]*(-self.D*kreal**2+(self.H0-self.alpha*t)*kreal)
             
             #summatory term
             sumterm=0
@@ -538,14 +536,15 @@ class Experiment_Screen(Screen):
             prob_i=np.abs(a_m.y[i,:])**2
             self.aplot.append(prob_i)     #Probabilities coeff^2
             for j in range(len(self.t)):
-                totenergy_n.append(prob_i[j]*(-self.D*(i-self.s)**2+(H0-self.alpha*self.t[j])*(i-self.s)))
+                totenergy_n.append(prob_i[j]*(-self.D*(i-self.s)**2+(self.H0-self.alpha*self.t[j])*(i-self.s)))
             totenergy_temp.append(totenergy_n)
         
         self.norm = np.sum(self.aplot, axis=0)    #self.norm (sum of probs)
-        totenergy = np.sum(totenergy_temp, axis=0)    #Total energy (sum of each spin energy*prob)
+        self.totenergy = np.sum(totenergy_temp, axis=0)    #Total energy (sum of each spin energy*prob)
         
         #Plot1
-        plt.figure()
+        plt.close(1)
+        plt.figure(1)
         plt.title('Spin probabilties') #General spin method, solve_ivp
         plt.xlabel('t')
         plt.ylabel('$|a|^2$')
@@ -566,18 +565,18 @@ class Experiment_Screen(Screen):
 
         
         #Plot2
-        plt.figure()
+        plt.close(2)
+        plt.figure(2)
         plt.title('States energies if $\mathcal{H}_0$')
         plt.xlabel('t')
         plt.ylabel('$E$')
         for i in range(self.dim):
             plt.plot(At, energies[i],'-',label='$E_{'+str(i-self.s)+'}$')
         
-        plt.plot(self.t, totenergy,'k--',label='$E_{tot}$',)
+        plt.plot(self.t, self.totenergy,'k--',label='$E_{tot}$',)
         
         plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
  
-        
         #THIS IS IN CASE THAT WE FINALLY WANNA PLOT VERTICAL LINES TO SHOW WHERE THE
         #TRANSITIONS SHOULD OCCUR
         #for i in range(self.s):
@@ -591,17 +590,81 @@ class Experiment_Screen(Screen):
         
     
     def play(self):
+        #(re)initialize the counter
+        self.count=0
         def dynamic_plots(dt):
-            global count
-            count += 1
-            if count == 10:
-                count=0
-                print('Last call of my callback, bye bye !', count)
+            self.count += 150    #kind of step of time/frame plotted
+            print('My callback is called', self.count)
+            
+            #reference to stop gif
+            final=len(self.t)
+            
+            #Energies for GIF
+            ener_gif=[]
+            for i in range(self.dim):
+                ener_gif_temp=-self.D*(i-self.s)**2+(self.H0-self.alpha*self.t)*(i-self.s)
+                ener_gif.append(ener_gif_temp)
+
+            if self.count >= final:
+                print('Last call of my callback, bye bye !', self.count)
+
+                #put the same graphics as before the gif
+                #Plot1
+                plt.close(1)
+                plt.figure(1)
+                plt.title('Spin probabilties') #General spin method, solve_ivp
+                plt.xlabel('t')
+                plt.ylabel('$|a|^2$')
+                plt.axhline(y=1.0,linestyle='--',color='grey')
+                
+                #Probabilities
+                for i in range(self.dim):
+                    plt.plot(self.t, self.aplot[i],'-',label='m='+str(i-self.s))
+                plt.plot(self.t, self.norm,'-',label='norm')
+                
+                plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
+                
+                
+                self.graphic_box1.remove_widget(self.plot1)
+                self.plot1 = FigureCanvasKivyAgg(plt.gcf())
+                self.graphic_box1.add_widget(self.plot1)
+                self.plot1.draw()
+                
+                
+                
+                #Plot2
+                plt.close(2)
+                plt.figure(2)
+                plt.title('States energies if $\mathcal{H}_0$')
+                plt.xlabel('t')
+                plt.ylabel('$E$')
+                for i in range(self.dim):
+                    plt.plot(self.t, ener_gif[i],'-',label='$E_{'+str(i-self.s)+'}$')
+                
+                plt.plot(self.t, self.totenergy,'k--',label='$E_{tot}$',)
+                
+                plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
+         
+                
+                #THIS IS IN CASE THAT WE FINALLY WANNA PLOT VERTICAL LINES TO SHOW WHERE THE
+                #TRANSITIONS SHOULD OCCUR
+                #for i in range(self.s):
+                #    plt.axvline(x=time_n[i],linestyle='--',color='grey')
+                
+                self.graphic_box2.remove_widget(self.plot2)
+                self.plot2 = FigureCanvasKivyAgg(plt.gcf())
+                self.graphic_box2.add_widget(self.plot2)
+                self.plot2.draw()
+                
+                #to stop the Clock loop:
                 return False
-            print('My callback is called', count)
+            
+            #GIF
+            
             
             #Plot1
-            plt.figure()
+            plt.close(1)
+            plt.figure(1)
             plt.title('Spin probabilties') #General spin method, solve_ivp
             plt.xlabel('t')
             plt.ylabel('$|a|^2$')
@@ -609,10 +672,11 @@ class Experiment_Screen(Screen):
             
             #Probabilities
             for i in range(self.dim):
-                plt.plot(self.t, self.aplot[i],'-',label='m='+str(i-self.s))
-            plt.plot(self.t, self.norm,'-',label='self.norma')
+                temp_plot=self.aplot[i]
+                plt.plot(self.t[:self.count], temp_plot[:self.count],'-',label='m='+str(i-self.s))
             
-            #for the gif maybe it is better without legend
+            #for the gif maybe it is better not to plot the norm and legend
+            #plt.plot(self.t[:self.count], self.norm[:self.count],'-',label='self.norma')
             #plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
         
         
@@ -620,8 +684,41 @@ class Experiment_Screen(Screen):
             self.plot1 = FigureCanvasKivyAgg(plt.gcf())
             self.graphic_box1.add_widget(self.plot1)
             self.plot1.draw()
+            
+            
+            #Plot2
+            plt.close(2)
+            plt.figure(2)
+            plt.title('States energies if $\mathcal{H}_0$')
+            plt.xlabel('t')
+            plt.ylabel('$E$')
+            for i in range(self.dim):
+                temp_ener=ener_gif[i]
+                plt.plot(self.t[:self.count], temp_ener[:self.count], '-', color='C'+str(i),  label='$E_{'+str(i-self.s)+'}$')
+                
+                #Prob balls
+                temp_plot=self.aplot[i] #prob that determines each size
+                plt.plot(self.t[self.count-5], temp_ener[self.count-5], 'o',color='C'+str(i), mew=10*temp_plot[self.count], ms=20*temp_plot[self.count])
+                
+            plt.plot(self.t[:self.count], self.totenergy[:self.count],'k--',label='$E_{tot}$',)
+            
+            #for the gif maybe it is better without legend
+            #plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
+     
+            #THIS IS IN CASE THAT WE FINALLY WANNA PLOT VERTICAL LINES TO SHOW WHERE THE
+            #TRANSITIONS SHOULD OCCUR
+            #for i in range(self.s):
+            #    plt.axvline(x=time_n[i],linestyle='--',color='grey')
+            
+            self.graphic_box2.remove_widget(self.plot2)
+            self.plot2 = FigureCanvasKivyAgg(plt.gcf())
+            self.graphic_box2.add_widget(self.plot2)
+            self.plot2.draw()
+            
         
-        Clock.schedule_interval(dynamic_plots, 1 / 30.)
+        
+        #function that creates the loop until a False is returned
+        Clock.schedule_interval(dynamic_plots, 10**(-7))
 
 
 #APP BUILDING
