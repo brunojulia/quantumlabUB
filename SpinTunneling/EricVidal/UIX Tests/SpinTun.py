@@ -299,7 +299,7 @@ class Resonance_Screen(Screen):
         #Probabilities
         for i in range(self.dim):
             plt.plot(t, self.aplot[i],'-',label='m='+str(i-self.s))
-        plt.plot(t, self.norm,'-',label='self.norma')
+        plt.plot(t, self.norm,'-',label='norma')
         
         plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
         
@@ -366,7 +366,7 @@ class Experiment_Screen(Screen):
         self.D = 5
         self.alpha = 1
         self.B = 1
-    
+
     
     #Loading anim
     
@@ -386,6 +386,7 @@ class Experiment_Screen(Screen):
             anim += Animation(angle = 360, duration=1.2)
             anim.repeat = False
             anim.start(self)
+            
             
     def on_angle(self, item, angle):
         if angle == 360:

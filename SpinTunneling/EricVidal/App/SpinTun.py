@@ -78,266 +78,7 @@ class Starting_Screen(Screen):
 class Menu_Screen(Screen):
     pass
 
-
-class Resonance_Screen(Screen):
-    angle = NumericProperty(0)
-    angle2 = NumericProperty(0)
-    
-    def __init__(self,**kwargs):
-        super(Resonance_Screen,self).__init__(**kwargs)
-        #set empty graphic properties
-        self.plot1, self.axs =plt.subplots(1)
-        self.axs.set(xlim=[-50,50],ylim=[0,1])
-
-        #Add the graphic to the box which it corresponds
-        self.plot1 = FigureCanvasKivyAgg(self.plot1)
-        self.graphic_box1.add_widget(self.plot1)
-        
-        #set empty graphic properties
-        self.plot2, self.axs =plt.subplots(1)
-        self.axs.set(xlim=[-50,50],ylim=[0,1])
-
-        #Add the graphic to the box which it corresponds
-        self.plot2 = FigureCanvasKivyAgg(self.plot2)
-        self.graphic_box2.add_widget(self.plot2)
-        
-        #Predet values
-        self.s = 1
-        self.D = 5
-        self.alpha = 1
-        self.B = 1
-    
-    
-    #Loading anim
-    
-    #I couldnt manage to have an animation during the
-    #matplotlib plot is being produced
-    def loading_anim(self):
-            
-            anim = Animation(angle = 360, duration=2) 
-            anim += Animation(angle = 360, duration=2)
-            anim.repeat = True
-            anim.start(self)
-    
-    #so i did a done animation instead of a loading animation
-    def done_anim(self):
-            
-            anim = Animation(angle2 = 360, duration=0.1)
-            anim += Animation(angle = 360, duration=1.2)
-            anim.repeat = False
-            anim.start(self)
-            
-    def on_angle(self, item, angle):
-        if angle == 360:
-            item.angle = 0
-        
-        
-    def popup_btn(self):
-        reso_popup()
-    
-    #BACKEND
-    
-    H_type= NumericProperty(1)
-    s = NumericProperty(1)
-    D = NumericProperty(0.01)
-    alpha = NumericProperty(0.1)
-    
-    def spinner_clicked_s(self, value):
-        self.s = int(value)
-    
-    def spinner_clicked_ham(self, value):
-        #self.ham = int(value)
-        pass
-    
-
-    def send(self):
-        
-        
-        plt.clf()
-        #1. Initial parameters
-        #Arbitrary spin to study
-        #s = 3     #total spin
-        self.dim=round(2*self.s+1)    #in order to work when s is half-integer with int dim
-        Nterm1=self.s*(self.s+1)      #1st term of N+-
-        
-        tf = 70
-        #Hamiltonian Parameters
-        #D = 7
-        #alpha = 1.7
-        self.H0 = (tf/2)*np.abs(self.alpha)
-        #B = 0.35
-        
-        #Time span
-        At = [0,tf]
-        
-        #IC
-        a_m0=[]
-        
-        #a_m0.append(1+0j) this is for Ground State (Experiment)
-        
-        for i in range(self.dim-1):
-            a_m0.append(0+0j)
-        
-        a_m0.append(1+0j)   #Resonance mode
-        
-        #States energies if H_0
-        energies=[]
-        for i in range(self.dim):
-            energies.append([])
-        for i in range(self.dim):
-            for j in range(2):
-                energies[i].append(-self.D*(i-self.s)**2+(self.H0-self.alpha*At[j])*(i-self.s))
-                
-        #Transition times
-        time_n=[]
-        yintersec_n=[]
-        for i in range(self.s):
-            x1=At[1]
-            energies_y=energies[2*i]
-            energies_z=energies[2*i+2]
-            y0=energies_y[0]
-            y1=energies_y[1]
-            z0=energies_z[0]
-            z1=energies_z[1]
-            xintersec=x1*((z0-y0)/((y1-y0)-(z1-z0)))
-            yintersec=y0+xintersec*((y1-y0)/x1)
-            time_n.append(xintersec)
-            yintersec_n.append(yintersec)
-            
-        #2. Coupled differential equations
-        #WE HAVE TO TAKE INTO ACCOUNT THAT M DOESNT GO FROM -S TO S
-        #IT GOES FROM 0 TO DIM-1=2s
-        
-        #N+ and N- definition
-        def Np(m):
-            m=m-self.s   #cuz m goes from 0 to 2s
-            Nplus=np.sqrt(Nterm1-m*(m+1))
-            return Nplus
-        def Nm(m):
-            m=m-self.s   #cuz m goes from 0 to 2s
-            Nminus=np.sqrt(Nterm1-m*(m-1))
-            return Nminus
-        
-        #PER TESTEJAR SI EL METODE ES CORRECTE, COMPARAREM AMB RESULTATS LAURA
-        #definition of ODE's
-        def dak1(k, t, am):
-            '''Inputs: s (int) total spin, k (int) quantum magnetic number,
-            t (int or float) time, am (array (dim,1)) coefficients of each state.
-            Outputs: dak (complex) time derivative of a_k.
-            This function returns each differential equation for coefficients time
-            evolution.'''
-            #First we define k to the scale we work in QM
-            kreal=k-self.s
-            if (kreal>self.s):
-                print('It makes no sense that k>s or k<s, sth went wrong.')
-                exit()
-                
-            #eigenvalues term
-            eigenterm=am[k]*(-self.D*kreal**2+(self.H0-self.alpha*t)*kreal)
-            
-            #summatory term
-            sumterm=0
-            for m in range(self.dim):
-                #first we apply Kronicker deltas
-                if (k==(m+2)):
-                    sumtermpos=Np(m)*Np(m+1)
-                else:
-                    sumtermpos=0
-                    
-                if (k==(m-2)):
-                    sumtermneg=Nm(m)*Nm(m-1)
-                else:
-                    sumtermneg=0
-                    
-                #and obtain summatory term along the for
-                sumterm += am[m]*(self.B/2)*(sumtermpos+sumtermneg)
-            
-            #finally obtaining the result of one differential equation
-            dak=-1j*(eigenterm+sumterm)
-            return dak
-    
-        def odes(t, a_m):
-            '''Input: t (int or float) time and a_m (1D list) coefficients. D, h, B
-            (int or floats) are Hamiltonian parameters that could be omitted because
-            they are global variables as s (spin).
-            Ouput: system (1D list), this is the coupled differential equation
-            system.'''
-            system=[]
-            for i in range(self.dim):
-                system.append(dak1(i, t, a_m))
-            
-            return system
-        
-        #3. Resolution and plotting
-        
-        #solve
-        a_m=solve_ivp(odes, At, a_m0, rtol=10**(-6),atol=10**(-7))
-        
-        #Plotting parameters
-        t=a_m.t[:]  #time
-        
-        self.aplot=[]
-        totenergy_temp=[]
-        for i in range(self.dim):
-            totenergy_n=[]
-            prob_i=np.abs(a_m.y[i,:])**2
-            self.aplot.append(prob_i)     #Probabilities coeff^2
-            for j in range(len(t)):
-                totenergy_n.append(prob_i[j]*(-self.D*(i-self.s)**2+(self.H0-self.alpha*t[j])*(i-self.s)))
-            totenergy_temp.append(totenergy_n)
-        
-        self.norm = np.sum(self.aplot, axis=0)    #self.norm (sum of probs)
-        totenergy = np.sum(totenergy_temp, axis=0)    #Total energy (sum of each spin energy*prob)
-        
-        #Plot1
-        plt.figure()
-        plt.title('Spin probabilties') #General spin method, solve_ivp
-        plt.xlabel('t')
-        plt.ylabel('$|a|^2$')
-        plt.axhline(y=1.0,linestyle='--',color='grey')
-        
-        #Probabilities
-        for i in range(self.dim):
-            plt.plot(t, self.aplot[i],'-',label='m='+str(i-self.s))
-        plt.plot(t, self.norm,'-',label='norma')
-        
-        plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
-        
-        
-        self.graphic_box1.remove_widget(self.plot1)
-        self.plot1 = FigureCanvasKivyAgg(plt.gcf())
-        self.graphic_box1.add_widget(self.plot1)
-        self.plot1.draw()        
-
-        
-        #Plot2
-        plt.figure()
-        plt.title('States energies if $\mathcal{H}_0$')
-        plt.xlabel('t')
-        plt.ylabel('$E$')
-        for i in range(self.dim):
-            plt.plot(At, energies[i],'-',label='$E_{'+str(i-self.s)+'}$')
-        
-        plt.plot(t, totenergy,'k--',label='$E_{tot}$',)
-        
-        plt.plot(time_n, yintersec_n, 'rx', mew=5, ms=10)     #Transition point
-        
-        plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
- 
-        
-        #THIS IS IN CASE THAT WE FINALLY WANNA PLOT VERTICAL LINES TO SHOW WHERE THE
-        #TRANSITIONS SHOULD OCCUR
-        #for i in range(self.s):
-        #    plt.axvline(x=time_n[i],linestyle='--',color='grey')
-        
-        self.graphic_box2.remove_widget(self.plot2)
-        self.plot2 = FigureCanvasKivyAgg(plt.gcf())
-        self.graphic_box2.add_widget(self.plot2)
-        self.plot2.draw()
-
-
-
-
+#resonance screen
 
 class Experiment_Screen(Screen):
     angle = NumericProperty(0)
@@ -345,6 +86,7 @@ class Experiment_Screen(Screen):
     
     def __init__(self,**kwargs):
         super(Experiment_Screen,self).__init__(**kwargs)
+        
         #set empty graphic properties
         self.plot1, self.axs =plt.subplots(1)
         self.axs.set(xlim=[-50,50],ylim=[0,1])
@@ -366,10 +108,13 @@ class Experiment_Screen(Screen):
         self.D = 5
         self.alpha = 1
         self.B = 1
-
-    
+        #predet Hamiltonian
+        self.ham=1
+        
+        #initiate counter
+        self.count=0
+        
     #Loading anim
-    
     #I couldnt manage to have an animation during the
     #matplotlib plot is being produced
     def loading_anim(self):
@@ -379,46 +124,26 @@ class Experiment_Screen(Screen):
             anim.repeat = True
             anim.start(self)
     
-    #so i did a done animation instead of a loading animation
+    #so i did a done animation instead
     def done_anim(self):
             
             anim = Animation(angle2 = 360, duration=0.1)
             anim += Animation(angle = 360, duration=1.2)
             anim.repeat = False
             anim.start(self)
-            
-            
+    
     def on_angle(self, item, angle):
         if angle == 360:
             item.angle = 0
         
-        
     def popup_btn(self):
         exp_popup()
-    
-    #BACKEND
-    
-    H_type= NumericProperty(1)
-    s = NumericProperty(1)
-    D = NumericProperty(0.01)
-    alpha = NumericProperty(0.1)
-    
-    dim=0
-    norm=[]
-    t=[]
-    aplot=[]
-    
     def spinner_clicked_s(self, value):
         self.s = int(value)
     
-    def spinner_clicked_ham(self, value):
-        #self.ham = int(value)
-        pass
     
-
+    #BACKEND
     def send(self):
-        
-        
         plt.clf()
         #1. Initial parameters
         #Arbitrary spin to study
@@ -426,15 +151,21 @@ class Experiment_Screen(Screen):
         self.dim=round(2*self.s+1)    #in order to work when s is half-integer with int dim
         Nterm1=self.s*(self.s+1)      #1st term of N+-
         
-        tf = 70
-        #Hamiltonian Parameters
-        #D = 7
-        #alpha = 1.7
-        self.H0 = (tf/2)*np.abs(self.alpha)
-        #B = 0.35
-        
+        #THIS WOULD BECOME TO A SLIDER:
+        #Initial and final times
+        if (self.ham==1):
+            t0=0
+            tf = 70
+        else:
+            t0=-35
+            tf=35
         #Time span
-        At = [0,tf]
+        At = [t0,tf]
+        
+        #this parameter is only used for H1
+        self.H0 = (tf/2)*np.abs(self.alpha)
+        
+        
         
         #IC
         a_m0=[]
@@ -443,16 +174,6 @@ class Experiment_Screen(Screen):
         
         for i in range(self.dim-1):
             a_m0.append(0+0j)
-        
-        
-        
-        #States energies if H_0
-        energies=[]
-        for i in range(self.dim):
-            energies.append([])
-        for i in range(self.dim):
-            for j in range(2):
-                energies[i].append(-self.D*(i-self.s)**2+(self.H0-self.alpha*At[j])*(i-self.s))
                 
         #Transition times
         time_n=[]
@@ -487,25 +208,45 @@ class Experiment_Screen(Screen):
                 exit()
                 
             #eigenvalues term
-            eigenterm=am[k]*(-self.D*kreal**2+(self.H0-self.alpha*t)*kreal)
-            
+            if (self.ham==1):
+                eigenterm=am[k]*(-self.D*kreal**2+(self.H0-self.alpha*t)*kreal)
+            #same eigenvalues for H2 and H3
+            else:
+                eigenterm=am[k]*(-self.D*kreal**2-self.alpha*t*kreal)
             #summatory term
             sumterm=0
-            for m in range(self.dim):
-                #first we apply Kronicker deltas
-                if (k==(m+2)):
-                    sumtermpos=Np(m)*Np(m+1)
-                else:
-                    sumtermpos=0
-                    
-                if (k==(m-2)):
-                    sumtermneg=Nm(m)*Nm(m-1)
-                else:
-                    sumtermneg=0
-                    
-                #and obtain summatory term along the for
-                sumterm += am[m]*(self.B/2)*(sumtermpos+sumtermneg)
             
+            if (self.ham==3):
+                for m in range(self.dim):
+                    #first we apply Kronicker deltas
+                    if (k==(m+1)):
+                        sumtermpos=Np(m)
+                    else:
+                        sumtermpos=0
+                        
+                    if (k==(m-1)):
+                        sumtermneg=Nm(m)
+                    else:
+                        sumtermneg=0
+                        
+                    #and obtain summatory term along the for
+                    sumterm += am[m]*(-self.B/2)*(sumtermpos+sumtermneg)
+            else:
+                for m in range(self.dim):
+                    #first we apply Kronicker deltas
+                    if (k==(m+2)):
+                        sumtermpos=Np(m)*Np(m+1)
+                    else:
+                        sumtermpos=0
+                        
+                    if (k==(m-2)):
+                        sumtermneg=Nm(m)*Nm(m-1)
+                    else:
+                        sumtermneg=0
+                        
+                    #and obtain summatory term along the for
+                    sumterm += am[m]*(self.B/2)*(sumtermpos+sumtermneg)
+                
             #finally obtaining the result of one differential equation
             dak=-1j*(eigenterm+sumterm)
             return dak
@@ -532,38 +273,49 @@ class Experiment_Screen(Screen):
         
         self.aplot=[]
         totenergy_temp=[]
+        self.ener=[]
+        
         for i in range(self.dim):
             totenergy_n=[]
             prob_i=np.abs(a_m.y[i,:])**2
             self.aplot.append(prob_i)     #Probabilities coeff^2
+            
+            #Energies Analytical
+            if (self.ham==1):
+                ener_temp=-self.D*(i-self.s)**2+(self.H0-self.alpha*self.t)*(i-self.s)
+            #as the eigenvalue is the same for H2 and H3, so as too the energy
+            else:
+                ener_temp=-self.D*(i-self.s)**2-self.alpha*self.t*(i-self.s)
+
+            self.ener.append(ener_temp) 
+            
             for j in range(len(self.t)):
-                totenergy_n.append(prob_i[j]*(-self.D*(i-self.s)**2+(self.H0-self.alpha*self.t[j])*(i-self.s)))
+                totenergy_n.append(prob_i[j]*ener_temp[j])
             totenergy_temp.append(totenergy_n)
         
         self.norm = np.sum(self.aplot, axis=0)    #self.norm (sum of probs)
         self.totenergy = np.sum(totenergy_temp, axis=0)    #Total energy (sum of each spin energy*prob)
         
+        
+            
         #Plot1
         plt.close(1)
         plt.figure(1)
         plt.title('Spin probabilties') #General spin method, solve_ivp
         plt.xlabel('t')
         plt.ylabel('$|a|^2$')
-        plt.axhline(y=1.0,linestyle='--',color='grey')
-        
-        #Probabilities
+        plt.axhline(y=1.0,linestyle='--',color='grey')  #to compare norm
         for i in range(self.dim):
             plt.plot(self.t, self.aplot[i],'-',label='m='+str(i-self.s))
+        
         plt.plot(self.t, self.norm,'-',label='norm')
         
         plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
-        
         
         self.graphic_box1.remove_widget(self.plot1)
         self.plot1 = FigureCanvasKivyAgg(plt.gcf())
         self.graphic_box1.add_widget(self.plot1)
         self.plot1.draw()
-
         
         #Plot2
         plt.close(2)
@@ -572,7 +324,7 @@ class Experiment_Screen(Screen):
         plt.xlabel('t')
         plt.ylabel('$E$')
         for i in range(self.dim):
-            plt.plot(At, energies[i],'-',label='$E_{'+str(i-self.s)+'}$')
+            plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
         
         plt.plot(self.t, self.totenergy,'k--',label='$E_{tot}$',)
         
@@ -587,28 +339,22 @@ class Experiment_Screen(Screen):
         self.plot2 = FigureCanvasKivyAgg(plt.gcf())
         self.graphic_box2.add_widget(self.plot2)
         self.plot2.draw()
-        
-        
+
     
     def play(self):
         #(re)initialize the counter
-        self.count=0
         def dynamic_plots(dt):
             self.count += 150    #kind of step of time/frame plotted
             print('My callback is called', self.count)
             
             #reference to stop gif
             final=len(self.t)
-            
-            #Energies for GIF
-            ener_gif=[]
-            for i in range(self.dim):
-                ener_gif_temp=-self.D*(i-self.s)**2+(self.H0-self.alpha*self.t)*(i-self.s)
-                ener_gif.append(ener_gif_temp)
 
             if self.count >= final:
                 print('Last call of my callback, bye bye !', self.count)
-
+                
+                #reinitialize variable
+                self.count=0
                 #put the same graphics as before the gif
                 #Plot1
                 plt.close(1)
@@ -640,7 +386,7 @@ class Experiment_Screen(Screen):
                 plt.xlabel('t')
                 plt.ylabel('$E$')
                 for i in range(self.dim):
-                    plt.plot(self.t, ener_gif[i],'-',label='$E_{'+str(i-self.s)+'}$')
+                    plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
                 
                 plt.plot(self.t, self.totenergy,'k--',label='$E_{tot}$',)
                 
@@ -694,7 +440,7 @@ class Experiment_Screen(Screen):
             plt.xlabel('t')
             plt.ylabel('$E$')
             for i in range(self.dim):
-                temp_ener=ener_gif[i]
+                temp_ener=self.ener[i]
                 plt.plot(self.t[:self.count], temp_ener[:self.count], '-', color='C'+str(i),  label='$E_{'+str(i-self.s)+'}$')
                 
                 #Prob balls
@@ -719,7 +465,63 @@ class Experiment_Screen(Screen):
         
         
         #function that creates the loop until a False is returned
-        Clock.schedule_interval(dynamic_plots, 10**(-7))
+        self.event=Clock.schedule_interval(dynamic_plots, 10**(-7))
+        self.event
+
+    def pause(self):
+        self.event.cancel()
+    
+    def reset(self):
+        self.event.cancel()
+        self.count=0
+        
+        #put the same graphics as before the gif
+        #Plot1
+        plt.close(1)
+        plt.figure(1)
+        plt.title('Spin probabilties') #General spin method, solve_ivp
+        plt.xlabel('t')
+        plt.ylabel('$|a|^2$')
+        plt.axhline(y=1.0,linestyle='--',color='grey')
+        
+        #Probabilities
+        for i in range(self.dim):
+            plt.plot(self.t, self.aplot[i],'-',label='m='+str(i-self.s))
+        plt.plot(self.t, self.norm,'-',label='norm')
+        
+        plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
+        
+        
+        self.graphic_box1.remove_widget(self.plot1)
+        self.plot1 = FigureCanvasKivyAgg(plt.gcf())
+        self.graphic_box1.add_widget(self.plot1)
+        self.plot1.draw()
+        
+        
+        
+        #Plot2
+        plt.close(2)
+        plt.figure(2)
+        plt.title('States energies if $\mathcal{H}_0$')
+        plt.xlabel('t')
+        plt.ylabel('$E$')
+        for i in range(self.dim):
+            plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
+        
+        plt.plot(self.t, self.totenergy,'k--',label='$E_{tot}$',)
+        
+        plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
+ 
+        
+        #THIS IS IN CASE THAT WE FINALLY WANNA PLOT VERTICAL LINES TO SHOW WHERE THE
+        #TRANSITIONS SHOULD OCCUR
+        #for i in range(self.s):
+        #    plt.axvline(x=time_n[i],linestyle='--',color='grey')
+        
+        self.graphic_box2.remove_widget(self.plot2)
+        self.plot2 = FigureCanvasKivyAgg(plt.gcf())
+        self.graphic_box2.add_widget(self.plot2)
+        self.plot2.draw()
 
 
 #APP BUILDING
@@ -735,7 +537,7 @@ class SpinTunApp(App):
         sm.add_widget(Starting_Screen(name='Starting'))
         sm.add_widget(Menu_Screen(name='Menu'))       
         sm.add_widget(Experiment_Screen(name='Experiment'))
-        sm.add_widget(Resonance_Screen(name='Resonance'))
+        #sm.add_widget(Resonance_Screen(name='Resonance'))
         
         #Changes Starting screen to Menu
         def intro(self, *largs):
