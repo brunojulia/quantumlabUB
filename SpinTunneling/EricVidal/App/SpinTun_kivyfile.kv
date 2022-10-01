@@ -216,7 +216,9 @@
     			valign:"middle"
     			
     			on_press:
-                    root.manager.current = 'Resonance'
+        			root.manager.get_screen('Experiment').ids.front_title.text = "RESONANCE"
+        			root.manager.get_screen('Experiment').screen_decider = 1
+                    root.manager.current = 'Experiment'
                 
 
             Button:
@@ -235,6 +237,8 @@
     			valign:"middle"
     			
                 on_press:
+                    root.manager.get_screen('Experiment').ids.front_title.text = "EXPERIMENT"
+        			root.manager.get_screen('Experiment').screen_decider = 2
                     root.manager.current = 'Experiment'
                     
             Button:
@@ -327,10 +331,6 @@
         				allow_stretch: True
         		    	keep_ratio: True
 
-
-
-#Resonance_screen
-
 <Experiment_Screen>
     name:'Experiment'
     
@@ -366,7 +366,7 @@
             Button:
                 id: popup_exp
                 
-                text: "i" if popup_exp.state == "normal" else "Sth Incoming"
+                text: "i"
                 font_size:44
                 font_name:'00803_AbrazoScriptSSiBold'
                 bold: True
@@ -417,7 +417,6 @@
     			halign:"center"
     			valign:"middle" #centered paragraph sentences
             
-            
             BoxLayout: #for languages
     			size_hint_x: 0.15
     			size_hint_y:0.3
@@ -466,36 +465,150 @@
 
         #2ndary MIDDLE SCREEN
         FloatLayout: 
-			size_hint_x: 0.9 
-			size_hint_y:0.05
-			pos_hint:{"x":0.05,"y":0.8}
+			size_hint_x: 0.96 
+			size_hint_y:0.07
+			pos_hint:{"x":0.02,"y":0.78}
 			
 			#Sets bg color
         	canvas.before: 
     			Color: 
-    				rgba: (0, 0.08, 0.31, 1) 
+    				rgba: (1, 1, 1, 1) 
     			Rectangle: 
     				size: self.size 
     				pos: self.pos
     				
     				
             #HAMILTONIANS Labels
-            BoxLayout:
-        	    orientation: 'horizontal'
-        		size_hint:0.8,0.9
-        		pos_hint: {'center_x':0.5,'center_y':0.5}
-                color: 1,0,0,1
-                
+            #HAM 1
+            Button:
+        		size_hint:0.4,0.9
+        		pos_hint: {'x':0,'center_y':0.5}
+        		
+        		id: H1_btn
+                  
+                text: " "
+
+                disabled: True
+                  
+                halign:"center"
+                valign:"middle"
+    
+                on_release:
+                    root.ham=1
+                    H1_btn.disabled=True
+                    H2_btn.disabled=False
+                    H3_btn.disabled=False
+                    alpha_change.text='a'
+                    alpha_change.font_name='13051_EisagoGreekSSi'
+                    B_change.text='B = {:.2f}'.format(B_slider.value)
+                    t0_slider.value=0
+                    t0_slider.min=0
+                    t0_slider.max=40
+                    tf_slider.value=70
+                    tf_slider.min=40
+                    tf_slider.max=100
+
+          
+            GridLayout:
+    			cols:1 
+    			rows:1
+    			
+    			size_hint:0.4,0.9
+            	pos_hint: {'x':0,'center_y':0.5}
+            
                 Image: #we put an image
     				source: "graphs/Ham_1.png"
-    	    		#size_hint:0.9,0.9
-    	    		
+    	    		allow_stretch: True
+    	    		keep_ratio: True
     				
+    		#HAM 2
+            Button:
+        		size_hint:0.3,0.9
+        		pos_hint: {'x':0.4,'center_y':0.5}
+        		
+        		id: H2_btn
+                    
+                text: " "
+
+                disabled: False
+                  
+                halign:"center"
+                valign:"middle"
+    
+                on_release:
+                    root.ham=2
+                    H1_btn.disabled=False
+                    H2_btn.disabled=True
+                    H3_btn.disabled=False
+                    alpha_change.text='hz'
+                    alpha_change.font_name='39335_UniversCondensed'
+                    B_change.text='B = {:.2f}'.format(B_slider.value)
+                    t0_slider.value=-35
+                    t0_slider.min=-50
+                    t0_slider.max=0
+                    tf_slider.value=35
+                    tf_slider.min=0
+                    tf_slider.max=50
+        		
+            
+            GridLayout:
+    			cols:1 
+    			rows:1
+    			
+    			size_hint:0.3,0.9
+        		pos_hint: {'x':0.4,'center_y':0.5}
+            
+                Image: #we put an image
+    				source: "graphs/Ham_2.png"
+    	    		allow_stretch: True
+    	    		keep_ratio: True
+    	    
+    	    #HAM 3
+            Button:
+        		size_hint:0.3,0.9
+        		pos_hint: {'x':0.7,'center_y':0.5}
+        		
+        		id: H3_btn
+                    
+                text: " "
+
+                disabled: False
+                  
+                halign:"center"
+                valign:"middle"
+    
+                on_release:
+                    root.ham=3
+                    H1_btn.disabled=False
+                    H2_btn.disabled=False
+                    H3_btn.disabled=True
+                    alpha_change.text='hz'
+                    alpha_change.font_name='39335_UniversCondensed'
+                    B_change.text='hx = {:.2f}'.format(B_slider.value)
+                    t0_slider.value=-35
+                    t0_slider.min=-50
+                    t0_slider.max=0
+                    tf_slider.value=35
+                    tf_slider.min=0
+                    tf_slider.max=50
+      		
+            GridLayout:
+    			cols:1 
+    			rows:1
+    			
+    			size_hint:0.3,0.9
+        		pos_hint: {'x':0.7,'center_y':0.5}
+            
+                Image: #we put an image
+    				source: "graphs/Ham_3.png"
+    	    		allow_stretch: True
+    	    		keep_ratio: True
+    	    		
         #MIDDLE SCREEN
         FloatLayout: 
-			size_hint_x: 0.9 
+			size_hint_x: 0.96
 			size_hint_y:0.12
-			pos_hint:{"x":0.05,"y":0.65}
+			pos_hint:{"x":0.02,"y":0.65}
 			
 			#Sets bg color
         	canvas.before: 
@@ -505,96 +618,22 @@
     				size: self.size 
     				pos: self.pos
 
-            #HAMILTONIAN VALUE
-            GridLayout:
-                id:ham_box
-                
-                rows:1
-                cols:3
-                
-                orientation:'horizontal'
-                size_hint:0.2,0.4
-                pos_hint:{'x':0.02, 'center_y': 0.5}
-                
-                Button:
-                    id: H1_btn
-                    
-                    text: "H1"
-                    font_size:32
-                    font_name:'39335_UniversCondensed'
-                    bold: False
-            		color: 23/255, 190/255, 255/255, 1
-            		
-            		disabled: True
-                    
-                    halign:"center"
-                    valign:"middle"
-
-                    on_release:
-                        root.ham=1
-                        H1_btn.disabled=True
-                        H2_btn.disabled=False
-                        H3_btn.disabled=False
-                        #change bg colors hams formulas
-                
-                Button:
-                    id: H2_btn
-                    
-                    text: "H2"
-                    font_size:32
-                    font_name:'39335_UniversCondensed'
-                    bold: False
-            		color: 23/255, 190/255, 255/255, 1
-            		
-            		disabled: False
-                    
-                    halign:"center"
-                    valign:"middle"
-
-                    on_release:
-                        root.ham=2
-                        H1_btn.disabled=False
-                        H2_btn.disabled=True
-                        H3_btn.disabled=False
-                        #change bg colors hams formulas
-        		
-        		Button:
-                    id: H3_btn
-                    
-                    text: "H3"
-                    font_size:32
-                    font_name:'39335_UniversCondensed'
-                    bold: False
-            		color: 23/255, 190/255, 255/255, 1
-            		
-            		disabled: False
-                    
-                    halign:"center"
-                    valign:"middle"
-
-                    on_release:
-                        root.ham=3
-                        H1_btn.disabled=False
-                        H2_btn.disabled=False
-                        H3_btn.disabled=True
-                        #change bg colors hams formulas
-        		
             #SPIN VALUE
             BoxLayout:
                 id:spin_box
         
                 orientation:'horizontal'
                 size_hint:0.1,0.4
-                pos_hint:{'x':0.25, 'center_y': 0.5}
+                pos_hint:{'x':0.03, 'center_y': 0.5}
                 
                 #Text
-                Label:  
+                Label:
         			id: spin_text
         			
         			text: "Spin = " 
         			font_size:20
         			font_name:'39335_UniversCondensed' 
-        			bold: False
+        			bold: True
         			color:1, 1, 1, 1
 
         			halign:"center"
@@ -622,17 +661,34 @@
         
             #SLIDERS
             GridLayout:
-    			cols: 3
+    			cols: 5
     			rows: 2 
-        		size_hint: 0.5,0.8
-        		pos_hint: {'x':0.35,'center_y':0.5}
+        		size_hint: 0.7,0.8
+        		pos_hint: {'x':0.15,'center_y':0.5}
         
         
                 #LABELS
+                #t0
+                Label:
+                    text: 't0 = {:.0f}'.format(t0_slider.value)
+                    font_size:18
+                    font_name:'39335_UniversCondensed'
+        			bold: True
+                    
+                    
+                #tf
+                Label:
+                    text: 'tf = {:.0f}'.format(tf_slider.value)
+                    font_size:18
+                    font_name:'39335_UniversCondensed' 
+        			bold: True
+                
                 #D
                 Label:
                     text: 'D = {:.1f}'.format(D_slider.value)
-                    bold: True
+                    font_size:18
+                    font_name:'39335_UniversCondensed' 
+        			bold: True
                 
                 #alpha
                 GridLayout:
@@ -640,22 +696,54 @@
                     cols:2
                     orientation: 'horizontal'
                     Label:
+                        id: alpha_change
+                    
                         text: 'a'
+                        font_size:18
                         font_name: '13051_EisagoGreekSSi'
                         bold: True
                         size_hint_x: 0.1
                         
                     Label:
                         text: ' = {:.2f}'.format(alpha_slider.value)
-                        bold: True
+                        font_size:18
+                        font_name:'39335_UniversCondensed' 
+            			bold: True
                         size_hint_x: 0.1
                 #B
                 Label:
+                    id: B_change
                     text: 'B = {:.2f}'.format(B_slider.value)
-                    bold: True
+                    font_size:18
+                    font_name:'39335_UniversCondensed' 
+        			bold: True
                 
                 
                 #SLIDERS
+                #t0
+                Slider:
+                    id:t0_slider
+                    
+                    value: 0
+                    min: 0
+                    max: 40
+                    step: 2
+                    
+                    on_value:
+                        root.t0=t0_slider.value
+                
+                #tf
+                Slider:
+                    id:tf_slider
+                    
+                    value: 70
+                    min: 40
+                    max: 100
+                    step: 2
+                    
+                    on_value:
+                        root.tf=tf_slider.value
+                
                 #D
                 Slider:
                     id:D_slider
@@ -715,9 +803,7 @@
                     root.send()
                     loading_text.text= 'DONE'
                     root.done_anim()
-                    play_btn.disabled = False
-
-    
+                    play_btn.disabled = False  
 
     # GRAFICS
     GridLayout:
@@ -1010,7 +1096,69 @@
                 pause_btn.disabled = True
                 reset_btn.disabled = True
 
-
+    GridLayout:
+        cols: 1
+        rows: 3
+        
+        size_hint_x: 0.05 
+		size_hint_y:0.15
+		pos_hint:{"x":0.92,"y":0.05}
+    
+        # x1
+        Button:
+            id: x1_btn
+            
+            disabled: True
+            
+            text:'x1'
+            font_size: 24
+            font_name:'07558_CenturyGothic'
+            bold: True
+            
+            halign:"center"
+        	valign:"middle"
+            
+            on_press:
+                root.vel_decider=1
+                x1_btn.disabled = True
+                x2_btn.disabled = False
+                x4_btn.disabled = False
+    
+        # x2
+        Button:
+            id: x2_btn
+            
+            text:'x2'
+            font_size: 24
+            font_name:'07558_CenturyGothic'
+            bold: True
+    		
+            halign:"center"
+        	valign:"middle"
+            
+            on_press:
+                root.vel_decider=2
+                x1_btn.disabled = False
+                x2_btn.disabled = True
+                x4_btn.disabled = False
+                
+        # RESET
+        Button:
+            id: x4_btn
+            
+            text:'x4'
+            font_size: 24
+            font_name:'07558_CenturyGothic'
+            bold: True
+    		
+            halign:"center"
+        	valign:"middle"
+            
+            on_press:
+                root.vel_decider=4
+                x1_btn.disabled = False
+                x2_btn.disabled = False
+                x4_btn.disabled = True
 
     # BACK
     Button:
@@ -1029,4 +1177,5 @@
     	valign:"middle"
         
         on_press:
+            root.back()
             root.manager.current = 'Menu'

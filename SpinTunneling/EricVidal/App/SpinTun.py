@@ -105,15 +105,44 @@ class Experiment_Screen(Screen):
         
         #Predet values
         self.s = 1
+        self.t0=0
+        self.tf = 70
         self.D = 5
         self.alpha = 1
         self.B = 1
         #predet Hamiltonian
         self.ham=1
         
+        self.screen_decider=1
+        self.vel_decider=1
+        
         #initiate counter
         self.count=0
+    
+    def back(self):
         
+        #Removes screen graphics, and reinitiates
+        
+        self.graphic_box1.remove_widget(self.plot1)
+        self.graphic_box2.remove_widget(self.plot2)
+        
+        #set empty graphic properties
+        self.plot1, self.axs =plt.subplots(1)
+        self.axs.set(xlim=[-50,50],ylim=[0,1])
+
+        #Add the graphic to the box which it corresponds
+        self.plot1 = FigureCanvasKivyAgg(self.plot1)
+        self.graphic_box1.add_widget(self.plot1)
+        
+        #set empty graphic properties
+        self.plot2, self.axs =plt.subplots(1)
+        self.axs.set(xlim=[-50,50],ylim=[0,1])
+
+        #Add the graphic to the box which it corresponds
+        self.plot2 = FigureCanvasKivyAgg(self.plot2)
+        self.graphic_box2.add_widget(self.plot2)
+
+    
     #Loading anim
     #I couldnt manage to have an animation during the
     #matplotlib plot is being produced
@@ -150,30 +179,26 @@ class Experiment_Screen(Screen):
         #s = 3     #total spin
         self.dim=round(2*self.s+1)    #in order to work when s is half-integer with int dim
         Nterm1=self.s*(self.s+1)      #1st term of N+-
-        
-        #THIS WOULD BECOME TO A SLIDER:
-        #Initial and final times
-        if (self.ham==1):
-            t0=0
-            tf = 70
-        else:
-            t0=-35
-            tf=35
+
         #Time span
-        At = [t0,tf]
+        At = [self.t0,self.tf]
         
         #this parameter is only used for H1
-        self.H0 = (tf/2)*np.abs(self.alpha)
-        
-        
+        self.H0 = (self.tf/2)*np.abs(self.alpha)
         
         #IC
         a_m0=[]
         
-        a_m0.append(1+0j)
+        #EXPERIMENT
+        if (self.screen_decider==2):
+            a_m0.append(1+0j)
         
         for i in range(self.dim-1):
             a_m0.append(0+0j)
+            
+        #RESONANCE
+        if (self.screen_decider==1):
+            a_m0.append(1+0j)
                 
         #Transition times
         time_n=[]
@@ -344,15 +369,19 @@ class Experiment_Screen(Screen):
     def play(self):
         #(re)initialize the counter
         def dynamic_plots(dt):
-            self.count += 150    #kind of step of time/frame plotted
-            print('My callback is called', self.count)
+            if (self.vel_decider==1):
+                self.vel=75
+            elif (self.vel_decider==2):
+                self.vel=150
+            elif (self.vel_decider==4):
+                self.vel=300
+            
+            self.count += self.vel    #kind of step of time/frame plotted
             
             #reference to stop gif
             final=len(self.t)
 
             if self.count >= final:
-                print('Last call of my callback, bye bye !', self.count)
-                
                 #reinitialize variable
                 self.count=0
                 #put the same graphics as before the gif
