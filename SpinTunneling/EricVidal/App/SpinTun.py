@@ -54,21 +54,9 @@ class exp_P(FloatLayout):
 def exp_popup():
     show = exp_P()
 
-    popupWindow = Popup(title="Experiment Information", content=show, size_hint=(.7,.7))
+    popupWindow = Popup(title="Information", content=show, size_hint=(.7,.7))
 
     popupWindow.open()
-
-
-
-class reso_P(FloatLayout):
-    pass
-
-def reso_popup():
-    show = reso_P()
-
-    popupWindow = Popup(title="Resonance Information", content=show, size_hint=(.7,.7))
-
-    popupWindow.open()    
 
 
 #SCREENS

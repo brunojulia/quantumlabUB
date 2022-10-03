@@ -8,18 +8,6 @@
         text: "You pressed the button"
         size_hint: 0.8, 0.2
         pos_hint: {"x":0.1, "y":0.1}
-        
-<reso_P>:
-    Label:
-        text: "You pressed the button"
-        size_hint: 0.6, 0.2
-        pos_hint: {"x":0.2, "top":1}
-
-    Button:
-        text: "You pressed the button"
-        size_hint: 0.8, 0.2
-        pos_hint: {"x":0.1, "y":0.1}
-
 
 <Starting_Screen>:
     name: 'Starting'
@@ -1177,5 +1165,10 @@
     	valign:"middle"
         
         on_press:
+            play_btn.disabled = True
+            pause_btn.disabled = True
+            reset_btn.disabled = True
+            root.reset()
             root.back()
             root.manager.current = 'Menu'
+            
