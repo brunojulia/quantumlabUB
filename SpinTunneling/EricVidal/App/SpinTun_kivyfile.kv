@@ -451,16 +451,16 @@
     				on_release: #root.english()
     				
 
-        #2ndary MIDDLE SCREEN
+        #MIDDLE SCREEN 1
         FloatLayout: 
-			size_hint_x: 0.96 
+			size_hint_x: 0.6 
 			size_hint_y:0.07
-			pos_hint:{"x":0.02,"y":0.78}
+			pos_hint:{"x":0.1,"y":0.78}
 			
 			#Sets bg color
         	canvas.before: 
     			Color: 
-    				rgba: (1, 1, 1, 1) 
+    				rgba: (0, 0.08, 0.31, 1) 
     			Rectangle: 
     				size: self.size 
     				pos: self.pos
@@ -468,33 +468,13 @@
     				
             #HAMILTONIANS Labels
             #HAM 1
-            Button:
+            Label:
         		size_hint:0.4,0.9
-        		pos_hint: {'x':0,'center_y':0.5}
+        		pos_hint: {'x':0.05,'center_y':0.5}
         		
-        		id: H1_btn
+        		id: H1
                   
                 text: " "
-
-                disabled: True
-                  
-                halign:"center"
-                valign:"middle"
-    
-                on_release:
-                    root.ham=1
-                    H1_btn.disabled=True
-                    H2_btn.disabled=False
-                    H3_btn.disabled=False
-                    alpha_change.text='a'
-                    alpha_change.font_name='13051_EisagoGreekSSi'
-                    B_change.text='B = {:.2f}'.format(B_slider.value)
-                    t0_slider.value=0
-                    t0_slider.min=0
-                    t0_slider.max=40
-                    tf_slider.value=70
-                    tf_slider.min=40
-                    tf_slider.max=100
 
           
             GridLayout:
@@ -502,7 +482,7 @@
     			rows:1
     			
     			size_hint:0.4,0.9
-            	pos_hint: {'x':0,'center_y':0.5}
+            	pos_hint: {'x':0.05,'center_y':0.5}
             
                 Image: #we put an image
     				source: "graphs/Ham_1.png"
@@ -512,31 +492,22 @@
     		#HAM 2
             Button:
         		size_hint:0.3,0.9
-        		pos_hint: {'x':0.4,'center_y':0.5}
+        		pos_hint: {'x':0.45,'center_y':0.5}
         		
         		id: H2_btn
                     
                 text: " "
 
-                disabled: False
+                disabled: True
                   
                 halign:"center"
                 valign:"middle"
     
                 on_release:
                     root.ham=2
-                    H1_btn.disabled=False
                     H2_btn.disabled=True
                     H3_btn.disabled=False
-                    alpha_change.text='hz'
-                    alpha_change.font_name='39335_UniversCondensed'
                     B_change.text='B = {:.2f}'.format(B_slider.value)
-                    t0_slider.value=-35
-                    t0_slider.min=-50
-                    t0_slider.max=0
-                    tf_slider.value=35
-                    tf_slider.min=0
-                    tf_slider.max=50
         		
             
             GridLayout:
@@ -544,7 +515,7 @@
     			rows:1
     			
     			size_hint:0.3,0.9
-        		pos_hint: {'x':0.4,'center_y':0.5}
+        		pos_hint: {'x':0.45,'center_y':0.5}
             
                 Image: #we put an image
     				source: "graphs/Ham_2.png"
@@ -553,8 +524,8 @@
     	    
     	    #HAM 3
             Button:
-        		size_hint:0.3,0.9
-        		pos_hint: {'x':0.7,'center_y':0.5}
+        		size_hint:0.2,0.9
+        		pos_hint: {'x':0.75,'center_y':0.5}
         		
         		id: H3_btn
                     
@@ -567,36 +538,28 @@
     
                 on_release:
                     root.ham=3
-                    H1_btn.disabled=False
                     H2_btn.disabled=False
                     H3_btn.disabled=True
-                    alpha_change.text='hz'
-                    alpha_change.font_name='39335_UniversCondensed'
                     B_change.text='hx = {:.2f}'.format(B_slider.value)
-                    t0_slider.value=-35
-                    t0_slider.min=-50
-                    t0_slider.max=0
-                    tf_slider.value=35
-                    tf_slider.min=0
-                    tf_slider.max=50
       		
             GridLayout:
     			cols:1 
     			rows:1
     			
-    			size_hint:0.3,0.9
-        		pos_hint: {'x':0.7,'center_y':0.5}
+    			size_hint:0.2,0.7
+        		pos_hint: {'x':0.75,'center_y':0.5}
             
                 Image: #we put an image
     				source: "graphs/Ham_3.png"
     	    		allow_stretch: True
     	    		keep_ratio: True
-    	    		
-        #MIDDLE SCREEN
+
+        
+        #MIDDLE SCREEN 2
         FloatLayout: 
-			size_hint_x: 0.96
-			size_hint_y:0.12
-			pos_hint:{"x":0.02,"y":0.65}
+			size_hint_x: 0.18 
+			size_hint_y:0.07
+			pos_hint:{"x":0.72,"y":0.78}
 			
 			#Sets bg color
         	canvas.before: 
@@ -605,14 +568,15 @@
     			Rectangle: 
     				size: self.size 
     				pos: self.pos
-
+            
+            
             #SPIN VALUE
             BoxLayout:
                 id:spin_box
         
                 orientation:'horizontal'
-                size_hint:0.1,0.4
-                pos_hint:{'x':0.03, 'center_y': 0.5}
+                size_hint:0.6,0.8
+                pos_hint:{'center_x':0.5, 'center_y': 0.5}
                 
                 #Text
                 Label:
@@ -646,13 +610,27 @@
                 # and the position of it
                 #size_hint: 0.05, 0.4
                 
+    	    		
+        #MIDDLE SCREEN 3
+        FloatLayout: 
+			size_hint_x: 0.8
+			size_hint_y:0.12
+			pos_hint:{"x":0.1,"y":0.65}
+			
+			#Sets bg color
+        	canvas.before: 
+    			Color: 
+    				rgba: (0, 0.08, 0.31, 1) 
+    			Rectangle: 
+    				size: self.size 
+    				pos: self.pos
         
             #SLIDERS
             GridLayout:
     			cols: 5
     			rows: 2 
-        		size_hint: 0.7,0.8
-        		pos_hint: {'x':0.15,'center_y':0.5}
+        		size_hint: 0.85,0.8
+        		pos_hint: {'x':0.03,'center_y':0.5}
         
         
                 #LABELS
@@ -678,26 +656,12 @@
                     font_name:'39335_UniversCondensed' 
         			bold: True
                 
-                #alpha
-                GridLayout:
-                    rows:1
-                    cols:2
-                    orientation: 'horizontal'
-                    Label:
-                        id: alpha_change
-                    
-                        text: 'a'
-                        font_size:18
-                        font_name: '13051_EisagoGreekSSi'
-                        bold: True
-                        size_hint_x: 0.1
-                        
-                    Label:
-                        text: ' = {:.2f}'.format(alpha_slider.value)
-                        font_size:18
-                        font_name:'39335_UniversCondensed' 
-            			bold: True
-                        size_hint_x: 0.1
+                #hz
+                Label:
+                    text: 'hz = {:.2f}'.format(hz_slider.value)
+                    font_size:18
+                    font_name:'39335_UniversCondensed' 
+        			bold: True
                 #B
                 Label:
                     id: B_change
@@ -711,10 +675,10 @@
                 #t0
                 Slider:
                     id:t0_slider
-                    
-                    value: 0
-                    min: 0
-                    max: 40
+
+                    value: -35
+                    min: -50
+                    max: 0
                     step: 2
                     
                     on_value:
@@ -724,9 +688,9 @@
                 Slider:
                     id:tf_slider
                     
-                    value: 70
-                    min: 40
-                    max: 100
+                    value: 35
+                    min: 0
+                    max: 50
                     step: 2
                     
                     on_value:
@@ -744,9 +708,9 @@
                     on_value:
                         root.D=D_slider.value
                 
-                #alpha        
+                #hz        
                 Slider:
-                    id:alpha_slider
+                    id:hz_slider
                     
                     value: 1
                     min: 0.1
@@ -754,7 +718,7 @@
                     step: 0.05
                     
                     on_value:
-                        root.alpha=alpha_slider.value
+                        root.hz=hz_slider.value
                 
                 #B
                 Slider:
@@ -836,7 +800,7 @@
                 root.spinner_clicked_s(spinner_s.text)
             
                 D_slider.value=4
-        		alpha_slider.value=1.2
+        		hz_slider.value=1.2
         		B_slider.value=1.8
         		
                 root.send()
@@ -861,7 +825,7 @@
                 root.spinner_clicked_s(spinner_s.text)
             
                 D_slider.value=4
-        		alpha_slider.value=1.2
+        		hz_slider.value=1.2
         		B_slider.value=1.8
         		
                 root.send()
@@ -886,7 +850,7 @@
                 root.spinner_clicked_s(spinner_s.text)
             
                 D_slider.value=4
-        		alpha_slider.value=1.2
+        		hz_slider.value=1.2
         		B_slider.value=1.8
         		
                 root.send()
@@ -911,7 +875,7 @@
                 root.spinner_clicked_s(spinner_s.text)
             
                 D_slider.value=4
-        		alpha_slider.value=1.2
+        		hz_slider.value=1.2
         		B_slider.value=1.8
         		
                 root.send()
@@ -936,7 +900,7 @@
                 root.spinner_clicked_s(spinner_s.text)
             
                 D_slider.value=4
-        		alpha_slider.value=1.2
+        		hz_slider.value=1.2
         		B_slider.value=1.8
         		
                 root.send()
@@ -961,7 +925,7 @@
                 root.spinner_clicked_s(spinner_s.text)
             
                 D_slider.value=4
-        		alpha_slider.value=1.2
+        		hz_slider.value=1.2
         		B_slider.value=1.8
         		
                 root.send()
@@ -1168,7 +1132,8 @@
             play_btn.disabled = True
             pause_btn.disabled = True
             reset_btn.disabled = True
-            root.reset()
+            root.pause()
+            root.count=0
             root.back()
             root.manager.current = 'Menu'
             

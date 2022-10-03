@@ -93,19 +93,20 @@ class Experiment_Screen(Screen):
         
         #Predet values
         self.s = 1
-        self.t0=0
-        self.tf = 70
+        self.t0=-35
+        self.tf = 35
         self.D = 5
-        self.alpha = 1
+        self.hz = 1
         self.B = 1
         #predet Hamiltonian
-        self.ham=1
+        self.ham=2
         
         self.screen_decider=1
         self.vel_decider=1
         
         #initiate counter
         self.count=0
+        self.final=0
     
     def back(self):
         
@@ -172,7 +173,7 @@ class Experiment_Screen(Screen):
         At = [self.t0,self.tf]
         
         #this parameter is only used for H1
-        self.H0 = (self.tf/2)*np.abs(self.alpha)
+        self.H0 = (self.tf/2)*np.abs(self.hz)
         
         #IC
         a_m0=[]
@@ -221,11 +222,12 @@ class Experiment_Screen(Screen):
                 exit()
                 
             #eigenvalues term
-            if (self.ham==1):
-                eigenterm=am[k]*(-self.D*kreal**2+(self.H0-self.alpha*t)*kreal)
+            #if (self.ham==1):
+            #    eigenterm=am[k]*(-self.D*kreal**2+(self.H0-self.hz*t)*kreal)
             #same eigenvalues for H2 and H3
-            else:
-                eigenterm=am[k]*(-self.D*kreal**2-self.alpha*t*kreal)
+            #else:
+            #    eigenterm=am[k]*(-self.D*kreal**2-self.hz*t*kreal)
+            eigenterm=am[k]*(-self.D*kreal**2-self.hz*t*kreal)
             #summatory term
             sumterm=0
             
@@ -294,12 +296,12 @@ class Experiment_Screen(Screen):
             self.aplot.append(prob_i)     #Probabilities coeff^2
             
             #Energies Analytical
-            if (self.ham==1):
-                ener_temp=-self.D*(i-self.s)**2+(self.H0-self.alpha*self.t)*(i-self.s)
+            #if (self.ham==1):
+            #    ener_temp=-self.D*(i-self.s)**2+(self.H0-self.hz*self.t)*(i-self.s)
             #as the eigenvalue is the same for H2 and H3, so as too the energy
-            else:
-                ener_temp=-self.D*(i-self.s)**2-self.alpha*self.t*(i-self.s)
-
+            #else:
+            #    ener_temp=-self.D*(i-self.s)**2-self.hz*self.t*(i-self.s)
+            ener_temp=-self.D*(i-self.s)**2-self.hz*self.t*(i-self.s)
             self.ener.append(ener_temp) 
             
             for j in range(len(self.t)):
@@ -318,6 +320,7 @@ class Experiment_Screen(Screen):
         plt.xlabel('t')
         plt.ylabel('$|a|^2$')
         plt.axhline(y=1.0,linestyle='--',color='grey')  #to compare norm
+        plt.xlim([self.t0, self.tf])
         for i in range(self.dim):
             plt.plot(self.t, self.aplot[i],'-',label='m='+str(i-self.s))
         
@@ -336,6 +339,7 @@ class Experiment_Screen(Screen):
         plt.title('States energies if $\mathcal{H}_0$')
         plt.xlabel('t')
         plt.ylabel('$E$')
+        plt.xlim([self.t0, self.tf])
         for i in range(self.dim):
             plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
         
@@ -367,9 +371,9 @@ class Experiment_Screen(Screen):
             self.count += self.vel    #kind of step of time/frame plotted
             
             #reference to stop gif
-            final=len(self.t)
+            self.final=len(self.t)
 
-            if self.count >= final:
+            if self.count >= self.final:
                 #reinitialize variable
                 self.count=0
                 #put the same graphics as before the gif
@@ -380,7 +384,7 @@ class Experiment_Screen(Screen):
                 plt.xlabel('t')
                 plt.ylabel('$|a|^2$')
                 plt.axhline(y=1.0,linestyle='--',color='grey')
-                
+                plt.xlim([self.t0, self.tf])
                 #Probabilities
                 for i in range(self.dim):
                     plt.plot(self.t, self.aplot[i],'-',label='m='+str(i-self.s))
@@ -402,6 +406,7 @@ class Experiment_Screen(Screen):
                 plt.title('States energies if $\mathcal{H}_0$')
                 plt.xlabel('t')
                 plt.ylabel('$E$')
+                plt.xlim([self.t0, self.tf])
                 for i in range(self.dim):
                     plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
                 
@@ -433,7 +438,7 @@ class Experiment_Screen(Screen):
             plt.xlabel('t')
             plt.ylabel('$|a|^2$')
             plt.axhline(y=1.0,linestyle='--',color='grey')
-            
+            plt.xlim([self.t0, self.tf])
             #Probabilities
             for i in range(self.dim):
                 temp_plot=self.aplot[i]
@@ -456,13 +461,14 @@ class Experiment_Screen(Screen):
             plt.title('States energies if $\mathcal{H}_0$')
             plt.xlabel('t')
             plt.ylabel('$E$')
+            plt.xlim([self.t0, self.tf])
             for i in range(self.dim):
                 temp_ener=self.ener[i]
-                plt.plot(self.t[:self.count], temp_ener[:self.count], '-', color='C'+str(i),  label='$E_{'+str(i-self.s)+'}$')
+                plt.plot(self.t, temp_ener, '-', color='C'+str(i),  label='$E_{'+str(i-self.s)+'}$')
                 
                 #Prob balls
                 temp_plot=self.aplot[i] #prob that determines each size
-                plt.plot(self.t[self.count-5], temp_ener[self.count-5], 'o',color='C'+str(i), mew=10*temp_plot[self.count], ms=20*temp_plot[self.count])
+                plt.plot(self.t[self.count], temp_ener[self.count], 'o',color='C'+str(i), mew=10*temp_plot[self.count], ms=20*temp_plot[self.count])
                 
             plt.plot(self.t[:self.count], self.totenergy[:self.count],'k--',label='$E_{tot}$',)
             
@@ -482,11 +488,12 @@ class Experiment_Screen(Screen):
         
         
         #function that creates the loop until a False is returned
-        self.event=Clock.schedule_interval(dynamic_plots, 10**(-7))
+        self.event=Clock.schedule_interval(dynamic_plots, 10**(-9))
         self.event
 
     def pause(self):
-        self.event.cancel()
+        if (self.count != 0):    #in order to stop event while back, unless we do this, when it is not playing an error occurs because ther is no event ongoing
+            self.event.cancel()
     
     def reset(self):
         self.event.cancel()
