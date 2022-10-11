@@ -1,0 +1,257 @@
+<Button>
+	background_normal: ""
+	background_color: [0.3, 0.3, 0.3, 1]
+
+	
+<Slider>
+	canvas:
+        Color:
+            rgba: 0.5, 0.5, 0.5, 1
+		Line:
+			width: self.value_track_width
+			points: self.center_x, self.y + self.padding, self.center_x, self.value_pos[1]
+			cap: 'square'
+			close: 'square'	
+
+<Game>
+	potential_slide: potential_slide
+	potential_text: potential_text
+	step: step
+	single: single
+	double: double
+	
+	slider_00: slider_00
+	slider_01: slider_01  
+	slider_10: slider_10 
+	slider_11: slider_11 
+	
+	text_00: text_00
+	text_01: text_01
+	text_10: text_10
+	text_11: text_11
+	
+	initial_button: initial_button
+	normalize_button: normalize_button
+	calculate_button: calculate_button
+	play_button: play_button
+	
+	time: time
+	axes: axes
+#----------------------------------------------------------------------------							 
+# BARRAS 
+	BoxLayout:
+		id: axes
+		size: root.width*0.7, root.height*0.8
+		pos: root.width*0.025, root.height*0.1
+		MyFigure:
+			size: root.width, root.height
+		
+				
+	BoxLayout:
+		orientation: "horizontal"
+		padding: 46
+		spacing: 12
+		size: root.width*0.7, root.height*0.7
+		pos: root.width*0.03, root.height*0.2
+		
+		Slider: 
+			id: slider_00
+			value: 0.25
+			orientation: "vertical"
+			min: 0
+			max: 1
+			step: 0.01
+			size: root.width - 20, root.height - 20
+			value_track: True
+			value_track_width: 50
+			cursor_size: (0,0)
+			on_value: root.position_slider(slider = 0, *args)
+			
+		Slider: 
+			id: slider_01
+			value: 0.25
+			orientation: "vertical"
+			min: 0
+			max: 1
+			step: 0.01
+			size: root.width - 20, root.height - 20
+			value_track: True
+			value_track_width: 50
+			cursor_size: (0,0)
+			on_value: root.position_slider(slider = 1, *args)
+			
+			
+		Slider: 
+			id: slider_10
+			value: 0.25
+			orientation: "vertical"
+			min: 0
+			max: 1
+			step: 0.01
+			size: root.width - 20, root.height - 20
+			value_track: True
+			value_track_width: 50
+			cursor_size: (0,0)
+			on_value: root.position_slider(slider = 2, *args)
+			
+			
+		Slider: 
+			id: slider_11
+			value: 0.25
+			orientation: "vertical"
+			min: 0
+			max: 1
+			step: 0.01
+			size: root.width - 20, root.height - 20
+			value_track: True
+			value_track_width: 50
+			cursor_size: (0,0)
+			on_value: root.position_slider(slider = 3, *args)
+			
+		
+
+
+#----------------------------------------------------------------------------						
+# VALOR PROB.	
+	BoxLayout:
+		orientation: "horizontal"
+		padding: 46
+		spacing: 12
+		size: root.width*0.7, root.height*0.2
+		pos: root.width*0.03, root.height*0.85
+		
+		Label:
+			id: text_00
+			text: "0.25"
+			font_size: 30
+		Label:
+			id: text_01
+			text: "0.25"
+			font_size: 30
+		Label:
+			id: text_10
+			text: "0.25"
+			font_size: 30
+		Label:
+			id: text_11
+			text: "0.25"
+			font_size: 30
+
+	BoxLayout:
+		id: position_labels
+		orientation: "horizontal"
+		padding: 46
+		spacing: 12
+		size: root.width*0.7, root.height*0.2
+		pos: root.width*0.03, root.height*0.05
+		
+		Label:
+			text: "00"
+			font_size: 30
+			color: [0,0,0,1]
+			
+		Label:
+			text: "01"
+			font_size: 30
+			color: [0,0,0,1]
+			
+		Label:
+			text: "10"
+			font_size: 30
+			color: [0,0,0,1]
+			
+		Label:
+			text: "11"
+			font_size: 30
+			color: [0,0,0,1]
+			
+			
+#----------------------------------------------------------------------------			
+# POTENCIAL	
+	BoxLayout: 
+		orientation: "vertical"
+		padding: 20
+		spacing: 20
+		size: root.width*0.2, root.height*0.95
+		pos: root.width*0.75, root.height*0.01
+		
+#		canvas:
+#			Color: 
+#				rgba: 1,0,0,0.5
+#			Rectangle:
+#				size: root.width*0.24, root.height*0.49
+#				pos: root.width*0.74, root.height*0.49
+#
+#			Rectangle:
+#				size: root.width*0.24, root.height*0.38
+#				pos: root.width*0.74, root.height*0.1
+
+		Button:
+			id: step
+			text: "Step"
+			background_color: [1,0,0,1]
+			on_press: root.press(V = 0)
+			
+		Button:
+			id: single
+			text: "Single Well"
+			on_press: root.press(V = 2)
+		
+		Button:
+			id: double
+			text: "Double Well"
+			on_press: root.press(V = 1)
+			
+		Label:
+			id: potential_text
+			font_size: 30
+			size: root.width, root.height-0.4
+			text: "Potential height: 0"
+		
+		Slider:
+			id: potential_slide
+			min: 0
+			max: 50
+			step: 1		
+			padding: 0
+			spacing: 0	
+			on_value: root.V_slider(*args)	
+			size: root.width, root.height
+		
+		Button:
+			id: initial_button
+			text: "Set initial state"
+			disabled: True
+			on_press: root.release()
+			
+		Button:	
+			id: normalize_button
+			text: "Normalize"
+			on_press: root.normalize()
+		
+		Button: 
+			id: calculate_button
+			disabled: True
+			text: "Calculate"
+			on_press: root.calculate()
+			#background_color: [0.2, 0.2, 0.2, 1]
+		
+		Button:
+			id: play_button
+			disabled: True
+			text: "Play"
+			on_press: root.play()
+			#background_color: [0.2, 0.2, 0.2, 1]
+
+		
+		Label:
+			id: time
+			font_size: 40
+			#size: root.width, root.height-0.4
+			text: ""
+			
+			
+			
+			
+			
+		
