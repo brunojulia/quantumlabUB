@@ -54,8 +54,8 @@ class exp_P(FloatLayout):
 def exp_popup():
     show = exp_P()
 
-    popupWindow = Popup(title="Information", content=show, size_hint=(.7,.7))
-
+    popupWindow = Popup(title="Information", content=show, size_hint=(.6,.6))
+    
     popupWindow.open()
 
 
@@ -261,7 +261,7 @@ class Experiment_Screen(Screen):
                         
                     #and obtain summatory term along the for
                     sumterm += am[m]*(self.B/2)*(sumtermpos+sumtermneg)
-                
+
             #finally obtaining the result of one differential equation
             dak=-1j*(eigenterm+sumterm)
             return dak
@@ -317,7 +317,7 @@ class Experiment_Screen(Screen):
         plt.close(1)
         plt.figure(1)
         plt.title('Spin probabilties') #General spin method, solve_ivp
-        plt.xlabel('t')
+        plt.xlabel('t($t_0$)')
         plt.ylabel('$|a|^2$')
         plt.axhline(y=1.0,linestyle='--',color='grey')  #to compare norm
         plt.xlim([self.t0, self.tf])
@@ -337,8 +337,8 @@ class Experiment_Screen(Screen):
         plt.close(2)
         plt.figure(2)
         plt.title('States energies if $\mathcal{H}_0$')
-        plt.xlabel('t')
-        plt.ylabel('$E$')
+        plt.xlabel('t($t_0$)')
+        plt.ylabel('E($E_H$)')
         plt.xlim([self.t0, self.tf])
         for i in range(self.dim):
             plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
@@ -381,7 +381,7 @@ class Experiment_Screen(Screen):
                 plt.close(1)
                 plt.figure(1)
                 plt.title('Spin probabilties') #General spin method, solve_ivp
-                plt.xlabel('t')
+                plt.xlabel('t($t_0$)')
                 plt.ylabel('$|a|^2$')
                 plt.axhline(y=1.0,linestyle='--',color='grey')
                 plt.xlim([self.t0, self.tf])
@@ -404,8 +404,8 @@ class Experiment_Screen(Screen):
                 plt.close(2)
                 plt.figure(2)
                 plt.title('States energies if $\mathcal{H}_0$')
-                plt.xlabel('t')
-                plt.ylabel('$E$')
+                plt.xlabel('t($t_0$)')
+                plt.ylabel('E($E_H$)')
                 plt.xlim([self.t0, self.tf])
                 for i in range(self.dim):
                     plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
@@ -435,7 +435,7 @@ class Experiment_Screen(Screen):
             plt.close(1)
             plt.figure(1)
             plt.title('Spin probabilties') #General spin method, solve_ivp
-            plt.xlabel('t')
+            plt.xlabel('t($t_0$)')
             plt.ylabel('$|a|^2$')
             plt.axhline(y=1.0,linestyle='--',color='grey')
             plt.xlim([self.t0, self.tf])
@@ -459,8 +459,8 @@ class Experiment_Screen(Screen):
             plt.close(2)
             plt.figure(2)
             plt.title('States energies if $\mathcal{H}_0$')
-            plt.xlabel('t')
-            plt.ylabel('$E$')
+            plt.xlabel('t($t_0$)')
+            plt.ylabel('E($E_H$)')
             plt.xlim([self.t0, self.tf])
             for i in range(self.dim):
                 temp_ener=self.ener[i]
@@ -504,7 +504,7 @@ class Experiment_Screen(Screen):
         plt.close(1)
         plt.figure(1)
         plt.title('Spin probabilties') #General spin method, solve_ivp
-        plt.xlabel('t')
+        plt.xlabel('t($t_0$)')
         plt.ylabel('$|a|^2$')
         plt.axhline(y=1.0,linestyle='--',color='grey')
         
@@ -527,8 +527,8 @@ class Experiment_Screen(Screen):
         plt.close(2)
         plt.figure(2)
         plt.title('States energies if $\mathcal{H}_0$')
-        plt.xlabel('t')
-        plt.ylabel('$E$')
+        plt.xlabel('t($t_0$)')
+        plt.ylabel('E($E_H$)')
         for i in range(self.dim):
             plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
         
@@ -568,7 +568,7 @@ class SpinTunApp(App):
             sm.current = 'Menu'
         #Triggers the screen switch and controls the time that the Starting
         #Screen is showed
-        Clock.schedule_once(intro, 3)
+        Clock.schedule_once(intro, 3.2)
         #3.2 may be the most appropriate time
         return sm
 

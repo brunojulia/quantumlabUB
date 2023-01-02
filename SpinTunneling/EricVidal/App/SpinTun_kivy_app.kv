@@ -1,13 +1,13 @@
-<exp_P>:
+<exp_P@PopUp>:
     Label:
-        text: "You pressed the button"
-        size_hint: 0.6, 0.2
+        text: "Buttons functionality and physical sense (from top to bottom and left to right): \n -Hamiltonian perturbative term: Anisotropy Energy (B) or Magnetic Field at x axis (hx), respectively. \n (Test what happens with spin tunneling interaction for each term.) \n -Spin Molecule: from 1 to 6 you can test how the system would behave. \n -Initial and final time: test the interval needed. \n (Try to be coherent aprox same time below 0 than over 0.) \n -D: Anisotropy energy that breaks the zero-field Zeeman degeneracacy. \n -h: magnetic field rythm of variation over time at z axis. \n -B or hx depending the Hamiltonian perturbative term. \n \n Then you can use SEND to compute the results with the information given. \n There are some demonstration examples for each spin and the \n video reproduction buttons to show how the system evolves."
+        
+        size_hint: 0.6, 0.8
         pos_hint: {"x":0.2, "top":1}
+    	multiline: True
+    			
+    	halign:"left"
 
-    Button:
-        text: "You pressed the button"
-        size_hint: 0.8, 0.2
-        pos_hint: {"x":0.1, "y":0.1}
 
 <Starting_Screen>:
     name: 'Starting'
@@ -89,7 +89,7 @@
 			
     			text: "SPIN TUNNELING"
     			font_size:72
-    			font_name:'07558_CenturyGothic' 
+    			font_name:'CenturyGothic' 
     			bold: True
     			color:0, 0, 0, 1
     			multiline: True
@@ -108,7 +108,7 @@
     			
     			text: "WELCOME TO SPIN TUNNELING, THE EXPERIENCE YOU MUST GO THROUGH." 
     			font_size:28
-    			font_name:'39335_UniversCondensed' 
+    			font_name:'UniversCondensed' 
     			bold: False
     			color:0, 0, 0, 1
     			multiline: True
@@ -131,7 +131,7 @@
     			Button: 
     	            id: button_cat
     	            text: "CAT"
-    	            font_name:'39335_UniversCondensed'
+    	            font_name:'UniversCondensed'
     	            color: 23/255, 190/255, 255/255, 1
     	        	font_size:18
     				bold: True
@@ -143,7 +143,7 @@
     			Button:  
     	            id: button_esp
     	            text: "CAST"
-    	            font_name:'39335_UniversCondensed'
+    	            font_name:'UniversCondensed'
     	            color: 23/255, 190/255, 255/255, 1
     	        	font_size:18
     				bold: True
@@ -155,7 +155,7 @@
     			Button:  
     	            id: button_eng
     	            text: "ENG"
-    	            font_name:'39335_UniversCondensed'
+    	            font_name:'UniversCondensed'
     	            color: 23/255, 190/255, 255/255, 1
     	        	font_size:18
                     background_color: (0,0,1,0.8)
@@ -174,17 +174,17 @@
             Label:  
     			id: front_text
     			
-    			text: "Instructions \n or \n explanation (e.g. information btns will contain the physical explanation.)" 
+    			text: "*This is a beta version of Spin Tunneling.* \n Screens that work properly are: \n -Resonance, where physical concept of resonce is represented. \n -Experiment, where experiment results are simulated and represented. \n (Different Languages, Game, and its Tutorial are still to be developed. )" 
     			font_size:28
-    			font_name:'39335_UniversCondensed' 
+    			font_name:'UniversCondensed' 
     			bold: False
     			color:0, 0, 0, 1
     			multiline: True
     			
-    			pos_hint: {"left":0.9,"top":0.9}			
+    			pos_hint: {"center_x":0.5,"top":0.9}			
     			size_hint_x: 0.8
-    			size_hint_y:0.2 
-    			halign:"left"
+    			size_hint_y:0.3 
+    			halign:"center"
     			valign: "top"
 
 
@@ -193,11 +193,11 @@
                 
                 text: "RESONANCE"
                 font_size:44
-                font_name:'39335_UniversCondensed'
+                font_name:'UniversCondensed'
                 bold: False
     			color: 23/255, 190/255, 255/255, 1
     			
-    			pos_hint: {"center_x":0.35,"center_y":0.5}
+    			pos_hint: {"center_x":0.35,"center_y":0.4}
     			size_hint_x: 0.25
     			size_hint_y: 0.15
                 halign:"center"
@@ -214,11 +214,11 @@
                 
                 text: "EXPERIMENT"
                 font_size:44
-                font_name:'39335_UniversCondensed'
+                font_name:'UniversCondensed'
                 bold: False
     			color: 23/255, 190/255, 255/255, 1
     			
-    			pos_hint: {"center_x":0.35,"center_y":0.3}
+    			pos_hint: {"center_x":0.35,"center_y":0.2}
     			size_hint_x: 0.25
     			size_hint_y: 0.15
                 halign:"center"
@@ -234,11 +234,11 @@
                 
                 text: "TUTORIAL" if btn_tut.state == "normal" else "Sth Incoming"
                 font_size:44
-                font_name:'39335_UniversCondensed'
+                font_name:'UniversCondensed'
                 bold: False
     			color: 23/255, 190/255, 255/255, 1
     			
-    			pos_hint: {"center_x":0.65,"center_y":0.5}
+    			pos_hint: {"center_x":0.65,"center_y":0.4}
     			size_hint_x: 0.25
     			size_hint_y: 0.15
                 halign:"center"
@@ -249,11 +249,11 @@
                 
                 text: "GAME" if btn_game.state == "normal" else "Sth Incoming"
                 font_size:44
-                font_name:'39335_UniversCondensed'
+                font_name:'UniversCondensed'
                 bold: False
     			color: 23/255, 190/255, 255/255, 1
     			
-    			pos_hint: {"center_x":0.65,"center_y":0.3}
+    			pos_hint: {"center_x":0.65,"center_y":0.2}
     			size_hint_x: 0.25
     			size_hint_y: 0.15
                 halign:"center"
@@ -275,7 +275,7 @@
         			
         			text: "Tutors: \n Dr. Carles Calero & Dr. Bruno Julia" #Julià Cant plot accents
         			font_size:28
-        			font_name:'39335_UniversCondensed' 
+        			font_name:'UniversCondensed' 
         			bold: False
         			color:0, 0, 0, 1
         			multiline: True
@@ -356,7 +356,7 @@
                 
                 text: "i"
                 font_size:44
-                font_name:'00803_AbrazoScriptSSiBold'
+                font_name:'AbrazoScriptSSiBold'
                 bold: True
     			color: 1, 1, 1, 1
     			background_color: 0, 0, 0, 1
@@ -375,7 +375,7 @@
 			
     			text: "EXPERIMENT"
     			font_size:60
-    			font_name:'07558_CenturyGothic' 
+    			font_name:'CenturyGothic' 
     			bold: True
     			color:0, 0, 0, 1
     			multiline: True
@@ -394,7 +394,7 @@
     			
     			text: "Feel free to try whatever you want and analyse what is happening." 
     			font_size:20
-    			font_name:'39335_UniversCondensed' 
+    			font_name:'UniversCondensed' 
     			bold: False
     			color:0, 0, 0, 1
     			multiline: True
@@ -417,7 +417,7 @@
     			Button: 
     	            id: button_cat
     	            text: "CAT"
-    	            font_name:'39335_UniversCondensed'
+    	            font_name:'UniversCondensed'
     	            color: 23/255, 190/255, 255/255, 1
     	        	font_size:18
     				bold: True
@@ -429,7 +429,7 @@
     			Button:  
     	            id: button_esp
     	            text: "CAST"
-    	            font_name:'39335_UniversCondensed'
+    	            font_name:'UniversCondensed'
     	            color: 23/255, 190/255, 255/255, 1
     	        	font_size:18
     				bold: True
@@ -441,7 +441,7 @@
     			Button:  
     	            id: button_eng
     	            text: "ENG"
-    	            font_name:'39335_UniversCondensed'
+    	            font_name:'UniversCondensed'
     	            color: 23/255, 190/255, 255/255, 1
     	        	font_size:18
                     background_color: (0,0,1,0.8)
@@ -584,7 +584,7 @@
         			
         			text: "Spin = " 
         			font_size:20
-        			font_name:'39335_UniversCondensed' 
+        			font_name:'UniversCondensed' 
         			bold: True
         			color:1, 1, 1, 1
 
@@ -638,7 +638,7 @@
                 Label:
                     text: 't0 = {:.0f}'.format(t0_slider.value)
                     font_size:18
-                    font_name:'39335_UniversCondensed'
+                    font_name:'UniversCondensed'
         			bold: True
                     
                     
@@ -646,28 +646,28 @@
                 Label:
                     text: 'tf = {:.0f}'.format(tf_slider.value)
                     font_size:18
-                    font_name:'39335_UniversCondensed' 
+                    font_name:'UniversCondensed' 
         			bold: True
                 
                 #D
                 Label:
                     text: 'D = {:.1f}'.format(D_slider.value)
                     font_size:18
-                    font_name:'39335_UniversCondensed' 
+                    font_name:'UniversCondensed' 
         			bold: True
                 
                 #hz
                 Label:
                     text: 'hz = {:.2f}'.format(hz_slider.value)
                     font_size:18
-                    font_name:'39335_UniversCondensed' 
+                    font_name:'UniversCondensed' 
         			bold: True
                 #B
                 Label:
                     id: B_change
                     text: 'B = {:.2f}'.format(B_slider.value)
                     font_size:18
-                    font_name:'39335_UniversCondensed' 
+                    font_name:'UniversCondensed' 
         			bold: True
                 
                 
@@ -738,7 +738,7 @@
                 
                 text: "SEND"
                 font_size:32
-                font_name:'39335_UniversCondensed'
+                font_name:'UniversCondensed'
                 bold: False
         		color: 23/255, 190/255, 255/255, 1
         
@@ -761,8 +761,8 @@
     GridLayout:
         rows: 1
         cols: 2
-        size_hint:1,0.4
-        pos_hint: {'center_x':0.5,'y':0.25}
+        size_hint:1,0.45
+        pos_hint: {'center_x':0.5,'y':0.2}
         
         BoxLayout:
             id:graphic_box1
@@ -789,7 +789,7 @@
                 
             text: "DEMO S=1"
             font_size:14
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
 
     		on_press:
@@ -814,7 +814,7 @@
                 
             text: "DEMO S=2"
             font_size:14
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
 
     		on_press:
@@ -839,7 +839,7 @@
                 
             text: "DEMO S=3"
             font_size:14
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
 
     		on_press:
@@ -864,7 +864,7 @@
                 
             text: "DEMO S=4"
             font_size:14
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
 
     		on_press:
@@ -889,7 +889,7 @@
                 
             text: "DEMO S=5"
             font_size:14
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
 
     		on_press:
@@ -914,7 +914,7 @@
                 
             text: "DEMO S=6"
             font_size:14
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
 
     		on_press:
@@ -954,7 +954,7 @@
             pos_hint: {'x':0.05,'center_y':0.5}
             
             font_size:40
-        	font_name:'07558_CenturyGothic' 
+        	font_name:'CenturyGothic' 
         	bold: False
         	color:1, 1, 1, 1
         	multiline: True
@@ -996,7 +996,7 @@
             
             text:'PLAY'
             font_size: 24
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
             
             halign:"center"
@@ -1016,7 +1016,7 @@
             
             text:'PAUSE'
             font_size: 24
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
     		
             halign:"center"
@@ -1036,7 +1036,7 @@
             
             text:'RESET'
             font_size: 24
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
     		
             halign:"center"
@@ -1064,7 +1064,7 @@
             
             text:'x1'
             font_size: 24
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
             
             halign:"center"
@@ -1082,7 +1082,7 @@
             
             text:'x2'
             font_size: 24
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
     		
             halign:"center"
@@ -1100,7 +1100,7 @@
             
             text:'x4'
             font_size: 24
-            font_name:'07558_CenturyGothic'
+            font_name:'CenturyGothic'
             bold: True
     		
             halign:"center"
@@ -1118,7 +1118,7 @@
         
         text:'Back'
         font_size:44
-        font_name:'00803_AbrazoScriptSSiBold'
+        font_name:'AbrazoScriptSSiBold'
         bold: True
     	color: 1, 1, 1, 1
     	background_color: 0, 0, 0, 1
