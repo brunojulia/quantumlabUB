@@ -18,10 +18,12 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.screenmanager import FadeTransition, SlideTransition
 from kivy.uix.popup import Popup
 from kivy.uix.spinner import Spinner
-from kivy.uix.image import Image
+from kivy.uix.image import Image, AsyncImage
 from kivy.uix.floatlayout import FloatLayout 
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.progressbar import ProgressBar
+from kivy.uix.videoplayer import VideoPlayer
+from kivy.uix.video import Video
 
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivy.clock import Clock
@@ -38,26 +40,21 @@ from scipy.integrate import solve_ivp
 from matplotlib import font_manager as fm, rcParams
 plt.rcParams.update({'font.size': 13}) #matplotlib fontsize
 
-#from functools import partial
-#from scipy import integrate as inte
-#import random 
-#import time
-
+#to build GIF
+import os
+import imageio
 
 #This is the way to name the kv file as we want
-Builder.load_file("SpinTun_kivy_app.kv")
+Builder.load_file("SpinTun_kivy_video.kv")
 
-#POPUPS
+#POPUP
 class exp_P(FloatLayout):
     pass
 
 def exp_popup():
     show = exp_P()
-
-    popupWindow = Popup(title="Information", content=show, size_hint=(.6,.6))
-    
+    popupWindow = Popup(title="Information", content=show, size_hint=(.7,.7))
     popupWindow.open()
-
 
 #SCREENS
 class Starting_Screen(Screen):
@@ -66,7 +63,9 @@ class Starting_Screen(Screen):
 class Menu_Screen(Screen):
     pass
 
-#resonance screen
+class Video_Screen(Screen, FloatLayout): 
+    def __init__(self, **kwargs):
+        super(Video_Screen, self).__init__(**kwargs)
 
 class Experiment_Screen(Screen):
     angle = NumericProperty(0)
@@ -261,7 +260,7 @@ class Experiment_Screen(Screen):
                         
                     #and obtain summatory term along the for
                     sumterm += am[m]*(self.B/2)*(sumtermpos+sumtermneg)
-
+                
             #finally obtaining the result of one differential equation
             dak=-1j*(eigenterm+sumterm)
             return dak
@@ -317,7 +316,7 @@ class Experiment_Screen(Screen):
         plt.close(1)
         plt.figure(1)
         plt.title('Spin probabilties') #General spin method, solve_ivp
-        plt.xlabel('t($t_0$)')
+        plt.xlabel('t')
         plt.ylabel('$|a|^2$')
         plt.axhline(y=1.0,linestyle='--',color='grey')  #to compare norm
         plt.xlim([self.t0, self.tf])
@@ -337,8 +336,8 @@ class Experiment_Screen(Screen):
         plt.close(2)
         plt.figure(2)
         plt.title('States energies if $\mathcal{H}_0$')
-        plt.xlabel('t($t_0$)')
-        plt.ylabel('E($E_H$)')
+        plt.xlabel('t')
+        plt.ylabel('$E$')
         plt.xlim([self.t0, self.tf])
         for i in range(self.dim):
             plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
@@ -357,7 +356,74 @@ class Experiment_Screen(Screen):
         self.graphic_box2.add_widget(self.plot2)
         self.plot2.draw()
 
+    def video(self):
+        #reference to stop gif
+        self.final=len(self.t)
+        self.count=0
+        
+        #where to save images
+        filenames=[]
+        for self.count in np.arange(0,self.final,200):
+            
+            #Plot1
+            plt.figure()
+            plt.subplot(121)
+            plt.title('Spin probabilties') #General spin method, solve_ivp
+            plt.xlabel('t')
+            plt.ylabel('$|a|^2$')
+            plt.axhline(y=1.0,linestyle='--',color='grey')
+            plt.xlim([self.t0, self.tf])
+            #Probabilities
+            for i in range(self.dim):
+                temp_plot=self.aplot[i]
+                plt.plot(self.t[:self.count], temp_plot[:self.count],'-',label='m='+str(i-self.s))
+            
+            #for the gif maybe it is better not to plot the norm and legend
+            #plt.plot(self.t[:self.count], self.norm[:self.count],'-',label='self.norma')
+            #plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
+            
+            
+            #Plot2
+            plt.subplot(122)
+            plt.title('States energies if $\mathcal{H}_0$')
+            plt.xlabel('t')
+            plt.ylabel('$E$')
+            plt.xlim([self.t0, self.tf])
+            for i in range(self.dim):
+                temp_ener=self.ener[i]
+                plt.plot(self.t, temp_ener, '-', color='C'+str(i),  label='$E_{'+str(i-self.s)+'}$')
+                
+                #Prob balls
+                temp_plot=self.aplot[i] #prob that determines each size
+                plt.plot(self.t[self.count], temp_ener[self.count], 'o',color='C'+str(i), mew=10*temp_plot[self.count], ms=20*temp_plot[self.count])
+                
+            plt.plot(self.t[:self.count], self.totenergy[:self.count],'k--',label='$E_{tot}$',)
+            
+            #for the gif maybe it is better without legend
+            #plt.legend(bbox_to_anchor=(0.95,1), loc="upper left")
     
+            #THIS IS IN CASE THAT WE FINALLY WANNA PLOT VERTICAL LINES TO SHOW WHERE THE
+            #TRANSITIONS SHOULD OCCUR
+            #for i in range(self.s):
+            #    plt.axvline(x=time_n[i],linestyle='--',color='grey')
+            
+            # create file name and append it to a list
+            filename = 'im{:.0f}.png'.format(self.count)
+            filenames.append(filename)
+            # save frame
+            plt.savefig(filename)
+            plt.close()
+            
+            # build gif
+        with imageio.get_writer('videos/prova.gif', mode='I') as writer:
+            for filename in filenames:
+                image = imageio.imread(filename)
+                writer.append_data(image)
+                
+        # Remove files
+        for filename in set(filenames):
+            os.remove(filename)
+
     def play(self):
         #(re)initialize the counter
         def dynamic_plots(dt):
@@ -381,7 +447,7 @@ class Experiment_Screen(Screen):
                 plt.close(1)
                 plt.figure(1)
                 plt.title('Spin probabilties') #General spin method, solve_ivp
-                plt.xlabel('t($t_0$)')
+                plt.xlabel('t')
                 plt.ylabel('$|a|^2$')
                 plt.axhline(y=1.0,linestyle='--',color='grey')
                 plt.xlim([self.t0, self.tf])
@@ -404,8 +470,8 @@ class Experiment_Screen(Screen):
                 plt.close(2)
                 plt.figure(2)
                 plt.title('States energies if $\mathcal{H}_0$')
-                plt.xlabel('t($t_0$)')
-                plt.ylabel('E($E_H$)')
+                plt.xlabel('t')
+                plt.ylabel('$E$')
                 plt.xlim([self.t0, self.tf])
                 for i in range(self.dim):
                     plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
@@ -435,7 +501,7 @@ class Experiment_Screen(Screen):
             plt.close(1)
             plt.figure(1)
             plt.title('Spin probabilties') #General spin method, solve_ivp
-            plt.xlabel('t($t_0$)')
+            plt.xlabel('t')
             plt.ylabel('$|a|^2$')
             plt.axhline(y=1.0,linestyle='--',color='grey')
             plt.xlim([self.t0, self.tf])
@@ -459,8 +525,8 @@ class Experiment_Screen(Screen):
             plt.close(2)
             plt.figure(2)
             plt.title('States energies if $\mathcal{H}_0$')
-            plt.xlabel('t($t_0$)')
-            plt.ylabel('E($E_H$)')
+            plt.xlabel('t')
+            plt.ylabel('$E$')
             plt.xlim([self.t0, self.tf])
             for i in range(self.dim):
                 temp_ener=self.ener[i]
@@ -504,7 +570,7 @@ class Experiment_Screen(Screen):
         plt.close(1)
         plt.figure(1)
         plt.title('Spin probabilties') #General spin method, solve_ivp
-        plt.xlabel('t($t_0$)')
+        plt.xlabel('t')
         plt.ylabel('$|a|^2$')
         plt.axhline(y=1.0,linestyle='--',color='grey')
         
@@ -527,8 +593,8 @@ class Experiment_Screen(Screen):
         plt.close(2)
         plt.figure(2)
         plt.title('States energies if $\mathcal{H}_0$')
-        plt.xlabel('t($t_0$)')
-        plt.ylabel('E($E_H$)')
+        plt.xlabel('t')
+        plt.ylabel('$E$')
         for i in range(self.dim):
             plt.plot(self.t, self.ener[i],'-',label='$E_{'+str(i-self.s)+'}$')
         
@@ -561,15 +627,15 @@ class SpinTunApp(App):
         sm.add_widget(Starting_Screen(name='Starting'))
         sm.add_widget(Menu_Screen(name='Menu'))       
         sm.add_widget(Experiment_Screen(name='Experiment'))
-        #sm.add_widget(Resonance_Screen(name='Resonance'))
+        sm.add_widget(Video_Screen(name='Video'))
         
         #Changes Starting screen to Menu
         def intro(self, *largs):
             sm.current = 'Menu'
-        #Triggers the screen switch and controls the time that the Starting
-        #Screen is showed
-        Clock.schedule_once(intro, 3.2)
-        #3.2 may be the most appropriate time
+
+        #It triggers the screen switch and controls the time that the Starting Screen is showed
+        Clock.schedule_once(intro, 3) #4 may be the most appropriate time
+        
         return sm
 
 if __name__ == '__main__':
