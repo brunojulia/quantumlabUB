@@ -42,13 +42,13 @@ for i in range(n):
     c1 = [(x[i][j],1) for j in range(n)]
     bqm.add_linear_equality_constraint(c1,
                                     constant = -1,
-                                    lagrange_multiplier = 15)
+                                    lagrange_multiplier = 2)
 
 for j in range(n):
     c2 = [(x[i][j],1) for i in range(n)]
     bqm.add_linear_equality_constraint(c2,
                                     constant = -1,
-                                    lagrange_multiplier = 28)
+                                    lagrange_multiplier = 2)
     
     
 
