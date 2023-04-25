@@ -25,6 +25,8 @@ for i in range(n):
 
 #Represent the cities in a map and save it to png file
 plt.plot(cities[:,0],cities[:,1],'o')
+plt.xlim(0,100)
+plt.ylim(0,100)
 plt.savefig('cities.png')
 
 bqm = BinaryQuadraticModel('BINARY')
@@ -58,11 +60,23 @@ response = sampler.sample(bqm, num_reads=1000)
 for datum in response.data(['sample', 'energy', 'num_occurrences']):
     print(datum.sample, "Energy: ", datum.energy, "Occurrences: ", datum.num_occurrences)
 
-#Plot the results
-plt.plot(cities[:,0],cities[:,1],'o')
+#Save the final results in a matrix
+results = np.zeros((n,n))
 for datum in response.data(['sample', 'energy', 'num_occurrences']):
     for i in range(n):
         for j in range(n):
             if datum.sample[x[i][j]] == 1:
-                plt.plot([cities[i][0],cities[j][0]],[cities[i][1],cities[j][1]],'r')
-plt.savefig('TSP.png')
+                results[i][j] = 1
+            else:
+                results[i][j] = 0
+
+#Plot the results
+plt.plot(cities[:,0],cities[:,1],'o')
+for i in range(n):
+    for j in range(n):
+        if results[i][j] == 1:
+            plt.plot([cities[i][0],cities[j][0]],[cities[i][1],cities[j][1]],'k-')
+plt.xlim(0,100)
+plt.ylim(0,100)
+plt.savefig('tsp-annealing.png')
+
