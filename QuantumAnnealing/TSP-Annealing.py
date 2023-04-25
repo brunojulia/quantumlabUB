@@ -17,6 +17,11 @@ distance = np.zeros((n,n))
 for i in range(n):
     for j in range(n):
         distance[i][j] = np.sqrt((cities[i][0]-cities[j][0])**2 + (cities[i][1]-cities[j][1])**2)
+        
+#Give the diagonal a big value
+for i in range(n):
+    distance[i][i] = 10000
+
 
 #Represent the cities in a map and save it to png file
 plt.plot(cities[:,0],cities[:,1],'o')
@@ -34,14 +39,15 @@ for i in range(n):
 for i in range(n):
     c1 = [(x[i][j],1) for j in range(n)]
     bqm.add_linear_equality_constraint(c1,
-                                    constant = 1,
-                                    lagrange_multiplier = 1)
+                                    constant = -1,
+                                    lagrange_multiplier = 15)
 
 for j in range(n):
     c2 = [(x[i][j],1) for i in range(n)]
     bqm.add_linear_equality_constraint(c2,
-                                    constant = 1,
-                                    lagrange_multiplier = 1)
+                                    constant = -1,
+                                    lagrange_multiplier = 28)
+    
     
 
 #Set the D-Wave system
