@@ -14,14 +14,14 @@ print(cities_list)
 x = [[f'x_{i}_{j}_{time}' for j in cities_list] for i in cities_list for time in time_list]
 
 #Calculate the distance between cities
-distance = np.zeros((n,n))
+distance = np.zeros((n,n,n-1))
 for i in range(n):
     for j in range(n):
-        distance[i][j] = np.sqrt((cities[i][0]-cities[j][0])**2 + (cities[i][1]-cities[j][1])**2)
+        distance[i][j][:] = np.sqrt((cities[i][0]-cities[j][0])**2 + (cities[i][1]-cities[j][1])**2)
         
 #Give the diagonal a big value
 for i in range(n):
-    distance[i][i] = 10000
+    distance[i][i][:] = 10000
 
 
 #Represent the cities in a map and save it to png file
@@ -37,7 +37,7 @@ bqm = BinaryQuadraticModel('BINARY')
 for i in range(n):
     for j in range(n):
         for t in range(n):
-            bqm.add_variable(x[i][j][t], distance[i][j])
+            bqm.add_variable(x[i][j][t], distance[i][j][t])
 
 #Add the constraints to the BQM
 for i in range(n):
