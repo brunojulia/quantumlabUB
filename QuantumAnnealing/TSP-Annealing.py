@@ -9,8 +9,9 @@ n = 10
 #Set one decimal random coordinates for the cities in a 100x100 map
 cities = np.random.randint(0,1000,(n,2))/10.
 cities_list = list(range(n))
+time_list = list(range(n-1))
 print(cities_list)
-x = [[f'x_{i}_{j}_{time}' for j in cities_list] for i in cities_list for time in cities_list]
+x = [[f'x_{i}_{j}_{time}' for j in cities_list] for i in cities_list for time in time_list]
 
 #Calculate the distance between cities
 distance = np.zeros((n,n))
@@ -53,7 +54,7 @@ for j in range(n):
     
 #Once the traveller has visited a city, he can't visit it again
 for i in range(n):
-    c3 = [( ((x[i][j][t])*(x[k][i][l])), 1 ) for j in range(n) for k in range(n) for t in range(n) for l in range(n)]
+    c3 = [( ((x[i][j][t])*(x[k][i][l])), 1 ) for j in range(n) for k in range(n) for t in range(n) for l in range(t+1,n)]
     bqm.add_linear_equality_constraint(c3,
                                     constant = -1,
                                     lagrange_multiplier = 1000)
