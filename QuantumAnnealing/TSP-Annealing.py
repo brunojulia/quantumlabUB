@@ -10,7 +10,7 @@ n = 10
 cities = np.random.randint(0,1000,(n,2))/10.
 cities_list = list(range(n))
 print(cities_list)
-x = [[f'x_{i}_{j}' for j in cities_list] for i in cities_list]
+x = [[f'x_{i}_{j}_{time}' for j in cities_list] for i in cities_list for time in cities_list]
 
 #Calculate the distance between cities
 distance = np.zeros((n,n))
