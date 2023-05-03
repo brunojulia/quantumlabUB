@@ -6,22 +6,23 @@ from dimod import BinaryQuadraticModel
 #Number of cities
 n = 10
 
+
 #Set one decimal random coordinates for the cities in a 100x100 map
 cities = np.random.randint(0,1000,(n,2))/10.
 cities_list = list(range(n))
 time_list = list(range(n-1))
 print(cities_list)
-x = [[f'x_{i}_{j}_{time}' for j in cities_list] for i in cities_list for time in time_list]
+x = [[[f'x_{i}_{j}_{time}' for j in cities_list] for i in cities_list] for time in range(n-1)]
 
 #Calculate the distance between cities
-distance = np.zeros((n,n,n-1))
+distance = np.zeros((n,n))
 for i in range(n):
     for j in range(n):
-        distance[i][j][:] = np.sqrt((cities[i][0]-cities[j][0])**2 + (cities[i][1]-cities[j][1])**2)
+        distance[i][j] = np.sqrt((cities[i][0]-cities[j][0])**2 + (cities[i][1]-cities[j][1])**2)
         
 #Give the diagonal a big value
 for i in range(n):
-    distance[i][i][:] = 10000
+    distance[i][i] = 10000
 
 
 #Represent the cities in a map and save it to png file
@@ -37,7 +38,7 @@ bqm = BinaryQuadraticModel('BINARY')
 for i in range(n):
     for j in range(n):
         for t in range(n):
-            bqm.add_variable(x[i][j][t], distance[i][j][t])
+            bqm.add_variable(x[i][j][t], distance[i][j])
 
 #Add the constraints to the BQM
 for i in range(n):
