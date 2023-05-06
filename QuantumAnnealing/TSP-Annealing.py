@@ -15,6 +15,7 @@ print(cities_list)
 
 #Create the variables
 x = [[[f'x_{i}_{j}_{t}' for t in time_list] for j in cities_list] for i in cities_list]
+x = np.array(x).astype(float)
 
 #Calculate the distance between cities
 distance = np.zeros((n,n))
@@ -57,7 +58,7 @@ for j in range(n):
     
 #Once the traveller has visited a city, he can't visit it again
 for i in range(n):
-    c3 = [( ((x[i][j][t])*(x[k][i][l])), 1 ) for j in range(n) for k in range(n) for t in range(n) for l in range(t+1,n)]
+    c3 = [( x[i][j][t])*(x[k][i][l], 1 ) for j in range(n) for k in range(n) for t in range(n) for l in range(t+1,n)]
     bqm.add_linear_equality_constraint(c3,
                                     constant = -1,
                                     lagrange_multiplier = 1000)
