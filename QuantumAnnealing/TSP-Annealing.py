@@ -10,9 +10,9 @@ n = 10
 #Set one decimal random coordinates for the cities in a 100x100 map
 cities = np.random.randint(0,1000,(n,2))/10.
 cities_list = list(range(n))
-time_list = list(range(n-1))
+time_list = list(range(n))
 print(cities_list)
-x = [[[f'x_{i}_{j}_{time}' for j in cities_list] for i in cities_list] for time in range(n-1)]
+x = [[[f'x_{i}_{j}_{time}' for j in cities_list] for i in cities_list] for time in range(n)]
 
 #Calculate the distance between cities
 distance = np.zeros((n,n))
