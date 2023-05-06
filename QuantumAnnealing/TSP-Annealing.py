@@ -14,7 +14,7 @@ time_list = list(range(n))
 print(cities_list)
 
 #Create the variables
-x = [[[[f'x_{i}_{j}_{t}',] for t in time_list] for j in cities_list] for i in cities_list]
+x = [[[f'x_{i}_{j}_{t}' for t in time_list] for j in cities_list] for i in cities_list]
 
 #Calculate the distance between cities
 distance = np.zeros((n,n))
