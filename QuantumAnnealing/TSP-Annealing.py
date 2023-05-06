@@ -12,7 +12,9 @@ cities = np.random.randint(0,1000,(n,2))/10.
 cities_list = list(range(n))
 time_list = list(range(n))
 print(cities_list)
-x = [[[f'x_{i}_{j}_{time}' for j in cities_list] for i in cities_list] for time in range(n)]
+
+#Create the variables
+x = [[[cities_list[i],cities_list[j],time_list[t]] for t in range(n)] for j in range(n)] for i in range(n)]
 
 #Calculate the distance between cities
 distance = np.zeros((n,n))
