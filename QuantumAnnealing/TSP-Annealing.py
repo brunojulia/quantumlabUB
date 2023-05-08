@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import networkx as nx
+import dwave_networkx as dnx
 from dwave.system import DWaveSampler, EmbeddingComposite
 from dimod import BinaryQuadraticModel
 
@@ -31,52 +33,23 @@ plt.savefig('cities.png')
 
 bqm = BinaryQuadraticModel('BINARY')
 
-#Solving the TSP problem with the D-Wave system
-#Add the variables to the BQM
-for i in range(n):
-    for j in range(n):
-        bqm.add_variable(x[i][j], distance[i][j])
+#Solve tsp using dwave_networkx.algorithms.tsp.traveling_salesperson
+G = nx.from_numpy_matrix(distance)
 
-#Add the constraints to the BQM
-for i in range(n):
-    c1 = [(x[i][j],1) for j in range(n)]
-    bqm.add_linear_equality_constraint(c1,
-                                    constant = -1,
-                                    lagrange_multiplier = 1000)
+#Find the optimal path
+path = dnx.traveling_salesperson(G, sampler=EmbeddingComposite(DWaveSampler()), start=0)
+print('Optimal path:', path)
 
-for j in range(n):
-    c2 = [(x[i][j],1) for i in range(n)]
-    bqm.add_linear_equality_constraint(c2,
-                                    constant = -1,
-                                    lagrange_multiplier = 1000)
-    
-    
+#Plot the optimal path
+plt.figure()
+nx.draw(G, pos=cities, node_color='r', node_size=50)
+nx.draw_networkx_edges(G, pos=cities, edgelist=path.edges, edge_color='b', width=2)
+plt.savefig('path.png')
 
-#Set the D-Wave system
-sampler = EmbeddingComposite(DWaveSampler())
-response = sampler.sample(bqm, num_reads=1000)
-
-#Print the results
-for datum in response.data(['sample', 'energy', 'num_occurrences']):
-    print(datum.sample, "Energy: ", datum.energy, "Occurrences: ", datum.num_occurrences)
-
-#Save the final results in a matrix
-results = np.zeros((n,n))
-for datum in response.data(['sample', 'energy', 'num_occurrences']):
-    for i in range(n):
-        for j in range(n):
-            if datum.sample[x[i][j]] == 1:
-                results[i][j] = 1
-            else:
-                results[i][j] = 0
-
-#Plot the results
-plt.plot(cities[:,0],cities[:,1],'o')
-for i in range(n):
-    for j in range(n):
-        if results[i][j] == 1:
-            plt.plot([cities[i][0],cities[j][0]],[cities[i][1],cities[j][1]],'k-')
-plt.xlim(0,100)
-plt.ylim(0,100)
-plt.savefig('tsp-annealing.png')
+#Calculate the total distance
+total_distance = 0
+for i in range(n-1):
+    total_distance += distance[path[i]][path[i+1]]
+total_distance += distance[path[n-1]][path[0]]
+print('Total distance:', total_distance)
 
