@@ -33,8 +33,11 @@ plt.savefig('cities.png')
 
 bqm = BinaryQuadraticModel('BINARY')
 
-#Solve tsp using dwave_networkx.algorithms.tsp.traveling_salesperson
-G = nx.from_numpy_matrix(distance)
+#define the networkx graph with the cities and the distances
+G = nx.Graph()
+for i in range(n):
+    for j in range(n):
+        G.add_edge(i, j, weight=distance[i][j])
 
 #Find the optimal path
 path = dnx.traveling_salesperson(G, sampler=EmbeddingComposite(DWaveSampler()), start=0)
