@@ -1,18 +1,20 @@
+#travelling salesman problem with quantum annealing
+#Only works through the D-Wave Leap cloud service
+#Robert Vila, 2023
+#Universitat de Barcelona
+
 import numpy as np
 import matplotlib.pyplot as plt
+import networkx as nx
+import dwave_networkx as dnx
 from dwave.system import DWaveSampler, EmbeddingComposite
-from dimod import BinaryQuadraticModel
+import dimod
 
-#Number of cities
-n = 10
-
+# number of cities
+n = 5
 
 #Set one decimal random coordinates for the cities in a 100x100 map
 cities = np.random.randint(0,1000,(n,2))/10.
-cities_list = list(range(n))
-time_list = list(range(n-1))
-print(cities_list)
-x = [[[f'x_{i}_{j}_{time}' for j in cities_list] for i in cities_list] for time in range(n-1)]
 
 #Calculate the distance between cities
 distance = np.zeros((n,n))
@@ -20,72 +22,45 @@ for i in range(n):
     for j in range(n):
         distance[i][j] = np.sqrt((cities[i][0]-cities[j][0])**2 + (cities[i][1]-cities[j][1])**2)
         
-#Give the diagonal a big value
+
+llista = []
+
 for i in range(n):
-    distance[i][i] = 10000
+    for j in range(n):
+        if i != j:
+            llista.append((i,j,distance[i][j]))
 
+G = nx.Graph()
+print(llista)
+G.add_weighted_edges_from(llista)
 
-#Represent the cities in a map and save it to png file
+path_nodes = dnx.traveling_salesperson(G, dimod.ExactSolver(), start=0)
+
+print(path_nodes)
+# Create a new graph with only the nodes in the optimal path
+path_edges = [(path_nodes[i], path_nodes[i+1]) for i in range(len(path_nodes)-1)]
+path_graph = nx.Graph()
+path_graph.add_nodes_from(path_nodes)
+path_graph.add_edges_from(path_edges)
+
+# Make the figure of the cities and the path
+plt.figure()
+nx.draw(G, pos=nx.circular_layout(G), node_color='r', node_size=50)
+nx.draw_networkx_edges(path_graph, pos=nx.circular_layout(G), edge_color='b', width=2)
+plt.savefig('path.png')
+
+# figure of the optimal path in a 100x100 map
+plt.figure()
+path_nodes.append(path_nodes[0])
+data = np.array([cities[i] for i in path_nodes])
+plt.plot(data[:,0],data[:,1],'-o')
+plt.xlim(0,100)
+plt.ylim(0,100)
+plt.savefig('path_map.png')
+
+# Figure with the cities in a 100x100 map
+plt.figure()
 plt.plot(cities[:,0],cities[:,1],'o')
 plt.xlim(0,100)
 plt.ylim(0,100)
 plt.savefig('cities.png')
-
-bqm = BinaryQuadraticModel('BINARY')
-
-#Solving the TSP problem with the D-Wave system
-#Add the variables to the BQM
-for i in range(n):
-    for j in range(n):
-        for t in range(n):
-            bqm.add_variable(x[i][j][t], distance[i][j])
-
-#Add the constraints to the BQM
-for i in range(n):
-    c1 = [(x[i][j][t],1) for j in range(n) for t in range(n)]
-    bqm.add_linear_equality_constraint(c1,
-                                    constant = -1,
-                                    lagrange_multiplier = 1000)
-    
-for j in range(n):
-    c2 = [(x[i][j][t],1) for i in range(n) for t in range(n)]
-    bqm.add_linear_equality_constraint(c2,
-                                    constant = -1,
-                                    lagrange_multiplier = 1000)
-    
-#Once the traveller has visited a city, he can't visit it again
-for i in range(n):
-    c3 = [( ((x[i][j][t])*(x[k][i][l])), 1 ) for j in range(n) for k in range(n) for t in range(n) for l in range(t+1,n)]
-    bqm.add_linear_equality_constraint(c3,
-                                    constant = -1,
-                                    lagrange_multiplier = 1000)
-
-#Set the D-Wave system
-sampler = EmbeddingComposite(DWaveSampler())
-response = sampler.sample(bqm, num_reads=1000)
-
-#Print the results
-for datum in response.data(['sample', 'energy', 'num_occurrences']):
-    print(datum.sample, "Energy: ", datum.energy, "Occurrences: ", datum.num_occurrences)
-
-#Save the final results in a matrix
-final = np.zeros((n,n))
-for datum in response.data(['sample', 'energy', 'num_occurrences']):
-    for i in range(n):
-        for j in range(n):
-            for t in range(n):
-                if datum.sample[x[i][j][t]] == 1:
-                    final[i][j] = t+1
-
-#Print the final matrix
-print(final)
-
-#Plot the final route
-plt.plot(cities[:,0],cities[:,1],'o')
-for i in range(n):
-    for j in range(n):
-        if final[i][j] == 1:
-            plt.plot([cities[i][0],cities[j][0]],[cities[i][1],cities[j][1]],'k-')
-plt.xlim(0,100)
-plt.ylim(0,100)
-plt.savefig('route.png')
