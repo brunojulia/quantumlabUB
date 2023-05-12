@@ -259,10 +259,10 @@ class QuantumAnimation:              # inches
             self.redraw = True
 
     def update(self, frame):
-        if self.callbackProgress and frame%10 == 0: print("{:5.2f} %".format(100*frame/self.frames))
+        if self.duration is not None and self.callbackProgress and frame%10 == 0: print("{:5.2f} %".format(100*frame/self.frames))
         self.redraw = False # Will try to not redraw, only blit, except when necessary (bounds change, etc.)
         t0 = time.time()
-        if self.frames == None:
+        if self.frames != None:
             #if frame == self.frames-1:
             if self.QSystem.t >= self.duration:
                 self.fig.canvas.mpl_disconnect(self.pauseEvent)
