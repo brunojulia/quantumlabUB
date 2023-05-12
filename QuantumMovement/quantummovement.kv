@@ -1,0 +1,369 @@
+#:import Factory kivy.factory.Factory
+
+<DataInput>:
+    multiline: False
+
+<FunctionInput>:
+    #multiline: False
+
+<TextPopup>:
+    title: ""
+    auto_dismiss: True
+    size_hint: 0.4, 0.2
+
+<BoolCheckBox>:
+    size_hint: None, None
+    color: [0., 1., 0., 1.]  # Blue Checkmark
+    size: 35, 35
+
+<GlobalVariable>:
+    #size_hint: 1, 1
+
+<GlobalVariablesPopup>:
+    auto_dismiss: True
+    size_hint_x: 0.8
+    size_hint_y: 0.8
+    title: "Paràmetres/Variables : Nom - Valor"
+
+<ColoredLabel>:
+    canvas.before:
+        Color:
+            rgba: 0.8, 0.8, 0.8, 0.5
+        Rectangle:
+            size: self.size
+            pos: self.pos
+        #Line:
+        #    width: 2
+        #    rectangle: self.x, self.y, self.width, self.height
+
+<SaveGifPopup>:
+    duration: 5.
+    fileName: "resultat"
+    animwidth: 12.
+    animheight: 7.
+    auto_dismiss: True
+    size_hint_x: 0.5
+    size_hint_y: 0.5
+    title: "Guarda video"
+
+    BoxLayout:
+        padding: 20
+        spacing: 10
+        orientation: "vertical"
+
+        ColoredLabel:
+            text: "Es guardarà una animació de l'evolució\n a partir del moment actual"
+        BoxLayout:
+            orientation:"horizontal"
+            Label:
+                text: "Duració real:\n(segons)"
+            DataInput:
+                holder: root
+                attribute: "duration"
+                condition: "positive"
+                id: duration
+            Label:
+                text: "Nom output:"
+            DataInput:
+                holder: root
+                attribute: "fileName"
+                condition: "notNothing"
+                id: fileName
+        GridLayout:
+            cols: 2
+            rows: 2
+            Label:
+                text: "Amplada (in):"
+            DataInput:
+                holder: root
+                attribute: "animwidth"
+                condition: "range-1-15"
+            Label:
+                text: "Alçada (in):"
+            DataInput:
+                holder: root
+                attribute: "animheight"
+                condition: "range-1-15"
+
+        GridLayout:
+            cols:3
+            Button:
+                text:"Crea .gif"
+                on_release:
+                    root.saveAnimation(root.fileName, root.duration, "gif")
+                    root.dismiss()
+            Button:
+                text:"Crea .mp4"
+                on_release:
+                    root.saveAnimation(root.fileName, root.duration, "mp4")
+                    root.dismiss()
+            Button:
+                text:"Tira enrere"
+                on_release:
+                    root.dismiss()
+
+<ParametersPopup>:
+# PROBLEM WITH POPUPS: Data gets reset after opening and closing?
+    auto_dismiss: True
+    size_hint_y: 0.9
+    size_hint_x: 0.9
+    title: "Configuració"#: ENTER per efectuar canvis"
+
+    BoxLayout:
+        orientation: "vertical"
+        spacing: 5
+        size: self.parent.width, self.parent.height
+
+        GridLayout:
+            size_hint_y: None
+            height: 150
+            cols:2
+            Label:
+                size_hint_x:0.7
+                text: "Funcions poden dependre de x, y, t\nEs poden incloure var. glob amb {nomVar}"
+            Button:
+                size_hint_x:0.3
+                text: "Variables\nGlobals"
+                on_release:
+                    Factory.GlobalVariablesPopup(root.window).open()
+
+        GridLayout:
+            cols: 2
+
+            GridLayout:
+                size_hint_x: None
+                width: 200
+                rows: 2
+                Label:
+                    text: "Potencial:"
+                Button:
+                    text: "Aplica canvi"
+                    on_release:
+                        root.ids.potential.on_text_validate()
+                        root.window.QSystem.potential = root.window.potential
+                        root.window.animation.reset_plot()
+
+            FunctionInput:
+                id: potential
+                holder: root.window
+                functionName: "potential"
+                definitionName: "potentialDef"
+                varDict: root.window.variablesDict
+                jit: True
+
+            GridLayout:
+                size_hint_x: None
+                width: 200
+                rows: 2
+                Label:
+                    text: "Estat Inicial:"
+                Button:
+                    text: "Aplica canvi"
+                    on_release:
+                        root.ids.initState.on_text_validate()
+                        root.window.QSystem.setState(root.window.initState)
+                        root.window.animation.reset_plot()
+
+            FunctionInput:
+                id: initState
+                holder: root.window
+                functionName: "initState"
+                definitionName: "initStateDef"
+                varDict: root.window.variablesDict
+
+        #### This layer here needs to be changed all at once
+        #### A new QuantumSystem needs to be created
+        GridLayout:
+            cols:2
+            GridLayout:
+                cols: 2
+                Button:
+                    text: "Nou Sistema"
+                    on_release:
+                        root.window.newSystem()
+                GridLayout:
+                    rows: 2
+                    Label:
+                        text: "Nx:"
+                    DataInput:
+                        holder: root.window
+                        attribute: "Nx"
+                        condition: "range-4-10000"
+                        id: Nx
+                    Label:
+                        text: "Ny:"
+                    DataInput:
+                        holder: root.window
+                        attribute: "Ny"
+                        condition: "range-4-10000"
+                        confirm:
+                        id: Ny
+            GridLayout:
+                rows: 2
+                cols: 4
+                Label:
+                    text: "x0:"
+                DataInput:
+                    holder: root.window
+                    attribute: "x0"
+                    id: x0
+                Label:
+                    text: "xf:"
+                DataInput:
+                    holder: root.window
+                    attribute: "xf"
+                    id: xf
+                Label:
+                    text: "y0:"
+                DataInput:
+                    holder: root.window
+                    attribute: "y0"
+                    id: y0
+                Label:
+                    text: "yf:"
+                DataInput:
+                    holder: root.window
+                    attribute: "yf"
+                    id: yf
+            ################## Change all at once
+
+            GridLayout:
+                rows: 1
+                cols: 3
+                Label:
+                    text: "dtSimul:"
+                DataInput:
+                    #attribute: root.window.animation.dtSim
+                    holder: root.window.animation
+                    attribute: "dtSim"
+                    id: dtSim
+                ToggleButton:
+                    text: "Imag timestep \n (* i)"
+                    state: 'down' if root.window.animation.imagdt else 'normal'
+                    on_press:
+                        root.window.animation.imagdt = not root.window.animation.imagdt
+            GridLayout:
+                cols:4
+                Label:
+                    text: "steps/Frame\n(0 real time):"
+                DataInput:
+                    holder: root.window.animation
+                    attribute: "stepsPerFrame"
+                    condition: "nonnegative"
+                    id: stepsPerFrame
+
+                Label:
+                    text: "t:"
+                DataInput:
+                    holder: root.window.animation.QSystem
+                    attribute: "t"
+                    id: t
+
+
+
+
+<WindowManager>:
+    MainScreen:
+    SandboxScreen:
+
+<MainScreen>:
+    name: "main"
+    BoxLayout:
+        orientation: "vertical"
+        BoxLayout:
+            size_hint_y: 0.1
+            Label:
+                text: "[QUANTUM~MOVEMENT]"
+
+        BoxLayout:
+            size_hint_y: 0.8
+            pos_hint: {"center_x": 0.5}
+
+            orientation: "vertical"
+            padding:20
+            spacing:20
+            Button:
+                text: "Sandbox"
+                on_release:
+                    root.manager.transition.direction = "left"
+                    app.root.current = "sandbox"
+            Button:
+                text: "Games"
+            Button:
+                text: "Examples"
+
+        BoxLayout:
+            size_hint_y: 0.1
+            Label:
+                text: "Joan Ainaud Fondevila"
+
+<SandboxScreen>
+    name: "sandbox"
+    settingsButton: settingsButton
+    FloatLayout:
+        BoxLayout:
+            orientation: "vertical"
+
+            BoxLayout:
+                id: plot
+                size_hint: 1, 0.8
+                padding:25
+                #Label:
+                #    text: "Hello"
+
+
+            BoxLayout:
+                orientation: "horizontal"
+                size_hint: 1, 0.2
+                cols: 1
+
+                padding: 10
+                spacing: 20
+                Button:
+                    #size_hint_y: None
+                    id: settingsButton
+                    text: "Paràmetres"
+                    on_release:
+                        root.stopPlaying()
+                        Factory.ParametersPopup(root).open()
+                        #print(root.dropdown.attach_to.text) #It is indeed linked?
+
+                        #print(root.dropdown.ids)
+                Button:
+                    id: renorm
+                    text: "Renormalitza"
+                Button:
+                    id: saveGif
+                    text: "Guarda animació"
+                    on_release:
+                        root.stopPlaying()
+                        Factory.SaveGifPopup(root).open()
+                        #print(root.dropdown.attach_to.text) #It is indeed linked?
+
+                        #print(root.dropdown.ids)
+                Button:
+                    id: pausePlay
+                    text: "Play/Pause"
+                    on_press:
+                        root.startPlaying() if root.paused else root.stopPlaying()
+                Button:
+                    text: "Return to main screen"
+                    on_release:
+                        root.manager.transition.direction = "right"
+                        root.stopPlaying()
+                        app.root.current = "main"
+
+
+
+        BoolCheckBox:
+            active: True
+            pos_hint: {'right': 0.975, 'y': 0.85}
+            on_active: root.animation.reset_plot(showEnergy=self.active)
+        BoolCheckBox:
+            active: True
+            pos_hint: {'right': 0.975, 'y': 0.60}
+            on_active: root.animation.reset_plot(showNorm=self.active)
+        BoolCheckBox:
+            active: True
+            pos_hint: {'right': 0.975, 'y': 0.35}
+            on_active: root.animation.reset_plot(showMomentum=self.active)
