@@ -69,7 +69,7 @@ def euclidNorm(psi, dx, dy):
     sumPartial = 0.
     for i in range(len(psi)):
         sumPartial = 0.
-        for j in range(len(psi)):
+        for j in range(len(psi[0])):
             sumPartial += abs2(psi[i,j])
         sumTotal += sumPartial
     return sumTotal*dx*dy
