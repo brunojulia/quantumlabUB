@@ -46,7 +46,7 @@ from numba import jit
 from numba import njit
 import numba
 import time
-import crankNikolson2D as mathPhysics
+import crankNicolson2D as mathPhysics
 import animate
 import matplotlib.pyplot as plt
 import random
@@ -294,10 +294,33 @@ def drawCircle():
 
 #module = "closeOpen", "moveParticle"   CHOSE ONE OF THE TWO
 
-module = 'closeOpen'
+module = 'none'
 
 Nx = 201
 Ny = 201
+
+L = 10.
+#p_0 = 5
+
+n = 2
+X0 = (-L,)*n
+x0, y0 = -L, -L
+Xf = (L,)*n
+xf, yf = L, L
+
+inicial2D = gaussian2D(7, 1., -5., 7., 1., -2.5)
+testSystem = mathPhysics.QuantumSystem2D(Nx, Ny, *X0, *Xf, inicial2D,
+                                             potential=potentialGravity)
+
+animation = animate.QuantumAnimation(testSystem, width=12, height=7, duration = 10, dtSim=0.01, dtAnim=0.04,
+                                         showPotential=True, updatePotential=True,
+                                         showMomentum=True, showEnergy=True, showNorm=True,
+                                         scalePsi=True, scaleMom=True)
+
+#writergif = matplotlib.animation.PillowWriter(fps=20) #fps=25
+#animation.animation.save("./Results/FallTestWithNewCN.gif", writer=writergif)
+#plt.close()
+plt.show()
 
 if module=='moveParticle':
     # Change harmonic trap speed with up left right and down. Try to move the particle inside the circle
