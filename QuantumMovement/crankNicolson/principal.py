@@ -121,7 +121,7 @@ np.polynomial.hermite.hermval(x, [0]*(n-1) + [1])
 
 # GENERATOR FOR HARMONIC OSCILLATOR EIGENVECTORS
 def eigenvectorHarmonic2DGenerator(x0, nx, y0, ny, k):
-    def result(x, y):
+    def result(x, y, t=0., extra_param=None):
         return eigenvectorsHarmonic1D(x, x0, nx, k)*eigenvectorsHarmonic1D(y, y0, ny, k)
     return result
 
@@ -176,6 +176,16 @@ def potentialClosing(x, y, t, extra_param):
     r2 = x*x + y*y
     k = 10
     return 100*1/(1+np.exp(-2*k*( r2-(L/2)**2 + (L/2.02)**2 * np.sin(0.5*t)  ) ))
+    #if r2 > (L/2.)**2 - (L/2.02)**2 * np.sin(0.5*t): return 1000.
+    #return 0.
+
+@jit
+def potentialClosingSoft(x, y, t, extra_param):
+    global L
+    # Heavyside. Analytic approximation: 1/(1 + e^-2kr). Larger k, better approximation
+    r = np.sqrt(x*x + y*y)
+    k = 5
+    return 100*1/(1+np.exp(-2*k*( r - 10./2 + 9/2 * (1-1./(1+0.2*t))  ) ))
     #if r2 > (L/2.)**2 - (L/2.02)**2 * np.sin(0.5*t): return 1000.
     #return 0.
 
@@ -294,10 +304,10 @@ def drawCircle():
 
 #module = "closeOpen", "moveParticle"   CHOSE ONE OF THE TWO
 
-module = 'none'
+module = 'moveParticle'
 
-Nx = 201
-Ny = 201
+Nx = 200
+Ny = 200
 
 L = 10.
 #p_0 = 5
@@ -308,19 +318,19 @@ x0, y0 = -L, -L
 Xf = (L,)*n
 xf, yf = L, L
 
-inicial2D = gaussian2D(7, 1., -5., 7., 1., -2.5)
+"""inicial2D = gaussian2D(7, 1., -5., 7., 1., -2.5)
 testSystem = mathPhysics.QuantumSystem2D(Nx, Ny, *X0, *Xf, inicial2D,
                                              potential=potentialGravity)
 
 animation = animate.QuantumAnimation(testSystem, width=12, height=7, duration = 10, dtSim=0.01, dtAnim=0.04,
                                          showPotential=True, updatePotential=True,
                                          showMomentum=True, showEnergy=True, showNorm=True,
-                                         scalePsi=True, scaleMom=True)
+                                         scalePsi=True, scaleMom=True)"""
 
 #writergif = matplotlib.animation.PillowWriter(fps=20) #fps=25
 #animation.animation.save("./Results/FallTestWithNewCN.gif", writer=writergif)
 #plt.close()
-plt.show()
+#plt.show()
 
 if module=='moveParticle':
     # Change harmonic trap speed with up left right and down. Try to move the particle inside the circle

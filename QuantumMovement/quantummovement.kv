@@ -1,5 +1,12 @@
 #:import Factory kivy.factory.Factory
 
+<ClassicalParticle>:
+    size: 25, 25
+    canvas:
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
 <DataInput>:
     multiline: False
 
@@ -15,6 +22,30 @@
     size_hint: None, None
     color: [0., 1., 0., 1.]  # Blue Checkmark
     size: 35, 35
+
+<PlotPopup>:
+    title: ""
+    auto_dismiss: True
+    size_hint:  0.5, 0.5
+    BoxLayout:
+        id: plot
+        padding:20
+
+<SavedStatesPopup>:
+    auto_dismiss: True
+    title: "Estats guardats"
+    size_hint: 0.75, 0.75
+    ScrollView:
+        #do_scroll_x: False
+        #do_scroll_y: True
+        GridLayout:
+            cols: 5
+            size_hint_y: None
+            height: self.minimum_height
+            spacing: 10
+            #row_force_default: True
+            row_default_height: 100
+            id: states
 
 <GlobalVariable>:
     #size_hint: 1, 1
@@ -120,7 +151,7 @@
             cols:2
             Label:
                 size_hint_x:0.7
-                text: "Funcions poden dependre de x, y, t\nEs poden incloure var. glob amb {nomVar}"
+                text: "Funcions poden dependre de x, y, t. Es pot fer servir radi r\nEs poden incloure var. glob amb {nomVar}\nEs poden fer ifs amb heavyside(x, valor_a_x0), suaus amb hssuau(x,k)"
             Button:
                 size_hint_x:0.3
                 text: "Variables\nGlobals"
@@ -133,7 +164,7 @@
             GridLayout:
                 size_hint_x: None
                 width: 200
-                rows: 2
+                rows: 3
                 Label:
                     text: "Potencial:"
                 Button:
@@ -142,6 +173,21 @@
                         root.ids.potential.on_text_validate()
                         root.window.QSystem.potential = root.window.potential
                         root.window.animation.reset_plot()
+                Button:
+                    text: "Previsualitza"
+                    on_release:
+                        copy = root.window.potential
+                        copyDef = root.window.potentialDef
+
+                        root.ids.potential.on_text_validate()
+
+                        root.window.QSystem.setPotential(root.window.potential)
+
+                        root.window.potential = copy
+                        root.window.potentialDef = copyDef
+
+                        root.window.tempState["psi"] = root.window.QSystem.psiMod
+                        Factory.PlotPopup(root.window.tempState).open()
 
             FunctionInput:
                 id: potential
@@ -154,7 +200,7 @@
             GridLayout:
                 size_hint_x: None
                 width: 200
-                rows: 2
+                rows: 3
                 Label:
                     text: "Estat Inicial:"
                 Button:
@@ -164,6 +210,22 @@
                         root.window.QSystem.setState(root.window.initState)
                         root.window.animation.reset_plot()
 
+                Button:
+                    text: "Previsualitza"
+                    on_release:
+                        copy = root.window.initState
+                        copyDef = root.window.initStateDef
+
+                        root.ids.initState.on_text_validate()
+
+                        root.window.QSystem.setTempState(root.window.initState)
+
+                        root.window.initState = copy
+                        root.window.initStateDef = copyDef
+
+                        root.window.tempState["psi"] = root.window.QSystem.psiCopy
+                        Factory.PlotPopup(root.window.tempState).open()
+
             FunctionInput:
                 id: initState
                 holder: root.window
@@ -171,8 +233,6 @@
                 definitionName: "initStateDef"
                 varDict: root.window.variablesDict
 
-        #### This layer here needs to be changed all at once
-        #### A new QuantumSystem needs to be created
         GridLayout:
             cols:2
             GridLayout:
@@ -263,8 +323,11 @@
 
 
 <WindowManager>:
-    MainScreen:
-    SandboxScreen:
+    MainScreen
+    SandboxScreen
+    ExamplesScreen
+    GamesScreen
+    PlayScreen
 
 <MainScreen>:
     name: "main"
@@ -288,9 +351,15 @@
                     root.manager.transition.direction = "left"
                     app.root.current = "sandbox"
             Button:
-                text: "Games"
+                text: "Jocs"
+                on_release:
+                    root.manager.transition.direction = "left"
+                    app.root.current = "games"
             Button:
-                text: "Examples"
+                text: "Exemples"
+                on_release:
+                    root.manager.transition.direction = "left"
+                    app.root.current = "examples"
 
         BoxLayout:
             size_hint_y: 0.1
@@ -329,9 +398,35 @@
                         #print(root.dropdown.attach_to.text) #It is indeed linked?
 
                         #print(root.dropdown.ids)
-                Button:
-                    id: renorm
-                    text: "Renormalitza"
+                GridLayout:
+                    rows:2
+                    Button:
+                        id: renorm
+                        text: "Renormalitza"
+                    ToggleButton:
+                        id: showclassical
+                        text: "Partícula clàssica"
+                        state: 'down' if root.animation.drawClassical else 'normal'
+                        on_press:
+                            root.animation.reset_plot(drawClassical=not root.animation.drawClassical)
+
+                GridLayout:
+                    rows: 3
+                    Button:
+                        id: saveState
+                        text :"Guarda Estat"
+                        on_release:
+                            root.saveState()
+                    TextInput:
+                        id: stateName
+                        multiline: False
+                        text: "estat0"
+                    Button:
+                        id: savedStates
+                        text :"Estats Guardats"
+                        on_release:
+                            Factory.SavedStatesPopup(root).open()
+
                 Button:
                     id: saveGif
                     text: "Guarda animació"
@@ -347,7 +442,7 @@
                     on_press:
                         root.startPlaying() if root.paused else root.stopPlaying()
                 Button:
-                    text: "Return to main screen"
+                    text: "Retorna al\nmenu d'inici"
                     on_release:
                         root.manager.transition.direction = "right"
                         root.stopPlaying()
@@ -367,3 +462,55 @@
             active: True
             pos_hint: {'right': 0.975, 'y': 0.35}
             on_active: root.animation.reset_plot(showMomentum=self.active)
+
+
+<GamesScreen>:
+    name: "games"
+    BoxLayout:
+        orientation: "vertical"
+        padding: 20
+        spacing: 20
+        Label:
+            size_hint: 1, 0.15
+            text:"Jocs"
+        GridLayout:
+            id: gameSelect
+            rows: 1
+            spacing: 40
+
+        BoxLayout:
+            size_hint: 1, 0.15
+            orientation: "horizontal"
+            Button:
+                text: "Return to main screen"
+                on_release:
+                    root.manager.transition.direction = "right"
+                    app.root.current = "main"
+
+<ExamplesScreen>:
+    name: "examples"
+    BoxLayout:
+        orientation: "vertical"
+        padding: 20
+        spacing: 20
+        Label:
+            size_hint: 1, 0.15
+            text:"Exemples"
+        GridLayout:
+            id: exampselect
+            rows: 2
+            spacing: 40
+
+        BoxLayout:
+            size_hint: 1, 0.15
+            orientation: "horizontal"
+            Button:
+                text: "Return to main screen"
+                on_release:
+                    root.manager.transition.direction = "right"
+                    app.root.current = "main"
+
+
+<PlayScreen>:
+    name: "playscreen"
+

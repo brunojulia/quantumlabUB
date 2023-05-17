@@ -49,17 +49,27 @@ def abs2Matrix(psi, result):
             result[i,j] = psi[i,j].real ** 2 + psi[i,j].imag ** 2
 
 @jit(nopython=True)
-def abs2MatrixMultiplied(X, Y, func, psi, result, t=0., extra_param=None):
+def abs2MatrixMultiplied(X, Y, func, psi, result, t=0., extra_param=np.array([])):
     for i in range(len(psi)):
         for j in range(len(psi[0])):
             result[i,j] = (psi[i,j].real ** 2 + psi[i,j].imag ** 2) * func(X[i], Y[j], t=t, extra_param=extra_param)
 
+@jit(nopython=True)
+def abs2MatrixMultipliedExpected(X, Y, func, psi, t=0., extra_param=np.array([])):
+    # Same as integrating with trapezoids, as at boundaries psi is 0
+    sumTotal = 0.
+    for i in range(len(psi)):
+        sumPartial = 0.
+        for j in range(len(psi[0])):
+            sumPartial += (psi[i,j].real ** 2 + psi[i,j].imag ** 2) * func(X[i], Y[j], t=t, extra_param=extra_param)
+        sumTotal += sumPartial
+    return sumTotal*(Y[1]-Y[0])*(X[1]-X[0])
 
 @jit(nopython=True)
-def set2DMatrix(X, Y, func, psi, t=0., extra_param=None):
+def set2DMatrix(X, Y, func, psi, t=0., extra_param=np.array([])):
     for i in range(len(X)):
         for j in range(len(Y)):
-            psi[i,j] = func(X[i],Y[j],t, extra_param)
+            psi[i,j] = func(X[i],Y[j], t, extra_param)
 
 
 @jit(nopython=True)
@@ -167,9 +177,9 @@ integral = integral * dx / 3
 print("Integral: ", integral, "   ha trigat: ", time.time()-t0, " (s)")
 """
 
-
+# -> np.complex128
 @jit(nopython=True)
-def simpson_complex_list1D(dx, psi) -> np.complex128:
+def simpson_complex_list1D(dx, psi):
     integral = psi[0]
     for it in range(1, len(psi) - 3, 2):
         integral += 4 * psi[it]
@@ -186,7 +196,7 @@ def simpson_complex_list1D(dx, psi) -> np.complex128:
 
 
 @jit(nopython=True)
-def simpson_complex_list2D(dx, dy, psi) -> np.complex128:
+def simpson_complex_list2D(dx, dy, psi):
     integral = simpson_complex_list1D(dy, psi[0])
     for it in range(1, len(psi) - 3, 2):
         integral += 4 * simpson_complex_list1D(dy, psi[it])
@@ -291,7 +301,7 @@ plt.show()
 
 
 #@jit(nopython=True)
-def applyOperator2D(X, Y, psi, result, operator, t=0., extra_param=None, doConjugate = False):
+def applyOperator2D(X, Y, psi, result, operator, t=0., extra_param=np.array([]), doConjugate = False):
     if len(X) != len(psi) or len(Y) != len(psi[0]): raise ValueError("X and Y coordinates don't match shape of Psi")
     if not(callable(operator)):
         applyOperator2DOp(X, Y, psi, result, operator, doConjugate=doConjugate)
@@ -325,7 +335,7 @@ def applyOperator2DOp(X, Y, psi, result, operator, doConjugate = False):
 
 
 @jit(nopython=True)
-def applyOperator2DFunc(X, Y, psi, result, operator, t=0., extra_param=None, doConjugate=False):
+def applyOperator2DFunc(X, Y, psi, result, operator, t=0., extra_param=np.array([]), doConjugate=False):
     if len(X) != len(psi) or len(Y) != len(psi[0]): raise ValueError("X and Y coordinates don't match shape of Psi")
     dx = (X[-1] - X[0]) / (len(psi) - 1)
     dy = (Y[-1] - Y[0]) / (len(psi[0]) - 1)
@@ -364,16 +374,16 @@ def applyOperator2DFunc(X, Y, psi, result, operator, t=0., extra_param=None, doC
 
 
 #@jit(nopython=True)
-def expectedValueOperator2D(X, Y, psi, result, operator = None, t = 0., extra_param=None):
+def expectedValueOperator2D(X, Y, psi, result, operator = None, t = 0., extra_param=np.array([])):
     if np.shape(result) != np.shape(psi): raise ValueError("Psi and result must have the same shape")
     if operator is None:            # Calculate total probability, should be 1
         np.conjugate(psi, out=result)
         np.multiply(psi, result, out=result)
-        #return euclidNorm(result, (X[-1]-X[0])/(len(psi)-1), (Y[-1]-Y[0])/(len(psi[0])-1))
-        return simpson_complex_list2D((X[-1]-X[0])/(len(psi)-1), (Y[-1]-Y[0])/(len(psi[0])-1), result)    #dx, dy
+        return np.trapz(np.trapz(result)) * (X[-1]-X[0])/(len(psi)-1) * (Y[-1]-Y[0])/(len(psi[0])-1) # Must use same sumation as norm()!
+        #return simpson_complex_list2D((X[-1]-X[0])/(len(psi)-1), (Y[-1]-Y[0])/(len(psi[0])-1), result)    #dx, dy
     applyOperator2D(X, Y, psi, result, operator, t=t, extra_param=extra_param, doConjugate=True)
-    #return euclidNorm(result, (X[-1] - X[0]) / (len(psi) - 1), (Y[-1] - Y[0]) / (len(psi[0]) - 1))
-    return simpson_complex_list2D((X[-1]-X[0])/(len(psi)-1), (Y[-1]-Y[0])/(len(psi[0])-1), result)        #dx, dy
+    return np.trapz(np.trapz(result)) * (X[-1]-X[0])/(len(psi)-1) * (Y[-1]-Y[0])/(len(psi[0])-1)
+    #return simpson_complex_list2D((X[-1]-X[0])/(len(psi)-1), (Y[-1]-Y[0])/(len(psi[0])-1), result)        #dx, dy
 
 
 def expectedValueOperator(x0, xf, psi, result, operator=None, t = 0.):
@@ -435,7 +445,7 @@ def kineticEnergyN(n, X, dx, t=0, dir=-1):
 
 
 @jit
-def kineticEnergy(op, X, dx, t=0, extra_param=None, dir=-1, onlyUpdate=True):
+def kineticEnergy(op, X, dx, t=0, extra_param=np.array([]), dir=-1, onlyUpdate=True):
     # -h^2/2m ∇^2
     # if dir != -1,  dir indicates only one direction dir=1: x, dir=2: y, etc
     global hred, M
@@ -517,7 +527,7 @@ def tridiagReal(gamma, trid, bVec, xVec):
 
 
 @jit(nopython=True)
-def crankNicolson2DSchrodingerStepLegacy(X, Y, t, dt, potential, psi, psiTemp, extra_param=None):
+def crankNicolson2DSchrodingerStepLegacy(X, Y, t, dt, potential, psi, psiTemp, extra_param=np.array([])):
     """ Solves System:  i h_red d/dt psi = [-h_red^2 /2 (d^2/dx^2 + d^2/dy^2)  + V ] psi
     Step 0: Psi(t)  ->   Step 1: psiTemp = Psi(t+dt/2) ->  Step 2: psi = Psi(t+dt)"""
     """ FUNNY THING: THE METHOD IS CONCEPTUALLY WRONG, BUT AT THE SAME TIME THE ERROR RESOLVES ITSELF, SO THIS IS CORRECT """
@@ -580,7 +590,7 @@ def crankNicolson2DSchrodingerStepLegacy(X, Y, t, dt, potential, psi, psiTemp, e
 
 
 @jit(nopython=True)
-def crankNicolson2DSchrodingerStepVaryingPotential(X, Y, t, dt, potential, psi, psiTemp, extra_param=None):
+def crankNicolson2DSchrodingerStepVaryingPotential(X, Y, t, dt, potential, psi, psiTemp, extra_param=np.array([])):
     """ Solves System:  i h_red d/dt psi = [-h_red^2 /2 (d^2/dx^2 + d^2/dy^2)  + V ] psi
     Step 0: Psi(t)  ->   Step 1: psiTemp = Psi(t+dt/2) ->  Step 2: psi = Psi(t+dt)"""
     """ THIS METHOD DOES THE EXACT SAME AS LEGACY, BUT HERE IT'S CONCEPTUALLY RIGHT. Missing dt/2 in rx and ry definition
@@ -641,7 +651,7 @@ def crankNicolson2DSchrodingerStepVaryingPotential(X, Y, t, dt, potential, psi, 
         tridiag(gamma, tridY, tempBY, psi[itx,1:-1])
 
 @jit(nopython=True)
-def crankNicolson2DSchrodingerStepImaginary(X, Y, t, dt, potential, psi, psiTemp, extra_param=None):
+def crankNicolson2DSchrodingerStepImaginary(X, Y, t, dt, potential, psi, psiTemp, extra_param=np.array([])):
     """ Solves System:  i h_red d/dt psi = [-h_red^2 /2 (d^2/dx^2 + d^2/dy^2)  + V ] psi
     Step 0: Psi(t)  ->   Step 1: psiTemp = Psi(t+dt/2) ->  Step 2: psi = Psi(t+dt)"""
     """ Same as VaryingPotential but Potential is taken only at t, as it's assumed constnat. Actually
@@ -703,10 +713,9 @@ def crankNicolson2DSchrodingerStepImaginary(X, Y, t, dt, potential, psi, psiTemp
 
 
 @jit(nopython=True)
-def crankNicolson2DSchrodingerStepFastest(X, Y, t, dt, potential, psi, psiTemp, psiMod, extra_param=None):
+def crankNicolson2DSchrodingerStepFastest(X, Y, t, dt, potential, psi, psiTemp, psiMod, extra_param=np.array([])):
     """ Solves System:  i h_red d/dt psi = [-h_red^2 /2 (d^2/dx^2 + d^2/dy^2)  + V ] psi
     Step 0: Psi(t)  ->   Step 1: psiTemp = Psi(t+dt/2) ->  Step 2: psi = Psi(t+dt)"""
-    """ FUNNY THING: THE METHOD IS CONCEPTUALLY WRONG, BUT AT THE SAME TIME THE ERROR RESOLVES ITSELF, SO THIS IS CORRECT """
 
     global hred, M
 
@@ -767,7 +776,7 @@ def crankNicolson2DSchrodingerStepFastest(X, Y, t, dt, potential, psi, psiTemp, 
 
 
 @jit
-def potential0(x, y, t=0., extra_param=None):
+def potential0(x, y, t=0., extra_param=np.array([])):
     return 0.
 
 @jit
@@ -812,33 +821,41 @@ def potentialWell(x, y, t, extra_param):
     return 100 * 1 / (1 + np.exp(-2 * k * ((x)**2 + (y)**2 - (L / 3) ** 2)))
 
 @njit
-def potentialHarmonicWell(x, y, t, extra_param=None):
+def potentialHarmonicWell(x, y, t, extra_param=np.array([])):
     global kHarm
     res = 1/2. * kHarm*( x**2 + y**2)
     if res > 100.: return 100
     return res
 
-def gaussian00(x,y,t=0., extra_param=None):
+@njit
+def xFunc(x, y, t, extra_param=np.array([])):
+    return x
+
+@njit
+def yFunc(x, y, t, extra_param=np.array([])):
+    return y
+
+def gaussian00(x,y,t=0., extra_param=np.array([])):
     return np.exp(-(x*x + y*y)/2) / np.sqrt(2*np.pi)
 
-def gaussianPacket(x, x0, sigma, p0, extra_param=None):
+def gaussianPacket(x, x0, sigma, p0, extra_param=np.array([])):
     global hred
     return 1./(2*np.pi*sigma**2)**(0.25) * np.exp(-1./4. * ((x-x0)/sigma)**2) * np.exp(1j/hred * p0*(x))#-x0/2)) ??? Apunts mec quantica
 
 
 # GENERATOR FOR GAUSSIAN INITIAL STATES
 def gaussian2D(x0, sigmax, px, y0, sigmay, py):
-    def result(x, y, t=0., extra_param=None):
+    def result(x, y, t=0., extra_param=np.array([])):
         return gaussianPacket(x, x0, sigmax, px) * gaussianPacket(y, y0, sigmay, py)
     return result
 
 
 #example1
-def inicial(x, p_0, t=0., extra_param=None):
+def inicial(x, p_0, t=0., extra_param=np.array([])):
     return np.exp(-(x - 7) ** 2 / 4) / (2 * np.pi) ** (0.25) * np.exp(- 1j * p_0 * x)
 
 #example2
-def inicial2D(x, y, t=0., extra_param=None):
+def inicial2D(x, y, t=0., extra_param=np.array([])):
     global p_0
     return inicial(x, p_0)*inicial(y, 0.5*p_0)
 
@@ -850,27 +867,68 @@ np.polynomial.hermite.hermval(x, [0]*(n-1) + [1])
 
 # GENERATOR FOR HARMONIC OSCILLATOR EIGENVECTORS
 def eigenvectorHarmonic2DGenerator(x0, nx, y0, ny, k):
-    def result(x, y, t=0., extra_param=None):
+    def result(x, y, t=0., extra_param=np.array([])):
         return eigenvectorsHarmonic1D(x, x0, nx, k)*eigenvectorsHarmonic1D(y, y0, ny, k)
     return result
 
 
 
+@jit #@numba.vectorize([numba.complex128(numba.complex128, numba.complex128), numba.float64(numba.float64, numba.float64)])
+def innerProduct2D(a, b, dx, dy):
+    # returns <a|b>,   orthogonal basis, norm dx * dy
+    return np.conj(a).ravel().dot(b.ravel()) * dx * dy
+
+def interpolate2D(psiNew, x0, xf, y0, yf, psiOld, x0Old, xfOld, y0Old, yfOld):
+    """
+    Interpolate old system into new system.
+    (iI, jI+1)   ·---o-------·      (iI+1, jI+1)
+                     |
+                     O
+                     |
+                     |
+    (iI, jI)     ·---o-------·      (iI+1, jI)
+    Example, we first interpolate in the x direction obtaining both o
+    and then finally find the interpolation at point O by interpolating in y direction
+    """
+    # i: x0 + i dx  -> iInterp = (x-x0Old)/(xfOld-x0Old)
+    dx = (xf - x0) / (len(psiNew   ) - 1)
+    dy = (yf - y0) / (len(psiNew[0]) - 1)
+    dxOld = (xfOld - x0Old) / (len(psiOld   ) - 1)
+    dyOld = (yfOld - y0Old) / (len(psiOld[0]) - 1)
+    for i in range(len(psiNew)):
+        iInterp = (x0 + i*dx - x0Old)/dxOld
+        for j in range(len(psiNew[0])):
+            jInterp = (y0 + j * dy - x0Old) / dyOld
+            if iInterp < 0 or len(psiOld)-1 <= iInterp or jInterp < 0 or len(psiOld[0])-1 <= jInterp:
+                psiNew[i,j] = 0.
+            else:
+                iI = int(iInterp)
+                hi = iInterp - iI
+                jI = int(jInterp)
+                hj = jInterp - jI
+                interpX0 = (1-hi)*psiOld[iI, jI    ] + hi * psiOld[iI + 1, jI    ] # Corresponds to lower o
+                interpX1 = (1-hi)*psiOld[iI, jI + 1] + hi * psiOld[iI + 1, jI + 1] # Corresponds to upper o
+                psiNew[i,j] = (1-hj) * interpX0 + hj * interpX1
+
 
 # https://numba.pydata.org/numba-doc/latest/user/jitclass.html
 class QuantumSystem2D:
     # there are Nx+1 points x0, x1, ..., XNx
-    def __init__(self, Nx=200, Ny=200, x0=-10., y0=+10., xf=-10., yf=+10.,
-                 initState = gaussian00, t = 0., potential = potential0, extra_param=None):
+    def __init__(self, Nx=200, Ny=200, x0=-10., y0=-10., xf=+10., yf=+10.,
+                 initState = gaussian00, t = 0., potential = potential0, extra_param=np.array([]),
+                 x0Old = -10., xfOld=10., y0Old=-10., yfOld=10., mass = 1.): # These are used for interpolating
+        global M
+        M = mass
+        self.mass = mass
         self.Nx, self.Ny = Nx, Ny
         self.x0, self.y0 = x0, y0
         self.xf, self.yf = xf, yf
         self.dx, self.dy = (xf-x0)/(Nx), (yf-y0)/(Ny)
         self.X, self.Y = np.linspace(x0, xf, Nx+1, dtype=np.float64), np.linspace(y0, yf, Ny+1, dtype=np.float64)
-        self.Px, self.Py = 2*np.pi*np.sort(np.fft.fftfreq(Nx+1))/self.dx, 2*np.pi*np.sort(np.fft.fftfreq(Ny+1))/self.dy
+        self.Px, self.Py = 2*hred*np.pi*np.sort(np.fft.fftfreq(Nx+1))/self.dx, 2*hred*np.pi*np.sort(np.fft.fftfreq(Ny+1))/self.dy
                            # Maybe in general it needs to be multiplied by hred
         self.t = t  # By default t=0.
-        self.extra_param = extra_param
+        self.extra_param = extra_param.view()
 
         self.psi = np.empty((Nx+1, Ny+1), dtype=np.complex128)  # Will hold psi
         self.psiMod = np.empty((Nx+1, Ny+1), dtype=np.float64)  # Will hold |psi|^2
@@ -885,8 +943,11 @@ class QuantumSystem2D:
             # Potentially faster, but needs jit, not as flexible,
             # and regardless it's a one time thing
         else:
-            if initState.shape != self.psi.shape: exit(print("Error: Initial state shape different from system's"))
-            self.psi[:,:] = initState[:,:]
+            if initState.shape == self.psi.shape and x0==x0Old and y0==y0Old and xf==xfOld and yf==yfOld:
+                self.psi[:,:] = initState[:,:]
+            else:
+                interpolate2D(self.psi, self.x0, self.xf, self.y0, self.yf,
+                              initState, x0Old, xfOld, y0Old, yfOld)
         self.psi[:,0] = 0.
         self.psi[:,Ny] = 0.
         self.psi[0,:] = 0.
@@ -909,6 +970,10 @@ class QuantumSystem2D:
         """Potential will be taken as constant. Useful for imaginary time displacements, approximate eigenstates. NEGATIVE!"""
         crankNicolson2DSchrodingerStepImaginary(self.X, self.Y, self.t, dt, self.potential,
                                                 self.psi, self.psiCopy, extra_param=self.extra_param)
+
+        # To avoid crashing in obtaining very very low values or very very high values
+        # we normalize here
+        self.psi[:,:] = self.psi[:,:]/np.sqrt(self.norm())
 
     def momentumSpace(self):
         fourierTransform2D(self.X, self.Y, self.psi, self.psiCopy)
@@ -933,35 +998,172 @@ class QuantumSystem2D:
 
     def potentialEnergy(self):
         # Possible bottleneck
-        abs2MatrixMultiplied(self.X, self.Y, self.potential, self.psi, self.psiMod,
-                             t=self.t, extra_param=self.extra_param)
+        return abs2MatrixMultipliedExpected(self.X, self.Y, self.potential, self.psi,
+                                            t=self.t, extra_param=self.extra_param)
+
+        ####abs2MatrixMultiplied(self.X, self.Y, self.potential, self.psi, self.psiMod,
+        ####                     t=self.t, extra_param=self.extra_param)
 
         #self.psiMod[:,:] = abs2(self.psi[:,:]) * self.potential(self.Xmesh[:,:], self.Ymesh[:,:], self.t)
         # Can't include IFs this first way apparently
-        return simpson_complex_list2D(self.dx, self.dy, self.psiMod)
+        # Must be same summation type as norm
+        ####return np.trapz(np.trapz(self.psiMod))*self.dx*self.dy
+        #return simpson_complex_list2D(self.dx, self.dy, self.psiMod)
 
     def approximateEigenstate(self):
         """
         Iterates some time until, approximately, only the lowest energy eigenvector remains significant.
         Right now it actually just iterates some steps.
-        Problem, currently it's not always compatible with jit (time is assumed to be float).
-        Potential is real, but program interprets it as complex
         """
-        t0 = self.t
         for _ in range(50):
             for __ in range(10):
-                self.evolveStep(-0.0625j)
+                self.evolveImagStep(-0.0625)
             self.psi[:,:] *= 1./np.sqrt(self.norm())
 
-        self.t = float(t0)
     def expectedValueOp(self, operator):
         return expectedValueOperator2D(self.X, self.Y, self.psi, self.psiCopy,
                                        operator=operator, t=self.t, extra_param=self.extra_param)
 
-    def setState(self, state):
+    def expectedValueOpCentral(self, func):
+        return abs2MatrixMultipliedExpected(self.X, self.Y, func, self.psi,
+                                            t=self.t, extra_param=self.extra_param)
+
+    def expectedX(self):
+        return np.real(self.expectedValueOpCentral(xFunc))#jit(lambda x, y, t, extra_param: x))
+
+    def expectedY(self):
+        return np.real(self.expectedValueOpCentral(yFunc))#jit(lambda x, y, t, extra_param: y))
+
+    def expectedPX(self):
+        # Central derivative
+        return np.real(self.expectedValueOp( -1j * hred * np.array([[0., 0.], [-1./(2.*self.dx), +1./(2.*self.dx)] , [0.,0.]]) ))
+
+    def expectedPY(self):
+        # Central derivative
+        return np.real(self.expectedValueOp( -1j * hred * np.array([[0., 0.], [0.,0.], [-1./(2.*self.dy), +1./(2.*self.dy)]]) ))
+
+    def setState(self, state, x0Old = -10., xfOld=10., y0Old=-10., yfOld=10.):
         if callable(state):
             self.psi[:,:] = state(self.Xmesh, self.Ymesh, t = self.t, extra_param=self.extra_param)
         else:
-            if state.shape != self.psi.shape: exit(print("Error: Initial state shape different from system's"))
-            self.psi[:,:] = state[:,:]
+            if type(state) is dict:
+                x0Old = state["x0"]; xfOld = state["xf"]; y0Old = state["y0"]; yfOld = state["yf"]
+                state = state["psi"]
 
+            if state.shape == self.psi.shape and self.x0 == x0Old and self.y0 == y0Old and self.xf == xfOld and self.yf == yfOld:
+                self.psi[:, :] = state[:, :]
+            else:
+                interpolate2D(self.psi, self.x0, self.xf, self.y0, self.yf,
+                              state, x0Old, xfOld, y0Old, yfOld)
+        self.psi[:, 0] = 0.; self.psi[:, self.Ny] = 0.; self.psi[0, :] = 0.; self.psi[self.Nx, :] = 0.
+        #self.psi[:, :] = self.psi[:, :] / np.sqrt(self.norm())
+
+
+    def setTempState(self, state):
+        if callable(state):
+            self.psiCopy[:,:] = state(self.Xmesh, self.Ymesh, t = self.t, extra_param=self.extra_param)
+        else:
+            exit(print("This method is only for states as functions"))
+
+    def setPotential(self, potential):
+        set2DMatrix(self.X, self.Y, potential, self.psiMod,
+                    t=self.t, extra_param=self.extra_param)
+
+    def substractComponent(self, component):
+        # Psi can be expressed as:
+        # |Psi> = c1 |c1> + c2 |c2> + ...
+        # We substract here a component:
+        # |Psi> = ... + c |c> + ...
+        # |Psi> - <c|Psi> |c> = ... + 0 |c> + ..
+
+        if type(component) is dict:
+            x0Old = component["x0"]; xfOld = component["xf"]; y0Old = component["y0"]; yfOld = component["yf"]
+            component = component["psi"]
+
+            interpolate2D(self.psiCopy, self.x0, self.xf, self.y0, self.yf,
+                          component, x0Old, xfOld, y0Old, yfOld)
+
+            component = self.psiCopy
+
+        elif self.psi.shape != component.shape:
+            print("Can't substract component, different shape!")
+            return
+
+        c = innerProduct2D(component, self.psi, self.dx, self.dy)
+        self.psi[:,:] = self.psi[:,:] - c*component[:,:]
+
+
+class ClassicalParticle:
+    def __init__(self, QSystem):
+        self.QSystem = QSystem
+        self.time = self.QSystem.t
+
+        self.x = self.QSystem.expectedX()
+        self.y = self.QSystem.expectedY()
+
+        self.px = self.QSystem.expectedPX()
+        self.py = self.QSystem.expectedPY()
+
+        self.m = self.QSystem.mass
+
+        self.yVec = np.array([self.x, self.px, self.y, self.py])
+
+    def evolveStep(self, dt):
+        self.yVec = RungeKutta4(self.time, dt, self.yVec, self.deriv)
+
+        # Bounce on walls
+        if self.yVec[0] < self.QSystem.x0:
+            self.yVec[0] = self.QSystem.x0 + self.QSystem.x0 - self.yVec[0]
+            self.yVec[1] = -self.yVec[1]
+        elif self.yVec[0] > self.QSystem.xf:
+            self.yVec[0] = self.QSystem.xf - self.yVec[0] + self.QSystem.xf
+            self.yVec[1] = -self.yVec[1]
+        if self.yVec[2] < self.QSystem.y0:
+            self.yVec[2] = self.QSystem.y0 + self.QSystem.y0 - self.yVec[2]
+            self.yVec[3] = -self.yVec[3]
+        elif self.yVec[2] > self.QSystem.yf:
+            self.yVec[2] = self.QSystem.yf - self.yVec[2] + self.QSystem.yf
+            self.yVec[3] = -self.yVec[3]
+        self.x = self.yVec[0]; self.px = self.yVec[1]; self.y = self.yVec[2]; self.py = self.yVec[3]
+        self.time += dt
+
+    def deriv(self, t, yin):
+        # yin: [x, px, y, py]
+        res = np.empty(4, dtype=np.float64)
+        res[0] = yin[1]/self.m
+        res[1] = (self.QSystem.potential(yin[0]-self.QSystem.dx, yin[2], t=t, extra_param=self.QSystem.extra_param)
+                 -self.QSystem.potential(yin[0]+self.QSystem.dx, yin[2], t=t, extra_param=self.QSystem.extra_param) )\
+                 /(2.*self.QSystem.dx)
+        res[2] = yin[3] / self.m
+        res[3] = (self.QSystem.potential(yin[0], yin[2] - self.QSystem.dy, t=t, extra_param=self.QSystem.extra_param)
+                  - self.QSystem.potential(yin[0], yin[2] + self.QSystem.dy, t=t, extra_param=self.QSystem.extra_param)) \
+                 / (2 * self.QSystem.dy)
+        return res
+
+    def kineticEnergy(self):
+        return (self.px*self.px + self.py*self.py)/(2*self.m)
+
+    def potentialEnergy(self):
+        return self.QSystem.potential(self.x, self.y, self.time, extra_param =self.QSystem.extra_param)
+
+    def totalEnergy(self):
+        return self.kineticEnergy() + self.potentialEnergy()
+
+
+def RungeKutta4(t, dt, yin, deriv):
+    k1 = deriv(t     , yin        )
+    k2 = deriv(t+dt/2, yin+dt*k1/2)
+    k3 = deriv(t+dt/2, yin+dt*k2/2)
+    k4 = deriv(t+dt  , yin+dt*k3  )
+    return yin + dt*(k1 + 2*k2 + 2*k3 + k4)/6.
+
+"""  
+subroutine RungeKutta4(t,dt,nequ,yin,deriv,yout)
+    integer :: nequ
+    double precision, dimension(nequ) :: yin, yout, k1, k2, k3, k4
+    double precision :: t, dt
+    call deriv(nequ, t       , yin          , k1)
+    call deriv(nequ, t+dt/2d0, yin+dt*k1/2d0, k2)
+    call deriv(nequ, t+dt/2d0, yin+dt*k2/2d0, k3)
+    call deriv(nequ, t+dt    , yin+dt*k3    , k4)
+    yout = yin + dt*(k1+2d0*k2+2d0*k3+k4)/6d0"""
