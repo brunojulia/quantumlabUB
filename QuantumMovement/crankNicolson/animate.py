@@ -2,29 +2,32 @@ import matplotlib
 from matplotlib import animation
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as peffects
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
-
-if(__name__ == "crankNicolson.animate"): import crankNicolson.crankNicolson2D as mathPhysics
-else: import crankNicolson2D as mathPhysics         #   Problems with making it work outside of folder
+if (__name__ == "crankNicolson.animate"):
+    import crankNicolson.crankNicolson2D as mathPhysics
+    from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+else:
+    import crankNicolson2D as mathPhysics  # Problems with making it work outside of folder
 import numpy as np
 import time
 import matplotlib.style as mplstyle
-#mplstyle.use('fast')
+
+# mplstyle.use('fast')
 """On performance:
     https://matplotlib.org/stable/users/explain/performance.html"""
 
-
 matplotlib.rcParams['keymap.back'].remove('left')
 matplotlib.rcParams['keymap.forward'].remove('right')
-#fig.canvas.mpl_disconnect(fig.canvas.manager.key_press_handler_id)
 
-class QuantumAnimation:              # inches
+
+# fig.canvas.mpl_disconnect(fig.canvas.manager.key_press_handler_id)
+
+class QuantumAnimation:  # inches
     def __init__(self, QSystem, width=6.4, height=4.8,
-                 dtSim=0.01, dtAnim = 0.05, duration = None, realTime = True,
-                 showEnergy = False, showNorm = False, showMomentum = False, showPotential = False, updatePotential = False,
-                 potentialCutoff = None, psiCutoff = None, scalePsi=False, scaleMom=False,
-                 extraCommands = None, extraUpdates = None, isKivy = False, stepsPerFrame = 0,
-                 debugTime = False, callbackProgress = True):
+                 dtSim=0.01, dtAnim=0.05, duration=None, realTime=True,
+                 showEnergy=False, showNorm=False, showMomentum=False, showPotential=False, updatePotential=False,
+                 potentialCutoff=None, psiCutoff=None, scalePsi=False, scaleMom=False,
+                 extraCommands=[], extraUpdates=None, isKivy=False, stepsPerFrame=0,
+                 debugTime=False, callbackProgress=False, drawClassical=False):
         """
         Declaration of a Quantum Animation
         :param QSystem: Quantum System. The physics happen here, see crankNikolson2D QuantumSystem class.
@@ -55,7 +58,8 @@ class QuantumAnimation:              # inches
         self.stepsPerFrame = stepsPerFrame  # If 0, that means try "real time" with dtAnim
         self.imagdt = False
 
-        if(int(dtSim/dtAnim) != dtSim//dtAnim): print("WARNING: dtAnim is not a multiple of dtSim, can't do real time")
+        if (int(dtSim / dtAnim) != dtSim // dtAnim): print(
+            "WARNING: dtAnim is not a multiple of dtSim, can't do real time")
         self.QSystem = QSystem
         self.width = width
         self.height = height
@@ -63,9 +67,12 @@ class QuantumAnimation:              # inches
 
         self.duration = duration
         self.realTime = realTime
-        if(duration == None): self.frames = None
-        elif realTime: self.frames = int(duration/dtAnim +1)
-        else: self.frames = int(duration/ (dtAnim if stepsPerFrame==0 else dtSim*stepsPerFrame))
+        if (duration == None or isKivy):
+            self.frames = None
+        elif realTime:
+            self.frames = int(duration / dtAnim + 1)
+        else:
+            self.frames = int(duration / (dtAnim if stepsPerFrame == 0 else dtSim * stepsPerFrame))
         # Simulation time. Careful...
 
         self.showEnergy = showEnergy
@@ -93,7 +100,7 @@ class QuantumAnimation:              # inches
         self.VList = []
         self.EList = []
         self.NormList = []
-        self.potentialMat = np.ndarray((self.QSystem.Nx+1, self.QSystem.Ny+1), dtype=np.float64)
+        self.potentialMat = np.ndarray((self.QSystem.Nx + 1, self.QSystem.Ny + 1), dtype=np.float64)
         # Nx+1 points!!! x0, x1, ..., xNx
         self.isKivy = isKivy
 
@@ -101,19 +108,21 @@ class QuantumAnimation:              # inches
             self.fig = plt.figure(figsize=(width, height))
         else:
             self.fig = plt.figure()
-            FigureCanvasKivyAgg(self.fig)   # Canvas is now Kivy Canvas
-             # If we do a Kivy Canvas, we can't use FuncAnimation which implements blitting automatically,
-             # so we need to implement blitting manually. To do this, we need to keep track of when we update the figure
-            #self.drawEvent = self.fig.canvas.mpl_connect('draw_event', self.on_draw) # For Blitting, if it worked?
-            #self.bg = self.fig.canvas.copy_from_bbox(self.fig.bbox)
+            FigureCanvasKivyAgg(self.fig)  # Canvas is now Kivy Canvas
+            # If we do a Kivy Canvas, we can't use FuncAnimation which implements blitting automatically,
+            # so we need to implement blitting manually. To do this, we need to keep track of when we update the figure
+            # self.drawEvent = self.fig.canvas.mpl_connect('draw_event', self.on_draw) # For Blitting, if it worked?
+            # self.bg = self.fig.canvas.copy_from_bbox(self.fig.bbox)
 
-        #fig.canvas.mpl_disconnect(fig.canvas.manager.key_press_handler_id)
+        # fig.canvas.mpl_disconnect(fig.canvas.manager.key_press_handler_id)
 
         if not self.isKivy: self.pauseEvent = self.fig.canvas.mpl_connect('key_press_event', self.on_key_press)
 
+
+        self.actExtCommands = []
         if self.extraCommands != None:
             for action, command in self.extraCommands:
-                self.fig.canvas.mpl_connect(action, command)
+                self.actExtCommands.append( self.fig.canvas.mpl_connect(action, command) )
 
         # Code
         self.axEnergy = None
@@ -128,16 +137,19 @@ class QuantumAnimation:              # inches
         self.lineE = None
         self.lineN = None
 
+        self.drawClassical = drawClassical
+
         self.reset_plot()
+
+        self.isOver = False
 
         if not self.isKivy:
             self.animation = animation.FuncAnimation(self.fig, self.update, interval=dtAnim * 1000, blit=True,
                                                      frames=self.frames)
 
-
-    def reset_plot(self, width = None, height = None,
-                   showEnergy = None, showNorm = None, showMomentum = None, showPotential = None,
-                   scalePsi=None, scaleMom=None):
+    def reset_plot(self, width=None, height=None,
+                   showEnergy=None, showNorm=None, showMomentum=None, showPotential=None,
+                   scalePsi=None, scaleMom=None, drawClassical=None):
         if width != None: self.width = width
         if height != None:  self.height = height
         if showEnergy != None: self.showEnergy = showEnergy
@@ -146,23 +158,31 @@ class QuantumAnimation:              # inches
         if showPotential != None: self.showPotential = showPotential
         if scalePsi != None: self.scalePsi = scalePsi
         if scaleMom != None: self.scaleMom = scaleMom
+        if drawClassical != None: self.drawClassical = drawClassical
 
         extraSubplots = 0
         if self.showEnergy: extraSubplots += 1
         if self.showNorm: extraSubplots += 1
         if self.showMomentum: extraSubplots += 1
 
-        self.fig.clf()                      #Clear figure
+        self.fig.clf()  # Clear figure
         self.fig.figsize = (self.width, self.height)
 
-        self.axPsi = self.fig.add_subplot(1, 2+(extraSubplots>0), (1, 2))
-        if self.showEnergy:  self.axEnergy = self.fig.add_subplot(3, 3, 3)     #(2, 6, 11)
-        else: self.axEnergy = None
-        if self.showNorm: self.axNorm = self.fig.add_subplot(3, 3, 6)          #(2, 6, 12)
-        else: self.axNorm = None
-        if self.showMomentum: self.axMomentum = self.fig.add_subplot(3, 3, 9)   #(2, 3, 3)
-        else: self.axMomentum = None
-
+        self.axPsi = self.fig.add_subplot(1, 2 + (extraSubplots > 0), (1, 2))
+        if self.showEnergy:
+            self.axEnergy = self.fig.add_subplot(3, 3, 3)  # (2, 6, 11)
+        else:
+            self.axEnergy = None
+        if self.showNorm:
+            self.axNorm = self.fig.add_subplot(3, 3, 6)  # (2, 6, 12)
+        else:
+            self.axNorm = None
+        if self.showMomentum:
+            if extraSubplots == 1:
+                self.axMomentum = self.fig.add_subplot(1, 3, 3)
+            else: self.axMomentum = self.fig.add_subplot(3, 3, 9)  # (2, 3, 3)
+        else:
+            self.axMomentum = None
 
         # First drawing
         self.QSystem.modSquared()
@@ -172,37 +192,40 @@ class QuantumAnimation:              # inches
         self.axPsi.set_xlabel("x")
         self.axPsi.set_ylabel("y")
         self.datPsi = self.axPsi.imshow(self.QSystem.psiMod.T, origin='lower',
-                            extent=(self.QSystem.x0, self.QSystem.xf, self.QSystem.y0, self.QSystem.yf),
-                            aspect='equal', cmap="viridis", interpolation=None)#, animated=True) # Doesn't do anything for imshow?
+                                        extent=(self.QSystem.x0, self.QSystem.xf, self.QSystem.y0, self.QSystem.yf),
+                                        aspect='equal', cmap="viridis",
+                                        interpolation=None)  # , animated=True) # Doesn't do anything for imshow?
         if self.showPotential:
             mathPhysics.set2DMatrix(self.QSystem.X, self.QSystem.Y,
                                     self.QSystem.potential, self.potentialMat,
                                     t=self.QSystem.t, extra_param=self.QSystem.extra_param)
             self.datPot = self.axPsi.imshow(self.potentialMat.T, origin='lower',
-                                extent=(self.QSystem.x0, self.QSystem.xf, self.QSystem.y0, self.QSystem.yf),
-                                aspect='equal', cmap='gist_heat', alpha=0.3, interpolation=None)#, animated=True)
-            #self.fig.colorbar(datPot, ax=ax1, label="Potencial: Força constant cap a baix")
+                                            extent=(self.QSystem.x0, self.QSystem.xf, self.QSystem.y0, self.QSystem.yf),
+                                            aspect='equal', cmap='gist_heat', alpha=0.3,
+                                            interpolation=None)  # , animated=True)
+            # self.fig.colorbar(datPot, ax=ax1, label="Potencial: Força constant cap a baix")
 
         if self.showEnergy:
             self.axEnergy.set_title("Energia")
-            if len(self.TList) == 0: self.axEnergy.set_xlim(self.QSystem.t, self.QSystem.t+5)
+            if len(self.TList) == 0: self.axEnergy.set_xlim(self.QSystem.t, self.QSystem.t + 5)
             self.axEnergy.set_ylim(min(np.min(self.potentialMat) - 1., 0.),
                                    np.real(self.QSystem.potentialEnergy() + self.QSystem.kineticEnergy() + 1 -
                                            min(np.min(self.potentialMat) - 1., 0.)))
-            self.lineK, = self.axEnergy.plot(self.TList, self.KList, label="K")#, animated=True)  #Doesn't work with Kivy?
-            self.lineV, = self.axEnergy.plot(self.TList, self.VList, label="V")#, animated=True)
-            self.lineE, = self.axEnergy.plot(self.TList, self.EList, label="E")#, animated=True)
+            self.lineK, = self.axEnergy.plot(self.TList, self.KList,
+                                             label="K")  # , animated=True)  #Doesn't work with Kivy?
+            self.lineV, = self.axEnergy.plot(self.TList, self.VList, label="V")  # , animated=True)
+            self.lineE, = self.axEnergy.plot(self.TList, self.EList, label="E")  # , animated=True)
             self.axEnergy.grid()
             self.axEnergy.legend()
 
         if self.showNorm:
             self.axNorm.set_title("Normalització")
             self.axNorm.set_xlabel("t (s)")
-            if len(self.TList) == 0: self.axNorm.set_xlim(self.QSystem.t, self.QSystem.t+5) #0, 5
+            if len(self.TList) == 0: self.axNorm.set_xlim(self.QSystem.t, self.QSystem.t + 5)  # 0, 5
             ####
             self.axNorm.set_ylim(1 - 0.001, 1. + 0.001)
             ##### SI es vol optimitzar fent blitting s'ha d'evitar fer canvis de límit
-            self.lineN, = self.axNorm.plot(self.TList, self.NormList)#, animated=True)  #Doesn't work wit hKivy?
+            self.lineN, = self.axNorm.plot(self.TList, self.NormList)  # , animated=True)  #Doesn't work wit hKivy?
 
         if self.showMomentum:
             self.QSystem.momentumSpace()
@@ -212,11 +235,18 @@ class QuantumAnimation:              # inches
             self.axMomentum.set_xlabel("Px")
             self.axMomentum.set_ylabel("Py")
             self.datMom = self.axMomentum.imshow(self.QSystem.psiMod.T, origin='lower',
-                                extent=(self.QSystem.Px[0], self.QSystem.Px[-1],
-                                        self.QSystem.Py[0], self.QSystem.Py[-1]),
-                                cmap='hot', aspect='equal', interpolation=None)#, animated = True)
+                                                 extent=(self.QSystem.Px[0], self.QSystem.Px[-1],
+                                                         self.QSystem.Py[0], self.QSystem.Py[-1]),
+                                                 cmap='hot', aspect='equal', interpolation=None)  # , animated = True)
 
-        plt.tight_layout()
+        if self.drawClassical:
+            self.particle = mathPhysics.ClassicalParticle(self.QSystem)
+            #print(self.particle.yVec)
+            self.drawnParticle = plt.Circle((self.particle.x, self.particle.y), (self.QSystem.xf-self.QSystem.x0)/100.,
+                                            color='yellow', alpha=0.5)
+            self.axPsi.add_patch(self.drawnParticle)
+
+        self.fig.tight_layout()
         if self.isKivy: self.fig.canvas.draw()
 
     def reset_lists(self):
@@ -225,19 +255,33 @@ class QuantumAnimation:              # inches
         self.EList = []
         self.NormList = []
         self.TList = []
-        self.potentialMat = np.ndarray((self.QSystem.Nx+1, self.QSystem.Ny+1), dtype=np.float64)
+        self.potentialMat = np.ndarray((self.QSystem.Nx + 1, self.QSystem.Ny + 1), dtype=np.float64)
+
+    def setExtCommands(self, newCommands):
+        for oldCommand in self.actExtCommands:
+            self.fig.canvas.mpl_disconnect(oldCommand)
+        self.actExtCommands.clear()
+
+        self.extraCommands = newCommands
+        for action, command in newCommands:
+            self.actExtCommands.append(self.fig.canvas.mpl_connect(action, command))
+
+    def addExtCommands(self, newCommands):
+        self.extraCommands += newCommands
+        for action, command in newCommands:
+            self.actExtCommands.append(self.fig.canvas.mpl_connect(action, command))
 
     def on_key_press(self, event):
         if event.key == 'p':
             if self.paused:
-                #self.animation.resume()
+                # self.animation.resume()
                 self.text.remove()
                 self.text = None
                 if not self.isKivy: self.animation.event_source.start()
             else:
-                #self.animation.pause()
+                # self.animation.pause()
 
-                self.text = self.fig.text(0.5, 0.5, 'Paused!', dict(size=30, fontweight=800, color='white'),
+                self.text = self.axPsi.text(0.5, 0.5, 'Paused!', dict(size=30, fontweight=800, color='white'),
                                           horizontalalignment='center', verticalalignment='center',
                                           path_effects=[peffects.withStroke(linewidth=4, foreground="black")])
                 self.fig.canvas.draw()
@@ -259,34 +303,40 @@ class QuantumAnimation:              # inches
             self.redraw = True
 
     def update(self, frame):
-        if self.duration is not None and self.callbackProgress and frame%10 == 0: print("{:5.2f} %".format(100*frame/self.frames))
-        self.redraw = False # Will try to not redraw, only blit, except when necessary (bounds change, etc.)
+        if self.duration is not None and self.callbackProgress and frame % 10 == 0: print(
+            "{:5.2f} %".format(100 * frame / self.frames))
+        self.redraw = False  # Will try to not redraw, only blit, except when necessary (bounds change, etc.)
         t0 = time.time()
-        if self.frames != None:
-            #if frame == self.frames-1:
+        if self.frames == None and self.duration != None:
+            # if frame == self.frames-1:
             if self.QSystem.t >= self.duration:
-                self.fig.canvas.mpl_disconnect(self.pauseEvent)
+                if not self.isKivy: self.fig.canvas.mpl_disconnect(self.pauseEvent)
                 if not self.isKivy: self.animation.event_source.stop()
                 if self.text != None: self.text.remove()
-                self.text = self.fig.text(0.5, 0.5, 'TIME!', dict(size=30, fontweight=800, color='white'),
+                self.text = self.axPsi.text(0.5, 0.5, 'TIME!', dict(size=30, fontweight=800, color='white'),
                                           horizontalalignment='center', verticalalignment='center',
-                                          path_effects=[peffects.withStroke(linewidth=4, foreground="black")])
+                                          path_effects=[peffects.withStroke(linewidth=4, foreground="black")],
+                                          transform=self.axPsi.transAxes)
 
-                self.fig.canvas.draw()
+                self.isOver = True
         changes = []
         self.frame = frame
 
-        for _ in range(max(1,int( self.dtAnim / self.dtSim)) if self.stepsPerFrame == 0 else self.stepsPerFrame):
-            if self.imagdt: self.QSystem.evolveImagStep(self.dtSim)
-            else:           self.QSystem.evolveStep(self.dtSim)
+        for _ in range(max(1, int(self.dtAnim / self.dtSim)) if self.stepsPerFrame == 0 else self.stepsPerFrame):
+            if self.imagdt:
+                self.QSystem.evolveImagStep(self.dtSim)
+            else:
+                self.QSystem.evolveStep(self.dtSim)
+                if self.drawClassical: self.particle.evolveStep(self.dtSim)
 
         if self.extraUpdates != None:
             for action in self.extraUpdates:
-                updated = action()
+                try: updated = action(instance=self)
+                except: updated = action()
                 if updated != None:
                     changes.append(updated)
 
-        if self.debugTime: print("Crank-Nicolson took:  {:12.8f}".format(time.time()-t0), " (s)", end=' <> ')
+        if self.debugTime: print("Crank-Nicolson took:  {:12.8f}".format(time.time() - t0), " (s)", end=' <> ')
 
         self.QSystem.modSquared()
         if self.psiCutoff != None:
@@ -295,6 +345,12 @@ class QuantumAnimation:              # inches
 
         self.datPsi.set_data(self.QSystem.psiMod.T)
         changes.append(self.datPsi)
+
+        if self.drawClassical and not self.imagdt:
+            if self.drawnParticle != None: self.drawnParticle.remove()
+            self.drawnParticle = plt.Circle((self.particle.x, self.particle.y), (self.QSystem.xf - self.QSystem.x0) / 100.,
+                                            color='yellow', alpha=0.5)
+            self.axPsi.add_patch(self.drawnParticle)
 
         self.TList.append(self.QSystem.t)
         if self.showEnergy:
@@ -316,7 +372,8 @@ class QuantumAnimation:              # inches
 
         if self.showNorm:
             self.NormList.append(np.real(self.QSystem.norm()))
-            self.lineRedraw(self.axNorm, self.lineN, self.TList, self.NormList, frame)  # lineN.set_data(TList, NormList)
+            self.lineRedraw(self.axNorm, self.lineN, self.TList, self.NormList,
+                            frame)  # lineN.set_data(TList, NormList)
             changes.append(self.lineN)
         else:
             self.NormList.append(None)
@@ -338,11 +395,11 @@ class QuantumAnimation:              # inches
             self.datPot.set_data(self.potentialMat.T)
             changes.append(self.datPot)
 
-        if self.debugTime: print("+ Energy/Norm/etc took:  {:12.8f}".format(time.time()-t0), " (s)", end=' <> ')
+        if self.debugTime: print("+ Energy/Norm/etc took:  {:12.8f}".format(time.time() - t0), " (s)", end=' <> ')
 
-        if self.redraw and self.isKivy:
+        """if self.redraw and self.isKivy:  # Only if blitting...
             self.fig.canvas.draw()
-            return []
+            return []"""
 
         """if self.isKivy:
             self.fig.canvas.draw()
@@ -350,7 +407,7 @@ class QuantumAnimation:              # inches
         # Blitting
         return changes
 
-    def on_draw(self, event):    #Blitting doesn't seem to work. Won't plot anything. Not clear if it even works faster
+    def on_draw(self, event):  # Blitting doesn't seem to work. Won't plot anything. Not clear if it even works faster
         self.bg = self.fig.canvas.copy_from_bbox(self.fig.bbox)
         self.fig.draw_artist(self.datPsi)
         if self.showPotential:
@@ -364,9 +421,8 @@ class QuantumAnimation:              # inches
         if self.showMomentum:
             self.fig.draw_artist(self.datMom)
 
-
     def manualUpdate(self):
-        if self.frame == self.frames: return
+        if self.frame == self.frames or self.isOver: return
         t0 = time.time()
 
         """self.fig.canvas.restore_region(self.bg)
@@ -387,8 +443,9 @@ class QuantumAnimation:              # inches
         self.fig.canvas.draw()
 
         self.frame += 1
-        #plt.pause(0.001)
-        if self.debugTime: print("+ Ploting took:  {:12.8f}".format(time.time()-t0), " (s),   FPS = ", 1./(time.time()-t0))
+        # plt.pause(0.001)
+        if self.debugTime: print("+ Ploting took:  {:12.8f}".format(time.time() - t0), " (s),   FPS = ",
+                                 1. / (time.time() - t0))
 
     def resetSystem(self, QSystem):
         self.QSystem = QSystem
@@ -397,61 +454,69 @@ class QuantumAnimation:              # inches
         self.reset_plot()
 
     def saveAnimation(self, outputName, type="gif"):
+        # Depends on current directory
+        from pathlib import Path
+        #cwd = Path.cwd()   # Depends on how main.py is run. If run from terminal
+                           # path will be main.py folder. PyCharm by default
+                           # sets current working directory to Project Folder
+        mainDir = Path(__file__).parent.parent       # main.py directory path (parent of parent of animate.py)
+
+
+        relPath = "./Resultats/{}".format(outputName)
         if type == "gif":
-            writergif = matplotlib.animation.PillowWriter(fps=int(1/self.dtAnim))
-            self.animation.save("./{}.gif".format(outputName), writer=writergif)
+            relPath += ".gif"
+            absPath = (mainDir / relPath).resolve()
+            writergif = matplotlib.animation.PillowWriter(fps=int(1 / self.dtAnim))
+            self.animation.save(absPath, writer=writergif)
+            #self.animation.save('./Resultats/{}.gif'.format(outputName), writer=writergif)
         elif type == "mp4":
-            FFwriter = animation.FFMpegWriter(fps=int(1/self.dtAnim))
-            self.animation.save('./{}.mp4'.format(outputName), writer=FFwriter)
+            relPath += ".mp4"
+            absPath = (mainDir / relPath).resolve()
+            FFwriter = animation.FFMpegWriter(fps=int(1 / self.dtAnim))
+            self.animation.save(absPath, writer=FFwriter)
         else:
             print("Output format not supported")
 
 
-
-
-
-
 def lineRedraw(fig, ax, line, datax, datay, frame):
-    #It is assumed there is a point of data for each frame
+    # It is assumed there is a point of data for each frame
     line.set_data(datax, datay)
     scale = False
     if datax[frame] > ax.get_xlim()[1]:
         ax.set_xlim(ax.get_xlim()[0], 2 * ax.get_xlim()[1])
         scale = True
     if datay[frame] < ax.get_ylim()[0]:
-        ax.set_ylim(datay[frame] - (ax.get_ylim()[1]-ax.get_ylim()[0])*0.05, ax.get_ylim()[1])
+        ax.set_ylim(datay[frame] - (ax.get_ylim()[1] - ax.get_ylim()[0]) * 0.05, ax.get_ylim()[1])
         scale = True
     if datay[frame] > ax.get_ylim()[1]:
-        ax.set_ylim(ax.get_ylim()[0], datay[frame] + (ax.get_ylim()[1]-ax.get_ylim()[0])*0.05)
+        ax.set_ylim(ax.get_ylim()[0], datay[frame] + (ax.get_ylim()[1] - ax.get_ylim()[0]) * 0.05)
         scale = True
     if scale:
         fig.canvas.draw()
 
 
-#!!!!! WE REDRAW THE STUPID CANVAS MULTIPLE TIMES!!!!
-
-
+# !!!!! WE REDRAW THE STUPID CANVAS MULTIPLE TIMES!!!!
 
 
 if __name__ == "__main__":
     """ SIMPLEST GAME CODE
     #SIMPLEST PLOT. Marginally faster than general one at same conditions
     fig = plt.figure()
-    
+
     potentialMat = np.ndarray((Nx+1, Ny+1), dtype=np.float64)
-    
+
     mathPhysics.set2DMatrix(testSystem.X, testSystem.Y,
                             testSystem.potential, potentialMat,
                             t=testSystem.t, extra_param=testSystem.extra_param)
     testSystem.modSquared()
-    
+
     plt.xlabel("x")
     plt.ylabel("y")
     im1 = plt.imshow(testSystem.psiMod.T, origin='lower', extent=(testSystem.x0, testSystem.xf, testSystem.y0, testSystem.yf),
                aspect='equal', cmap="viridis", interpolation=None, animated=True)
     im2 = plt.imshow(potentialMat.T, origin='lower', extent=(testSystem.x0, testSystem.xf, testSystem.y0, testSystem.yf),
                aspect='equal', cmap='gist_heat', alpha=0.3, interpolation=None, animated=False)
-    
+
     plt.tight_layout()
     dt = 0.01
     # Updating data
@@ -464,23 +529,23 @@ if __name__ == "__main__":
         t0 = time.time()
         for _ in range(int(0.04/dt)):
             testSystem.evolveStep(dt)
-    
-    
+
+
         testSystem.modSquared()
         im1.set_data(testSystem.psiMod.T)
-    
+
         mathPhysics.set2DMatrix(testSystem.X, testSystem.Y,
                                 testSystem.potential, potentialMat,
                                 t=testSystem.t, extra_param=testSystem.extra_param)
         im2.set_data(potentialMat.T)
-    
+
         return (im1, im2)
-    
-    
+
+
     ani = FuncAnimation(fig, update, interval=1, blit=True)
     #writergif = matplotlib.animation.PillowWriter(fps=25) #fps=25
     #ani.save("falling.gif", writer=writergif)
-    
+
     t0 = time.time()
     plt.show()
     print(counter/(time.time()-t0), " (FPS)")
