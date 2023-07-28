@@ -7,8 +7,20 @@
             pos: self.pos
             size: self.size
 
+<PlayButton>:
+    Image:
+        source: 'images/play.png'
+        center_x: self.parent.center_x
+        center_y: self.parent.center_y
+
 <DataInput>:
     multiline: False
+    on_text: self.update_padding() if self.centered else None
+    padding: [(self.width - self.text_width) / 2,self.height/2-18] if self.centered else [6,self.height/2-18]
+
+<CustomDataSlider>:
+    #size: root.width, root.height
+
 
 <FunctionInput>:
     #multiline: False
@@ -20,8 +32,21 @@
 
 <BoolCheckBox>:
     size_hint: None, None
-    color: [0., 1., 0., 1.]  # Blue Checkmark
+    color: [0., 1., 0., 1.]  # Green Checkmark
     size: 35, 35
+
+<Checkbox>
+    canvas.before:
+        Color:
+            rgb: .8,0.8,0.8
+        Rectangle:
+            pos:self.center_x-16, self.center_y-16
+            size:[32,32]
+        #Color:
+        #    rgb: 1,1,1
+        #Rectangle:
+        #    pos:self.center_x-14, self.center_y-14
+        #    size:[28,28]
 
 <PlotPopup>:
     title: ""
@@ -47,6 +72,64 @@
             row_default_height: 100
             id: states
 
+<SavedEigenstatesPopup>:
+    auto_dismiss: True
+    title: "Estats pròpis guardats"
+    size_hint: 0.75, 0.75
+    BoxLayout:
+        orientation: "vertical"
+        GridLayout:
+            size_hint_y: None
+            height: 100
+            cols: 3
+            GridLayout:
+                cols: 2
+                Label:
+                    halign: "center"
+                    text: "tol\n| H|p>/E - |p> | < tol"
+                DataInput:
+                    id: tol
+                    holder: root
+                    attribute: "tol"
+                    condition: "positive"
+                    scientific: True
+            GridLayout:
+                size_hint_x: 0.7
+                cols:2
+                Label:
+                    halign: "center"
+                    text: "max\niteracions"
+                DataInput:
+                    size_hint_x: 0.4
+                    id: maxIter
+                    holder: root
+                    attribute: "maxiter"
+                    condition: "positive"
+            Button:
+                size_hint_x: 0.6
+                text: "Busca següent\nEigenstat"
+                on_release:
+                    root.eigenFind()
+                    #root.window.QSystem.approximateEigenstate(tol=root.tol,maxiter=root.maxiter, callback=root.callback)
+                    #root.window.animation.manualUpdate(onlyDraw=True)
+                    #root.dismiss()
+        ProgressBar:
+            id: progress
+            size_hint_y: None
+            height: 25
+
+        ScrollView:
+            #do_scroll_x: False
+            #do_scroll_y: True
+            GridLayout:
+                cols: 5
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 10
+                #row_force_default: True
+                row_default_height: 100
+                id: states
+
 <GlobalVariable>:
     #size_hint: 1, 1
 
@@ -55,6 +138,10 @@
     size_hint_x: 0.8
     size_hint_y: 0.8
     title: "Paràmetres/Variables : Nom - Valor"
+
+<Label>:
+    #markup: True
+
 
 <ColoredLabel>:
     canvas.before:
@@ -151,7 +238,7 @@
             cols:2
             Label:
                 size_hint_x:0.7
-                text: "Funcions poden dependre de x, y, t. Es pot fer servir radi r\nEs poden incloure var. glob amb {nomVar}\nEs poden fer ifs amb heavyside(x, valor_a_x0), suaus amb hssuau(x,k)"
+                text: "Funcions poden dependre de x, y, t. Es pot fer servir radi r\nPotències amb **, no ^. Es poden incloure var. glob amb {nomVar}\nEs poden fer ifs suaus amb heaviside(x,k), k més gran vol dir menys suau\nA parts: F1 if COND1 else (F2 if COND2 else (... (Fn if CONDn else F)...)"
             Button:
                 size_hint_x:0.3
                 text: "Variables\nGlobals"
@@ -170,24 +257,25 @@
                 Button:
                     text: "Aplica canvi"
                     on_release:
-                        root.ids.potential.on_text_validate()
-                        root.window.QSystem.potential = root.window.potential
-                        root.window.animation.reset_plot()
+                        root.setPotential()
+#                        if(root.ids.potential.on_text_validate()==0):
+#                            root.window.QSystem.potential = root.window.potential
+#                            root.window.animation.reset_plot()
                 Button:
                     text: "Previsualitza"
                     on_release:
-                        copy = root.window.potential
-                        copyDef = root.window.potentialDef
-
-                        root.ids.potential.on_text_validate()
-
-                        root.window.QSystem.setPotential(root.window.potential)
-
-                        root.window.potential = copy
-                        root.window.potentialDef = copyDef
-
-                        root.window.tempState["psi"] = root.window.QSystem.psiMod
-                        Factory.PlotPopup(root.window.tempState).open()
+                        root.previewPotential()
+#                        copy = root.window.potential
+#                        copyDef = root.window.potentialDef
+#
+#                        if(root.ids.potential.on_text_validate()==0):
+#                            root.window.QSystem.setPotential(root.window.potential)
+#
+#                            root.window.potential = copy
+#                            root.window.potentialDef = copyDef
+#
+#                            root.window.tempState["psi"] = root.window.QSystem.psiMod
+#                            Factory.PlotPopup(root.window.tempState).open()
 
             FunctionInput:
                 id: potential
@@ -206,25 +294,26 @@
                 Button:
                     text: "Aplica canvi"
                     on_release:
-                        root.ids.initState.on_text_validate()
-                        root.window.QSystem.setState(root.window.initState)
-                        root.window.animation.reset_plot()
+                        root.setInitState()
+#                        if(root.ids.initState.on_text_validate()==0):
+#                            root.window.QSystem.setState(root.window.initState)
+#                            root.window.animation.reset_plot()
 
-                Button:
+                Button:             # SOMEWHAT DUPLICATE CODE WITH POTENTIAL
                     text: "Previsualitza"
                     on_release:
-                        copy = root.window.initState
-                        copyDef = root.window.initStateDef
-
-                        root.ids.initState.on_text_validate()
-
-                        root.window.QSystem.setTempState(root.window.initState)
-
-                        root.window.initState = copy
-                        root.window.initStateDef = copyDef
-
-                        root.window.tempState["psi"] = root.window.QSystem.psiCopy
-                        Factory.PlotPopup(root.window.tempState).open()
+                        root.previewInitState()
+#                        copy = root.window.initState
+#                        copyDef = root.window.initStateDef
+#
+#                        if(root.ids.initState.on_text_validate()==0):
+#                            root.window.QSystem.setTempState(root.window.initState)
+#
+#                            root.window.initState = copy
+#                            root.window.initStateDef = copyDef
+#
+#                            root.window.tempState["psi"] = root.window.QSystem.psiCopy
+#                            Factory.PlotPopup(root.window.tempState).open()
 
             FunctionInput:
                 id: initState
@@ -362,9 +451,17 @@
                     app.root.current = "examples"
 
         BoxLayout:
+            orientation: "horizontal"
             size_hint_y: 0.1
             Label:
                 text: "Joan Ainaud Fondevila"
+            BoxLayout:
+                size_hint_x: 0.3
+                Label:
+                    text: "Gràfics Ràpids?\n(pot haver glitch visual)"
+                FastGraphicsCheckbox:
+                    active: True
+
 
 <SandboxScreen>
     name: "sandbox"
@@ -377,8 +474,6 @@
                 id: plot
                 size_hint: 1, 0.8
                 padding:25
-                #Label:
-                #    text: "Hello"
 
 
             BoxLayout:
@@ -388,27 +483,68 @@
 
                 padding: 10
                 spacing: 20
-                Button:
-                    #size_hint_y: None
-                    id: settingsButton
-                    text: "Paràmetres"
-                    on_release:
-                        root.stopPlaying()
-                        Factory.ParametersPopup(root).open()
-                        #print(root.dropdown.attach_to.text) #It is indeed linked?
-
-                        #print(root.dropdown.ids)
                 GridLayout:
-                    rows:2
+                    rows: 3
                     Button:
                         id: renorm
                         text: "Renormalitza"
-                    ToggleButton:
-                        id: showclassical
-                        text: "Partícula clàssica"
-                        state: 'down' if root.animation.drawClassical else 'normal'
-                        on_press:
-                            root.animation.reset_plot(drawClassical=not root.animation.drawClassical)
+                    Button:
+                        id: resetButton
+                        text: "Neteja/Reset"
+                        on_release:
+                            root.animation.reset_lists()
+                            root.animation.frame=0
+                            root.animation.reset_plot(forceRecreate=True)
+                    Button:
+                        #size_hint_y: None
+                        id: settingsButton
+                        text: "Paràmetres"
+                        on_release:
+                            root.stopPlaying()
+                            Factory.ParametersPopup(root).open()
+                            #print(root.dropdown.attach_to.text) #It is indeed linked?
+
+                            #print(root.dropdown.ids)
+                GridLayout:
+                    rows:3
+                    Button:
+                        id: eigen
+                        text: "Eigenstates"
+                        on_release:
+                            root.stopPlaying()
+                            Factory.SavedEigenstatesPopup(root).open()
+                            #root.QSystem.approximateEigenstate()
+                            #root.animation.manualUpdate(onlyDraw=True)
+                    GridLayout:
+                        cols: 2
+                        ToggleButton:
+                            id: showclassical
+                            text: "Part. Clàssica"
+                            state: 'down' if root.animation.drawClassical else 'normal'
+                            on_press:
+                                root.animation.reset_plot(drawClassical=not root.animation.drawClassical)
+                        ToggleButton:
+                            size_hint_x: 0.2
+                            id: showclassicaltrace
+                            text: "--"
+                            state: 'down' if root.animation.drawClassicalTrace else 'normal'
+                            on_press:
+                                root.animation.reset_plot(drawClassicalTrace=not root.animation.drawClassicalTrace)
+                    GridLayout:
+                        cols: 2
+                        ToggleButton:
+                            id: showexpected
+                            text: "Pos. esperada"
+                            state: 'down' if root.animation.drawExpected else 'normal'
+                            on_press:
+                                root.animation.reset_plot(drawExpected=not root.animation.drawExpected)
+                        ToggleButton:
+                            size_hint_x: 0.2
+                            id: showexpectedtrace
+                            text: "--"
+                            state: 'down' if root.animation.drawExpectedTrace else 'normal'
+                            on_press:
+                                root.animation.reset_plot(drawExpectedTrace=not root.animation.drawExpectedTrace)
 
                 GridLayout:
                     rows: 3
@@ -436,11 +572,13 @@
                         #print(root.dropdown.attach_to.text) #It is indeed linked?
 
                         #print(root.dropdown.ids)
-                Button:
+                PlayButton:
                     id: pausePlay
-                    text: "Play/Pause"
+                    #text: "Play/Pause"
+                    state: 'normal' if root.paused else 'down'
                     on_press:
                         root.startPlaying() if root.paused else root.stopPlaying()
+
                 Button:
                     text: "Retorna al\nmenu d'inici"
                     on_release:
@@ -452,15 +590,15 @@
 
         BoolCheckBox:
             active: True
-            pos_hint: {'right': 0.975, 'y': 0.85}
+            pos_hint: {'right': 1, 'y': 0.85}
             on_active: root.animation.reset_plot(showEnergy=self.active)
         BoolCheckBox:
             active: True
-            pos_hint: {'right': 0.975, 'y': 0.60}
+            pos_hint: {'right': 1, 'y': 0.60}
             on_active: root.animation.reset_plot(showNorm=self.active)
         BoolCheckBox:
             active: True
-            pos_hint: {'right': 0.975, 'y': 0.35}
+            pos_hint: {'right': 1, 'y': 0.35}
             on_active: root.animation.reset_plot(showMomentum=self.active)
 
 
