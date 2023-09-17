@@ -1,15 +1,52 @@
 #:import Factory kivy.factory.Factory
 
-<ClassicalParticle>:
-    size: 25, 25
-    canvas:
-        Ellipse:
-            pos: self.pos
-            size: self.size
+<GameCoin>:
+    size_hint: None, None
+    size: 75, 75
+    Image:
+        id: image
+        source: 'images/coinanimated.gif'
+        center_x: self.parent.center_x
+        center_y: self.parent.center_y
+
+# We ended up drawing particles directly in matplotlib. Through kivy would be like this for example
+#<ClassicalParticle>:
+#    size: 25, 25
+#    canvas:
+#        Ellipse:
+#            pos: self.pos
+#            size: self.size
 
 <PlayButton>:
     Image:
         source: 'images/play.png'
+        center_x: self.parent.center_x
+        center_y: self.parent.center_y
+
+<ReturnButton>:
+    Image:
+        source: 'images/return.png'
+        center_x: self.parent.center_x
+        center_y: self.parent.center_y
+
+<SettingsButton>:
+    Image:
+        source: 'images/settings.png'
+        center_x: self.parent.center_x
+        center_y: self.parent.center_y
+
+<InfoButton>:
+    Image:
+        source: 'images/info.png'
+        center_x: self.parent.center_x
+        center_y: self.parent.center_y
+
+
+
+
+<SaveButton>:
+    Image:
+        source: 'images/save.png'
         center_x: self.parent.center_x
         center_y: self.parent.center_y
 
@@ -20,6 +57,22 @@
 
 <CustomDataSlider>:
     #size: root.width, root.height
+
+<ColoredGridLayout>:
+    canvas.before:
+        Color:
+            rgba: (240/255, 240/255, 240/255, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<ColoredBoxLayout>:
+    canvas.before:
+        Color:
+            rgba: (240/255, 240/255, 240/255, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
 
 
 <FunctionInput>:
@@ -222,7 +275,7 @@
 
 <ParametersPopup>:
 # PROBLEM WITH POPUPS: Data gets reset after opening and closing?
-    auto_dismiss: True
+    auto_dismiss: True # default should be true regardless
     size_hint_y: 0.9
     size_hint_x: 0.9
     title: "Configuració"#: ENTER per efectuar canvis"
@@ -473,7 +526,7 @@
             BoxLayout:
                 id: plot
                 size_hint: 1, 0.8
-                padding:25
+                padding:5
 
 
             BoxLayout:
@@ -483,8 +536,18 @@
 
                 padding: 10
                 spacing: 20
+                SettingsButton:
+                    #size_hint_y: None
+                    id: settingsButton
+                    #text: "Paràmetres"
+                    on_release:
+                        root.stopPlaying()
+                        Factory.ParametersPopup(root).open()
+                        #print(root.dropdown.attach_to.text) #It is indeed linked?
+
+                        #print(root.dropdown.ids)
                 GridLayout:
-                    rows: 3
+                    rows: 2
                     Button:
                         id: renorm
                         text: "Renormalitza"
@@ -495,16 +558,7 @@
                             root.animation.reset_lists()
                             root.animation.frame=0
                             root.animation.reset_plot(forceRecreate=True)
-                    Button:
-                        #size_hint_y: None
-                        id: settingsButton
-                        text: "Paràmetres"
-                        on_release:
-                            root.stopPlaying()
-                            Factory.ParametersPopup(root).open()
-                            #print(root.dropdown.attach_to.text) #It is indeed linked?
 
-                            #print(root.dropdown.ids)
                 GridLayout:
                     rows:3
                     Button:
@@ -562,25 +616,27 @@
                         text :"Estats Guardats"
                         on_release:
                             Factory.SavedStatesPopup(root).open()
+                GridLayout:
+                    rows: 2
 
-                Button:
-                    id: saveGif
-                    text: "Guarda animació"
-                    on_release:
-                        root.stopPlaying()
-                        Factory.SaveGifPopup(root).open()
-                        #print(root.dropdown.attach_to.text) #It is indeed linked?
+                    PlayButton:
+                        id: pausePlay
+                        #text: "Play/Pause"
+                        state: 'normal' if root.paused else 'down'
+                        on_press:
+                            root.startPlaying() if root.paused else root.stopPlaying()
+                    SaveButton:
+                        id: saveGif
+                        #text: "Guarda animació"
+                        on_release:
+                            root.stopPlaying()
+                            Factory.SaveGifPopup(root).open()
+                            #print(root.dropdown.attach_to.text) #It is indeed linked?
 
-                        #print(root.dropdown.ids)
-                PlayButton:
-                    id: pausePlay
-                    #text: "Play/Pause"
-                    state: 'normal' if root.paused else 'down'
-                    on_press:
-                        root.startPlaying() if root.paused else root.stopPlaying()
+                            #print(root.dropdown.ids)
 
-                Button:
-                    text: "Retorna al\nmenu d'inici"
+                ReturnButton:
+                    #text: "Retorna al\nmenu d'inici"
                     on_release:
                         root.manager.transition.direction = "right"
                         root.stopPlaying()
@@ -619,8 +675,8 @@
         BoxLayout:
             size_hint: 1, 0.15
             orientation: "horizontal"
-            Button:
-                text: "Return to main screen"
+            ReturnButton:
+                #text: "Return to main screen"
                 on_release:
                     root.manager.transition.direction = "right"
                     app.root.current = "main"
@@ -642,8 +698,8 @@
         BoxLayout:
             size_hint: 1, 0.15
             orientation: "horizontal"
-            Button:
-                text: "Return to main screen"
+            ReturnButton:
+                #text: "Return to main screen"
                 on_release:
                     root.manager.transition.direction = "right"
                     app.root.current = "main"

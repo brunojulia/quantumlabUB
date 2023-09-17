@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patheffects as peffects
 if (__name__ == "crankNicolson.animate"):
     import crankNicolson.crankNicolson2D as mathPhysics
-    from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
+    from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg, NavigationToolbar2Kivy
     from matplotlib.backends.backend_agg import FigureCanvasAgg
     from kivy.graphics.texture import Texture
     from kivy.graphics import Rectangle, Color
@@ -52,6 +52,9 @@ if (__name__ == "crankNicolson.animate"):
             texture.blit_buffer(bytes(buf_rgba), colorfmt='rgba', bufferfmt='ubyte')
             self.img_texture = texture
 
+    # Another problem with FigureCanvasKivyAgg: It doesn't get closed properly?
+    # Something is going on that stops them from being Garbage Collected (freed from memory once deleted, not more in use)
+
 else:
     import crankNicolson2D as mathPhysics  # Problems with making it work outside of folder
 import numpy as np
@@ -79,7 +82,8 @@ class QuantumAnimation:  # inches
                  extraCommands=[], extraUpdates=None, isKivy=False, stepsPerFrame=0,
                  debugTime=False, callbackProgress=False, isFocusable=True,
                  drawClassical=False, drawClassicalTrace=False, drawExpected=False, drawExpectedTrace=False,
-                 unit_dist='Å', unit_time='fs', unit_energy='eV', unit_mom=r'$\frac{1}{2}\hbar Å^{-1}$'):
+                 unit_dist='Å', unit_time='fs', unit_energy='eV', unit_mom=r'$\frac{1}{2}\hbar Å^{-1}$',
+                 toolbar=False):
         """
         Declaration of a Quantum Animation
         :param QSystem: Quantum System. The physics happen here, see crankNikolson2D QuantumSystem class.
@@ -174,6 +178,7 @@ class QuantumAnimation:  # inches
             # so we need to implement blitting manually. To do this, we need to keep track of when we update the figure
             # self.drawEvent = self.fig.canvas.mpl_connect('draw_event', self.on_draw) # For Blitting, if it worked?
             # self.bg = self.fig.canvas.copy_from_bbox(self.fig.bbox)
+            if toolbar: self.navigation = NavigationToolbar2Kivy(self.fig.canvas)
 
         # fig.canvas.mpl_disconnect(fig.canvas.manager.key_press_handler_id)
 
@@ -235,7 +240,7 @@ class QuantumAnimation:  # inches
         if drawExpected != None: self.drawExpected = drawExpected
         if drawExpectedTrace != None: self.drawExpectedTrace = drawExpectedTrace
 
-        self.fig.figsize = (self.width, self.height)
+        if not self.isKivy: self.fig.figsize = (self.width, self.height)
         if recreate or forceRecreate:
             extraSubplots = 0
             if self.showEnergy: extraSubplots += 1
@@ -539,7 +544,7 @@ class QuantumAnimation:  # inches
                         changes.append(updated)
 
 
-        if self.debugTime: print("+ Energy/Norm/etc took:  {:12.8f}".format(time.time() - t0), " (s)", end=' <> ')
+        if self.debugTime: print("+ Energy/Norm/anim_data/etc took:  {:12.8f}".format(time.time() - t0), " (s)", end=' <> ')
 
         # Blitting
         return changes
@@ -590,12 +595,13 @@ class QuantumAnimation:  # inches
 
         #self.fig.canvas.flush_events() #??
 
-        self.frame += 1
+        if not onlyDraw: self.frame += 1
         # plt.pause(0.001)
         if self.debugTime: print("+ Ploting took:  {:12.8f}".format(time.time() - t0), " (s),   FPS = ",
                                  1. / (time.time() - t0))
 
     def updatePotentialDraw(self, *args):
+        #t0 = time.time()
         mathPhysics.set2DMatrix(self.QSystem.X, self.QSystem.Y,
                                 self.QSystem.potential, self.potentialMat,
                                 t=self.QSystem.t, extra_param=self.QSystem.extra_param)
@@ -611,12 +617,16 @@ class QuantumAnimation:  # inches
             self.fig.draw_artist(patch)
 
         self.fig.canvas.drawOptimized()
+        #print("Took {:12.8f} s, in FPS: {:12.8f}".format(time.time()-t0, 1./(time.time()-t0)))
 
     def resetSystem(self, QSystem):
         self.QSystem = QSystem
         self.frame = 0
         self.reset_lists()
-        self.reset_plot()
+        self.reset_plot(forceRecreate=True)
+
+    def rescalePsi(self):
+        self.datPsi.set_clim(vmax=np.max(self.datPsi.get_array()), vmin=0.)
 
     def saveAnimation(self, outputName, type="gif"):
         # Depends on current directory

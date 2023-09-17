@@ -1,24 +1,16 @@
-
-import types
-import numpy as np
-import numba
-from numba import jit
-from numba import njit
-import random
-
 """
 Resolució de l'equació de Schrodinger dependent del temps no relativista en 2D:
 - Joan Ainaud Fondevila
 
 Funcionament general:
 La funció d'ona psi(x, y, t) va descrita per arrays numpy  x -> x_i,  y -> y_j
-La evolució va a un pas: S'obté l'array que descriu psi(x, y, t+dt)
-Mètode Crank Nicolson ADI 2 mig passos dt/2, alternant direcció de derivades
+La evolució va a un pas: S'obté l'array que descriu psi(x, y, t+dt) a partir de l'anterior psi(x, y, t)
+Mètode Crank Nicolson ADI: 2 mig passos dt/2, alternant direcció de derivades. Així el cost és lineal
 
 
-Tot fet en Python, optimitzat amb @jit i numpy per anar més ràpid a operacions, sobretot bucles
+Tot fet en Python, optimitzat amb @jit i numpy per anar més ràpid a operacions, sobretot bucles (python en sí és lent)
 
-Es podria mirar de paral·lelitzar (ex. energia):
+Es podria mirar de paral·lelitzar (ex. per càlculs com energia/norma/etc)
 
 Numba global interpreter lock: nogil=True
 Parallelize
@@ -30,6 +22,21 @@ https://numpy.org/doc/stable/user/c-info.python-as-glue.html
 
 Fortran to Python: https://numpy.org/doc/stable/f2py/
 """
+
+# IMPORTS
+import types
+import numpy as np
+import numba
+from numba import jit
+from numba import njit
+import random
+
+
+
+
+###### ####### ######---------------------------------------
+###### UNITATS ######---------------------------------------
+###### ####### ######---------------------------------------
 
 # Problema amb les unitats:
 #  - Per com funcionen funcions un cop fet @jit, les variables globals no s'actualitzen
@@ -43,7 +50,7 @@ M = 1
 # Mass Electron: 9.1093837 × 10-31 kg
 
 # Aquestes unitats són compatibles amb que:
-# Agafant d'energia eV
+# Agafant unit. d'energia eV
 # 1 de distància correspon a 2.76 Å
 # 1 de temps correspon a 0.658 fs
 
@@ -56,9 +63,9 @@ M = 1
 # ELECTRÓ: Si fem servir unitats estàndard:
 #  - distancia (Å),   temps (fs),    energia (eV)
 
-###hred = 0.6582119569  # eV · fs     # A clavsqua esta com 4.136, però crec que això seria per h, no h/2π.
-###M = 0.05685630099 # eV · fs^2 / Å^2  # 9.1093837 × 10-31 kg = 9.1093837 × 10-31 J · s^2 / m^2
-# m = E/c^2
+
+
+
 
 # It's hard to test when is a method better than another
 # Sometimes abs2 is faster: Mod[:,:] = abs2(psi)
@@ -124,6 +131,22 @@ def generateAsDistribution(pdf):
     Ycdf = np.cumsum(pdf[i])
     rand = random.random() * Ycdf[-1]
     j = np.searchsorted(Ycdf, rand, side='left')
+
+    return i, j
+
+def generateAsDiscreteDistribution(pdf):
+    """Given a 2D matrix representing a pdf (doesn't need to be normalized, but IT MUST BE POSITIVE)
+    a random position is chosen following that pdf
+    Due to discretization this is just generating a discrete distribution, the cell.
+    The genereated points are thus discrete. A way to imporove is:
+        - Without interpolation: We have chosen cell. Then now chose random point within cell (uniform)
+        - Interpolating: We have chosen cell, chose point within cell according to interpolation (more probable nearer cells with higher probabilities)"""
+    cumsum = np.cumsum(pdf)
+    rand = random.random() * cumsum[-1]  # if it's normalized, cumsum[-1] = ∫∫pdf = 1
+    ij = np.searchsorted(cumsum, rand, side='left') # Already in numpy. Binary search, fast
+
+    j = ij%len(pdf[0])
+    i = ij//len(pdf[0])
 
     return i, j
 
@@ -252,6 +275,25 @@ def simpson_complex_list2D(dx, dy, psi):
         integral += 2.5 * simpson_complex_list1D(dy, psi[len(psi) - 2])
         integral += 1.5 * simpson_complex_list1D(dy, psi[len(psi) - 1])
 
+    integral = integral * dx / 3
+    return integral
+
+@jit(nopython=True)
+def trapez_complex_list1D(dx, psi):
+    integral = psi[0]/2.
+    for it in range(1, len(psi)-1):
+        integral += psi[it]
+    integral += psi[-1]/2.
+    integral = integral * dx
+    return integral
+
+
+@jit(nopython=True)
+def trapez_complex_list2D(dx, dy, psi):
+    integral = trapez_complex_list1D(dy, psi[0]) / 2.
+    for it in range(1, len(psi) - 1):
+        integral += trapez_complex_list1D(dy, psi[it])
+    integral += trapez_complex_list1D(dy, psi[-1])/2.
     integral = integral * dx / 3
     return integral
 
@@ -425,8 +467,8 @@ def expectedValueOperator2D(X, Y, psi, result, operator = None, t = 0., extra_pa
         return np.trapz(np.trapz(result)) * (X[-1]-X[0])/(len(psi)-1) * (Y[-1]-Y[0])/(len(psi[0])-1) # Must use same sumation as norm()!
         #return simpson_complex_list2D((X[-1]-X[0])/(len(psi)-1), (Y[-1]-Y[0])/(len(psi[0])-1), result)    #dx, dy
     applyOperator2D(X, Y, psi, result, operator, t=t, extra_param=extra_param, doConjugate=doConjugate)
-    if doConjugate: return np.trapz(np.trapz(result)) * (X[-1]-X[0])/(len(psi)-1) * (Y[-1]-Y[0])/(len(psi[0])-1)
-    else: return np.trapz(np.trapz(np.multiply(np.conj(psi),result))) * (X[-1]-X[0])/(len(psi)-1) * (Y[-1]-Y[0])/(len(psi[0])-1)
+    if doConjugate: return np.trapz(np.trapz(result)) * (X[-1]-X[0])/(len(X)-1) * (Y[-1]-Y[0])/(len(Y)-1)
+    else: return np.trapz(np.trapz(np.multiply(np.conj(psi),result))) * (X[-1]-X[0])/(len(X)-1) * (Y[-1]-Y[0])/(len(Y)-1)
     #return simpson_complex_list2D((X[-1]-X[0])/(len(psi)-1), (Y[-1]-Y[0])/(len(psi[0])-1), result)        #dx, dy
 
 
@@ -529,7 +571,7 @@ def totalEnergyOpGenerator(potential, preCalcLaplac):
                 op[it,0] = -hred*hred/(2*M) / dx[it-1]**2
                 op[it,1] = op[it,0]
         else:
-            op[0,0] = +hred*hred/(M)/(dx[dir])**2
+            op[0,0] = +hred*hred/(M)/(dx[dir])**2 + potential(X[0], X[1], t=t, extra_param=extra_param)
             for it in range(1, len(op)):
                 op[it,0] = -hred * hred / (2 * M) / dx[it] ** 2
                 op[it,1] = op[it,0]
@@ -1051,7 +1093,8 @@ class QuantumSystem2D:
         self.psi[:,Ny] = 0.
         self.psi[0,:] = 0.
         self.psi[Nx,:] = 0.
-        self.psi[:,:] = self.psi[:,:]/np.sqrt(self.norm()) # Initial state gets automatically normalized
+        #self.psi[:,:] = self.psi[:,:]/np.sqrt(self.norm()) # Initial state gets automatically normalized
+        self.renorm()
 
         self.potential = potential
         self.op = np.array([[1., 0.], [0., 0.], [0., 0.]])
@@ -1105,7 +1148,7 @@ class QuantumSystem2D:
     def kineticEnergy(self):
         #kineticEnergy(self.op, (self.x0, self.y0), (self.dx, self.dy), onlyUpdate=False)
         #return expectedValueOperator2D(self.X, self.Y, self.psi, self.psiCopy, self.op)
-        return expectedValueOperator2D(self.X, self.Y, self.psi, self.psiCopy, kineticEnergy)
+        return self.expectedValueOp(kineticEnergy)#expectedValueOperator2D(self.X, self.Y, self.psi, self.psiCopy, kineticEnergy) # time and extra_param are irrelevant
 
     def potentialEnergy(self):
         # Possible bottleneck
@@ -1151,23 +1194,24 @@ class QuantumSystem2D:
                 return True
             if callback is not None:
                 callback(it/maxiter)
+        #print(E)
 
         return False
 
 
 
-    def expectedValueOp(self, operator):
+    def expectedValueOp(self, operator, doConjugate=True):
         return expectedValueOperator2D(self.X, self.Y, self.psi, self.psiCopy,
-                                       operator=operator, t=self.t, extra_param=self.extra_param)
+                                       operator=operator, t=self.t, extra_param=self.extra_param, doConjugate=doConjugate)
 
     def expectedValueOpCentral(self, func):
         return abs2MatrixMultipliedExpected(self.X, self.Y, func, self.psi,
                                             t=self.t, extra_param=self.extra_param)
 
-    def expectedValueOpMomentum(self, operator, forceFourier=False):
+    def expectedValueOpMomentum(self, operator, forceFourier=False, doConjugate=True):
         if forceFourier: self.momentumSpace() # Makes sure psiMom is updated
         return expectedValueOperator2D(self.Px, self.Py, self.psiMom, self.psiCopy,
-                                       operator=operator, t=self.t, extra_param=self.extra_param)
+                                       operator=operator, t=self.t, extra_param=self.extra_param, doConjugate=doConjugate)
 
     def expectedValueOpCentralMomentum(self, func, forceFourier=False):
         if forceFourier: self.momentumSpace() # Makes sure psiMom is updated
@@ -1261,16 +1305,17 @@ class QuantumSystem2D:
         We check:  || H|p> - E|p> || ~ 0
         || (H|p>)/E - |p> || < tol
         0 is a trivial eigenstate, but also if || |p> || ~ 0 we can get false positives. |p> is normalized just in case"""
-        E = np.real(expectedValueOperator2D(self.X, self.Y, self.psi, self.psiCopy, self.totalEnergyOp, doConjugate=False))
+        E = np.real(self.expectedValueOp(self.totalEnergyOp, doConjugate=False))#expectedValueOperator2D(self.X, self.Y, self.psi, self.psiCopy, self.totalEnergyOp,
+                    #                        t=self.t, extra_param=self.extra_param, doConjugate=False))
         # After this |psiCopy> = H |psi>
         val = euclidNorm(self.psiCopy/E - self.psi, self.dx, self.dy) / euclidNorm(self.psi, self.dx, self.dy) #normalize
         #print("E =", E, "    || H|p> - E|p> || =",val)
         return (val < tol), E
 
     def substractComponent(self, component):
-        # Psi can be expressed as:
+        # Psi can be expressed in a basis:
         # |Psi> = c1 |c1> + c2 |c2> + ...
-        # We substract here a component:
+        # We substract here a component, valid for any basis where basis vectors are orthogonal to c
         # |Psi> = ... + c |c> + ...
         # |Psi> - <c|Psi> |c> = ... + 0 |c> + ..
 
