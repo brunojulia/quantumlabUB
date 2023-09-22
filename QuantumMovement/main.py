@@ -3,26 +3,37 @@
 #matplotlib.use('module://kivy.garden.matplotlib.backend_kivyagg')
 # Should this be used? Can't save to file then? Better not, implicitly draws figure using agg
 
+import gc
 from functools import partial
 
 import random
+import json
+from pathlib import Path
+mainDir = Path(__file__).parent
 
+from kivy.config import Config
+Config.set('input', 'mouse', 'mouse,multitouch_on_demand') # Red circles appear when right clicking without this???
 import kivy
+import matplotlib.cbook.deprecation
 from kivy.app import App
 from kivy.uix.label import Label
 
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.relativelayout import RelativeLayout
 from kivy.uix.button import Button
 from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.image import Image
 from kivy.uix.widget import Widget
 from kivy.uix.dropdown import DropDown
+from kivy.uix.progressbar import ProgressBar
 from kivy.uix.popup import Popup
 from kivy.uix.checkbox import CheckBox
 from kivy.uix.slider import Slider
 from kivy.core.window import Window
+
+from kivy.animation import Animation
 
 
 from kivy.properties import ObjectProperty
@@ -42,15 +53,16 @@ import crankNicolson.crankNicolson2D as mathPhysics
 from crankNicolson.crankNicolson2D import hred
 import crankNicolson.animate as animate
 import matplotlib.pyplot as plt
-#plt.rcParams.update({'font.size': 12})
+plt.rcParams.update({'font.size': 11})
 import time
 
 ####
 # https://stackoverflow.com/questions/70629758/kivy-how-to-pass-arguments-to-a-widget-class
 #####
 
-#import warnings     # For debugging. Warnings stop the program, and thus also show where they occur
+import warnings     # For debugging. Warnings stop the program, and thus also show where they occur
 #warnings.filterwarnings('error')
+#warnings.filterwarnings('ignore', category=matplotlib.cbook.deprecation.MatplotlibDeprecationWarning)
 
 
 unit_dist = '2 Å'
@@ -61,7 +73,28 @@ unit_mom = r'$\frac{1}{2}\hbar Å^{-1}$'#'1/3 eV·fs/Å'  #'2 eV · 1/3 fs / 2 �
 # ℏ ℏ ℏ ℏ
 
 
+# We could be more general and just define a general button with image,
+# but we use them for just particular cases anyway
+
 class PlayButton(ToggleButton):
+    pass
+
+class SaveButton(Button):
+    pass
+
+class ReturnButton(Button):
+    pass
+
+class SettingsButton(Button):
+    pass
+
+class InfoButton(Button):
+    pass
+
+class ColoredGridLayout(GridLayout):
+    pass
+
+class ColoredBoxLayout(BoxLayout):
     pass
 
 class BoolCheckBox(CheckBox):
@@ -182,6 +215,13 @@ class SavedStatesPopup(Popup):
             grid.add_widget(btnsub)
             grid.add_widget(btndel)
 
+
+    # Like this we can test everything gets correctly garbage collected (eventually)
+    def on_dismiss(self):
+        super(SavedStatesPopup, self).on_dismiss()
+        #gc.collect()
+
+
 class SavedEigenstatesPopup(Popup):
     def __init__(self, window, **kwargs):
         self.window = window
@@ -213,12 +253,13 @@ class SavedEigenstatesPopup(Popup):
             lbl = Label(text="E={:.4e} |{}".format(E, count))#,
             prev = E
 
+            stateCopy = state.copy()
             btnprev = Button(text="Previsualitza",
-                             on_release = lambda x, state=state.copy(): PlotPopup(state).open())
+                             on_release = lambda x, state=stateCopy: PlotPopup(state).open())
             btnchan = Button(text="Canvia\na aquest",
-                             on_release=lambda x, state=state.copy(): self.window.setState(state))
+                             on_release=lambda x, state=stateCopy: self.window.setState(state))
             btnsub = Button(text="Substreu\na l'actual",
-                            on_release=lambda x, state=state.copy(): self.window.substractComponent(state))
+                            on_release=lambda x, state=stateCopy: self.window.substractComponent(state))
 
             # Bad, we are multiplying memory use here... We should not create more copies of states for each button
 
@@ -251,6 +292,7 @@ class SavedEigenstatesPopup(Popup):
     def eigenFind(self):
         self.count = 0
         self.window.QSystem.setState(mathPhysics.func1)
+        self.window.QSystem.renorm()
         def eigenLoop(*args):
             if self.count < self.maxiter:
                 if self.window.QSystem.approximateEigenstate(tol=self.tol, maxiter=5, resetInit=False):
@@ -391,15 +433,6 @@ class DataInput(TextInput):
 
 
 
-"""
-CURRENT PROBLEMS WITH THIS
-
-Slider references on creation. So it's dangerous! For example, by default
-playscreen only has a one dimensional array extra_param
-if we create 2 sliders for the 2 parameters we want to modify this will
-break as the slider will be created before the parameters are loaded. So we will
-try to access extra_param[1] which is invalid
-"""
 class DataSlider(Slider):
     """
     Similar and linked to a DataInput, but user fiendly form of a Slider. Only numeric variables!
@@ -446,10 +479,26 @@ class CustomDataSlider(BoxLayout):
 
     ###### Maybe Clock once???? Need to check, maybe clock_once already inside slider/datainput is enough
     def __init__(self, name = None, attribute = None, index=None, holder = None, orientation="horizontal", min = -1., max = 1.,
-                 isPotential=True, value=None, **kwargs):
+                 isPotential=True, value=None, step=0., variableLimits=True, **kwargs):
         super(CustomDataSlider, self).__init__(orientation=orientation, **kwargs)
 
-        if orientation == "horizontal":
+        self.name = name if name is not None else self.attribute
+        self.orientation = orientation
+        self.attribute = attribute
+        self.orientation = orientation
+        self.variableLimits = variableLimits
+        self.holder = holder
+        self.index = index
+        self.value = value
+        self.min = min
+        self.max=max
+        self.orientation=orientation
+        self.isPotential = isPotential
+        self.step = step
+        Clock.schedule_once(self._finish_init)
+
+    def _finish_init(self, dt):
+        if self.orientation == "horizontal":
             self.size_hint_x = 1
             self.size_hint_y = None
             self.height = 85
@@ -460,31 +509,31 @@ class CustomDataSlider(BoxLayout):
             self.width = 85
             sizeHintSlid = (1, 0.8)
 
+        val = float(getattr(self.holder, self.attribute) if self.index is None else getattr(self.holder, self.attribute)[self.index])
+
         sizeHintText = (0.1, 1) if self.orientation == "horizontal" else (1, 0.1)
-        self.name = name if name is not None else self.attribute
-        self.label = Label(text="[b]" + self.name + "[/b]", size_hint=sizeHintText, markup=True)
+
+        self.label = Label(text="[b]" + self.name + "[/b] = \n{:.2f}".format(val if self.value is None and self.min <= val <= self.max else self.value),
+                           size_hint=sizeHintText, markup=True)
 
         def updateLabel(newVal):
             self.label.text = "[b]" + self.name + "[/b] =\n{:.2f}".format(newVal)
 
-        self.slider = DataSlider(attribute, index, holder, value=max if value is None else value, min=min, max=max, size_hint=sizeHintSlid,
-                                 orientation=orientation, callback=updateLabel, isPotential=isPotential)
-        self.name = name
-        self.attribute = attribute
-        self.orientation = orientation
-        Clock.schedule_once(self._finish_init)
 
-    def _finish_init(self, dt):
+        self.slider = DataSlider(self.attribute, self.index, self.holder, value=val if self.value is None and self.min <= val <= self.max else self.value,
+                                 min=self.min, max=self.max, size_hint=sizeHintSlid,
+                                 orientation=self.orientation, callback=updateLabel, isPotential=self.isPotential, step=self.step)
+
         sizeHintText = (0.1, 1) if self.orientation == "horizontal" else (1, 0.1)
         self.minDat = DataInput(attribute="min", holder=self.slider, condition="lt{0}".format(self.slider.max),
-                                size_hint=sizeHintText, centered=True)
+                                size_hint=sizeHintText, centered=True, disabled=not self.variableLimits)
 
         def updateMin(newMax):
             self.minDat.condition = "lt{0}".format(newMax)
 
 
         self.maxDat = DataInput(attribute="max", holder=self.slider, condition="gt{0}".format(self.slider.min),
-                                size_hint=sizeHintText, centered=True)
+                                size_hint=sizeHintText, centered=True, disabled=not self.variableLimits)
 
         def updateMax(newMin):
             self.maxDat.condition = "gt{0}".format(newMin)
@@ -700,7 +749,8 @@ class SandboxScreen(Screen):
                                                   showPotential=True, updatePotential=True,
                                                   showMomentum=True, showEnergy=True, forceEnergy=True, showNorm=True, forceNorm=True,
                                                   scalePsi=True, scaleMom=True, isKivy=True, drawClassical=True,
-                                                  unit_dist=unit_dist, unit_time=unit_time, unit_energy=unit_energy, unit_mom=unit_mom)
+                                                  unit_dist=unit_dist, unit_time=unit_time, unit_energy=unit_energy, unit_mom=unit_mom,
+                                                  toolbar=True)
 
         self.savedStates = []
 
@@ -710,12 +760,39 @@ class SandboxScreen(Screen):
 
     def _finish_init(self, dt):
         self.plotBox = self.ids.plot
-        self.plotBox.add_widget(self.animation.fig.canvas)
+        box = BoxLayout(orientation="vertical")
+
+        temp = self.animation.fig.canvas._on_size_changed
+        self.animation.fig.canvas._on_size_changed = lambda *args: None#print("????")
+        #box.add_widget(self.animation.navigation.actionbar)
+        nav = self.animation.navigation
+        gridnav = ColoredGridLayout(cols=9, height=75, size_hint_y=None)
+        for i in range(9):
+            kid = nav.actionbar.children[0].children[0]
+            nav.actionbar.children[0].remove_widget(kid)
+            if i > 2: gridnav.add_widget(kid)      # save and settings widget don't do anything anyways
+
+        box.add_widget(gridnav)
+
+        box.add_widget(self.animation.fig.canvas)
+
+        self.plotBox.add_widget(box)
 
         for slider in self.sliders:
             self.plotBox.add_widget(slider)
 
+
+        def reallowResizing(*args):
+            self.animation.fig.canvas._on_size_changed = temp
+        Clock.schedule_once(reallowResizing)
+
         self.ids.renorm.bind(on_release = self.renorm)
+
+        # Some bug appeared. When initializing everything matplotlib breaks because in generating canvas
+        # it gets a 0 width, and divides by 0. We allow resizing canvas later only, to make sure kivy screens are well defined
+
+        #print("yello0")   # This would print actually
+        #Clock.schedule_once(lambda x: print("yello"))   # This not. The error happens in between, drawing is scheduled here
 
         #self.settingsButton.bind(on_release = self.dropdown.open)
 
@@ -731,12 +808,9 @@ class SandboxScreen(Screen):
             , "y0": self.QSystem.y0, "yf": self.QSystem.yf,
          "name": "noname"}
         PlotPopup(state).open()"""
-
-        print("pxMom:",self.QSystem.expectedPx(), ", pxPsi:",self.QSystem.expectedPxPsi())
-        print("pyMom:", self.QSystem.expectedPy(), ", pyPsi:", self.QSystem.expectedPyPsi())
-
-        self.QSystem.momentumSpace()
-        print(mathPhysics.euclidNorm(self.QSystem.psiMom, self.QSystem.Px[1]-self.QSystem.Px[0], self.QSystem.Py[1]-self.QSystem.Py[0]))
+        """mathPhysics.expectedValueOperator2D(self.QSystem.X, self.QSystem.Y, self.QSystem.psi, self.QSystem.psiCopy,
+                                        self.QSystem.totalEnergyOp, t=self.QSystem.t, extra_param=self.QSystem.extra_param, doConjugate=False)
+        print(np.trapz(np.trapz(np.multiply(np.conj(self.QSystem.psi),self.QSystem.psiCopy)))*self.QSystem.dx*self.QSystem.dy)"""
         self.animation.QSystem.renorm()
 
     def saveState(self):
@@ -863,17 +937,31 @@ class PlotPopup(Popup):
                        extent=(self.data["x0"], self.data["xf"], self.data["y0"], self.data["yf"]),
                        aspect = 'equal', cmap = "viridis")
 
-        self.fig.colorbar(datPlot, ax=self.ax, label=self.data.get("unit_col",r'$Å^{-2}$'))
+        self.fig.colorbar(datPlot, ax=self.ax, label=self.data.get("unit_col",r'$(2Å)^{-2}$'))
 
-        self.ax.set_xlabel("x ({})".format(self.data.get("unit_ax",'Å')))
-        self.ax.set_ylabel("y ({})".format(self.data.get("unit_ax", 'Å')))
+        self.ax.set_xlabel("x ({})".format(self.data.get("unit_ax",'2 Å')))
+        self.ax.set_ylabel("y ({})".format(self.data.get("unit_ax", '2 Å')))
 
         self.plotBox.add_widget(self.fig.canvas)
         self.fig.canvas.draw()
+        #print(gc.get_referrers(self.fig.canvas))
 
     def on_dismiss(self):
-        #super().on_dismiss()
+        super(PlotPopup, self).on_dismiss()
         plt.close(self.fig)
+
+        # Attempts to fix memory leak, to no avail
+        self.fig.canvas.disabled = True
+        self.fig.canvas.canvas.clear()
+        self.fig.canvas.clear_widgets()
+        self.plotBox.clear_widgets()
+        """for atr in vars(self.fig.canvas).copy():
+            delattr(self.fig.canvas, atr)"""
+        delattr(self.fig.canvas, "img_texture")
+        delattr(self.fig.canvas, "img_rect")
+
+        self.fig.canvas.fig = None
+        self.fig.canvas = None
 
 
 
@@ -913,7 +1001,7 @@ class ExamplesScreen(Screen):
             return 100 * 1 / (1 + np.exp(-2 * k * (r - 10. / 2 + 9.5 / 2 * (1 - 1. / (1 + 0.2 * t))))) # 0.5 originally
 
 
-        def plotUnc(args):
+        def plotUnc(args, ps):
             grid = BoxLayout(size_hint_x=0.3, size_hint_y=0.4, padding=0, pos_hint={'center_x': .5, 'center_y': .5})
             grid.add_widget(args["canvasFig"])
             return grid
@@ -926,7 +1014,7 @@ class ExamplesScreen(Screen):
             YUncMin = mathPhysics.hred/2 / XUncMin
 
             args["axUnc"].set(xlabel=r'$\sigma_x$ ({})'.format(unit_dist), ylabel=r'$\sigma_{{p_x}}$ ({})'.format(unit_mom),
-                              title='Heisenberg: Relació entre incerteses\n(variàncies $\\sigma_{p_x}$ i $\\sigma_x$)')
+                              title='Relació entre incerteses\n(variàncies $\\sigma_{p_x}$ i $\\sigma_x$)')
             args["axUnc"].plot(XUncMin, YUncMin, 'r--', label=r'$\sigma_x \sigma_{p_x} = \hbar/2$')
             args["axUnc"].grid()
             args["axUnc"].legend()
@@ -941,8 +1029,8 @@ class ExamplesScreen(Screen):
             args["sigmapx"] = []
             #args["sigmapy"] = []
 
-        def extra_update_unc(args):
-            ps = self.manager.get_screen("playscreen")
+        def extra_update_unc(args, ps):
+            #ps = self.manager.get_screen("playscreen")
             varX = ps.QSystem.varX()
             args["sigmax"].append(varX)
             varPx = ps.QSystem.varPx()
@@ -987,9 +1075,9 @@ class ExamplesScreen(Screen):
             r = np.sqrt(x * x + y * y)
             return 100 * heaviside(r-extra_param[0], 1.)
 
-        def plotUncManual(args):
+        def plotUncManual(args, ps):
             box = BoxLayout(orientation='horizontal', size_hint_x=0.3)
-            box.add_widget(plotUnc(args))
+            box.add_widget(plotUnc(args, ps))
             box.add_widget(CustomDataSlider(name="R", attribute="extra_param", index=0, holder=self.manager.get_screen("playscreen"),
                                                      orientation="vertical", min=0., max=10., value=5.))
             return box
@@ -1012,24 +1100,110 @@ class ExamplesScreen(Screen):
 
         # ----------- ----------- ----------- ----------- -----------
         # EHRENFEST 2. HARMONIC OSCILLATOR
-        definition = {"initState": mathPhysics.gaussian2D(0., 1., -3.,
-                                                          3., 1., 0.),
+        definition = {"initState": mathPhysics.gaussian2D(0., 0.6, -3.,
+                                                          3., 0.6, 0.),
                       "potential": mathPhysics.potentialHarmonic,
                       "extra_param": np.array([2.]),
-                      "dtSim": 0.005, "scalePot":False,
+                      "dtSim": 0.005, "scalePot":False, "Nx": 300, "Ny": 300,   # dtSim: 0.00390625  2**(-8)
                       "drawClassical":True, "drawClassicalTrace":True, "drawExpected":True, "drawExpectedTrace":True,
                       "plotWidget": CustomDataSlider(name="k", attribute="extra_param", index=0, holder=self.manager.get_screen("playscreen"),
-                                                     orientation="vertical", min=1., max=2.)}
+                                                     orientation="vertical", min=1., max=2., value=2.)}
         self.ids.exampselect.add_widget(
             Button(text="Oscil·lador Harmònic", on_release=partial(self.switch, definition=definition)))
 
         # ----------- ----------- ----------- ----------- -----------
+
+        # ----------- ----------- ----------- ----------- -----------
+        # Double Slit
+
+        def extraUpdateClimSlit(instance):                              # We want to clearly see what propagates
+            if instance.QSystem.t > 6./4.:
+                instance.datPsi.set_clim(vmax=np.max(instance.QSystem.psiMod[int(10./instance.QSystem.dx):].T), vmin=0.)
+
+        @jit
+        def slit(x, n, width, dist):
+            return x <= n/2*width + dist*(n-1)/2 and (x-width/2*(n%2)+dist/2*((n+1)%2))/(dist+width) % 1 >= dist/(dist+width)
+
+        #----[ ]--[ ]--[ ]----
+        #------[ ]---[ ]------
+
+        @jit
+        def potentialDoubleSlit(x, y, t, extra_param):
+            # extra_param: [nSlits, slitWidth, slitSeparation, wallWidth]
+            return 100. if (abs(x)<extra_param[3]/2 and not slit(abs(y), extra_param[0], extra_param[1], extra_param[2]))\
+                   else 0.
+
+        def slidersSlit(*args):
+            box = BoxLayout(orientation='horizontal', width=85*3, size_hint_x=None)
+            box.add_widget(CustomDataSlider(name="n", attribute="extra_param", index=0, holder=self.manager.get_screen("playscreen"),
+                             orientation="vertical", min=1, max=10, step=1, value=None))
+            box.add_widget(CustomDataSlider(name="w", attribute="extra_param", index=1,
+                                            holder=self.manager.get_screen("playscreen"),
+                                            orientation="vertical", min=0., max=3., value=None))
+            box.add_widget(CustomDataSlider(name="d", attribute="extra_param", index=2,
+                                            holder=self.manager.get_screen("playscreen"),
+                                            orientation="vertical", min=0., max=3., value=None))
+            return box
+
+
+        definition = {"initState": mathPhysics.gaussian2D(-6., 1.5, 4.,
+                                                          0., 1.5, 0.),
+                      "potential": potentialDoubleSlit, "extraUpdates": [extraUpdateClimSlit],
+                      "extra_param": np.array([2, 1, 1, 0.5]), "x0": -12., "xf": 18, "Nx": 300, "Ny":300, "y0":-15, "yf": 15,
+                      "dtSim": 0.00625*0 + 2**(-7), "scalePot": False, "updatePotential": True,
+                      "drawClassical": False, "drawExpected": False,
+                      "showMomentum": False, "showEnergy": False, "showNorm": False, "duration": 5., "plotWidget": slidersSlit}
+        self.ids.exampselect.add_widget(
+            Button(text="Doble Escletxa", on_release=partial(self.switch, definition=definition)))
 
     def switch(self, *args, definition=None, setExtraArgs=None):
         self.manager.get_screen("playscreen").set_self(definition, setExtraArgs=setExtraArgs)
         self.manager.transition.direction = "left"
         self.manager.current = "playscreen"
         self.manager.get_screen("playscreen").sourceScreen = "examples"
+
+
+
+
+
+
+class GameCoin(Widget):
+    def __init__(self, callbackClick = None, callbackMiss = None, callbackEnd = None, duration=2.5, **kwargs):
+        super(GameCoin, self).__init__(width=50, height=50, **kwargs)
+        self.cbClick = callbackClick
+        self.cbMiss = callbackMiss
+        self.cbEnd = callbackEnd
+        self.duration = duration
+        self.clicked = False
+        Clock.schedule_once(self._finish_init)
+
+    def _finish_init(self, *args):
+        # We pick a transition, t, that makes the change start slow and then ramp up
+        # Coin starts normal, then disappears after some time
+        def complete(*args):
+            if self.parent is not None: self.parent.remove_widget(self)
+            if self.cbMiss is not None: self.cbMiss()
+            if self.cbEnd is not None: self.cbEnd()
+        self.anim = Animation(opacity=0, duration=self.duration, t="in_quint")
+        self.anim.bind(on_complete=complete)
+        self.anim.start(self.ids.image)
+
+    def on_touch_down(self, touch):
+        if self.collide_point(*touch.pos) and not self.clicked:
+            self.clicked = True
+            if self.cbClick is not None: self.cbClick()
+            self.anim.cancel(self.ids.image)
+            self.ids.image.opacity = 1
+
+            def complete(*args):
+                if self.parent is not None: self.parent.remove_widget(self)
+                if self.cbEnd is not None: self.cbEnd()
+            #little jump
+            self.anim = Animation(pos_hint={"center_x":1.2}, duration=0.6)# + Animation(duration=0.2)
+            self.anim.bind(on_complete=complete)
+            self.anim.start(self)
+        return super(GameCoin, self).on_touch_down(touch)
+
 
 class GamesScreen(Screen):
     def __init__(self, **kwargs):
@@ -1056,10 +1230,10 @@ class GamesScreen(Screen):
             res = 1 / 2. * extra_param[5] * ((x - extra_param[2]) ** 2 + (y - extra_param[3]) ** 2)
             if res > extra_param[6]: return extra_param[6]
             return res
-        inicial2D = mathPhysics.eigenvectorHarmonic2DGenerator(0., 2, 0., 2, kHarm)
-        QSystem = mathPhysics.QuantumSystem2D(initState=inicial2D,
+        inicial2D = mathPhysics.eigenvectorHarmonic2DGenerator(0., 1, 0., 1, kHarm) # 2 2
+        """QSystem = mathPhysics.QuantumSystem2D(initState=inicial2D,
                                               potential=potentialHarmonicWellMoving,
-                                              extra_param=extra_param)
+                                              extra_param=extra_param)"""
         """def moveHarmonicWellKeyboard(event):
             if event.key == 'up' or 'down' or 'left' or 'right':
                 t = QSystem.t
@@ -1083,19 +1257,41 @@ class GamesScreen(Screen):
         global firstDraw; firstDraw = True
         global drawnCircle; drawnCircle = None"""
 
+        # Leaderboard stuff (json file)  # lazily copied from: https://stackoverflow.com/a/12309296
+        def json_load_file(json_file):
+            with open(json_file) as json_file:
+                json_data = json.load(json_file)
+                return json_data
+
+        def json_dump_to_file(json_file, json_dict):
+            with open(json_file, 'w') as outfile:
+                json.dump(json_dict, outfile, indent=4)
+
+        class LeaderboardInput(TextInput):
+            # Only 4 characters, and upper leter
+            def insert_text(self, substring, from_undo=False):
+                s = substring.upper()[:4-len(self.text)]
+                return super().insert_text(s, from_undo=from_undo)
+
         def setMoveGame(args):
             ps = self.manager.get_screen("playscreen")
             args["kHarm"] = 8.
             args["height"] = 100.
-            np.copyto(extra_param, np.array([0., 0., 0., 0., 0., kHarm, height]))
+            np.copyto(extra_param, np.array([0., 0., 0., 0., 0., args["kHarm"], height]))
             args["goalRadius"] = 2.
-            args["score"]=0
-            args["lives"]=3
+            args["score"] = 0
+            args["health"] = 3
+            args["coins"] = 0
+            args["newCoin"]=True # New coin can be scheduled to be created
             args["goalX"] = ps.QSystem.x0 + args["goalRadius"] + random.random() * (ps.QSystem.xf - ps.QSystem.x0 - 2 * args["goalRadius"])
             args["goalY"] = ps.QSystem.y0 + args["goalRadius"] + random.random() * (ps.QSystem.yf - ps.QSystem.y0 - 2 * args["goalRadius"])
             args["goalCircle"] = plt.Circle((args["goalX"], args["goalY"]), args["goalRadius"], alpha=0.2, color='black')
             args["firstDraw"] = True
             args["drawnCircle"] = None
+            args["gameOver"] = False
+
+            args["lbDir"] = (mainDir / "./leaderboard.json").resolve()
+            args["leaderboard"] = json_load_file(args["lbDir"])
 
         ##### Three ideas for movement:
         #   - Soft movement. We change "speed" with keyboard
@@ -1121,37 +1317,101 @@ class GamesScreen(Screen):
             return True
 
 
-
-        def drawCircle(instance=None):
+        def drawCircle(instance=None):  #Game Logic. Done in matplotlib directly (to be able to draw circles there),
+                                        # which makes it a bit more of a mess than it needs to be, but it's the same
             ps = self.manager.get_screen("playscreen")
+
+            ps.extraArgs["progress"].value = (instance.frame%(6/0.04)) / (6/0.04) * 100
+            if ps.extraArgs["energyButton"].disabled:
+                fig = ps.extraArgs["energyGraph"]
+
+                # Redraw background. If not, bars don't get deleted when enregy goes down
+                for patch in ps.extraArgs["energyAx"].patches:
+                    if patch != ps.extraArgs["energyK"][0] and patch != ps.extraArgs["energyV"][0]: fig.draw_artist(patch)
+
+                EKinetic = np.real(ps.QSystem.kineticEnergy())
+                for bar in ps.extraArgs["energyK"]:
+                    bar.set_height(np.real(ps.QSystem.kineticEnergy()))
+                    fig.draw_artist(bar)
+                for bar in ps.extraArgs["energyV"]:
+                    bar.set_height(np.real(ps.QSystem.potentialEnergy()))
+                    bar.set_y(EKinetic)
+                    fig.draw_artist(bar)
+
+                fig.canvas.drawOptimized()
+
             if ps.extraArgs["firstDraw"]:
                 instance.drawnCircle = instance.axPsi.add_patch(ps.extraArgs["goalCircle"])
                 ps.extraArgs["firstDraw"] = False
                 instance.observedParticle = None
+                ps.playButton.disabled = True # Pausing can cause cheating. L
             elif instance.frame%(6/0.04)==0: # Every 6 seconds
                 instance.QSystem.modSquared()
-                i, j = mathPhysics.generateAsDistribution(instance.QSystem.psiMod)
+                i, j = mathPhysics.generateAsDiscreteDistribution(instance.QSystem.psiMod)
                 x, y = instance.QSystem.X[i], instance.QSystem.X[j]
 
-                instance.observedParticle = instance.axPsi.add_patch(plt.Circle((x, y), radius=0.15, color='yellow'))
+                instance.observedParticle = instance.axPsi.add_patch(plt.Circle((x, y), radius=0.15, color='cyan'))
 
                 if (x-ps.extraArgs["goalX"])**2 + (y-ps.extraArgs["goalY"])**2 <= ps.extraArgs["goalRadius"]**2:
                     instance.drawnCircle.set(color='green', alpha=0.5)
-                    ps.extraArgs["score"] += 1
-                    ps.extraArgs["labelScore"].text = "Punts = {}".format(ps.extraArgs["score"])
+                    ps.extraArgs["score"] += 5 * ps.extraArgs["difficulty"] + 2 * (ps.extraArgs["difficulty"] - 1)**2
+                    ps.extraArgs["labelScore"].text = "Punts: {}".format(ps.extraArgs["score"])
 
                 else:
                     instance.drawnCircle.set(color='red', alpha=0.5)
-                    ps.extraArgs["lives"] -= 1
-                    ps.extraArgs["labelLives"].text="Vides = {}".format(ps.extraArgs["lives"])#'♥' * ps.extraArgs["lives"]
-                    if ps.extraArgs["lives"] == 0:
+                    ps.extraArgs["health"] -= 1
+                    ps.extraArgs["labelHealth"].text="Vides: "+'♥' * ps.extraArgs["health"]
+                    if ps.extraArgs["health"] == 0:
                         ps.stopPlaying()
-                        ps.playButton.disabled_color = 'red'
+                        #ps.playButton.disabled_color = 'red'
                         ps.playButton.disabled = True
+                        ps.extraArgs["gameOver"] = True
+                        ps.extraArgs["shop"].disabled = True
+
+                        lb = ps.extraArgs["leaderboard"]
+                        ranking = 6 # By default, not winner
+                        for pos in range(1,5+1):
+                            if lb[str(pos)]["score"] < ps.extraArgs["score"]:
+                                ranking = pos
+                                break
+
+                        if ranking != 6:
+                            for pos in range(5, ranking, -1):
+                                lb[str(pos)] = lb[str(pos-1)]
+
+                            lb[str(ranking)] = {"name":'', "score":ps.extraArgs["score"]}
+
+
+                            layout = BoxLayout(orientation='vertical')
+                            layout.add_widget(Label(text="Bona puntuació!\nIdentifica't:"))
+                            nameInput = LeaderboardInput(multiline=False, font_name='RobotoMono-Regular', size_hint=(None,None), height=50, width=100, pos_hint={"center_x":0.5, "center_y":0.5})
+                            def nameSet(instance):
+                                lb[str(ranking)]["name"] = nameInput.text
+                                json_dump_to_file(ps.extraArgs["lbDir"], lb)
+
+                                lbpopup = Popup(size_hint=(0.4, 0.4), title='Ranking')
+                                lbpopup.add_widget(Label(
+                                    text="{:>5}{:>10}{:>10}\n{}\n".format("POS", "NOM", "PUNTS", "-" * 25) + "".join(
+                                        ["{:>5}{:>10}{:>10}\n".format(num, lb[str(num)]["name"], lb[str(num)]["score"]) for num in
+                                         lb]),
+                                    font_name='RobotoMono-Regular'))  # Font comes with kivy, so for sure everyone has it
+                                lbpopup.open()
+
+                            layout.add_widget(nameInput)
+                            newRecord = Popup(size_hint=(0.4,0.4), title='Record!', on_dismiss=nameSet)
+                            newRecord.add_widget(layout)
+                            newRecord.open()
+
+                        else:
+                            lbpopup = Popup(size_hint=(0.4,0.4), title='Ranking')
+                            lbpopup.add_widget(Label(text="{:>5}{:>10}{:>10}\n{}\n".format("POS", "NOM", "PUNTS", "-" * 25) + "".join(
+        ["{:>5}{:>10}{:>10}\n".format(num, lb[str(num)]["name"], lb[str(num)]["score"]) for num in lb]),font_name='RobotoMono-Regular'))  # Font comes with kivy, so for sure everyone has it
+                            lbpopup.open()
+
                         return instance.axPsi.text(0.5, 0.5, 'GAME OVER!', dict(size=30, fontweight=800, color='white'),
                                     horizontalalignment='center', verticalalignment='center',
                                     path_effects=[animate.peffects.withStroke(linewidth=4, foreground="black")],
-                                    transform=instance.axPsi.transAxes)
+                                    transform=instance.axPsi.transAxes), instance.drawnCircle, instance.observedParticle
 
                 ps.stopPlaying()
 
@@ -1180,25 +1440,194 @@ class GamesScreen(Screen):
 
         """def extra_update_move(args):"""
 
-        def extra_info_movement(args):
-            layout = GridLayout(rows=4, width = 250, size_hint_x=None)
+        def coins_add(args, val):
+            args["coins"]+=val
+            args["labelCoins"].text = "Monedes: {}".format(args["coins"])
 
-            args["labelScore"] = Label(text="Punts = {}".format(args["score"]))
-            args["labelLives"] = Label(text="Vides = {}".format(args["lives"]))#'♥'*args["lives"])
+        # dt is irrelevant, but is an argument used by schedule_once
+        def createCoin(args, ps):
+            if not args["gameOver"]:
+                def coin_get(*arg):
+                    coins_add(args, 1)
+
+                def coin_end(*arg):
+                    args["newCoin"] = True
+
+                ps.plotRelative.add_widget(GameCoin(callbackClick=coin_get, callbackEnd=coin_end,
+                                                pos_hint={"center_x":0.2+random.random()*0.6, "center_y":0.2+random.random()*0.6}))
+
+
+        def extra_update_movement(args, ps):
+            if args["newCoin"] is True:
+                args["newCoin"] = False
+                args["coinSchedule"] = Clock.schedule_once(lambda dt: partial(createCoin, args, ps)(), 5/args["difficulty"]) # Too fast??? Clock.schedule_once doesn't work too well
+
+        def extra_info_movement(args, ps):
+            layout = GridLayout(rows=4,cols=1, width = 500, size_hint_x=None, padding=20)
+
+            args["labelScore"] = Label(text="Punts: {}".format(args["score"]), height=80, size_hint=(1,None))
+            try: args["labelHealth"] = Label(text="Vides: " + '♥'*args["health"], font_name='Arial', color=(1,0,0,1), height=80, size_hint=(1,None))  #Maybe Arial not in all machines?
+            except: args["labelHealth"] = Label(text="Vides: {}".format(args["health"]), height=80, size_hint=(1,None))  # No heart emoji then
             layout.add_widget(args["labelScore"])
-            layout.add_widget(args["labelLives"])
+            layout.add_widget(args["labelHealth"])
+
+            args["labelCoins"] = Label(text="Monedes: {}".format(args["coins"]), color=(0.7,0.6,0,1), height=80, size_hint=(1,None))
+            layout.add_widget(args["labelCoins"])
+            args["coinSchedule"] = None
+
+            args["progress"] = ProgressBar(size_hint_y=None, height=25)
+            #layout.add_widget(args["progress"])
+            ps.plotRelative.add_widget(args["progress"])
+
+            shopBig = BoxLayout(orientation="vertical")
+            shopBig.add_widget(Label(text="________________________\n--------------- Tenda ---------------", size_hint=(1,None), height=150))
+            args["shop"] = GridLayout(rows=3, cols=2, spacing=10)
+            shop = args["shop"]
+            shopBig.add_widget(shop)
+            layout.add_widget(shopBig)
+
+            def buyEnergy(btn):
+                if args["coins"] >= 1:
+                    coins_add(args, -1)
+
+
+                    args["energyButton"].disabled = True
+
+            energyButtonBox = BoxLayout(padding=(30,90), size_hint_y=None, height=300)
+            args["energyButton"] = Button(text = "(1)Mostra\nEnergia", on_release=buyEnergy)
+            energyButtonBox.add_widget(args["energyButton"])
+            shop.add_widget(energyButtonBox)
+
+            args["energyGraph"] = plt.figure()
+            fig = args["energyGraph"]
+            ax = fig.gca()
+            args["energyAx"] = ax
+            #ax.set_xlabel("")
+            ax.get_xaxis().set_visible(False)
+            ax.set_ylabel("Energia ({})".format(unit_energy))
+            ax.set_ylim([0., 100.])
+            #ax.set_xticklabels([])
+            plt.tick_params(
+                axis='x',  # changes apply to the x-axis
+                which='both',  # both major and minor ticks are affected
+                bottom=False,  # ticks along the bottom edge are off
+                top=False,  # ticks along the top edge are off
+                labelbottom=False)  # labels along the bottom edge are off
+            ax.spines['top'].set_visible(False)
+            ax.spines['right'].set_visible(False)
+            args["energyK"] = ax.bar([0.],[np.real(ps.QSystem.kineticEnergy())], color='b')
+            args["energyV"] = ax.bar([0.], [np.real(ps.QSystem.potentialEnergy())], bottom=[1.], color='y')
+            ax.bar([0.], [500.], color='black') # "Background"
+            #ax.legend(["K","V"], bbox_to_anchor=(1.04,1))
+            FigureCanvasKivyAggModified(fig)
+            #fig.canvas.size_hint_y=None
+            #fig.canvas.height=300
+            shop.add_widget(fig.canvas)
+            def prep(dt):
+                fig.tight_layout()
+                fig.canvas.draw()
+            Clock.schedule_once(prep)
+
+            #Buy health, button
+
+            def extra_life(btn):
+                if args["coins"] >= args["healthCost"]:
+                    coins_add(args, -args["healthCost"])
+                    args["healthCost"]+=2
+                    args["healthButton"].text = "({})Vida\nExtra".format(args["healthCost"])
+                    args["health"] += 1
+                    args["labelHealth"].text = "Vides: " + '♥' * args["health"]
+
+            args["healthCost"] = 2
+            args["healthButton"] = Button(text="({})Vida\nExtra".format(args["healthCost"]), on_release=extra_life)
+            shop.add_widget(args["healthButton"])
+
+            # Convert coins to points:
+            def coin_to_point(btn):
+                if args["coins"] >= 2:
+                    coins_add(args, -2)
+                    args["score"] += 1
+                    args["labelScore"].text = "Punts: {}".format(ps.extraArgs["score"])
+
+            shop.add_widget(Button(text="(2)Compra\nPunt", on_release=coin_to_point))
+
+            args["difficulty"] = 1
+            args["difficultyCost"] = 5
+            def raiseDifficulty(btn):
+                if args["coins"] >= args["difficultyCost"]*args["difficulty"]:
+                    coins_add(args, -args["difficulty"]*args["difficultyCost"])
+                    args["difficulty"] += 1
+                    if args["difficulty"] == 3: args["difficultyButton"].disabled = True
+                    else: args["difficultyButton"].text = "({})Augmenta\nDificultat".format(args["difficultyCost"] * args["difficulty"])
+
+                    if args["coinSchedule"] is not None: args["coinSchedule"].cancel()
+                    args["newCoin"] = True
+                    ps.animation.frame = 1
+                    #args["kHarm"] += 2
+                    ps.QSystem.setState(mathPhysics.eigenvectorHarmonic2DGenerator(0., args["difficulty"], 0., args["difficulty"], args["kHarm"]))
+                    ps.QSystem.renorm()
+                    ps.animation.manualUpdate(onlyDraw=True)
+                    ps.animation.rescalePsi()
+                    ps.QSystem.t = 0.
+                    ps.extra_param[0:4+1] = 0.
+                    #ps.extra_param[5] = args["kHarm"]
+
+            args["difficultyButton"] = Button(text="({})Augmenta\nDificultat".format(args["difficultyCost"*args["difficulty"]]),
+                                              on_release=raiseDifficulty)
+            shop.add_widget(args["difficultyButton"])
+
+
+
+
+            args["sizeStep"] = 1
+
+            def raiseSize(btn):
+                if args["coins"] >= args["sizeStep"]**2:
+                    coins_add(args, -args["sizeStep"]**2)
+                    args["sizeStep"]+=1
+                    args["goalRadius"] *= sqrt(3)
+                    args["goalCircle"].set(radius=args["goalRadius"])
+                    args["sizeButton"].text = "({})Objectiu\nmés gran".format(args["sizeStep"]**2)
+
+            args["sizeButton"] = Button(text="({})Objectiu\nmés gran".format(args["sizeStep"]**2),
+                                        on_release=raiseSize)
+
+            shop.add_widget(args["sizeButton"])
+
             return layout
 
+        def extra_clean_moveGame(args):
+            plt.close(args["energyGraph"])
+            args["energyGraph"].canvas.canvas.clear()
+            if args["coinSchedule"] is not None: args["coinSchedule"].cancel()
+
+            """clock = Clock.schedule_once(lambda x: print("clock"), 0.5)
+            def unscheduleAfter(dt):
+                clock.cancel()
+                print("?")
+            Clock.schedule_once(unscheduleAfter, 1)"""# We can check like this no error is thrown for cancelling an
+                                                      # already finished clock schedule
 
 
+
+        def moveGameInfo():
+            infoPopup = Popup(title="INFO", auto_dismiss=True, size_hint=(0.6, 0.6))
+            infoPopup.add_widget(Label(text=
+                                    "Mou el pou de potencial amb\nles fletxes del teclat ← ↑ → ↓ o WASD\n"
+                                    "Transporta així l'electró fins els cercles marcats,\non vols trobar-lo quan l'observis (en omplir-se la barra blava)\n"
+                                    "Però vigila que no el perdis! Pista: Vigila l'energia\n\nClica ràpid per atrapar les monedes i comprar millores\n"
+                                    "Quants punts pots aconseguir?", font_name="Arial"))
+            infoPopup.open()
+            #TextPopup("Mou el pou de potencial amb\nles fletxes del teclat ← ↑ → ↓\nTransporta l'electró per tal que es pugui\nobservar a les zones marcades").open()
 
         definition = {
             #"QSystem": QSystem,
             "initState": inicial2D, "potential":potentialHarmonicWellMoving, "extra_param":extra_param,
             "drawClassical": False, "drawExpected": False, "duration": None,#10.
-            #"extraCommands": [('key_press_event', moveHarmonicWellKeyboard)],
-            "extraUpdates": [drawCircle], "isFocusable":False, "plotWidget":extra_info_movement,
-            "showNorm": False, "showEnergy":False, "showMomentum":False, "debugTime":False, "extra_keyboard_action":extra_keyboard_movegame
+            "extra_update": extra_update_movement, #"extraCommands": [('key_press_event', moveHarmonicWellKeyboard)],
+            "extraUpdates": [drawCircle], "isFocusable":False, "plotWidget":extra_info_movement, "scalePsi": False,
+            "showNorm": False, "showEnergy":False, "showMomentum":False, "debugTime":False, "extra_keyboard_action":extra_keyboard_movegame,
+            "info_action": moveGameInfo, "extra_clean":extra_clean_moveGame
         }
         """"initState": mathPhysics.eigenvectorHarmonic2DGenerator(0., 2, 0., 2, 8.),
             "potential": potentialHarmonicWellMoving
@@ -1295,7 +1724,7 @@ class ParametersPopup(Popup):
             self.window.initStateDef = copyDef
 
             self.window.tempState["psi"] = self.window.QSystem.psiCopy
-            self.window.tempState["unit_col"] = r'${}^{{-2}}$'.format(unit_dist)
+            self.window.tempState["unit_col"] = r'$({})^{{-2}}$'.format(unit_dist)
             Factory.PlotPopup(self.window.tempState).open()
 
     """def on_open(self):
@@ -1381,6 +1810,8 @@ class PlayScreen(Screen):
         self.extra_update = None
         self.extra_clean = None
 
+        self.info_action = None
+
         for key in definition:
             vars(self)[key] = definition[key]
 
@@ -1390,6 +1821,17 @@ class PlayScreen(Screen):
             self.QSystem = mathPhysics.QuantumSystem2D(self.Nx, self.Ny, self.x0, self.y0, self.xf, self.yf,
                                                        self.initState,
                                                        potential=self.potential, extra_param=self.extra_param)
+
+        self.savedStates = []
+        self.tempState = {"psi": self.QSystem.psi, "x0": self.QSystem.x0, "xf": self.QSystem.xf
+            , "y0": self.QSystem.y0, "yf": self.QSystem.yf,
+                          "name": "temp"}
+
+        self.setExtraArgs = setExtraArgs
+        self.extraArgs = {}
+        if setExtraArgs is not None:
+            setExtraArgs(self.extraArgs)
+
 
         animKeys = {"dtSim":0.01, "dtAnim":0.04, "debugTime":False, "duration":None,
                     "showPotential":True, "updatePotential":True, "showMomentum":True, "showEnergy":True, "showNorm":False,
@@ -1404,24 +1846,15 @@ class PlayScreen(Screen):
         self.animation = animate.QuantumAnimation(self.QSystem, **animKeys,
                                                   isKivy=True)
 
-        self.savedStates = []
-
-        self.tempState = {"psi": self.QSystem.psi, "x0": self.QSystem.x0, "xf": self.QSystem.xf
-            , "y0": self.QSystem.y0, "yf": self.QSystem.yf,
-                          "name": "temp"}
-
         self.plotBox = BoxLayout(size_hint=(1, 0.8))
-        self.plotBox.add_widget(self.animation.fig.canvas)
-
-        self.setExtraArgs = setExtraArgs
-        self.extraArgs = {}
-        if setExtraArgs is not None:
-            setExtraArgs(self.extraArgs)
+        self.plotRelative = RelativeLayout()
+        self.plotRelative.add_widget(self.animation.fig.canvas)
+        self.plotBox.add_widget(self.plotRelative)
 
         # ADD HERE EXTRA THINGS LIKE SLIDERS? CAN PASS DOWN CUSTOM WIDGET
         ######
         if "plotWidget" in definition:
-            if callable(definition["plotWidget"]): self.plotBox.add_widget(definition["plotWidget"](self.extraArgs))   # Careful here with callable()
+            if callable(definition["plotWidget"]): self.plotBox.add_widget(definition["plotWidget"](self.extraArgs, self))   # Careful here with callable()
             else: self.plotBox.add_widget(definition["plotWidget"])
 
         ######
@@ -1429,6 +1862,8 @@ class PlayScreen(Screen):
 
         buttonBox = BoxLayout(size_hint=(1, 0.2), orientation="horizontal", padding=10, spacing=20)
 
+        if self.info_action is not None:
+            buttonBox.add_widget(InfoButton(on_release=lambda *args: self.info_action()))
         resetButton = Button(text="Reset", on_release=self.resetAll)
         buttonBox.add_widget(resetButton)
 
@@ -1437,7 +1872,7 @@ class PlayScreen(Screen):
 
         buttonBox.add_widget(self.playButton)
 
-        returnButton = Button(text="Retorna enrere", on_press = self.goBack)
+        returnButton = ReturnButton(on_press = self.goBack)#, text="Retorna enrere")
         buttonBox.add_widget(returnButton)
 
         mainBox = BoxLayout(orientation="vertical")
@@ -1447,15 +1882,26 @@ class PlayScreen(Screen):
         self.add_widget(mainBox)
 
     def goBack(self, *args):
+        #self.clean()  Clean done on_leave
         self.manager.transition.direction = "right"
         self.manager.current = self.sourceScreen
 
     def clean(self):
         self.stopPlaying()
+        self.animation.fig.canvas.canvas.clear()
+        self.plotRelative.clear_widgets()
         self.plotBox.clear_widgets()
         self.clear_widgets()
         plt.close(self.animation.fig)
         if self.extra_clean is not None: self.extra_clean(self.extraArgs)
+
+        ### Trying to fix memory leak, to no avail
+        # print(vars(self.animation.fig.canvas))
+        # print(len(vars(self.animation.fig)))
+        # del self.animation.fig.canvas
+        # print(len(vars(self.animation.fig)))
+        # print(len(vars(self)), vars(self))
+        # self.canvas.clear()
 
     def on_leave(self):
         self.clean()
@@ -1463,7 +1909,8 @@ class PlayScreen(Screen):
     def resetAll(self, *args):
         self.clean()
         self.set_self(self.definition, setExtraArgs=self.setExtraArgs)
-        Clock.schedule_once(self.on_enter)
+        Clock.schedule_once(lambda *args: Clock.schedule_once(self.on_enter))  # Everything is drawn next frame
+                                                                               # so we need to wait 2 frames to resize things
 
     def stopPlaying(self):
         try: self.schedule.cancel()
@@ -1486,7 +1933,7 @@ class PlayScreen(Screen):
             self.stopPlaying()
         else:
             self.animation.manualUpdate()
-            if self.extra_update is not None: self.extra_update(self.extraArgs)
+            if self.extra_update is not None: self.extra_update(self.extraArgs, self)
 
     def setVarDict(self):
         self.variablesDict.clear()
