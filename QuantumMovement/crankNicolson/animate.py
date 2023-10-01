@@ -9,6 +9,8 @@ if (__name__ == "crankNicolson.animate"):
     from kivy.graphics.texture import Texture
     from kivy.graphics import Rectangle, Color
 
+    from kivy.clock import Clock
+
     # Supposedly faster kivy-matplotlib alternative? https://github.com/mp-007/kivy_matplotlib_widget # But better not
 
     #https://github.com/kivy-garden/garden.matplotlib/blob/master/backend_kivyagg.py
@@ -206,9 +208,16 @@ class QuantumAnimation:  # inches
         self.drawnPos = None
         self.drawnParticle = None
 
-        self.reset_plot(
+        self.drawClassical = drawClassical; self.drawClassicalTrace = drawClassicalTrace; self.drawExpected = drawExpected; self.drawExpectedTrace = drawExpectedTrace
+
+        if self.isKivy:
+            Clock.schedule_once(lambda t: self.reset_plot(
             drawClassical=drawClassical, drawClassicalTrace=drawClassicalTrace, drawExpected=drawExpected, drawExpectedTrace=drawExpectedTrace,
-            forceRecreate=True)
+            forceRecreate=True))
+        else:
+            self.reset_plot(
+                drawClassical=drawClassical, drawClassicalTrace=drawClassicalTrace, drawExpected=drawExpected, drawExpectedTrace=drawExpectedTrace,
+                forceRecreate=True)
 
         self.isOver = False
 
@@ -320,7 +329,7 @@ class QuantumAnimation:  # inches
                 self.lineN, = self.axNorm.plot(self.TList, self.NormList)  # , animated=True)  #Doesn't work wit hKivy?
 
             if self.showMomentum:
-                self.QSystem.momentumSpace()
+                self.QSystem.momentumSpaceModSquared()
                 title = "Espai de moments"
                 if self.scaleMom: title += " (color reescalat)"
                 self.axMomentum.set_title(title)
@@ -527,7 +536,7 @@ class QuantumAnimation:  # inches
             self.NormList.append(None)"""
 
         if self.showMomentum:
-            self.QSystem.momentumSpace()
+            self.QSystem.momentumSpaceModSquared()
             if self.scaleMom: self.datMom.set_clim(vmax=np.max(self.QSystem.psiMod.T), vmin=0.)
             self.datMom.set_data(self.QSystem.psiMod.T)
             changes.append(self.datMom)
