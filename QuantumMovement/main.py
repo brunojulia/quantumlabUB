@@ -944,6 +944,7 @@ class PlotPopup(Popup):
 
         self.plotBox.add_widget(self.fig.canvas)
         self.fig.canvas.draw()
+        self.fig.canvas.disabled = True
         #print(gc.get_referrers(self.fig.canvas))
 
     def on_dismiss(self):

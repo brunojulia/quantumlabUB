@@ -461,6 +461,48 @@
                     attribute: "t"
                     id: t
 
+            GridLayout:
+                cols: 2
+                ToggleButton:
+                    text: "Renormalitza\ncada pas"
+                    state: 'down' if root.window.QSystem.renormStep else 'normal'
+                    on_press:
+                        root.window.QSystem.renormStep = not root.window.QSystem.renormStep
+                Label:
+                    text: "Mètodes de\nsimulació"
+
+            GridLayout:
+                adi: adi
+                exact: exact
+                eigen: eigen
+                cols: 3
+
+                ToggleButton:
+                    id: adi
+                    text: "Crank-Nic ràpid\nADI (altern. dir.)"
+                    state: 'down' if root.window.QSystem.step == 'fastest' else 'normal'
+                    on_press:
+                        root.window.QSystem.step = 'fastest'
+                        exact.state = 'normal'
+                        eigen.state = 'normal'
+                ToggleButton:
+                    id: exact
+                    text: "Crank-Nic exacte\n(molt lent)"
+                    state: 'down' if root.window.QSystem.step == 'exact' else 'normal'
+                    on_press:
+                        root.window.QSystem.step = 'exact'
+                        adi.state = 'normal'
+                        eigen.state = 'normal'
+                ToggleButton:
+                    id: eigen
+                    text: "Crank-Nic amb\nEigenvectors K"
+                    state: 'down' if root.window.QSystem.step == 'eigen' else 'normal'
+                    on_press:
+                        root.window.QSystem.step = 'eigen'
+                        adi.state = 'normal'
+                        exact.state = 'normal'
+
+
 
 
 
