@@ -5,7 +5,6 @@
 #matplotlib.use('module://kivy.garden.matplotlib.backend_kivyagg')
 # Should this be used? Can't save to file then? Better not, implicitly draws figure using agg
 
-import gc
 from functools import partial
 
 # Combine functions. For example useful for callbacks
@@ -22,7 +21,6 @@ mainDir = Path(__file__).parent
 from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand') # Red circles appear when right clicking without this???
 import kivy
-import matplotlib.cbook.deprecation
 from kivy.app import App
 from kivy.uix.label import Label
 
@@ -49,9 +47,9 @@ from kivy.metrics import dp, sp
 from kivy.properties import ObjectProperty
 from kivy.properties import NumericProperty
 from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
-from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas
+#from kivy.garden.matplotlib.backend_kivyagg import FigureCanvas
 from crankNicolson.animate import FigureCanvasKivyAggModified
-from kivy.lang import Builder
+#from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.clock import Clock
 from kivy.factory import Factory
@@ -60,18 +58,17 @@ import numpy as np
 from numba import jit, njit
 import numba
 import crankNicolson.crankNicolson2D as mathPhysics
-from crankNicolson.crankNicolson2D import hred
 import crankNicolson.animate as animate
 import matplotlib.pyplot as plt
 plt.rcParams.update({'font.size': 11})
-import time
 
 ####
 # https://stackoverflow.com/questions/70629758/kivy-how-to-pass-arguments-to-a-widget-class
 #####
 
-import warnings     # For debugging. Warnings stop the program, and thus also show where they occur
+#import warnings     # For debugging. Warnings stop the program, and thus also show where they occur
 #warnings.filterwarnings('error')
+#import matplotlib.cbook.deprecation
 #warnings.filterwarnings('ignore', category=matplotlib.cbook.deprecation.MatplotlibDeprecationWarning)
 
 
@@ -480,6 +477,7 @@ class DataSlider(Slider):
 
         if not self.firstTime:
             if self.isPotential and self.holder.animation.paused or self.holder.animation.isOver: self.holder.animation.updatePotentialDraw()
+            else: self.holder.animation.updating = True
         else: self.firstTime = not self.firstTime
 
 

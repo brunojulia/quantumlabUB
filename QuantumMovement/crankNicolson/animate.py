@@ -61,7 +61,7 @@ else:
     import crankNicolson2D as mathPhysics  # Problems with making it work outside of folder
 import numpy as np
 import time
-import matplotlib.style as mplstyle
+#import matplotlib.style as mplstyle
 
 # mplstyle.use('fast')
 """On performance:
@@ -385,7 +385,7 @@ class QuantumAnimation:  # inches
             self.drawnPos = None
 
 
-        if self.drawnParticle != None: self.drawnParticle.remove()
+        if self.drawnParticle is not None: self.drawnParticle.remove()
         if self.drawClassical:
                                           # Particle deviates, so it is only adjusted to the QSystem the first time it is shown
             if drawClassical is not None: self.particle = mathPhysics.ClassicalParticle(self.QSystem)
@@ -394,7 +394,7 @@ class QuantumAnimation:  # inches
             self.axPsi.add_patch(self.drawnParticle)
         else: self.drawnParticle = None
 
-        if self.drawnPos != None: self.drawnPos.remove()
+        if self.drawnPos is not None: self.drawnPos.remove()
         if self.drawExpected:
             self.drawnPos = plt.Circle((self.QSystem.expectedX(), self.QSystem.expectedY()),
                                     (self.QSystem.xf - self.QSystem.x0) / 150.,
@@ -670,6 +670,7 @@ class QuantumAnimation:  # inches
         #self.fig.canvas.flush_events() #??
 
         if not onlyDraw: self.frame += 1
+        self.updating = False
         # plt.pause(0.001)
         if self.debugTime: print("+ Ploting:  {:12.8f}".format(time.time() - t0), " (s),   FPS = ",
                                  1. / (time.time() - t0))
