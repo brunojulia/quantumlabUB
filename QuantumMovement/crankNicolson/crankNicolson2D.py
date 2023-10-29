@@ -1230,7 +1230,7 @@ class QuantumSystem2D:
     # there are Nx+1 points x0, x1, ..., XNx
     def __init__(self, Nx=200, Ny=200, x0=-10., y0=-10., xf=+10., yf=+10.,
                  initState = gaussian00, t = 0., potential = potential0, extra_param=np.array([1.]),
-                 x0Old = -10., xfOld=10., y0Old=-10., yfOld=10., mass=M, step='fastest', renormStep=False):
+                 x0Old = -10., xfOld=10., y0Old=-10., yfOld=10., mass=M, step='fastest', renormStep=False, customOperator=None):
                       # These are used for interpolating
         global M
         M = mass
@@ -1247,6 +1247,7 @@ class QuantumSystem2D:
 
         self.step = step
         self.renormStep = renormStep
+        self.customOperator = customOperator
 
         self.psi = np.empty((Nx+1, Ny+1), dtype=np.complex128)  # Will hold psi
         self.psiMod = np.empty((Nx+1, Ny+1), dtype=np.float64)  # Will hold |psi|^2
@@ -1305,8 +1306,12 @@ class QuantumSystem2D:
             crankNicolson2DSchrodingerStepExact(self.X, self.Y, self.t, dt, self.potential,
                                                 self.psi, self.psiCopy, self.psiMod, extra_param=self.extra_param)
         else:
-            crankNicolson2DSchrodingerStepFastest(self.X, self.Y, self.t, dt, self.potential,
-                                                         self.psi, self.psiCopy, self.psiMod, extra_param=self.extra_param)
+            if self.customOperator is None:
+                crankNicolson2DSchrodingerStepFastest(self.X, self.Y, self.t, dt, self.potential,
+                                                             self.psi, self.psiCopy, self.psiMod, extra_param=self.extra_param)
+            else:
+                crankNicolson2DHalfStepSchrodinger(self.X, self.Y, self.t, dt, self.potential, self.customOperator,
+                                        self.psi, self.psiCopy, self.psiMod, extra_param=self.extra_param)
         self.t += dt
         if self.renormStep: self.psi /= np.sqrt(self.norm())
 
@@ -1618,3 +1623,104 @@ def RungeKutta4(t, dt, yin, deriv):
     k3 = deriv(t+dt/2, yin+dt*k2/2)
     k4 = deriv(t+dt  , yin+dt*k3  )
     return yin + dt*(k1 + 2*k2 + 2*k3 + k4)/6.
+
+
+class localOperator:
+    """
+    A local operator is an operator that only acts on a point and its closest neighbours
+    i.e. It's useful because we can express any combination:
+    L = fxx(x,y,t) ∂^2_x + fyy(x,y,t) ∂^2_y + fx(x,y,t) ∂_x + fy(x,y,t) ∂_y + F(x,y,t)
+    It just simplfies creating an operator, to be used for defining the hamiltonian
+    """
+    pass
+
+
+# We define operators here differently. [0,0] Center element [dir, 0] center element of dir, [dir, 1] forward dir, [dir, -1] backward dir
+@jit(nopython=True)
+def crankNicolson2DHalfStepSchrodinger(X, Y, t, dt, potential, operator, psi, psiTemp, psiMod, extra_param=np.array([])):
+    """ Solves System:   d/dt psi = [Operator - i/h V ] psi
+    We already assume here h = m = 1
+    Step 0: Psi(t)  ->   Step 1: psiTemp = Psi(t+dt/2) ->  Step 2: psi = Psi(t+dt)"""
+
+
+    # To make the code even faster, all of these temporary arrays could be created already. So no step needs to be taken
+    # Declare all necessary arrays. Trying to minimize need to allocate memory
+    tempBX = np.empty(len(psi)-2, dtype=np.complex128)
+    tempBY = np.empty(len(psi[0])-2, dtype=np.complex128)
+
+    tridX = np.empty((3,len(psi)-2), dtype=np.complex128)
+    tridY = np.empty((3,len(psi[0])-2), dtype=np.complex128)
+
+    # Gamma is used for tridiag, it is allocated here to avoid repeated unnecessary memory allocation
+    gamma = np.empty((max(len(psi)-1, len(psi[0])-1),), dtype=np.complex128)
+
+    # Parameters for calcualtions
+    dx = (X[-1]-X[0])/(len(X)-1)
+    dy = (Y[-1]-Y[0])/(len(Y)-1)
+
+    op = np.array([[1., 0.,0.], [0., 0.,0.], [0., 0.,0.]], dtype=np.complex128)
+    operator(op, X[0], Y[0], dx, dy, t, extra_param=extra_param, onlyUpdate=False)
+
+    set2DMatrix(X, Y, potential, psiMod, t=t+dt/2, extra_param=extra_param)
+
+    # First half step. At t we only do derivatives in y direction. At t+dt/2 in x direction. Thus the name, alternating
+    # direction implicit method. Important to remember that at boundaries wave is fixed (infinite potential wall)
+    for ity in range(1, len(psi[0])-1):
+        for itx in range(1, len(psi)-1):
+            operator(op, X[itx], Y[ity], dx, dy, t+dt/2., extra_param=extra_param)
+            tridX[0, itx - 1] = -dt*op[1,-1]
+            tridX[2, itx - 1] = -dt*op[1, 1]
+            tridX[1,itx-1] = 2 - dt*(op[0,0]+op[1,0] - 1j * psiMod[itx, ity])   #PROBLEM, PSIMOD POTENTIAL SHOULD INCLUDE IMAGINARY PART IF NEC. BUT NOT LIKE THIS!!!! 1J??? ALSO NEEDS ARBITRARY - sign
+            tempBX[itx-1] = (psi[itx,ity-1]*op[2,-1] + psi[itx,ity+1]*op[2,1])*dt \
+                            + (2 + dt*op[2,0])*psi[itx,ity]
+        tridiag(gamma, tridX, tempBX, psiTemp[1:-1,ity])
+
+    psiTemp[:,0] = psi[:,0]
+    psiTemp[:, len(psi[0]) - 1] = psi[:,len(psi[0]) - 1]
+    psiTemp[0,:] = psi[0,:]
+    psiTemp[len(psi)-1,:] = psi[len(psi)-1,:]
+
+    # We do the final half step. Again, at t+dt/2 we only do derivatives in x direction, but now at t+dt in y direction
+    for itx in range(1, len(psi)-1):
+        for ity in range(1, len(psi[0])-1):
+            operator(op, X[itx], Y[ity], dx, dy, t+dt/2., extra_param=extra_param)
+            tridY[0, ity - 1] = -dt * op[2,-1]
+            tridY[2, ity - 1] = -dt * op[2, 1]
+            tridY[1,ity-1] = 2-dt*op[2,0]
+            tempBY[ity-1] = (psiTemp[itx-1,ity]*op[1,-1] + psiTemp[itx+1,ity]*op[1,1])*dt \
+                            + (2 + dt*(op[0,0]+op[1,0] - 1j * psiMod[itx,ity])) *psiTemp[itx,ity]
+
+        tridiag(gamma, tridY, tempBY, psi[itx,1:-1])
+
+
+
+@njit
+def aharonovBohmOperator(op, x, y, dx, dy, t=0, extra_param=np.array([1,1,1,1,0.2]), dir=-1, onlyUpdate=True):
+    # -i/h [H-V] = -ih/2m [∂^2_x + ∂^2_y + i alpha / r^2 * (-y∂x + x∂y) - a^2/4r^2]
+    alpha = extra_param[4]
+    #if onlyUpdate: return # The operator changes at every point
+    invR2 = 1/(x*x+y*y+1e-10)
+
+    op[0,0] = 1j/2*(- alpha**2 * invR2)
+
+    op[1, 0] = 1j*(-1./dx**2)
+    op[1, 1] = 1j/2*(1 / dx**2 + 2j*alpha * invR2 * (-y*1/(2*dx)))
+    op[1,-1] = 1j/2*(1 / dx**2 + 2j*alpha * invR2 * (+y*1/(2*dx)))
+
+    op[2, 0] = 1j*(-1./dy**2)
+    op[2, 1] = 1j/2*(1 / dy**2 + 2j*alpha * invR2 * (+x*1/(2*dy)))
+    op[2,-1] = 1j/2*(1 / dy**2 + 2j*alpha * invR2 * (-x*1/(2*dy)))
+
+
+
+@jit
+def slit(x, n, width, dist):
+    return x <= n/2*width + dist*(n-1)/2 and (x-width/2*(n%2)+dist/2*((n+1)%2))/(dist+width) % 1 >= dist/(dist+width)
+
+
+parameters = np.array([2, 1, 1, 0.5]) # [n, width, dist, GruixWall]
+
+@njit
+def slitpotential(x, y, t, extra_param=np.array([])):
+    return 400. if (abs(x) < parameters[3] / 2 and not slit(abs(y), parameters[0], parameters[1], parameters[2])) \
+        else 0.
