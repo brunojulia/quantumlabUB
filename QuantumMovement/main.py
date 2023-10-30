@@ -453,7 +453,7 @@ class DataSlider(Slider):
         self.isPotential = isPotential
         self.firstTime = True
         Clock.schedule_once(self.set_self)
-        super(DataSlider, self).__init__(**kwargs)
+        super(DataSlider, self).__init__(size_hint_min_y=sp(15), **kwargs)
         # .kv can't take data from another class during init. Everything needs to be init first
         # That's why the delay
 
@@ -511,12 +511,12 @@ class CustomDataSlider(BoxLayout):
         if isHor:
             self.size_hint_x = 1
             self.size_hint_y = None
-            self.height = 85
+            self.height = sp(80/2)
             sizeHintSlid = (0.7, 1)
         else:
             self.size_hint_x = None
             self.size_hint_y = 1
-            self.width = 85
+            self.width = sp(80/2)
             sizeHintSlid = (1, 1)
 
         val = float(getattr(self.holder, self.attribute) if self.index is None else getattr(self.holder, self.attribute)[self.index])
@@ -785,7 +785,7 @@ class SandboxScreen(Screen):
         self.animation.fig.canvas._on_size_changed = lambda *args: None#print("????")
         #box.add_widget(self.animation.navigation.actionbar)
         nav = self.animation.navigation
-        gridnav = ColoredGridLayout(cols=9, height=75, size_hint_y=None)
+        gridnav = ColoredGridLayout(cols=9, height=sp(75/2), size_hint_y=None)
         for i in range(9):
             kid = nav.actionbar.children[0].children[0]
             nav.actionbar.children[0].remove_widget(kid)
@@ -1152,7 +1152,7 @@ class ExamplesScreen(Screen):
                    else 0.
 
         def slidersSlit(*args):
-            box = BoxLayout(orientation='horizontal', width=85*3, size_hint_x=None)
+            box = BoxLayout(orientation='horizontal', width=sp(80/2)*3, size_hint_x=None)
             box.add_widget(CustomDataSlider(name="n", attribute="extra_param", index=0, holder=self.manager.get_screen("playscreen"),
                              orientation="vertical", min=1, max=10, step=1, value=None))
             box.add_widget(CustomDataSlider(name="w", attribute="extra_param", index=1,
@@ -1219,8 +1219,8 @@ class ExamplesScreen(Screen):
         # Very similar to double slit, just some extra things
 
         def slidersAharonov(*args):
-            box = BoxLayout(orientation='horizontal', width=85*3, size_hint_x=None)
-            stack = BoxLayout(orientation='vertical', width=85, spacing=sp(10))
+            box = BoxLayout(orientation='horizontal', width=sp(80/2)*3, size_hint_x=None)
+            stack = BoxLayout(orientation='vertical', width=sp(80/2), spacing=sp(10))
             stack.add_widget(CustomDataSlider(name="n", attribute="extra_param", index=0, holder=self.manager.get_screen("playscreen"),
                              orientation="vertical", min=2, max=10, step=2, value=None, variableLimits=False))
             stack.add_widget(CustomDataSlider(name="w", attribute="extra_param", index=1,
@@ -1289,7 +1289,7 @@ class ExamplesScreen(Screen):
 
 class GameCoin(Widget):
     def __init__(self, callbackClick = None, callbackMiss = None, callbackEnd = None, duration=2.5, **kwargs):
-        super(GameCoin, self).__init__(width=50, height=50, **kwargs)
+        super(GameCoin, self).__init__(width=dp(50/2), height=dp(50/2), **kwargs)
         self.cbClick = callbackClick
         self.cbMiss = callbackMiss
         self.cbEnd = callbackEnd
@@ -1351,31 +1351,7 @@ class GamesScreen(Screen):
             if res > extra_param[6]: return extra_param[6]
             return res
         inicial2D = mathPhysics.eigenvectorHarmonic2DGenerator(0., 1, 0., 1, kHarm) # 2 2
-        """QSystem = mathPhysics.QuantumSystem2D(initState=inicial2D,
-                                              potential=potentialHarmonicWellMoving,
-                                              extra_param=extra_param)"""
-        """def moveHarmonicWellKeyboard(event):
-            if event.key == 'up' or 'down' or 'left' or 'right':
-                t = QSystem.t
-                extra_param[0] = extra_param[0] + extra_param[2] * (t - extra_param[4])
-                extra_param[1] = extra_param[1] + extra_param[3] * (t - extra_param[4])
-                extra_param[4] = t
-            if event.key == 'up':
-                extra_param[3] += 0.25
-            if event.key == 'down':
-                extra_param[3] -= 0.25
-            if event.key == 'left':
-                extra_param[2] -= 0.25
-            if event.key == 'right':
-                extra_param[2] += 0.25"""
 
-        """global goalRadius; goalRadius = 2.
-        global score; score = 0
-        global goalX; goalX = QSystem.x0 + goalRadius + random.random() * (QSystem.xf - QSystem.x0 - 2 * goalRadius)
-        global goalY; goalY = QSystem.y0 + goalRadius + random.random() * (QSystem.yf - QSystem.y0 - 2 * goalRadius)
-        global goalCircle; goalCircle = plt.Circle((goalX, goalY), goalRadius, alpha=0.2, color='black')
-        global firstDraw; firstDraw = True
-        global drawnCircle; drawnCircle = None"""
 
         # Leaderboard stuff (json file)  # lazily copied from: https://stackoverflow.com/a/12309296
         def json_load_file(json_file):
@@ -1585,26 +1561,25 @@ class GamesScreen(Screen):
         def extra_info_movement(args, ps):
             layout = GridLayout(rows=4,cols=1, width = sp(500/2), size_hint_x=None, padding=20)
 
-            args["labelScore"] = Label(text="Punts: {}".format(args["score"]), height=80, size_hint=(1,None))
-            try: args["labelHealth"] = Label(text="Vides: " + '♥'*args["health"], font_name='Arial', color=(1,0,0,1), height=80, size_hint=(1,None))  #Maybe Arial not in all machines?
-            except: args["labelHealth"] = Label(text="Vides: {}".format(args["health"]), height=80, size_hint=(1,None))  # No heart emoji then
+            args["labelScore"] = Label(text="Punts: {}".format(args["score"]), size_hint_min_y=sp(22), size_hint=(1,0.07))
+            try: args["labelHealth"] = Label(text="Vides: " + '♥'*args["health"], font_name='Arial', color=(1,0,0,1), size_hint_min_y=sp(22), size_hint=(1,0.07))  #Maybe Arial not in all machines?
+            except: args["labelHealth"] = Label(text="Vides: {}".format(args["health"]), size_hint_min_y=sp(30), size_hint=(1,0.07))  # No heart emoji then
             layout.add_widget(args["labelScore"])
             layout.add_widget(args["labelHealth"])
 
-            args["labelCoins"] = Label(text="Monedes: {}".format(args["coins"]), color=(0.7,0.6,0,1), height=80, size_hint=(1,None))
+            args["labelCoins"] = Label(text="Monedes: {}".format(args["coins"]), color=(0.7,0.6,0,1), size_hint_min_y=sp(22), size_hint=(1,0.07))
             layout.add_widget(args["labelCoins"])
             args["coinSchedule"] = None
 
-            args["progress"] = ProgressBar(size_hint_y=None, height=25)
+            args["progress"] = ProgressBar(size_hint_y=None, height=dp(25/2))
             #layout.add_widget(args["progress"])
             ps.plotRelative.add_widget(args["progress"])
 
+            BtnHeight = sp(40)
             shopBig = BoxLayout(orientation="vertical")
-            shopBig.add_widget(Label(text="________________________\n--------------- Tenda ---------------", size_hint=(1,None), height=150))
-            args["shop"] = GridLayout(rows=3, cols=2, spacing=10)
-            shop = args["shop"]
-            shopBig.add_widget(shop)
-            layout.add_widget(shopBig)
+            args["shop"] = shopBig
+            shopBig.add_widget(Label(text="________________________\n--------------- Tenda ---------------", size_hint_min_y=sp(60), size_hint=(1,0.14)))
+            shop = GridLayout(rows=2, cols=2, spacing=sp(5))#, size_hint_y=0.3)
 
             def buyEnergy(btn):
                 if args["coins"] >= 1:
@@ -1613,10 +1588,15 @@ class GamesScreen(Screen):
 
                     args["energyButton"].disabled = True
 
-            energyButtonBox = BoxLayout(padding=(30,90), size_hint_y=None, height=300)
-            args["energyButton"] = Button(text = "(1)Mostra\nEnergia", on_release=buyEnergy)
-            energyButtonBox.add_widget(args["energyButton"])
-            shop.add_widget(energyButtonBox)
+            energyGrid = GridLayout(cols=2,rows=1)#,size_hint_y=0.6)
+            energyButtonBox = BoxLayout(padding=(sp(10),sp(20)))
+            buttonPad = BoxLayout()
+
+            args["energyButton"] = Button(text = "(1)Mostra\nEnergia", on_release=buyEnergy, size_hint_y=None, height=BtnHeight)
+
+            buttonPad.add_widget(args["energyButton"])
+            energyButtonBox.add_widget(buttonPad)
+            energyGrid.add_widget(energyButtonBox)
 
             args["energyGraph"] = plt.figure()
             fig = args["energyGraph"]
@@ -1642,7 +1622,10 @@ class GamesScreen(Screen):
             FigureCanvasKivyAggModified(fig)
             #fig.canvas.size_hint_y=None
             #fig.canvas.height=300
-            shop.add_widget(fig.canvas)
+            energyGrid.add_widget(fig.canvas)
+
+            shopBig.add_widget(energyGrid)
+
             def prep(dt):
                 fig.tight_layout()
                 fig.canvas.draw()
@@ -1659,7 +1642,7 @@ class GamesScreen(Screen):
                     args["labelHealth"].text = "Vides: " + '♥' * args["health"]
 
             args["healthCost"] = 2
-            args["healthButton"] = Button(text="({})Vida\nExtra".format(args["healthCost"]), on_release=extra_life)
+            args["healthButton"] = Button(text="({})Vida\nExtra".format(args["healthCost"]), on_release=extra_life, size_hint_y=None, height=BtnHeight)
             shop.add_widget(args["healthButton"])
 
             # Convert coins to points:
@@ -1669,7 +1652,7 @@ class GamesScreen(Screen):
                     args["score"] += 1
                     args["labelScore"].text = "Punts: {}".format(ps.extraArgs["score"])
 
-            shop.add_widget(Button(text="(2)Compra\nPunt", on_release=coin_to_point))
+            shop.add_widget(Button(text="(2)Compra\nPunt", on_release=coin_to_point, size_hint_y=None, height=BtnHeight))
 
             args["difficulty"] = 1
             args["difficultyCost"] = 5
@@ -1693,10 +1676,11 @@ class GamesScreen(Screen):
                     #ps.extra_param[5] = args["kHarm"]
 
             args["difficultyButton"] = Button(text="({})Augmenta\nDificultat".format(args["difficultyCost"*args["difficulty"]]),
-                                              on_release=raiseDifficulty)
+                                              on_release=raiseDifficulty, size_hint_y=None, height=BtnHeight)
             shop.add_widget(args["difficultyButton"])
 
-
+            shopBig.add_widget(shop)
+            layout.add_widget(shopBig)
 
 
             args["sizeStep"] = 1
@@ -1710,7 +1694,7 @@ class GamesScreen(Screen):
                     args["sizeButton"].text = "({})Objectiu\nmés gran".format(args["sizeStep"]**2)
 
             args["sizeButton"] = Button(text="({})Objectiu\nmés gran".format(args["sizeStep"]**2),
-                                        on_release=raiseSize)
+                                        on_release=raiseSize, size_hint_y=None, height=BtnHeight)
 
             shop.add_widget(args["sizeButton"])
 
