@@ -81,7 +81,7 @@ pip install kivy.deps.gstreamer==0.1.12
 
 pip install kivy.deps.sdl2==0.1.17
 
-garden install matplotlib
+garden install matplotlib --kivy
 
 pip install numba
 
