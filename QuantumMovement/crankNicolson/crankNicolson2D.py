@@ -465,6 +465,48 @@ def applyOperator2DFunc(X, Y, psi, result, operator, t=0., extra_param=np.array(
                 result[i, j] = op[0,0] * abs2(psi[i, j])
 
 
+
+def applyOperator2DFuncNoJit(X, Y, psi, result, operator, t=0., extra_param=np.array([]), doConjugate=False):
+    if len(X) != len(psi) or len(Y) != len(psi[0]): raise ValueError("X and Y coordinates don't match shape of Psi")
+    dx = (X[-1] - X[0]) / (len(psi) - 1)
+    dy = (Y[-1] - Y[0]) / (len(psi[0]) - 1)
+    op = np.array([[1., 0.], [0., 0.], [0., 0.]])
+    operator(op, (X[0], Y[0]), (dx, dy), t, extra_param=extra_param, onlyUpdate=False)
+    if not doConjugate:
+        for i in range(1, len(psi) - 1):
+            for j in range(1, len(psi[0]) - 1):
+                operator(op, (X[i], Y[j]), (dx, dy), t, extra_param=extra_param)
+                result[i, j] = op[0,0] * psi[i, j] + op[1,0] * psi[i - 1, j] + op[1,1] * psi[i + 1, j] + \
+                               op[2,0] * psi[i, j - 1] + op[2,1] * psi[i, j + 1]
+        for i in range(len(psi)):
+            for j in (0, len(psi[0]) - 1):
+                operator(op, (X[i], Y[j]), (dx, dy), t, extra_param=extra_param)
+                result[i, j] = op[0,0] * psi[i, j]
+        for j in range(1, len(psi[0]) - 1):
+            for i in (0, len(psi) - 1):
+                operator(op, (X[i], Y[j]), (dx, dy), t, extra_param=extra_param)
+                result[i, j] = op[0,0] * psi[i, j]
+        #if doConjugate: result[...] = result[...] * np.conj(psi[...])
+    else:
+        for i in range(1, len(psi) - 1):
+            for j in range(1, len(psi[0]) - 1):
+                operator(op, (X[i], Y[j]), (dx, dy), t, extra_param=extra_param)
+                result[i, j] = op[0,0] * psi[i, j] + op[1,0] * psi[i - 1, j] + op[1,1] * psi[i + 1, j] + \
+                               op[2,0] * psi[i, j - 1] + op[2,1] * psi[i, j + 1]
+                result[i, j] = result[i, j] * np.conj(psi[i, j])
+        for i in range(len(psi)):
+            for j in (0, len(psi[0]) - 1):
+                operator(op, (X[i], Y[j]), (dx, dy), t, extra_param=extra_param)
+                result[i, j] = op[0,0] * abs2(psi[i, j])
+        for j in range(1, len(psi[0]) - 1):
+            for i in (0, len(psi) - 1):
+                operator(op, (X[i], Y[j]), (dx, dy), t, extra_param=extra_param)
+                result[i, j] = op[0,0] * abs2(psi[i, j])
+
+
+
+
+
 #@jit(nopython=True)
 def expectedValueOperator2D(X, Y, psi, result, operator = None, t = 0., extra_param=np.array([]), doConjugate=True):
     if np.shape(result) != np.shape(psi): raise ValueError("Psi and result must have the same shape")
@@ -1044,17 +1086,19 @@ def crankNicolson2DSchrodingerStepClosedBoxEigen(X, Y, t, dt, potential, psi, ps
             psiTemp[itx, ity] = psi[itx, ity] * (1-)"""
     psi *= (1 - 1j*dt/(2*hred) * psiMod)
 
-    Px2, Py2 = np.array([n*n for n in range(1, Nx+1 -2)])*np.pi**2 * hred**2/(2*M*(X[-1]-X[0])**2), np.array([n*n for n in range(1, Ny+1 -2)])*np.pi**2 * hred**2/(2*M*(Y[-1]-Y[0])**2)
+    Px2, Py2 = np.array([n*n for n in range(1, Nx+1*0 -2)])*np.pi**2 * hred**2/(2*M*(X[-1]-X[0])**2), np.array([n*n for n in range(1, Ny+1*0 -2)])*np.pi**2 * hred**2/(2*M*(Y[-1]-Y[0])**2)
 
 
-    psiEigen[:,:] = dstn(psi[1:-1,1:-1], type=1)
+    psiEigen[:,:] = dstn(psi[1:-2,1:-2], type=1)
 
     Px2m, Py2m = np.meshgrid(Px2, Py2, copy=False, indexing='ij')
 
     # Pxm*Pym = grid with P^2 at each point
-    psiEigen *= (1 - 1j*dt/(2*hred) * (Px2m+Py2m))/(1 + 1j*dt/(2*hred) * (Px2m+Py2m))
+    #psiEigen *= (1 - 1j*dt/(2*hred) * (Px2m+Py2m))
+    #psiEigen /= (1 + 1j*dt/(2*hred) * (Px2m+Py2m))
+    psiEigen *= np.exp(-dt* 1j/hred * (Px2m+Py2m))
 
-    psi[1:-1, 1:-1] = idstn(psiEigen, type=1)
+    psi[1:-2, 1:-2] = idstn(psiEigen, type=1)
 
     psi /= (1 + 1j*dt/(2*hred) * psiMod)
 
@@ -1257,7 +1301,7 @@ class QuantumSystem2D:
         self.Xmesh, self.Ymesh = np.meshgrid(self.X, self.Y, copy=False, indexing='ij') # Copy True or False? Causes some problems sometimes???
         self.Pxmesh, self.Pymesh = np.meshgrid(self.Px, self.Py, copy=False, indexing='ij')
 
-        self.psiEigen = np.zeros((Nx-1,Ny-1), dtype=np.complex128)
+        self.psiEigen = np.zeros((Nx-2,Ny-2), dtype=np.complex128)
         self.Kx, self.Ky = np.array([n*n for n in range(1, Nx)])*np.pi**2 * hred**2/(2*M*(xf-x0)**2), np.array([n*n for n in range(1, Ny)])*np.pi**2 * hred**2/(2*M*(yf-y0)**2)
                       # Kinetic energy Eigenvalues for closed box. "only for interior points"
         self.Kxmesh, self.Kymesh = np.meshgrid(self.Kx, self.Ky, copy=False, indexing='ij')
@@ -1494,7 +1538,10 @@ class QuantumSystem2D:
                 interpolate2D(self.psi, self.x0, self.xf, self.y0, self.yf,
                               state, x0Old, xfOld, y0Old, yfOld)
         self.psi[:, 0] = 0.; self.psi[:, self.Ny] = 0.; self.psi[0, :] = 0.; self.psi[self.Nx, :] = 0.
-        #self.psi[:, :] = self.psi[:, :] / np.sqrt(self.norm())
+
+        # Make sure everything is normalized
+        nrm = self.norm()
+        if nrm != 0.:  self.psi[:, :] = self.psi[:, :] / np.sqrt(nrm)
 
 
     def setTempState(self, state):
@@ -1555,7 +1602,7 @@ class ClassicalParticle:
         self.x = self.QSystem.expectedX()
         self.y = self.QSystem.expectedY()
 
-        if QSystem.step != 'exact' or QSystem.step != 'fastest':
+        if QSystem.step != 'exact' and QSystem.step != 'fastest':
             self.px = QSystem.expectedPx(forceFourier=True)
             self.py = QSystem.expectedPy(forceFourier=True)
         else:
@@ -1625,14 +1672,6 @@ def RungeKutta4(t, dt, yin, deriv):
     return yin + dt*(k1 + 2*k2 + 2*k3 + k4)/6.
 
 
-class localOperator:
-    """
-    A local operator is an operator that only acts on a point and its closest neighbours
-    i.e. It's useful because we can express any combination:
-    L = fxx(x,y,t) ∂^2_x + fyy(x,y,t) ∂^2_y + fx(x,y,t) ∂_x + fy(x,y,t) ∂_y + F(x,y,t)
-    It just simplfies creating an operator, to be used for defining the hamiltonian
-    """
-    pass
 
 
 # We define operators here differently. [0,0] Center element [dir, 0] center element of dir, [dir, 1] forward dir, [dir, -1] backward dir

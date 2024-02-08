@@ -1,22 +1,22 @@
 {
     "1": {
         "name": "BOHR",
-        "score": 300
+        "score": 500
     },
     "2": {
-        "name": "P1",
-        "score": 55
+        "name": "P4",
+        "score": 200
     },
     "3": {
-        "name": "",
-        "score": 0
+        "name": "P3",
+        "score": 100
     },
     "4": {
-        "name": "",
-        "score": 0
+        "name": "P2",
+        "score": 50
     },
     "5": {
-        "name": "",
-        "score": 0
+        "name": "P1",
+        "score": 20
     }
 }

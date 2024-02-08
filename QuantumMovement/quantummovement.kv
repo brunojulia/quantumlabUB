@@ -90,6 +90,9 @@
 <FunctionInput>:
     #multiline: False
 
+<StateExpression>
+    multiline: False
+
 <TextPopup>:
     title: ""
     auto_dismiss: True
@@ -125,17 +128,39 @@
     auto_dismiss: True
     title: "Estats guardats"
     size_hint: 0.75, 0.75
-    ScrollView:
-        #do_scroll_x: False
-        #do_scroll_y: True
+    BoxLayout:
+        orientation: "vertical"
         GridLayout:
-            cols: 5
-            size_hint_y: None
-            height: self.minimum_height
-            spacing: 10
-            #row_force_default: True
-            row_default_height: 100
-            id: states
+            padding: sp(5), 0
+            cols: 3
+            size_hint: 1, None
+            height: sp(50)
+            TextInput:
+                size_hint_x: 0.15
+                id: stateName
+                multiline: False
+                text: "nouEstat"
+            StateExpression:
+                id: stateCreator
+                holder: root
+            Button:
+                size_hint_x: 0.15
+                text: "Crea\nEstat"
+                on_release:
+                    stateCreator.on_text_validate()
+
+
+        ScrollView:
+            #do_scroll_x: False
+            #do_scroll_y: True
+            GridLayout:
+                cols: 5
+                size_hint_y: None
+                height: self.minimum_height
+                spacing: 10
+                #row_force_default: True
+                row_default_height: 100
+                id: states
 
 <SavedEigenstatesPopup>:
     auto_dismiss: True
@@ -452,7 +477,7 @@
                     attribute: "dtSim"
                     id: dtSim
                 ToggleButton:
-                    text: "Imag timestep \n (* i)"
+                    text: "Pas Imaginari\n(* i)"
                     state: 'down' if root.window.animation.imagdt else 'normal'
                     on_press:
                         root.window.animation.imagdt = not root.window.animation.imagdt
@@ -474,48 +499,75 @@
                     id: t
 
             GridLayout:
-                cols: 2
-                ToggleButton:
-                    text: "Renormalitza\ncada pas"
-                    state: 'down' if root.window.QSystem.renormStep else 'normal'
-                    on_press:
-                        root.window.QSystem.renormStep = not root.window.QSystem.renormStep
-                Label:
-                    text: "Mètodes de\nsimulació"
+                cols: 4
 
-            GridLayout:
-                adi: adi
-                exact: exact
-                eigen: eigen
-                cols: 3
+                Button:
+                    text:"Simulació i\nDebugging"
+                    on_release: Factory.DebugPopup(root.window).open()
 
-                ToggleButton:
-                    id: adi
-                    text: "Crank-Nic ràpid\nADI (altern. dir.)"
-                    state: 'down' if root.window.QSystem.step == 'fastest' else 'normal'
-                    on_press:
-                        root.window.QSystem.step = 'fastest'
-                        exact.state = 'normal'
-                        eigen.state = 'normal'
-                ToggleButton:
-                    id: exact
-                    text: "Crank-Nic exacte\n(molt lent)"
-                    state: 'down' if root.window.QSystem.step == 'exact' else 'normal'
-                    on_press:
-                        root.window.QSystem.step = 'exact'
-                        adi.state = 'normal'
-                        eigen.state = 'normal'
-                ToggleButton:
-                    id: eigen
-                    text: "Crank-Nic amb\nEigenvectors K"
-                    state: 'down' if root.window.QSystem.step == 'eigen' else 'normal'
-                    on_press:
-                        root.window.QSystem.step = 'eigen'
-                        adi.state = 'normal'
-                        exact.state = 'normal'
+<DebugPopup>:
+    title:""
+    size_hint: 0.7, 0.7
+    BoxLayout:
+        orientation: "vertical"
+        GridLayout:
+            adi: adi
+            exact: exact
+            eigen: eigen
+            cols: 4
+            Label:
+                text: "Mètodes de\nsimulació"
+            ToggleButton:
+                id: adi
+                text: "Crank-Nic ràpid\nADI (altern. dir.)"
+                state: 'down' if root.window.QSystem.step == 'fastest' else 'normal'
+                on_press:
+                    root.window.QSystem.step = 'fastest'
+                    exact.state = 'normal'
+                    eigen.state = 'normal'
+            ToggleButton:
+                id: exact
+                text: "Crank-Nic exacte\n(molt lent)"
+                state: 'down' if root.window.QSystem.step == 'exact' else 'normal'
+                on_press:
+                    root.window.QSystem.step = 'exact'
+                    adi.state = 'normal'
+                    eigen.state = 'normal'
+            ToggleButton:
+                id: eigen
+                text: "Crank-Nic amb\nEigenvectors K"
+                state: 'down' if root.window.QSystem.step == 'eigen' else 'normal'
+                on_press:
+                    root.window.QSystem.step = 'eigen'
+                    adi.state = 'normal'
+                    exact.state = 'normal'
+        GridLayout:
+            cols: 4
+            Button:
+                id: renorm
+                text: "Renormalitza"
+                on_release:
+                    root.window.QSystem.renorm()
+            ToggleButton:
+                text: "Renormalitza\ncada pas"
+                state: 'down' if root.window.QSystem.renormStep else 'normal'
+                on_press:
+                    root.window.QSystem.renormStep = not root.window.QSystem.renormStep
 
+            Label:
+                text: "Mostra Norma"
+            CheckBox:
+                active: root.window.animation.showNorm
+                on_active: root.window.animation.reset_plot(showNorm=self.active)
 
-
+        Button:
+            id: eigen
+            text: "Eigenstates"
+            on_release:
+                root.window.stopPlaying()
+                Factory.SavedEigenstatesPopup(root.window).open()
+                #root.QSystem.approximateEigenstate()
+                #root.animation.manualUpdate(onlyDraw=True)
 
 
 <WindowManager>:
@@ -601,28 +653,15 @@
 
                         #print(root.dropdown.ids)
                 GridLayout:
-                    rows: 2
-                    Button:
-                        id: renorm
-                        text: "Renormalitza"
+                    rows:3
                     Button:
                         id: resetButton
                         text: "Neteja/Reset"
                         on_release:
                             root.animation.reset_lists()
                             root.animation.frame=0
-                            root.animation.reset_plot(forceRecreate=True)
+                            root.animation.reset_plot(forceRecreate=True, drawClassical=root.animation.drawClassical)
 
-                GridLayout:
-                    rows:3
-                    Button:
-                        id: eigen
-                        text: "Eigenstates"
-                        on_release:
-                            root.stopPlaying()
-                            Factory.SavedEigenstatesPopup(root).open()
-                            #root.QSystem.approximateEigenstate()
-                            #root.animation.manualUpdate(onlyDraw=True)
                     GridLayout:
                         cols: 2
                         ToggleButton:
@@ -664,7 +703,7 @@
                     TextInput:
                         id: stateName
                         multiline: False
-                        text: "estat0"
+                        text: "est0"
                     Button:
                         id: savedStates
                         text :"Estats Guardats"
@@ -697,19 +736,19 @@
                         app.root.current = "main"
 
 
-
-        BoolCheckBox:
-            active: True
-            pos_hint: {'right': 1, 'y': 0.85}
-            on_active: root.animation.reset_plot(showEnergy=self.active)
-        BoolCheckBox:
-            active: True
-            pos_hint: {'right': 1, 'y': 0.60}
-            on_active: root.animation.reset_plot(showNorm=self.active)
-        BoolCheckBox:
-            active: True
-            pos_hint: {'right': 1, 'y': 0.35}
-            on_active: root.animation.reset_plot(showMomentum=self.active)
+### Show or hide Energy/Norm/Etc
+#        BoolCheckBox:
+#            active: True
+#            pos_hint: {'right': 1, 'y': 0.85}
+#            on_active: root.animation.reset_plot(showEnergy=self.active)
+#        BoolCheckBox:
+#            active: True
+#            pos_hint: {'right': 1, 'y': 0.60}
+#            on_active: root.animation.reset_plot(showNorm=self.active)
+#        BoolCheckBox:
+#            active: True
+#            pos_hint: {'right': 1, 'y': 0.35}
+#            on_active: root.animation.reset_plot(showMomentum=self.active)
 
 
 <GamesScreen>:

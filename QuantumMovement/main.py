@@ -183,44 +183,12 @@ class SavedStatesPopup(Popup):
         # Lambda in loops! Careful with using iterating variable
         # Same with function, using global variable instead of value during creation
         # https://stackoverflow.com/questions/19837486/lambda-in-a-loop
-        grid = self.ids.states
+        #grid = self.ids.states
         #self.parts = []
 
         for state in self.window.savedStates:
+            self.add_state(state)
 
-            lbl = Label(text=state["name"])#,
-            btnprev = Button(text="Previsualitza",
-                             on_release = lambda x, state=state: PlotPopup(state).open())
-            btnchan = Button(text="Canvia\na aquest",
-                             on_release=lambda x, state=state: self.window.setState(state))
-            btnsub = Button(text="Substreu\na l'actual",
-                            on_release=lambda x, state=state: self.window.substractComponent(state))
-
-
-            btndel = Button(text="Elimina", background_color=(0.6,0,0,0.8))
-
-            def removeBind(*args, state=state,
-                           lbl=lbl, btnprev=btnprev, btnchan=btnchan, btnsub=btnsub, btndel=btndel):
-                #print(state["name"])
-                for j in range(len(self.window.savedStates)):
-                    if self.window.savedStates[j]["name"]==state["name"]:
-                        del self.window.savedStates[j]
-                        break
-                #self.window.savedStates.remove(state)
-                grid.remove_widget(lbl)
-                grid.remove_widget(btnprev)
-                grid.remove_widget(btnchan)
-                grid.remove_widget(btnsub)
-                grid.remove_widget(btndel)
-                self.window.ids.stateName.text = "estat{}".format(len(self.window.savedStates))
-
-            btndel.bind(on_release=removeBind)
-
-            grid.add_widget(lbl)
-            grid.add_widget(btnprev)
-            grid.add_widget(btnchan)
-            grid.add_widget(btnsub)
-            grid.add_widget(btndel)
 
 
     # Like this we can test everything gets correctly garbage collected (eventually)
@@ -228,6 +196,40 @@ class SavedStatesPopup(Popup):
         super(SavedStatesPopup, self).on_dismiss()
         #gc.collect()
 
+    def add_state(self, state):
+        grid = self.ids.states
+        lbl = Label(text=state["name"])  # ,
+        btnprev = Button(text="Previsualitza",
+                         on_release=lambda x, state=state: PlotPopup(state).open())
+        btnchan = Button(text="Canvia\na aquest",
+                         on_release=lambda x, state=state: self.window.setState(state))
+        btnsub = Button(text="Substreu\na l'actual",
+                        on_release=lambda x, state=state: self.window.substractComponent(state))
+
+        btndel = Button(text="Elimina", background_color=(0.6, 0, 0, 0.8))
+
+        def removeBind(*args, state=state,
+                       lbl=lbl, btnprev=btnprev, btnchan=btnchan, btnsub=btnsub, btndel=btndel):
+            # print(state["name"])
+            for j in range(len(self.window.savedStates)):
+                if self.window.savedStates[j]["name"] == state["name"]:
+                    del self.window.savedStates[j]
+                    break
+            # self.window.savedStates.remove(state)
+            grid.remove_widget(lbl)
+            grid.remove_widget(btnprev)
+            grid.remove_widget(btnchan)
+            grid.remove_widget(btnsub)
+            grid.remove_widget(btndel)
+            self.window.ids.stateName.text = "estat{}".format(len(self.window.savedStates))
+
+        btndel.bind(on_release=removeBind)
+
+        grid.add_widget(lbl)
+        grid.add_widget(btnprev)
+        grid.add_widget(btnchan)
+        grid.add_widget(btnsub)
+        grid.add_widget(btndel)
 
 class SavedEigenstatesPopup(Popup):
     def __init__(self, window, **kwargs):
@@ -575,6 +577,163 @@ class CustomDataSlider(BoxLayout):
 
 
 
+sandbox = None
+class LocalOperator:
+    """
+    A local operator is an operator that only acts on a point and its closest neighbours
+    i.e. It's useful because we can express any combination:
+    L = fxx(x,y,t) ∂^2_x + fyy(x,y,t) ∂^2_y + fx(x,y,t) ∂_x + fy(x,y,t) ∂_y + F(x,y,t)
+    It just simplfies creating an operator, to be used for defining the hamiltonian
+    """
+
+    # WE won't get into detail to create new opreators.
+    # AS of now, we limit ourselves to already well defined operators (Px, Py, V, etc)
+
+    def __init__(self, operator):
+        if callable(operator):
+            self.operator = operator
+        else:
+            def operatorFunc(op, X, dx, t=0, extra_param=np.array([]), dir=-1, onlyUpdate=True, operator=operator):
+                op[:,:] = operator[:,:]
+            self.operator = operatorFunc
+
+    # L * psi.   Apply Operator
+    def __mul__(self, state):
+        state = state.state
+        newState = state.copy()
+        newState["psi"] = state["psi"].copy()
+        #print(newState["psi"])
+
+        sb = sandbox
+
+        X = np.linspace(state["x0"], state["xf"], len(state["psi"]))
+        Y = np.linspace(state["y0"], state["yf"], len(state["psi"][0]))
+        mathPhysics.applyOperator2DFuncNoJit(X, Y, state["psi"], newState["psi"], self.operator, t=sb.QSystem.t, extra_param=sb.QSystem.extra_param)
+        return OperableState(newState)
+
+    # k L.  Multiply by number
+    def __rmul__(self, other):
+        # numero
+        #if not callable(other):
+        def operator(op, X, dx, t=0, extra_param=np.array([]), dir=-1, onlyUpdate=True):
+            self.operator(op, X, dx, t, extra_param, dir, onlyUpdate)
+            op *= other
+
+        return LocalOperator(operator)
+
+    # Add two operators. When we combine them we dont know if they overlap. WE'll havae to always update.
+    # These local operators are only to be used to manipulate states. One operation at a time, not like kinetic energy
+    def __add__(self, other):
+        def operator(op, X, dx, t=0, extra_param=np.array([]), dir=-1, onlyUpdate=False):
+            self.operator(op, X, dx, t, extra_param, dir, onlyUpdate=False)
+            opCopy = op.copy()
+            other.operator(opCopy, X, dx, t, extra_param, dir, onlyUpdate=False)
+            op+=opCopy
+        return LocalOperator(operator)
+
+class OperableState():
+    # Dictionary holding state info
+    def __init__(self, state):
+        self.state = state
+
+    def __add__(self, other):
+        newState = self.state.copy()
+        newState["psi"] = self.state["psi"].copy()
+        newState["psi"] += other.state["psi"]
+        return OperableState(newState)
+
+    def __mul__(self, other):
+        newState = self.state.copy()
+        newState["psi"] = self.state["psi"].copy()
+        newState["psi"]*=other
+        return OperableState(newState)
+    __rmul__ = __mul__
+
+    #To multiply with ndarrays
+    def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
+        ndarray, state = inputs
+        return state * ndarray
+
+class StateExpression(TextInput):
+    """Expected to hold string python expression which is to be evaluated."""
+
+    def __init__(self, varDict={}, holder=None, **kwargs):
+        super(StateExpression, self).__init__(**kwargs)
+        self.holder = holder
+        self.varDict = varDict
+
+        self.stateDict = {}
+
+        Clock.schedule_once(self.set_self)
+        # .kv can't take data from another class during init. Everything needs to be init first
+        # That's why the delay
+
+    def set_self(self, *args):
+        self.states = self.holder.window.savedStates
+
+    def on_text_validate(self):
+        # Enter
+        self.stateDict.clear()
+        stateVar = {}
+        sbox = self.holder.window
+        for state in self.states:
+            stateVar[state["name"]] = OperableState(state)
+            self.stateDict[state["name"]] = "stateVar['"+state["name"]+"']"
+
+        # we assume we are working with current
+
+        K = LocalOperator(mathPhysics.kineticEnergy)
+        Px = LocalOperator(-1j * mathPhysics.hred * np.array([[0., 0.], [-1./(2.*sbox.QSystem.dx), +1./(2.*sbox.QSystem.dx)] , [0.,0.]]) )
+        Dx = LocalOperator( np.array([[0., 0.], [-1./(2.*sbox.QSystem.dx), +1./(2.*sbox.QSystem.dx)] , [0.,0.]]) )
+        Py = LocalOperator(-1j * mathPhysics.hred * np.array([[0., 0.], [0.,0.], [-1./(2.*sbox.QSystem.dy), +1./(2.*sbox.QSystem.dy)]]))
+        Dy = LocalOperator( np.array([[0., 0.], [0.,0.], [-1./(2.*sbox.QSystem.dy), +1./(2.*sbox.QSystem.dy)]]))
+
+        x = sbox.QSystem.Xmesh
+        y = sbox.QSystem.Ymesh
+
+        repeated = False
+        for state in self.states:
+            if self.holder.ids.stateName.text == state["name"]:
+                repeated = True
+                break
+
+        if repeated:
+            TextPopup("Nom ja fet servir!").open()
+            return
+
+        expression = self.text
+
+        if expression == "": return
+        try:
+            # Things like {px} are substituted by their corresponding actual extra_param
+            expressionFormated = expression.format(**self.stateDict)
+        except:
+            TextPopup("Compte amb estats o\nvariables globals").open()
+            return
+        #################
+        # SAFETY CHECKS #
+        #################
+        if "print" in expression or "import" in expression or "sys" in expression or "os." in expression or "open" in expression \
+                or "__" in expression:  # or "__builtins__" in expression:
+            exit(print("ALERTA: AIXÒ NO ES POT FER"))
+            # Molt malament
+
+        try:
+            tempState = eval(expressionFormated).state.copy()
+
+            tempState["name"] = self.holder.ids.stateName.text
+            self.states.append(tempState)
+            self.holder.add_state(tempState)
+        except:
+            TextPopup("La declaració ha de\nresultar en un estat").open()
+        return 0 # Returns True when everything is OK
+
+    def conditionHolds(self, val):
+        if self.condition == None: return True
+
+        return True
+
+
 class FunctionInput(TextInput):
     """Expected to hold string python expression which can be converted into a function."""
 
@@ -616,7 +775,7 @@ class FunctionInput(TextInput):
         except InvalidFormat:
             TextPopup("Compte amb les variables globals").open()
         except:
-            TextPopup("Expressió Invàlida!\nRecorda multiplicar amb *\nI compte amb divisions per 0\nPer 1/r posa 1/(r+numPetit)").open()
+            TextPopup("Expressió Invàlida!\nRecorda multiplicar amb *\nI compte amb divisions per 0").open() #\nPer 1/r posa 1/(r+numPetit)
 
 
     def conditionHolds(self, val):
@@ -629,7 +788,7 @@ class FunctionInput(TextInput):
 #                           FUNCIONS EN GENERAL                                                             #
 
 from crankNicolson.crankNicolson2D import gaussianPacket
-from crankNicolson.crankNicolson2D import eigenvectorsHarmonic1D
+from crankNicolson.crankNicolson2D import eigenvectorsHarmonic1D as eigenHarmonic
 """
 def gaussianPacket(x, x0, sigma, p0, extra_param=None):
     global hred
@@ -766,7 +925,7 @@ class SandboxScreen(Screen):
         self.animation = animate.QuantumAnimation(self.QSystem, dtSim=0.01,
                                                   dtAnim=0.05, debugTime=True,
                                                   showPotential=True, varyingPotential=True,
-                                                  showMomentum=True, showEnergy=True, forceEnergy=True, showNorm=True, forceNorm=True,
+                                                  showMomentum=True, showEnergy=True, forceEnergy=True, showNorm=False, forceNorm=True,
                                                   scalePsi=True, scaleMom=True, isKivy=True, drawClassical=True,
                                                   unit_dist=unit_dist, unit_time=unit_time, unit_energy=unit_energy, unit_mom=unit_mom,
                                                   toolbar=True)
@@ -786,10 +945,27 @@ class SandboxScreen(Screen):
         #box.add_widget(self.animation.navigation.actionbar)
         nav = self.animation.navigation
         gridnav = ColoredGridLayout(cols=9, height=sp(75/2), size_hint_y=None)
+
+        mplSize = nav.actionbar.children[0].children[0].size # We make our custom buttons same size as matplotlib's
+        mplBckCol = (113/255., 161/255., 179/255., 1) # had to do aproximate it manually #nav.actionbar.children[0].children[0].background_color
+        btnE = ToggleButton(background_normal='', background_down='', background_color=mplBckCol, state="down",bold=True, color=(0,0,0,1), text="E", font_size='30sp', size_hint=(None,1), size=mplSize)
+        def showE(*args):
+            self.animation.reset_plot(showEnergy=btnE.state is 'down')
+            btnE.background_color = mplBckCol if btnE.state is 'down' else (0,0,0,0)
+        btnE.bind(on_release=showE)
+        gridnav.add_widget(btnE)
+
+        btnP = ToggleButton(background_normal='', background_down='', background_color=mplBckCol, state="down", bold=True, color=(0,0,0,1), text="P", font_size='30sp', size_hint=(None,1), size=mplSize)
+        def showP(*args):
+            self.animation.reset_plot(showMomentum=btnP.state is 'down')
+            btnP.background_color = mplBckCol if btnP.state is 'down' else (0, 0, 0, 0)
+        btnP.bind(on_release=showP)
+        gridnav.add_widget(btnP)
+
         for i in range(9):
             kid = nav.actionbar.children[0].children[0]
             nav.actionbar.children[0].remove_widget(kid)
-            if i > 2: gridnav.add_widget(kid)      # save and settings widget don't do anything anyways
+            if i != 0 and i != 2: gridnav.add_widget(kid)      # save and settings widget don't do anything anyways
 
         box.add_widget(gridnav)
 
@@ -805,7 +981,7 @@ class SandboxScreen(Screen):
             self.animation.fig.canvas._on_size_changed = temp
         Clock.schedule_once(reallowResizing)
 
-        self.ids.renorm.bind(on_release = self.renorm)
+        #self.ids.renorm.bind(on_release = self.renorm)
 
         # Some bug appeared. When initializing everything matplotlib breaks because in generating canvas
         # it gets a 0 width, and divides by 0. We allow resizing canvas later only, to make sure kivy screens are well defined
@@ -814,6 +990,8 @@ class SandboxScreen(Screen):
         #Clock.schedule_once(lambda x: print("yello"))   # This not. The error happens in between, drawing is scheduled here
 
         #self.settingsButton.bind(on_release = self.dropdown.open)
+        global sandbox
+        sandbox = self
 
     def renorm(self, dt):
         """Manually Renormalize"""
@@ -844,7 +1022,7 @@ class SandboxScreen(Screen):
             self.savedStates.append({"psi": self.QSystem.psi.copy(), "x0": self.QSystem.x0, "xf": self.QSystem.xf
                                      ,                               "y0": self.QSystem.y0, "yf": self.QSystem.yf,
                                      "name": self.ids.stateName.text})
-            self.ids.stateName.text = "estat{}".format(len(self.savedStates))
+            self.ids.stateName.text = "est{}".format(len(self.savedStates))
 
     def setState(self, state):
         self.QSystem.setState(state)
@@ -925,6 +1103,9 @@ class SandboxScreen(Screen):
 
         #self.animation.reset_lists()
         #self.animation.reset_plot()
+
+
+
 
 class TextPopup(Popup):
     def __init__(self, text, **kwargs):
@@ -1170,19 +1351,45 @@ class ExamplesScreen(Screen):
 
 
         def slitInterferenceSetup(ax, dat, QSystem, units):
-            ax.set_title("Mesura de pantalla")
-            ax.set_xlabel("y ({})".format(units["unit_dist"]))
-            ax.set_ylabel(r'$|\psi|^2 ({})^{{-2}}$'.format(units["unit_dist"]))
-            itx = int((-4 + QSystem.extra_param[5] - x0A)/(xfA-x0A)*NxA) # Initially gaussian packet starts at -6
-            dat["observed"], = ax.plot(QSystem.Y, QSystem.psiMod[itx, :])
-            ax.set_ylim(0., np.max(QSystem.psiMod))
+            # ax.set_title("Mesura de pantalla")
+            # ax.set_xlabel("y ({})".format(units["unit_dist"]))
+            # ax.set_ylabel(r'$|\psi|^2 ({})^{{-2}}$'.format(units["unit_dist"]))
+            # itx = int((-4 + QSystem.extra_param[5] - x0A)/(xfA-x0A)*NxA) # Initially gaussian packet starts at -6
+            # dat["observed"], = ax.plot(QSystem.Y, QSystem.psiMod[itx, :])
+            # ax.set_ylim(0., np.max(QSystem.psiMod))
             # We abuse we already know psiMod holds norm
+            ax.set_title("Mesura de pantalla")
+            ax.set_ylabel("y ({})".format(units["unit_dist"]))
+            ax.set_xlabel(r'$|\psi|^2 ({})^{{-2}}$'.format(units["unit_dist"]))
+            itx = int((-4 + QSystem.extra_param[5] - x0A) / (xfA - x0A) * NxA)  # Initially gaussian packet starts at -6
+            dat["observed"], = ax.plot(QSystem.psiMod[itx, :], QSystem.Y)
+            ax.set_xlim(0., np.max(QSystem.psiMod))
+            ax.set_ylim(QSystem.Y[0], QSystem.Y[-1])
+
+            # Matplotlib Aspect ratio is relative to data
+            # We want a visual aspect ratio, to fit the y axis with the
+            # wave function plot
+            # - - -   Interference occupies 1/3
+            ratio = 2.25
+
+            # get x and y limits
+            x_left, x_right = ax.get_xlim()
+            y_low, y_high = ax.get_ylim()
+            # set aspect ratio
+            ax.set_aspect(abs((x_right - x_left) / (y_low - y_high)) * ratio)
 
         def slitInterferenceUpdate(ax, dat, QSystem, units):
-            itx = int((-4 + QSystem.extra_param[5] + QSystem.t*p0A/1.25 - x0A)/(xfA-x0A) * NxA)  # Moves with wave
-            dat["observed"].set_data(QSystem.Y, QSystem.psiMod[itx, :])
-            ax.set_ylim(0.) # Reset limits
-            ax.figure.draw_artist(ax.patch) # redraw background, if not lines are overdrawn
+            # itx = int((-4 + QSystem.extra_param[5] + QSystem.t*p0A/1.25 - x0A)/(xfA-x0A) * NxA)  # Moves with wave
+            # dat["observed"].set_data(QSystem.Y, QSystem.psiMod[itx, :])
+            # ax.set_ylim(0.) # Reset limits
+            # ax.figure.draw_artist(ax.patch) # redraw background, if not lines are overdrawn
+
+            itx = int(
+                (-4 + QSystem.extra_param[5] + QSystem.t * p0A / 1.25 - x0A) / (xfA - x0A) * NxA)  # Moves with wave
+            dat["observed"].set_data(QSystem.psiMod[itx, :], QSystem.Y)
+            ax.set_xlim(0.)  # Reset limits
+            ax.figure.draw_artist(ax.patch)  # redraw background, if not lines are overdrawn
+
 
             return False
 
@@ -1209,7 +1416,8 @@ class ExamplesScreen(Screen):
                       "potential": potentialDoubleSlit, "extraUpdates": [extraUpdateClimSlit], "extraUpdatesStart": True,
                       "extra_param": np.array([2, 1, 1, 0.5, 0., 0.]), "x0": x0A, "xf": xfA, "Nx": NxA, "Ny":NxA, "y0":-10, "yf": 10,
                       "dtSim": 2**(-7), "stepsPerFrame":2, "scalePot": False,
-                      "drawClassical": False, "drawExpected": False, "customPlot": (slitInterferenceSetup, slitInterferenceUpdate),
+                      "drawClassical": False, "drawExpected": False,
+                      "customPlot": (slitInterferenceSetup, slitInterferenceUpdate), "customPlotFull": True,
                       "showMomentum": False, "showEnergy": False, "showNorm": False, "duration": 1., "plotWidget": slidersSlit}
         self.ids.exampselect.add_widget(
             Button(text="Doble Escletxa", on_release=partial(self.switch, definition=definition)))
@@ -1268,7 +1476,8 @@ class ExamplesScreen(Screen):
                       "potential": potentialDoubleSlit, "extraUpdates": [extraUpdateClimSlit, aharonovExtraDrawings], "extraUpdatesStart":True, "extraUpdatesUpdate":True,
                       "extra_param": np.array([2, 1, 1, 0.5, 0.4, 0]), "x0": x0A, "xf": xfA, "Nx": NxA, "Ny": NxA, "y0": -10, "yf": 10,
                       "dtSim": 2 ** (-7), "stepsPerFrame":2, "scalePot": False,
-                      "drawClassical": False, "drawExpected": False, "customPlot": (slitInterferenceSetup, slitInterferenceUpdate), "customPlotUpdate":True,
+                      "drawClassical": False, "drawExpected": False,
+                      "customPlot": (slitInterferenceSetup, slitInterferenceUpdate), "customPlotUpdate":True, "customPlotFull":True,
                       "showMomentum": False, "showEnergy": False, "showNorm": False, "duration": 1.,
                       "plotWidget": slidersAharonov, "customOperator": mathPhysics.aharonovBohmOperator,
                       }
@@ -1364,9 +1573,9 @@ class GamesScreen(Screen):
                 json.dump(json_dict, outfile, indent=4)
 
         class LeaderboardInput(TextInput):
-            # Only 4 characters, and upper leter
+            # Only 5 characters, and upper leter
             def insert_text(self, substring, from_undo=False):
-                s = substring.upper()[:4-len(self.text)]
+                s = substring.upper()[:5-len(self.text)]
                 return super().insert_text(s, from_undo=from_undo)
 
         def setMoveGame(args):
@@ -1843,6 +2052,11 @@ class ParametersPopup(Popup):
 
         self.ids.dtSim.text = str(self.window.animation.dtSim)"""
 
+class DebugPopup(Popup):
+    def __init__(self, window, **kwargs):
+        self.window = window  # Window holds information such as QuantumSystem and Animation
+        super(DebugPopup, self).__init__(**kwargs)
+
 class PlayScreen(Screen):
     def __init__(self, sourceScreen = "examples", **kwargs):
         super(PlayScreen, self).__init__(**kwargs)
@@ -1947,7 +2161,7 @@ class PlayScreen(Screen):
                     "drawClassical":True, "drawClassicalTrace":False, "drawExpected":True, "drawExpectedTrace":False,
                     "extraCommands":[], "extraUpdates":[], "extraUpdatesStart":False, "extraUpdatesUpdate":False,
                     "unit_dist":unit_dist,"unit_mom":unit_mom,"unit_time":unit_time,"unit_energy":unit_energy,
-                    "customPlot":None, "customPlotUpdate":False}
+                    "customPlot":None, "customPlotUpdate":False, "customPlotFull":False}
         for key in animKeys:
             # Changes value to definition (dictionary), but if it's not in the dictionary leaves it as is (default)
             animKeys[key] = definition.get(key, animKeys[key])
