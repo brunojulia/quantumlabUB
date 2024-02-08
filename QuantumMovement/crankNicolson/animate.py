@@ -87,7 +87,7 @@ class QuantumAnimation:  # inches
                  debugTime=False, callbackProgress=False, isFocusable=True,
                  drawClassical=False, drawClassicalTrace=False, drawExpected=False, drawExpectedTrace=False,
                  unit_dist='Å', unit_time='fs', unit_energy='eV', unit_mom=r'$\frac{1}{2}\hbar Å^{-1}$',
-                 toolbar=False, customPlot=None, customPlotUpdate=False):
+                 toolbar=False, customPlot=None, customPlotUpdate=False, customPlotFull=False):
         """
         Declaration of a Quantum Animation
         :param QSystem: Quantum System. The physics happen here, see crankNikolson2D QuantumSystem class.
@@ -152,6 +152,7 @@ class QuantumAnimation:  # inches
 
         self.customPlot = customPlot
         self.customPlotUpdate = customPlotUpdate
+        self.customPlotFull = customPlotFull
 
         self.unit_dist = unit_dist
         self.unit_energy = unit_energy
@@ -221,6 +222,7 @@ class QuantumAnimation:  # inches
 
         self.drawnPos = None
         self.drawnParticle = None
+        self.drawnParticleMom = None
 
         self.drawClassical = drawClassical; self.drawClassicalTrace = drawClassicalTrace; self.drawExpected = drawExpected; self.drawExpectedTrace = drawExpectedTrace
 
@@ -284,24 +286,25 @@ class QuantumAnimation:  # inches
             self.axPsi = self.fig.add_subplot(1, 2 + (extraSubplots > 0), (1, 2))
 
             if cplot:
-                if extraSubplots == 1: self.axCustom = self.fig.add_subplot(3,3,6)
+                if extraSubplots == 1:
+                    self.axCustom = self.fig.add_subplot(3,3,6) if not self.customPlotFull else self.fig.add_subplot(1,3,3)
                 else: self.axCustom = self.fig.add_subplot(4, 3, 3)
             else:
                 self.axCustom = None
 
             if self.showEnergy:
-                self.axEnergy = self.fig.add_subplot(3+cplot, 3, 3+3*cplot)  # (2, 6, 11)
+                self.axEnergy = self.fig.add_subplot(3+cplot, 3, 3*(1+cplot))  # (2, 6, 11)
             else:
                 self.axEnergy = None
             if self.showNorm:
-                self.axNorm = self.fig.add_subplot(3+cplot, 3, 6+3*cplot)  # (2, 6, 12)
+                self.axNorm = self.fig.add_subplot(3+cplot, 3, 3*(2+cplot))  # (2, 6, 12)
             else:
                 self.axNorm = None
             if self.showMomentum:
                 if extraSubplots == 1:
                     self.axMomentum = self.fig.add_subplot(1, 3, 3)
                 elif not self.showNorm: self.axMomentum = self.fig.add_subplot(3+cplot, 3, (6+3*cplot,9+3*cplot))
-                else: self.axMomentum = self.fig.add_subplot(3+cplot, 3, 9+3*cplot)  # (2, 3, 3)
+                else: self.axMomentum = self.fig.add_subplot(3+cplot, 3, 3*(3+cplot))  # (2, 3, 3)
             else:
                 self.axMomentum = None
 
@@ -382,17 +385,26 @@ class QuantumAnimation:  # inches
 
 
             self.drawnParticle = None
+            self.drawnParticleMom = None
             self.drawnPos = None
 
 
         if self.drawnParticle is not None: self.drawnParticle.remove()
+        if self.drawnParticleMom is not None and self.showMomentum: self.drawnParticleMom.remove()
         if self.drawClassical:
                                           # Particle deviates, so it is only adjusted to the QSystem the first time it is shown
             if drawClassical is not None: self.particle = mathPhysics.ClassicalParticle(self.QSystem)
             self.drawnParticle = plt.Circle((self.particle.x, self.particle.y), (self.QSystem.xf-self.QSystem.x0)/100.,
                                             color='whitesmoke', alpha=0.5)
             self.axPsi.add_patch(self.drawnParticle)
-        else: self.drawnParticle = None
+
+            if self.showMomentum:
+                self.drawnParticleMom = plt.Arrow(0.,0., self.particle.px, self.particle.py,
+                                                color='brown', alpha=0.5)
+                #(self.QSystem.Px[-1] - self.QSystem.Px[0]) / 100.
+                self.axMomentum.add_patch(self.drawnParticleMom)
+
+        else: self.drawnParticle = None; self.drawnParticleMom = None
 
         if self.drawnPos is not None: self.drawnPos.remove()
         if self.drawExpected:
@@ -546,6 +558,7 @@ class QuantumAnimation:  # inches
             self.drawnParticle = plt.Circle((self.particle.x, self.particle.y), (self.QSystem.xf - self.QSystem.x0) / 100.,
                                             color='whitesmoke', alpha=0.5)
             self.axPsi.add_patch(self.drawnParticle)
+
             """#Recenter  This is to not create a new patch every time.
             if self.drawnParticle == None:
                 self.drawnParticle = plt.Circle((self.particle.x, self.particle.y), (self.QSystem.xf - self.QSystem.x0) / 100.,
@@ -604,6 +617,19 @@ class QuantumAnimation:  # inches
             if self.scaleMom: self.datMom.set_clim(vmax=np.max(self.QSystem.psiMod.T), vmin=0.)
             self.datMom.set_data(self.QSystem.psiMod.T)
             changes.append(self.datMom)
+
+            if self.drawClassical and not self.imagdt:
+                self.drawnParticleMom.remove()
+                # No funciona? Versió més moderna potser només de matplotlib # self.drawnParticleMom.set_data(dx=self.particle.px, dy=self.particle.py)
+
+
+                if abs(self.particle.px) > (self.QSystem.Px[1]-self.QSystem.Px[0]) / 4 or abs(self.particle.py) > (self.QSystem.Py[1] - self.QSystem.Py[0]) / 4:
+                    self.drawnParticleMom = plt.Arrow(0., 0., self.particle.px, self.particle.py, color='brown', alpha=0.5)
+                else:
+                    self.drawnParticleMom = plt.Circle((0,0), radius=min((self.QSystem.Px[1] - self.QSystem.Px[0])/4,
+                                                                         (self.QSystem.Py[1] - self.QSystem.Py[0])/4), color='brown')
+                self.axMomentum.add_patch(self.drawnParticleMom)
+                changes.append(self.drawnParticleMom)
 
 
         if self.extraUpdates != None:
