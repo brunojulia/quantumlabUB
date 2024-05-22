@@ -15,7 +15,7 @@
     background_color: 0, 0, 0, 0
     canvas.before:
         Color:
-            rgba: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0, 0.7, 0.7, 1)
+            rgba: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -27,7 +27,7 @@
     background_color: 0, 0, 0, 0
     canvas.before:
         Color:
-            rgba: (0, 0.7, 0.7, 1) if self.active else (0.75, 0.75, 0.75, 1)
+            rgba: [0.203125, 0.59375, 0.855469, 1] if self.active else (0.75, 0.75, 0.75, 1)
         Rectangle:
             pos: self.pos
             size: self.size
@@ -81,6 +81,7 @@
     source: source
     slider: slider
 
+    
 
     canvas.before:
         Color:
@@ -95,25 +96,28 @@
         size: 100 * root.width / root.win_size[0], 30 * root.width / root.win_size[0]
         rgba: (0.75, 0.75, 0.75, 1) if self.active else (0, 0.7, 0.7, 1)
         center: root.center_x, root.center_y + 230 * root.width / root.win_size[0]
-        on_press: self.change_mode(), tut_eve.change_mode()
+        on_press: self.change_mode(), tut_eve.change_mode(), tut_alice_bit.change_mode(), tut_bob_bit.change_mode()
 
         Label:
             color: 0, 0, 0, 1
             font_size: 20 * root.width / root.win_size[0] 
             center: self.parent.center
-            text: "On" if self.parent.active else "Off"
+            font_name: 'NunitoSans'
+            text: "ON" if self.parent.active else "OFF"
 
         Label:
             id: eve_label
             color: 0, 0, 0, 1
             font_size: 37 * root.width / root.win_size[0] 
             center: self.parent.center_x, self.parent.top + 30 * root.width / root.win_size[0]
+            font_name: 'NunitoSans'
             text: "Eavesdropping"
 
         Label:
             color: 0, 0, 0, 1
             font_size: 70 * root.width / root.win_size[0] 
             center: root.center_x, root.center_y - 350 * root.width / root.win_size[0]
+            font_name: 'NunitoSans'
             text: "Eve" if self.parent.active else ''
 
     Switch_Button:
@@ -127,7 +131,8 @@
             color: 0, 0, 0, 1
             font_size: 20 * root.width / root.win_size[0] 
             center: eve_left_filter.center_x, eve_left_filter.top + switch_eve_left.height / 2
-            text: "On" if self.parent.active else "Off"
+            font_name: 'NunitoSans'
+            text: "ON" if self.parent.active else "OFF"
 
     Switch_Button:
         id: switch_eve_right
@@ -140,7 +145,8 @@
             color: 0, 0, 0, 1
             font_size: 20 * root.width / root.win_size[0] 
             center: eve_right_filter.center_x, eve_right_filter.top + switch_eve_right.height / 2
-            text: "On" if self.parent.active else "Off"
+            font_name: 'NunitoSans'
+            text: "ON" if self.parent.active else "OFF"
 
     Switch_Button: 
         id: switch_expert_mode
@@ -152,12 +158,14 @@
             color: 0, 0, 0, 1
             font_size: 20 * root.width / root.win_size[0] 
             center: alice_filter.center_x, alice_filter.center_y + 410 * root.width / root.win_size[0]
-            text: "On" if self.parent.active else "Off"
+            font_name: 'NunitoSans'
+            text: "ON" if self.parent.active else "OFF"
 
         Label:
             color: 0, 0, 0, 1
             font_size: 30 * root.width / root.win_size[0]  
             center: switch_expert_mode.center_x, switch_expert_mode.top + 30 * root.width / root.win_size[0]
+            font_name: 'NunitoSans'
             text: "Expert Mode"
 
         Label:
@@ -166,7 +174,8 @@
             opacity: 1 if self.parent.active else 0
             font_size: 30 * root.width / root.win_size[0]  
             center: alice_filter.center_x + alice_filter.width / 2 + self.width / 2, switch_expert_mode.center_y
-            text: "E(a1,b1) = " + str(root.E_a1b1)
+            font_name: 'NunitoSans'
+            text: "E(a,b) = " + str(root.E_a1b1)
 
         Label:
             id: label_E_a1b3
@@ -174,7 +183,8 @@
             opacity: 1 if self.parent.active else 0
             font_size: 30 * root.width / root.win_size[0]  
             center: alice_filter.center_x + alice_filter.width / 2 + self.width / 2 + 0.2 * (bob_filter.center_x - bob_filter.width / 2), switch_expert_mode.center_y
-            text: "E(a1,b3) = " + str(root.E_a1b3)
+            font_name: 'NunitoSans'
+            text: "E(a,b') = " + str(root.E_a1b3)
 
         Label:
             id: label_E_a13b1
@@ -182,7 +192,8 @@
             opacity: 1 if self.parent.active else 0
             font_size: 30 * root.width / root.win_size[0]  
             center: alice_filter.center_x + alice_filter.width / 2 + self.width / 2 + 0.4 * (bob_filter.center_x - bob_filter.width / 2), switch_expert_mode.center_y
-            text: "E(a3,b1) = " + str(root.E_a3b1)
+            font_name: 'NunitoSans'
+            text: "E(a',b) = " + str(root.E_a3b1)
 
         Label:
             id: label_E_a3b3
@@ -190,13 +201,15 @@
             opacity: 1 if self.parent.active else 0
             font_size: 30 * root.width / root.win_size[0]  
             center: alice_filter.center_x + alice_filter.width / 2 + self.width / 2 + 0.6 * (bob_filter.center_x - bob_filter.width / 2), switch_expert_mode.center_y
-            text: "E(a3,b3) = " + str(root.E_a3b3)
+            font_name: 'NunitoSans'
+            text: "E(a',b') = " + str(root.E_a3b3)
 
         Label:
             color: 0, 0, 0, 1
             opacity: 1 if self.parent.active else 0
             font_size: 30 * root.width / root.win_size[0]  
             center: alice_filter.center_x + alice_filter.width / 2 + self.width / 2 + 0.8 * (bob_filter.center_x - bob_filter.width / 2), switch_expert_mode.center_y
+            font_name: 'NunitoSans'
             text: "S = " + str(root.S)
 
     
@@ -210,12 +223,14 @@
             color: 0, 0, 0, 1
             font_size: 70 * root.width / root.win_size[0] 
             center: alice_filter.center_x, alice_filter.center_y - 350 * root.width / root.win_size[0]
+            font_name: 'NunitoSans'
             text: "Alice" 
 
         Label:
             color: 0, 0, 0, 1
             font_size: 70 * root.width / root.win_size[0] 
             center: alice_filter.center_x, alice_filter.top + 120 * root.width / root.win_size[0]
+            font_name: 'NunitoSans'
             text: str(root.a_bit)
 
     Filter:
@@ -227,12 +242,14 @@
             color: 0, 0, 0, 1
             font_size: 70 * root.width / root.win_size[0] 
             center: bob_filter.center_x, bob_filter.center_y - 350 * root.width / root.win_size[0]
+            font_name: 'NunitoSans'
             text: "Bob"
 
         Label:
             color: 0, 0, 0, 1
             font_size: 70 * root.width / root.win_size[0] 
             center: bob_filter.center_x, bob_filter.top + 120 * root.width / root.win_size[0]
+            font_name: 'NunitoSans'
             text: str(root.b_bit)
 
     Filter:
@@ -246,6 +263,7 @@
             opacity: 1 if (switch_eve.active and switch_eve_left.active) else 0
             font_size: 70 * root.width / root.win_size[0] 
             center: eve_left_filter.center_x, eve_left_filter.top + 120 * root.width / root.win_size[0]
+            font_name: 'NunitoSans'
             text: str(root.e_left_bit)
         
     Filter:
@@ -259,6 +277,7 @@
             opacity: 1 if (switch_eve.active and switch_eve_right.active) else 0
             font_size: 70 * root.width / root.win_size[0] 
             center: eve_right_filter.center_x, eve_right_filter.top + 120 * root.width / root.win_size[0]
+            font_name: 'NunitoSans'
             text: str(root.e_right_bit)
 
 
@@ -289,13 +308,14 @@
         id: alice_button
         size: 60 * root.width / root.win_size[0], 60 * root.width / root.win_size[0]
         center: alice_filter.center_x + 0.5 * alice_filter.width - 0.6 * self.width, root.center_y - 0.5 * alice_filter.width - 1.2 * self.height
-        on_press: alice_slit.change_left_angles(), tut_emmited.change_mode(), tut_alice_bit.change_mode(), tut_bob_bit.change_mode(), tut_alice_button.change_mode()
+        on_press: alice_slit.change_left_angles(), tut_emmited.change_mode(), tut_alice_button.change_mode()
 
         Label:
             id: alice_angle
             color: 0, 0, 0, 1
             font_size: 60 * root.width / root.win_size[0]
             center: alice_filter.center_x - 25 * root.width / root.win_size[0], root.center_y - alice_filter.width / 2 - 1.2 * alice_button.height
+            font_name: 'NunitoSans'
             text: str(alice_slit.angle) + " º"
 
     Round_Button:
@@ -309,6 +329,7 @@
             color: 0, 0, 0, 1
             font_size: 60 * root.width / root.win_size[0]
             center: bob_filter.center_x - 25 * root.width / root.win_size[0], root.center_y - 0.5 * alice_filter.width - 1.2 * bob_button.height
+            font_name: 'NunitoSans'
             text: str(bob_slit.angle) + " º"
 
     Round_Button:
@@ -324,6 +345,7 @@
             font_size: 60 * root.width / root.win_size[0]
             opacity: 1 if (switch_eve.active and switch_eve_left.active) else 0
             center: eve_left_filter.center_x - 25 * root.width / root.win_size[0], root.center_y - 0.5 * alice_filter.width - 1.2 * eve_left_button.height
+            font_name: 'NunitoSans'
             text: str(eve_left_slit.angle) + " º"
 
     Round_Button:
@@ -339,6 +361,7 @@
             font_size: 60 * root.width / root.win_size[0]
             opacity: 1 if (switch_eve.active and switch_eve_right.active) else 0
             center: eve_right_filter.center_x - 25 * root.width / root.win_size[0], root.center_y - 0.5 * alice_filter.width - 1.2 * eve_right_button.height
+            font_name: 'NunitoSans'
             text: str(eve_right_slit.angle) + " º"
 
 
@@ -359,13 +382,12 @@
         center: root.center
         on_press: root.emission(), tut_press_source.change_mode()
 
-        
-
         Label:
             id: label_source 
             color: 0, 0, 0, 1
             font_size: 45 * root.width / root.win_size[0] 
             center: source.center_x, source.center_y - 70 * root.width / root.win_size[0]
+            font_name: 'NunitoSans'
             text: "Source"
 
 
@@ -375,7 +397,7 @@
         max: 1000
         step: 1
         value_track: True
-        value_track_color: [0.175, 0.332, 0.999, 1]
+        value_track_color: [0.15, 0.45, 0.8, 1]
         size: 170 * root.width / root.win_size[0], 40 * root.width / root.win_size[0]
         cursor_size: (20 * root.width / root.win_size[0], 20 * root.width / root.win_size[0])
         center: root.center_x, label_source.center_y - 30 * root.width / root.win_size[0]
@@ -385,95 +407,113 @@
             color: 0, 0, 0, 1
             font_size: 16 * root.width / root.win_size[0]
             center: slider.center_x, slider.center_y - 20
+            font_name: 'NunitoSans'
             text: str(slider.value)
 
 
     Tutorial_Label:
         id: tut_press_source
-        color: [0.175, 0.332, 0.999, 1]
+        color: [0.1, 0.45, 0.8, 1]
         opacity: 1 if self.active else 0
         font_size: 22 * root.width / root.win_size[0]
         center: root.center_x, source.top + 30
+        font_name: 'NunitoSans'
         text: "Press me!"
 
     Tutorial_Label:
         id: tut_emmited
-        color: [0.175, 0.332, 0.999, 1]
+        color: [0.1, 0.45, 0.8, 1]
         opacity: 1 if self.active and tut_press_source.active==False  else 0
         font_size: 22 * root.width / root.win_size[0]
         center: root.center_x, source.top + 30
+        font_name: 'NunitoSans'
         text: "You have emitted a pair of photons!"
 
     Tutorial_Label:
         id: tut_alice_bit
-        color: [0.175, 0.332, 0.999, 1]
-        opacity: 1 if self.active and tut_press_source.active==False else 0
+        color: [0.1, 0.45, 0.8, 1]
+        opacity: 1 if self.active and tut_bob_button.active==False else 0
         font_size: 22 * root.width / root.win_size[0]
-        center: alice_filter.center_x + self.width + 20 * root.width / root.win_size[0], alice_filter.top + 120 * root.width / root.win_size[0]
-        text: "Here Alice's bit!"
+        center: alice_filter.center_x + 180 * root.width / root.win_size[0], alice_filter.top + 120 * root.width / root.win_size[0]
+        font_name: 'NunitoSans'
+        text: "These are Alice's bits"
 
     Tutorial_Label:
         id: tut_bob_bit
-        color: [0.175, 0.332, 0.999, 1]
-        opacity: 1 if self.active and tut_press_source.active==False else 0
+        color: [0.1, 0.45, 0.8, 1]
+        opacity: 1 if self.active and tut_bob_button.active==False else 0
         font_size: 22 * root.width / root.win_size[0]
-        center: bob_filter.center_x - self.width - 20 * root.width / root.win_size[0], bob_filter.top + 120 * root.width / root.win_size[0]
-        text: "Here Bobs's bit!"
+        center: bob_filter.center_x - 185 * root.width / root.win_size[0], bob_filter.top + 120 * root.width / root.win_size[0]
+        font_name: 'NunitoSans'
+        text: "And these Bobs's bits"
 
     Tutorial_Label:
         id: tut_alice_button
-        color: [0.175, 0.332, 0.999, 1]
+        color: [0.1, 0.45, 0.8, 1]
         opacity: 1 if self.active and tut_press_source.active==False else 0
         font_size: 22 * root.width / root.win_size[0]
-        center: alice_filter.center_x + alice_filter.width + 0.5 * self.width, root.center_y - 0.5 * alice_filter.width - 1.2 * alice_button.height
-        text: "Press here to change Alice's basis"
+        center: alice_filter.center_x + alice_filter.width + 0.1 * self.width, root.center_y - 0.5 * alice_filter.width - 1.2 * alice_button.height
+        font_name: 'NunitoSans'
+        text: "Press here to change\n        Alice's basis"
 
     Tutorial_Label:
         id: tut_bob_button
-        color: [0.175, 0.332, 0.999, 1]
+        color: [0.1, 0.45, 0.8, 1]
         opacity: 1 if self.active and tut_alice_button.active==False else 0
         font_size: 22 * root.width / root.win_size[0]
-        center: bob_filter.center_x - 0.5 * bob_filter.width - 1.5 * self.width, root.center_y - 0.5 * bob_filter.width - 1.2 * bob_button.height
-        text: "And here to change Bob's basis"
+        center: bob_filter.center_x - 0.5 * bob_filter.width - 1.1 * self.width, root.center_y - 0.5 * bob_filter.width - 1.2 * bob_button.height
+        font_name: 'NunitoSans'
+        text: "And here to change\n       Bob's basis"
 
     Tutorial_Label:
         id: tut_eve
-        color: [0.175, 0.332, 0.999, 1]
+        color: [0.1, 0.45, 0.8, 1]
         opacity: 1 if self.active and tut_bob_button.active==False else 0
         font_size: 22 * root.width / root.win_size[0]
         center: eve_label.center_x, eve_label.center_y - 85 * root.width / root.win_size[0]
+        font_name: 'NunitoSans'
         text: "Press here to add an eavesdropper"
 
     Tutorial_Label:
         id: tut_eve_left
-        color: [0.175, 0.332, 0.999, 1]
+        color: [0.1, 0.45, 0.8, 1]
         opacity: 1 if self.active and tut_eve.active==False else 0
         font_size: 22 * root.width / root.win_size[0]
         center: switch_eve_left.center_x, switch_eve_left.top + 20 * root.width / root.win_size[0]
+        font_name: 'NunitoSans'
         text: "Eve can hear from the left"
 
     Tutorial_Label:
         id: tut_eve_right
-        color: [0.175, 0.332, 0.999, 1]
+        color: [0.1, 0.45, 0.8, 1]
         opacity: 1 if self.active and tut_eve_left.active==False else 0
         font_size: 22 * root.width / root.win_size[0]
         center: switch_eve_right.center_x, switch_eve_right.top + 20 * root.width / root.win_size[0]
+        font_name: 'NunitoSans'
         text: "And from the right"
 
     Tutorial_Label:
         id: tut_slider
-        color: [0.175, 0.332, 0.999, 1]
+        color: [0.1, 0.45, 0.8, 1]
         opacity: 1 if self.active and tut_eve_right.active==False else 0
         font_size: 18 * root.width / root.win_size[0]
         center: slider.center_x, slider.center_y - 70 * root.width / root.win_size[0]
         halign: "left"
         valign: "top"
+        font_name: 'NunitoSans'
         text: "Slide to choose how many \n            pairs you send"
 
     Tutorial_Label:
         id: tut_eve_expert
-        color: [0.175, 0.332, 0.999, 1]
+        color: [0.1, 0.45, 0.8, 1]
         opacity: 1 if self.active and tut_slider.active==False else 0
         font_size: 22 * root.width / root.win_size[0]
         center: switch_expert_mode.center_x, switch_expert_mode.center_y - 40 * root.width / root.win_size[0]
+        font_name: 'NunitoSans'
+        text: "Press here for details"
+
+    Image:
+        source: 'QCommsUB.png'
+        size: self.texture_size[0] * root.width / root.win_size[0], self.texture_size[1] * root.width / root.win_size[0]
+        center: bob_filter.center_x, bob_filter.top + 400 * root.width / root.win_size[0].win_size[0]
         text: "Press here for details"
