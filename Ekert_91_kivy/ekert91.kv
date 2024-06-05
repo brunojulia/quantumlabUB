@@ -1,0 +1,769 @@
+<Round_Button>: 
+    background_disabled_normal: ''
+    background_color: 0, 0, 0, 0
+    canvas.before:
+        Color:
+            rgba: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [100,]
+
+<Switch_Button>:
+    background_disabled_normal: ''
+    background_color: 0, 0, 0, 0
+    canvas.before:
+        Color:
+            rgba: [0.203125, 0.59375, 0.855469, 1] if self.active else (0.75, 0.75, 0.75, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+
+<Photon>:
+    canvas:
+        Color:
+            rgba: 0.96, 0.90, 0.32, 1
+        Ellipse:
+            pos: self.pos
+            size: self.size
+
+<Slit>:
+    canvas.before:                 
+        PushMatrix
+        Rotate:         
+            angle: self.angle              
+            origin: self.center
+    canvas: 
+        Color:
+            rgba: 0, 0, 0, 1
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    canvas.after:
+        PopMatrix
+
+
+<MenuScreen>:
+
+    label_play_button: label_play_button
+    label_settings_button: label_settings_button
+
+    FloatLayout:
+        id: menu_layout
+        size_hint_x: 1 
+        size_hint_y: 1
+        canvas.before: 
+            Color: 
+                rgba: (1,1,1,1) 
+            Rectangle: 
+                size: self.size 
+                pos: self.pos
+
+        Label: #Title
+			id: title_label
+			font_size: 0.08 * self.parent.height
+			text: 'Ekert91 Protocol\nSimulator 24' 
+			multiline: True
+			color: 0, 0, 0, 1
+			font_name:'NunitoSans'
+			bold: True
+			pos_hint: {"center_x": 0.5,"center_y": 0.75} 
+			size_hint_x: 0.6
+			size_hint_y:0.1 
+			halign:"center"
+			valign:"middle"
+
+        Button: #PlayButton
+            background_normal: ''
+            background_down: ''
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            size_hint: 0.13, 0.07
+            pos_hint: {"center_x":0.5,"center_y":0.5}
+            on_release:
+                root.manager.transition.direction = 'up'
+                root.manager.current = 'game'
+            Label: 
+                id: label_play_button
+
+                font_size: 0.5 * self.parent.height
+                font_name: 'NunitoSans'
+                text: 'Play'
+                x: self.parent.x
+				y: self.parent.y
+				size: self.parent.width, self.parent.height
+
+        Button: #TutorialButton
+            background_normal: ''
+            background_down: ''
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            size_hint: 0.13, 0.07
+            pos_hint: {"center_x":0.5,"center_y":0.4}
+            always_release: True
+            on_press:
+                root.manager.transition.direction = 'up'
+                root.manager.current = 'game'
+            on_release:
+                root.manager.get_screen('game').tut_press_source.opacity = 1
+                root.manager.get_screen('game').source_animation(root.manager.get_screen('game').source)
+                
+            Label: 
+                font_size: 0.5 * self.parent.height
+                font_name: 'NunitoSans'
+                text: 'Tutorial'
+                x: self.parent.x
+				y: self.parent.y
+				size: self.parent.width, self.parent.height
+
+        Button: #SettingsButton
+            background_normal: ''
+            background_down: ''
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            size_hint: 0.13, 0.07
+            pos_hint: {"center_x":0.5,"center_y":0.3}
+            on_release:
+                root.manager.transition.direction = 'left'
+                root.manager.current = 'settings'
+
+            Label: 
+                id: label_settings_button
+                font_size: 0.5 * self.parent.height
+                font_name: 'NunitoSans'
+                text: 'Settings'
+                x: self.parent.x
+				y: self.parent.y
+				size: self.parent.width, self.parent.height
+
+        GridLayout: #QCommsUB
+			cols: 1
+			rows: 1
+			size_hint: 0.1, 0.05
+			pos_hint: {"center_x": 0.5, "y": 0.1}
+			Image: #qcommsub logo 
+				source: "QCommsUB.png"
+				x: self.parent.x
+				y: self.parent.y
+				size: self.parent.width, self.parent.height 
+            
+
+<SettingsScreen>:
+
+    label_settings: label_settings
+    settings_menu_button: settings_menu_button
+
+    FloatLayout:
+        id: settings_layout
+        size_hint_x: 1 
+        size_hint_y: 1
+        canvas.before: 
+            Color: 
+                rgba: (1,1,1,1) 
+            Rectangle: 
+                size: self.size 
+                pos: self.pos
+
+        Label:
+            id: label_settings
+			font_size: 0.04 * self.parent.height
+			text: 'Settings' 
+			multiline: True
+			color: 0, 0, 0, 1
+			font_name:'NunitoSans'
+			bold: True
+			pos_hint: {"center_x": 0.5,"center_y": 0.8} 
+			size_hint_x: 0.6
+			size_hint_y:0.1 
+			halign:"center"
+			valign:"middle"
+
+        BoxLayout: #Languages
+			size_hint_x: 0.155
+			size_hint_y: 0.07
+			pos_hint:{"center_x": 0.5,"center_y": 0.65}
+			orientation: "horizontal"
+            spacing: 0.02 * self.width
+
+			Button: #Catalan 
+	            id: button_cat
+	            text: "CAT"
+	            font_name:'NunitoSans'
+                font_size: 0.4 * self.height
+				bold: True
+	            background_normal: ''
+                background_down: ''
+	            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            	halign: 'center'
+				valign: 'middle' 
+                on_press: root.catalan()
+
+			Button: #Spanish 
+	            id: button_esp
+	            text: "ESP"
+	            font_name:'NunitoSans'
+                font_size: 0.4 * self.height
+                bold: True
+	            background_normal: ''
+                background_down: ''
+	            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            	halign: 'center'
+				valign: 'middle' 
+                on_press: root.spanish()
+				  
+			Button: #English 
+	            id: button_eng
+	            text: "ENG"
+	            font_name:'NunitoSans'
+                font_size: 0.4 * self.height
+                bold: True
+                background_normal: ''
+                background_down: ''
+	            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+				bold: True
+            	halign: 'center'
+				valign: 'middle' 
+                on_press: root.english()
+				
+
+        Button:
+            background_normal: ''
+            background_down: ''
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            size_hint: 0.155, 0.07
+            pos_hint: {"center_x":0.5,"center_y":0.2}
+            on_press:
+                root.manager.transition.direction = 'right'
+                root.manager.current = 'menu'
+
+            Label: 
+                id: settings_menu_button
+                font_size: 0.5 * self.parent.height
+                font_name: 'NunitoSans'
+                text: 'Menu'
+                x: self.parent.x
+				y: self.parent.y
+				size: self.parent.width, self.parent.height
+
+
+<E91Simulation>:
+
+    game_menu_button: game_menu_button
+
+    source: source
+    label_source: label_source
+
+    photon_alice: photon_alice
+    photon_bob: photon_bob
+
+    alice_filter: alice_filter
+    bob_filter: bob_filter
+    eve_left_filter: eve_left_filter
+    eve_right_filter: eve_right_filter
+
+    alice_slit: alice_slit
+    bob_slit: bob_slit
+    eve_left_slit: eve_left_slit
+    eve_right_slit: eve_right_slit
+
+    switch_eve: switch_eve
+    label_eavesdropping: label_eavesdropping
+
+    switch_eve_left: switch_eve_left
+    switch_eve_right: switch_eve_right
+
+    switch_expert_mode: switch_expert_mode
+    label_expert_mode: label_expert_mode
+
+    slider: slider
+
+    tut_press_source: tut_press_source
+    tut_emmited: tut_emmited
+    tut_alice_button: tut_alice_button
+    tut_bob_button: tut_bob_button
+    tut_alice_bit: tut_alice_bit
+    tut_bob_bit: tut_bob_bit
+    tut_eve: tut_eve
+    tut_eve_left: tut_eve_left
+    tut_eve_right: tut_eve_right
+    tut_slider: tut_slider
+    tut_eve_expert: tut_eve_expert
+    
+
+    FloatLayout:
+
+        id: game_layout
+        size_hint_x: 1 
+        size_hint_y: 1
+        canvas.before: 
+            Color: 
+                rgba: (1,1,1,1) 
+            Rectangle: 
+                size: self.size 
+                pos: self.pos
+
+        Button: #back to menu
+            background_normal: ''
+            background_down: ''
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            size_hint: 0.08, 0.05
+            pos_hint:{"center_x": 0.5,"top": 0.06}
+            on_press:
+                root.manager.transition.direction = 'down'
+                root.manager.current = 'menu'
+                root.stop_tutorial()
+            Label: 
+                id: game_menu_button
+                font_size: 0.45 * self.parent.height
+                font_name: 'NunitoSans'
+                text: 'Menu'
+                x: self.parent.x
+				y: self.parent.y
+				size: self.parent.width, self.parent.height
+
+
+        Switch_Button:
+            id: switch_eve 
+            size_hint: 0.045, 0.035
+            rgba: (0.75, 0.75, 0.75, 1) if self.active else (0, 0.7, 0.7, 1)
+            pos_hint: {"center_x": 0.5,"center_y": 0.7}
+            on_press: 
+                self.change_mode()
+                root.stop_animation(root.switch_eve) 
+                if root.tut_eve.opacity == 1: root.tut_eve_left.opacity = 1; root.switch_animation(root.switch_eve_left)
+                root.tut_eve.opacity = 0
+                root.tut_alice_bit.opacity = 0
+                root.tut_bob_bit.opacity = 0
+
+            Label:
+                color: 0, 0, 0, 1
+                center: self.parent.center
+                font_size: 0.6 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "ON" if switch_eve.active else "OFF"
+        Label:
+            id: label_eavesdropping
+            color: 0, 0, 0, 1
+            font_size: 0.03 * game_layout.height
+            pos_hint: {"center_x": 0.5,"center_y": 0.74}
+            font_name: 'NunitoSans'
+            text: "Eavesdropping"
+        Label:
+            color: 0, 0, 0, 1
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            pos_hint: {"center_x": 0.5,"center_y": 0.16}
+            text: "Eve" if switch_eve.active else ''
+
+        Switch_Button:
+            id: switch_eve_left 
+            size_hint: 0.045, 0.035
+            opacity: 1 if switch_eve.active else 0
+            rgba: (0.75, 0.75, 0.75, 1) if self.active else (0, 0.7, 0.7, 1)
+            pos_hint: {"center_x": 0.31,"center_y": (eve_left_filter.top + 0.5 * self.height) / root.height}
+            on_press: 
+                self.change_mode() if switch_eve.active else ''
+                root.stop_animation(root.switch_eve_left) 
+                if root.tut_eve_left.opacity == 1: root.tut_eve_right.opacity = 1; root.switch_animation(root.switch_eve_right)
+                root.tut_eve_left.opacity = 0
+                
+            Label:
+                color: 0, 0, 0, 1
+                center: self.parent.center
+                font_size: 0.6 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "ON" if self.parent.active else "OFF"
+
+        Switch_Button:
+            id: switch_eve_right 
+            size_hint: 0.045, 0.035
+            opacity: 1 if switch_eve.active else 0
+            rgba: (0.75, 0.75, 0.75, 1) if self.active else (0, 0.7, 0.7, 1)
+            pos_hint: {"center_x": 0.69,"center_y": (eve_right_filter.top + 0.5 * self.height) / root.height}
+            on_press: 
+                self.change_mode() if switch_eve.active else ''
+                root.stop_animation(root.switch_eve_right) 
+                if root.tut_eve_right.opacity == 1: root.tut_slider.opacity = 1; root.slider_animation(root.slider)
+                root.tut_eve_right.opacity = 0
+                
+                
+            Label:
+                color: 0, 0, 0, 1
+                center: self.parent.center
+                font_size: 0.6 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "ON" if self.parent.active else "OFF"
+        
+        Switch_Button:
+            id: switch_expert_mode 
+            size_hint: 0.045, 0.035
+            rgba: (0.75, 0.75, 0.75, 1) if self.active else (0, 0.7, 0.7, 1)
+            pos_hint: {"center_x": 0.1,"center_y": 0.9}
+            on_press: 
+                self.change_mode()
+                root.stop_animation(root.switch_expert_mode) 
+                root.tut_eve_expert.opacity = 0
+                
+            Label:
+                color: 0, 0, 0, 1
+                center: self.parent.center
+                font_size: 0.6 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "ON" if switch_expert_mode.active else "OFF"
+        Label:
+            id: label_expert_mode
+            color: 0, 0, 0, 1
+            font_size: 0.028 * game_layout.height 
+            font_name: 'NunitoSans'
+            pos_hint: {"center_x": 0.1,"center_y": 0.94}
+            text: "Expert Mode"
+        Label:
+            color: (0.203125, 0.59375, 0.855469, 1) if alice_slit.angle==0 and bob_slit.angle==-22.5 else (0, 0, 0, 1)
+            opacity: 1 if switch_expert_mode.active else 0
+            pos_hint: {"center_x": 0.26,"center_y": 0.9}
+            font_size: 0.032 * game_layout.height if alice_slit.angle==0 and bob_slit.angle==-22.5 else 0.028 * game_layout.height
+            font_name: 'NunitoSans'
+            text: "E(a,b) = " + str(root.E_a1b1)
+        Label:
+            color: (0.203125, 0.59375, 0.855469, 1) if alice_slit.angle==0 and bob_slit.angle==22.5 else (0, 0, 0, 1)
+            opacity: 1 if switch_expert_mode.active else 0
+            pos_hint: {"center_x": 0.42,"center_y": 0.9}
+            font_size: 0.032 * game_layout.height if alice_slit.angle==0 and bob_slit.angle==22.5 else 0.028 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: "E(a,b') = " + str(root.E_a1b3)
+        Label:
+            color: (0.203125, 0.59375, 0.855469, 1) if alice_slit.angle==45 and bob_slit.angle==-22.5 else (0, 0, 0, 1)
+            opacity: 1 if switch_expert_mode.active else 0
+            pos_hint: {"center_x": 0.58,"center_y": 0.9}
+            font_size: 0.032 * game_layout.height if alice_slit.angle==45 and bob_slit.angle==-22.5 else 0.028 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: "E(a',b) = " + str(root.E_a3b1)
+        Label:
+            color: (0.203125, 0.59375, 0.855469, 1) if alice_slit.angle==45 and bob_slit.angle==22.5 else (0, 0, 0, 1)
+            opacity: 1 if switch_expert_mode.active else 0
+            pos_hint: {"center_x": 0.74,"center_y": 0.9}
+            font_size: 0.032 * game_layout.height if alice_slit.angle==45 and bob_slit.angle==22.5 else 0.028 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: "E(a',b') = " + str(root.E_a3b3)
+        Label:
+            color: (0, 0, 0, 1)
+            opacity: 1 if switch_expert_mode.active else 0
+            pos_hint: {"center_x": 0.9,"center_y": 0.9}
+            font_size: 0.028 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: "S = " + str(root.S)
+
+        
+        Button:
+            id: alice_filter
+            background_normal: ''
+            background_down: ''
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            size_hint: 0.15, 0.15 * root.width / root.height  
+            pos_hint: {"center_x": 0.1,"center_y": 0.5}
+            on_press:
+                alice_slit.change_left_angles()
+                root.stop_animation(root.alice_filter) 
+                if root.tut_alice_button.opacity == 1: root.tut_bob_button.opacity = 1; root.filter_animation(root.bob_filter)
+                root.tut_alice_button.opacity = 0
+        Slit:
+            id: alice_slit
+            size_hint: 0.13, 0.006
+            pos_hint: {"center_x": 0.1,"center_y": 0.5}
+        Label:
+            id: alice_angle
+            color: 0, 0, 0, 1
+            pos_hint: {"center_x": 0.1,"center_y": 0.28}
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: str(alice_slit.angle) + " º"
+        Label:
+            id: alice_bit
+            color: 0, 0, 0, 1
+            pos_hint: {"center_x": 0.1,"center_y": 0.75}
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: str(root.a_bit)
+        Label:
+            color: 0, 0, 0, 1
+            pos_hint: {"center_x": 0.1,"center_y": 0.16}
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: "Alice"
+
+        Button:
+            id: bob_filter
+            background_normal: ''
+            background_down: ''
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            size_hint: 0.15, 0.15 * root.width / root.height  
+            pos_hint: {"center_x": 0.9,"center_y": 0.5}
+            on_press: 
+                bob_slit.change_right_angles()
+                root.stop_animation(root.bob_filter) 
+                if root.tut_bob_button.opacity == 1: root.tut_eve.opacity = 1;root.tut_alice_bit.opacity = 1;root.tut_bob_bit.opacity = 1;root.switch_animation(root.switch_eve)
+                root.tut_bob_button.opacity = 0
+                
+        Slit:
+            id: bob_slit
+            size_hint: 0.13, 0.006
+            pos_hint: {"center_x": 0.9,"center_y": 0.5}
+        Label:
+            id: bob_angle
+            color: 0, 0, 0, 1
+            pos_hint: {"center_x": 0.9,"center_y": 0.28}
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: str(bob_slit.angle) + " º"
+        Label:
+            id: bob_bit
+            color: 0, 0, 0, 1
+            pos_hint: {"center_x": 0.9,"center_y": 0.75}
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: str(root.b_bit)
+        Label:
+            color: 0, 0, 0, 1
+            pos_hint: {"center_x": 0.9,"center_y": 0.16}
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: "Bob"
+
+        Button:
+            id: eve_left_filter
+            background_normal: ''
+            background_down: ''
+            opacity: 1 if (switch_eve.active and switch_eve_left.active) else 0
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            size_hint: 0.15, 0.15 * root.width / root.height  
+            pos_hint: {"center_x": 0.31,"center_y": 0.5}
+            on_press: 
+                eve_left_slit.change_left_angles() if switch_eve_left.active else ''
+        Slit:
+            id: eve_left_slit
+            opacity: 1 if (switch_eve.active and switch_eve_left.active) else 0
+            size_hint: 0.13, 0.006
+            pos_hint: {"center_x": 0.31,"center_y": 0.5}
+        Label:
+            id: eve_left_angle
+            opacity: 1 if (switch_eve.active and switch_eve_left.active) else 0
+            color: 0, 0, 0, 1
+            pos_hint: {"center_x": 0.31,"center_y": 0.28}
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: str(eve_left_slit.angle) + " º"
+        Label:
+            color: 0, 0, 0, 1
+            opacity: 1 if (switch_eve.active and switch_eve_left.active) else 0
+            pos_hint: {"center_x": 0.31,"center_y": 0.75}
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: str(root.e_left_bit)
+
+        Button:
+            id: eve_right_filter
+            background_normal: ''
+            background_down: ''
+            opacity: 1 if (switch_eve.active and switch_eve_right.active) else 0
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+            size_hint: 0.15, 0.15 * root.width / root.height  
+            pos_hint: {"center_x": 0.69,"center_y": 0.5}
+            on_press: 
+                eve_right_slit.change_right_angles() if switch_eve_right.active else ''  
+        Slit:
+            id: eve_right_slit
+            opacity: 1 if (switch_eve.active and switch_eve_right.active) else 0
+            size_hint: 0.13, 0.006
+            pos_hint: {"center_x": 0.69,"center_y": 0.5}
+        Label:
+            id: eve_right_angle
+            opacity: 1 if (switch_eve.active and switch_eve_right.active) else 0
+            color: 0, 0, 0, 1
+            pos_hint: {"center_x": 0.69,"center_y": 0.28}
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: str(eve_right_slit.angle) + " º"
+        Label:
+            color: 0, 0, 0, 1
+            opacity: 1 if (switch_eve.active and switch_eve_right.active) else 0
+            pos_hint: {"center_x": 0.69,"center_y": 0.75}
+            font_size: 0.07 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: str(root.e_right_bit)
+            
+
+        Photon:
+            id: photon_alice
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+
+        Photon:
+            id: photon_bob
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+
+
+        Round_Button:
+            id: source
+            size_hint: 0.04, 0.04 * root.width / root.height
+            pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            always_release: True
+            on_press: 
+                root.emission()
+                root.stop_animation(root.source) 
+                if root.tut_press_source.opacity == 1: root.tut_alice_button.opacity = 1; root.filter_animation(root.alice_filter)
+                root.tut_press_source.opacity = 0
+        Label:
+            id: label_source
+            color: 0, 0, 0, 1
+            font_size: 0.03 * game_layout.height 
+            font_name: 'NunitoSans'
+            text: "Source"
+            pos_hint: {"center_x": 0.5,"center_y": 0.42}
+
+        Slider:
+            id: slider
+            min: 1
+            max: 1000
+            step: 1
+            value: 1
+            track_color: 0.5, 0, 0.4, 1
+            value_track: True
+            value_track_color: [0.15, 0.45, 0.8, 1] 
+            size_hint: 0.1, 0.04
+            cursor_size: 0.022 * game_layout.height, 0.022 * game_layout.height 
+            pos_hint: {"center_x": 0.5,"center_y": 0.39}
+            on_touch_move:
+                root.stop_animation(root.slider) 
+                if root.tut_slider.opacity == 1: root.tut_eve_expert.opacity = 1; root.switch_animation(root.switch_expert_mode)
+                root.tut_slider.opacity = 0
+                
+        Label:
+            color: 0, 0, 0, 1
+            font_size: 0.02 * game_layout.height 
+            pos_hint: {"center_x": 0.5,"center_y": 0.37}
+            font_name: 'NunitoSans'
+            text: str(slider.value)
+
+
+        Label:
+            id: tut_press_source
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.5, "center_y": 0.56}
+            font_name: 'NunitoSans'
+            text: "Press me!"
+            halign:"center"
+			valign:"middle"
+        
+        Label:
+            id: tut_emmited
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.5, "center_y": 0.58}
+            font_name: 'NunitoSans'
+            text: "You have emitted a pair\nof photons!"
+            halign:"center"
+			valign:"middle"
+
+        Label:
+            id: tut_alice_button
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.1, "center_y": (switch_eve.center_y - 0.02 * self.height) / root.height}
+            font_name: 'NunitoSans'
+            text: "Press here to change\nAlice's basis"
+            halign:"center"
+			valign:"middle"
+
+        Label:
+            id: tut_bob_button
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.9, "center_y": (switch_eve.center_y - 0.02 * self.height) / root.height}
+            font_name: 'NunitoSans'
+            text: "And here to change\nBob's basis"
+            halign:"center"
+			valign:"middle"
+
+        Label:
+            id: tut_alice_bit
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.1, "center_y": (alice_bit.center_y + 0.06 * self.height) / root.height}
+            font_name: 'NunitoSans'
+            text: "These are Alice's bits"
+            halign:"center"
+			valign:"middle"
+
+        Label:
+            id: tut_bob_bit
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.9, "center_y": (bob_bit.center_y + 0.06 * self.height) / root.height}
+            font_name: 'NunitoSans'
+            text: "And these Bob's bits"
+            halign:"center"
+			valign:"middle"
+
+        Label:
+            id: tut_eve
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.5, "center_y": (switch_eve.center_y - 0.04 * self.height) / root.height}
+            font_name: 'NunitoSans'
+            text: "Press here to add an eavesdropper"
+            halign:"center"
+			valign:"middle"
+
+        Label:
+            id: tut_eve_left
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.31, "center_y": switch_eve.center_y / root.height}
+            font_name: 'NunitoSans'
+            text: "Eve can hear from the left"
+            halign:"center"
+			valign:"middle"
+
+        Label:
+            id: tut_eve_right
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.69, "center_y": switch_eve.center_y / root.height}
+            font_name: 'NunitoSans'
+            text: "And from the right"
+            halign:"center"
+			valign:"middle"
+
+        Label:
+            id: tut_slider
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.5, "center_y": (slider.center_y - 0.07 * self.height) / root.height}
+            font_name: 'NunitoSans'
+            text: "Slide to choose how many\npairs you send"
+            halign:"center"
+			valign:"middle"
+
+        Label:
+            id: tut_eve_expert
+            color: [0.1, 0.45, 0.8, 1]
+            opacity: 0
+            font_size: 0.022 * game_layout.height
+            pos_hint: {"center_x": 0.1, "center_y": (switch_expert_mode.center_y - 0.04 * self.height) / root.height}
+            font_name: 'NunitoSans'
+            text: "Press here for details"
+            halign:"center"
+			valign:"middle"
