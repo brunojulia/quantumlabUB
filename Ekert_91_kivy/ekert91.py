@@ -18,8 +18,6 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 
 from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty, BooleanProperty, StringProperty, Property
 
-OFFSET = 12
-
 class Round_Button(Button):
 
     def on_touch_down(self, touch):
@@ -161,8 +159,51 @@ class E91Simulation(Screen):
 
     source = ObjectProperty(None)
 
-    photon_alice = ObjectProperty(None)
-    photon_bob = ObjectProperty(None)
+    photon_alice_1 = ObjectProperty(None)
+    photon_alice_2 = ObjectProperty(None)
+    photon_alice_3 = ObjectProperty(None)
+    photon_alice_4 = ObjectProperty(None)
+    photon_alice_5 = ObjectProperty(None)
+    photon_alice_6 = ObjectProperty(None)
+    photon_alice_7 = ObjectProperty(None)
+    photon_alice_8 = ObjectProperty(None)
+    photon_alice_9 = ObjectProperty(None)
+    photon_alice_10 = ObjectProperty(None)
+
+    photons_alice = ReferenceListProperty(
+        photon_alice_1,
+        photon_alice_2, 
+        photon_alice_3,
+        photon_alice_4,
+        photon_alice_5,
+        photon_alice_6,
+        photon_alice_7, 
+        photon_alice_8, 
+        photon_alice_9, 
+        photon_alice_10 )
+
+    photon_bob_1 = ObjectProperty(None)
+    photon_bob_2 = ObjectProperty(None)
+    photon_bob_3 = ObjectProperty(None)
+    photon_bob_4 = ObjectProperty(None)
+    photon_bob_5 = ObjectProperty(None)
+    photon_bob_6 = ObjectProperty(None)
+    photon_bob_7 = ObjectProperty(None)
+    photon_bob_8 = ObjectProperty(None)
+    photon_bob_9 = ObjectProperty(None)
+    photon_bob_10 = ObjectProperty(None)
+
+    photons_bob = ReferenceListProperty(
+        photon_bob_1,
+        photon_bob_2, 
+        photon_bob_3,
+        photon_bob_4,
+        photon_bob_5,
+        photon_bob_6,
+        photon_bob_7, 
+        photon_bob_8, 
+        photon_bob_9, 
+        photon_bob_10 )
 
     alice_filter = ObjectProperty(None)
     bob_filter = ObjectProperty(None)
@@ -294,14 +335,20 @@ class E91Simulation(Screen):
 
     def emission(self):
 
-        self.photon_alice.center = self.center
-        self.photon_bob.center   = self.center
-
         velocity_x = (self.center_x - self.alice_filter.center_x)/60
-        velocity_y = 0.5 * self.photon_alice.height
+        velocity_y = 0.5 * self.photon_alice_1.height
 
-        self.photon_alice.velocity = Vector(-velocity_x, velocity_y)
-        self.photon_bob.velocity   = Vector(velocity_x, velocity_y)
+        for i in range(10):
+            
+            self.photons_alice[i].center_x = self.center_x + self.photon_alice_1.width * i
+            self.photons_alice[i].center_y = self.center_y + np.random.randint(low=-0.25*self.source.height, high=0.25*self.source.height)
+
+            self.photons_bob[i].center_x = self.center_x - self.photon_alice_1.width * i
+            #self.photons_bob[i].center_y = self.center_y + np.random.randint(low=-0.25*self.source.height, high=0.25*self.source.height)
+            self.photons_bob[i].center_y = self.photons_alice[i].center_y
+
+            self.photons_alice[i].velocity = Vector(-velocity_x, velocity_y)
+            self.photons_bob[i].velocity   = Vector(velocity_x, velocity_y)
 
         basis_a   = self.alice_slit.angle_to_basis()
         basis_b   = self.bob_slit.angle_to_basis()
@@ -340,47 +387,47 @@ class E91Simulation(Screen):
 
 
     def update(self, dt):
-        
-        self.photon_alice.move()
-        self.photon_bob.move()
 
-        # For each frame, vertical velocity is inverted 
-        if self.photon_alice.velocity_x != 0:
-            self.photon_alice.velocity_y *= -1 
-            self.photon_bob.velocity_y   *= -1
+        OFFSET = 0.05 * self.alice_filter.width
 
-        if OFFSET < self.eve_left_filter.center_x - self.photon_alice.x < 10 * OFFSET:
-            if self.switch_eve_left.active and self.switch_eve.active:
-                self.photon_alice.opacity = 0
+        for i in range(10):
 
-            if self.switch_eve_right.active and self.switch_eve.active:
-                self.photon_bob.opacity = 0
-
-            self.e_left_bit = self.e_left_bit_old
-            self.e_right_bit = self.e_right_bit_old
-        else:
-            self.photon_alice.opacity = 1
-            self.photon_bob.opacity = 1
-
-        if self.photon_alice.x < self.alice_filter.center_x - OFFSET:
-            self.photon_alice.center = self.center
-            self.photon_bob.center = self.center
-            self.photon_alice.velocity = Vector(0, 0)
-            self.photon_bob.velocity = Vector(0, 0)
-            self.a_bit = self.a_bit_old
-            self.b_bit = self.b_bit_old
-
-
-        '''
-        if self.tut_slider.opacity == 1:
-            if self.big_cursor == False:
-                self.slider.cursor_size = 0.025*self.height, 0.025*self.height
+            if self.slider.value >= 100 * i + 1 and self.photons_alice[i].x < self.center_x:
+                self.photons_alice[i].opacity = 1
             else:
-                self.slider.cursor_size = 0.02*self.height, 0.02*self.height
-            time.sleep(0.4)
-        '''
+                self.photons_alice[i].opacity = 0
 
+            if self.slider.value >= 100 * i + 1 and self.photons_bob[i].x > self.center_x:
+                self.photons_bob[i].opacity = 1
+            else:
+                self.photons_bob[i].opacity = 0
+
+            self.photons_alice[i].move()
+            self.photons_bob[i].move()
+
+            # For each frame, vertical velocity is inverted 
+            if self.photons_alice[i].velocity_x != 0:
+                self.photons_alice[i].velocity_y *= -1
+                self.photons_bob[i].velocity_y *= -1
         
+            if OFFSET < self.eve_left_filter.center_x - self.photons_alice[i].x < 11 * OFFSET:
+                if self.switch_eve_left.active and self.switch_eve.active:
+                    self.photons_alice[i].opacity = 0
+
+                if self.switch_eve_right.active and self.switch_eve.active:
+                    self.photons_bob[i].opacity = 0
+
+                self.e_left_bit = self.e_left_bit_old
+                self.e_right_bit = self.e_right_bit_old
+
+            if self.photons_alice[i].x < self.alice_filter.center_x - OFFSET:
+                self.photons_alice[i].center = self.center
+                self.photons_bob[i].center = self.center
+                self.photons_alice[i].velocity = Vector(0, 0)
+                self.photons_bob[i].velocity = Vector(0, 0)
+                self.a_bit = self.a_bit_old
+                self.b_bit = self.b_bit_old
+
 
 class Ekert91App(App): 
     

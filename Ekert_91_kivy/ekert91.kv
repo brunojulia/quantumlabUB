@@ -250,8 +250,27 @@
     source: source
     label_source: label_source
 
-    photon_alice: photon_alice
-    photon_bob: photon_bob
+    photon_alice_1: photon_alice_1
+    photon_alice_2: photon_alice_2
+    photon_alice_3: photon_alice_3
+    photon_alice_4: photon_alice_4
+    photon_alice_5: photon_alice_5
+    photon_alice_6: photon_alice_6
+    photon_alice_7: photon_alice_7
+    photon_alice_8: photon_alice_8
+    photon_alice_9: photon_alice_9
+    photon_alice_10: photon_alice_10
+
+    photon_bob_1: photon_bob_1
+    photon_bob_2: photon_bob_2
+    photon_bob_3: photon_bob_3
+    photon_bob_4: photon_bob_4
+    photon_bob_5: photon_bob_5
+    photon_bob_6: photon_bob_6
+    photon_bob_7: photon_bob_7
+    photon_bob_8: photon_bob_8
+    photon_bob_9: photon_bob_9
+    photon_bob_10: photon_bob_10
 
     alice_filter: alice_filter
     bob_filter: bob_filter
@@ -463,6 +482,7 @@
                 root.stop_animation(root.alice_filter) 
                 if root.tut_alice_button.opacity == 1: root.tut_bob_button.opacity = 1; root.filter_animation(root.bob_filter)
                 root.tut_alice_button.opacity = 0
+                root.tut_emmited.opacity = 0
         Slit:
             id: alice_slit
             size_hint: 0.13, 0.006
@@ -590,30 +610,160 @@
             
 
         Photon:
-            id: photon_alice
+            id: photon_alice_1
+            opacity: 1
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_alice_2
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_alice_3
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_alice_4
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_alice_5
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_alice_6
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_alice_7
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_alice_8
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_alice_9
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_alice_10
+            opacity: 0
             size_hint: 0.01, 0.01 * root.width / root.height
             #pos_hint: {"center_x": 0.5,"center_y": 0.5}
             #center: root.center
             pos: 0, 0
 
         Photon:
-            id: photon_bob
+            id: photon_bob_1
+            opacity: 1
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_bob_2
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_bob_3
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_bob_4
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_bob_5
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_bob_6
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_bob_7
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_bob_8
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_bob_9
+            opacity: 0
+            size_hint: 0.01, 0.01 * root.width / root.height
+            #pos_hint: {"center_x": 0.5,"center_y": 0.5}
+            #center: root.center
+            pos: 0, 0
+        Photon:
+            id: photon_bob_10
+            opacity: 0
             size_hint: 0.01, 0.01 * root.width / root.height
             #pos_hint: {"center_x": 0.5,"center_y": 0.5}
             #center: root.center
             pos: 0, 0
 
 
+
         Round_Button:
             id: source
-            size_hint: 0.04, 0.04 * root.width / root.height
+            size_hint: 0.045, 0.045 * root.width / root.height
             pos_hint: {"center_x": 0.5,"center_y": 0.5}
             always_release: True
             on_press: 
                 root.emission()
                 root.stop_animation(root.source) 
-                if root.tut_press_source.opacity == 1: root.tut_alice_button.opacity = 1; root.filter_animation(root.alice_filter)
-                root.tut_press_source.opacity = 0
+                if root.tut_press_source.opacity == 1: root.tut_emmited.opacity = 1; root.tut_alice_button.opacity = 1; root.filter_animation(root.alice_filter)
+                root.tut_press_source.opacity = 0 
+                
         Label:
             id: label_source
             color: 0, 0, 0, 1
@@ -652,7 +802,7 @@
             color: [0.1, 0.45, 0.8, 1]
             opacity: 0
             font_size: 0.022 * game_layout.height
-            pos_hint: {"center_x": 0.5, "center_y": 0.56}
+            pos_hint: {"center_x": 0.5, "center_y": 0.57}
             font_name: 'NunitoSans'
             text: "Press me!"
             halign:"center"
@@ -663,7 +813,7 @@
             color: [0.1, 0.45, 0.8, 1]
             opacity: 0
             font_size: 0.022 * game_layout.height
-            pos_hint: {"center_x": 0.5, "center_y": 0.58}
+            pos_hint: {"center_x": 0.5, "center_y": 0.59}
             font_name: 'NunitoSans'
             text: "You have emitted a pair\nof photons!"
             halign:"center"
