@@ -14,7 +14,7 @@
     background_color: 0, 0, 0, 0
     canvas.before:
         Color:
-            rgba: [0.203125, 0.59375, 0.855469, 1] if self.active else (0.75, 0.75, 0.75, 1)
+            rgba: (0.203125, 0.59375, 0.855469, 1) if self.active else (0.75, 0.75, 0.75, 1)
         Rectangle:
             pos: self.pos
             size: self.size
@@ -42,6 +42,7 @@
     canvas.after:
         PopMatrix
 
+            
 
 <MenuScreen>:
 
@@ -133,10 +134,11 @@
 				y: self.parent.y
 				size: self.parent.width, self.parent.height
 
+        
         GridLayout: #QCommsUB
 			cols: 1
 			rows: 1
-			size_hint: 0.1, 0.05
+			size_hint: 0.12, 0.08
 			pos_hint: {"center_x": 0.5, "y": 0.1}
 			Image: #qcommsub logo 
 				source: "QCommsUB.png"
@@ -318,26 +320,63 @@
                 size: self.size 
                 pos: self.pos
 
-        Button: #back to menu
-            background_normal: ''
-            background_down: ''
-            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
-            size_hint: 0.08, 0.05
-            pos_hint:{"center_x": 0.5,"top": 0.06}
-            on_press:
-                root.manager.transition.direction = 'down'
-                root.manager.current = 'menu'
-                root.stop_tutorial()
-            Label: 
-                id: game_menu_button
-                font_size: 0.45 * self.parent.height
-                font_name: 'NunitoSans'
-                text: 'Menu'
-                x: self.parent.x
-				y: self.parent.y
-				size: self.parent.width, self.parent.height
 
+        BoxLayout:
+			size_hint_x: 0.155
+			size_hint_y: 0.05
+			pos_hint:{"center_x": 0.5,"center_y": 0.05}
+			orientation: "horizontal"
+            spacing: 0.02 * self.width
 
+            Button: #Clear
+                background_normal: ''
+                background_down: ''
+                background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+                on_press:
+                    root.clear()
+                Label: 
+                    id: game_menu_button
+                    font_size: 0.45 * self.parent.height
+                    font_name: 'NunitoSans'
+                    text: 'Clear'
+                    x: self.parent.x
+                    y: self.parent.y
+                    size: self.parent.width, self.parent.height
+
+            Button: #KeyButton
+                background_normal: ''
+                background_down: ''
+                background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+                on_release:
+                    root.manager.transition.direction = 'right'
+                    root.manager.current = 'key'
+                Label: 
+                    id: label_key_button
+                    font_size: 0.45 * self.parent.height
+                    font_name: 'NunitoSans'
+                    text: 'Key'
+                    x: self.parent.x
+                    y: self.parent.y
+                    size: self.parent.width, self.parent.height
+
+            Button: #back to menu
+                background_normal: ''
+                background_down: ''
+                background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+                on_press:
+                    root.manager.transition.direction = 'down'
+                    root.manager.current = 'menu'
+                    root.stop_tutorial()
+                Label: 
+                    id: game_menu_button
+                    font_size: 0.45 * self.parent.height
+                    font_name: 'NunitoSans'
+                    text: 'Menu'
+                    x: self.parent.x
+                    y: self.parent.y
+                    size: self.parent.width, self.parent.height
+
+            
         Switch_Button:
             id: switch_eve 
             size_hint: 0.045, 0.035
@@ -401,8 +440,6 @@
                 root.stop_animation(root.switch_eve_right) 
                 if root.tut_eve_right.opacity == 1: root.tut_slider.opacity = 1; root.slider_animation(root.slider)
                 root.tut_eve_right.opacity = 0
-                
-                
             Label:
                 color: 0, 0, 0, 1
                 center: self.parent.center
@@ -462,10 +499,10 @@
             font_name: 'NunitoSans'
             text: "E(a',b') = " + str(root.E_a3b3)
         Label:
-            color: (0, 0, 0, 1)
+            color: (0, 0, 0, 1) if root.S < 2 else (160/255, 32/255, 240/255, 1)
             opacity: 1 if switch_expert_mode.active else 0
             pos_hint: {"center_x": 0.9,"center_y": 0.9}
-            font_size: 0.028 * game_layout.height 
+            font_size: 0.032 * game_layout.height if root.S > 2 else 0.028 * game_layout.height 
             font_name: 'NunitoSans'
             text: "S = " + str(root.S)
 
@@ -917,3 +954,582 @@
             text: "Press here for details"
             halign:"center"
 			valign:"middle"
+
+<QKeyScreen>:
+
+    source: source
+
+    photon_alice: photon_alice
+    photon_bob: photon_bob
+
+    alice_filter: alice_filter
+    bob_filter: bob_filter
+
+    alice_slit: alice_slit
+    bob_slit: bob_slit
+
+    alice_basis_1: alice_basis_1
+    alice_basis_2: alice_basis_2
+    alice_basis_3: alice_basis_3
+    alice_basis_4: alice_basis_4
+    alice_basis_5: alice_basis_5
+    alice_basis_6: alice_basis_6
+    alice_basis_7: alice_basis_7
+    alice_basis_8: alice_basis_8
+    alice_basis_9: alice_basis_9
+    alice_basis_10: alice_basis_10
+
+    bob_basis_1: bob_basis_1
+    bob_basis_2: bob_basis_2
+    bob_basis_3: bob_basis_3
+    bob_basis_4: bob_basis_4
+    bob_basis_5: bob_basis_5
+    bob_basis_6: bob_basis_6
+    bob_basis_7: bob_basis_7
+    bob_basis_8: bob_basis_8
+    bob_basis_9: bob_basis_9
+    bob_basis_10: bob_basis_10
+
+    alice_bit_1: alice_bit_1
+    alice_bit_2: alice_bit_2
+    alice_bit_3: alice_bit_3
+    alice_bit_4: alice_bit_4
+    alice_bit_5: alice_bit_5
+    alice_bit_6: alice_bit_6
+    alice_bit_7: alice_bit_7
+    alice_bit_8: alice_bit_8
+    alice_bit_9: alice_bit_9
+    alice_bit_10: alice_bit_10
+
+    bob_bit_1: bob_bit_1
+    bob_bit_2: bob_bit_2
+    bob_bit_3: bob_bit_3
+    bob_bit_4: bob_bit_4
+    bob_bit_5: bob_bit_5
+    bob_bit_6: bob_bit_6
+    bob_bit_7: bob_bit_7
+    bob_bit_8: bob_bit_8
+    bob_bit_9: bob_bit_9
+    bob_bit_10: bob_bit_10
+    
+    key_bit_1: key_bit_1
+    key_bit_2: key_bit_2
+    key_bit_3: key_bit_3
+    key_bit_4: key_bit_4
+    key_bit_5: key_bit_5
+    key_bit_6: key_bit_6
+    key_bit_7: key_bit_7
+    key_bit_8: key_bit_8
+    key_bit_9: key_bit_9
+    key_bit_10: key_bit_10
+
+
+    FloatLayout:
+        id: key_layout
+        size_hint_x: 1 
+        size_hint_y: 1
+        canvas.before: 
+            Color: 
+                rgba: (1,1,1,1) 
+            Rectangle: 
+                size: self.size 
+                pos: self.pos
+
+
+        Button:
+            id: alice_filter
+            background_normal: ''
+            background_down: ''
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.75, 0.75, 0.75, 1)
+            size_hint: 0.15, 0.15 * root.width / root.height  
+            pos_hint: {"center_x": 0.145,"center_y": 0.8}
+        Slit:
+            id: alice_slit
+            size_hint: 0.13, 0.006
+            pos_hint: {"center_x": 0.145,"center_y": 0.8}
+
+        Button:
+            id: bob_filter
+            background_normal: ''
+            background_down: ''
+            background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.75, 0.75, 0.75, 1)
+            size_hint: 0.15, 0.15 * root.width / root.height  
+            pos_hint: {"center_x": 0.855,"center_y": 0.8}
+        Slit:
+            id: bob_slit
+            size_hint: 0.13, 0.006
+            pos_hint: {"center_x": 0.855,"center_y": 0.8}
+
+
+        Photon:
+            id: photon_alice
+            opacity: 1
+            size_hint: 0.01, 0.01 * root.width / root.height
+            center: root.source.center
+        Photon:
+            id: photon_bob
+            opacity: 1
+            size_hint: 0.01, 0.01 * root.width / root.height
+            center: root.source.center
+
+        Round_Button:
+            id: source
+            size_hint: 0.045, 0.045 * root.width / root.height
+            pos_hint: {"center_x": 0.5,"center_y": 0.8}
+            always_release: True
+            on_press: root.sequence_emission()
+        
+        
+        GridLayout:
+			size_hint_x: 0.2
+			size_hint_y: 0.4
+			pos_hint:{"center_x": 0.14,"center_y": 0.35}
+            rows: 5
+            cols: 1
+
+            Label: 
+                color: (0, 0, 0, 1)
+                font_size: 0.12 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "Alice's bases"
+            
+            Label: 
+                color: (0, 0, 0, 1)
+                font_size: 0.12 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "Bob's bases"
+
+            Label: 
+                color: (0, 0, 0, 1)
+                font_size: 0.12 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "Alice's bits"
+
+            Label: 
+                color: (0, 0, 0, 1)
+                font_size: 0.12 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "Bob's bits"
+
+            Label: 
+                color: (0, 0, 0, 1)
+                font_size: 0.12 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "Secret key"
+
+
+        GridLayout:
+            background_color: 0, 0, 0, 0
+			size_hint_x: 0.7
+			size_hint_y: 0.4
+			pos_hint:{"center_x": 0.6,"center_y": 0.35}
+            rows: 5
+            cols: 10
+            col_default_width: 0.064 * self.parent.width
+            col_force_default: True
+            #row_default_height: 0.05 * self.parent.width
+            #row_force_default: True
+            spacing: 0.007 * self.width
+            
+
+            # Alice's bases
+            Image: 
+                id: alice_basis_1
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: alice_basis_2
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: alice_basis_3
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: alice_basis_4
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: alice_basis_5
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: alice_basis_6
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: alice_basis_7
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: alice_basis_8
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: alice_basis_9
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: alice_basis_10
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+
+
+            # Bob's bases
+            Image: 
+                id: bob_basis_1
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: bob_basis_2
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: bob_basis_3
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: bob_basis_4
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: bob_basis_5
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: bob_basis_6
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: bob_basis_7
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: bob_basis_8
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: bob_basis_9
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+            Image: 
+                id: bob_basis_10
+                source: "Filters/filter_black_0.png"
+                opacity: 0
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+
+
+            # Alice's bits
+            Label: 
+                id: alice_bit_1
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: alice_bit_2
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: alice_bit_3
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: alice_bit_4
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: alice_bit_5
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: alice_bit_6
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: alice_bit_7
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label:
+                id: alice_bit_8
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: alice_bit_9
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: alice_bit_10
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            
+
+            # Bob's bits
+            Label: 
+                id: bob_bit_1
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: bob_bit_2
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: bob_bit_3
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: bob_bit_4
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: bob_bit_5
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: bob_bit_6
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: bob_bit_7
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: bob_bit_8
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: bob_bit_9
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: bob_bit_10
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+
+            
+            # Secret key
+            Label: 
+                id: key_bit_1
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: key_bit_2
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: key_bit_3
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: key_bit_4
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: key_bit_5
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: key_bit_6
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: key_bit_7
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: key_bit_8
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: key_bit_9
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+            Label: 
+                id: key_bit_10
+                opacity: 0
+                color: (0, 0, 0, 1)
+                font_size: 0.15 * self.parent.height
+                font_name: 'NunitoSans'
+                text: "0"
+                
+
+
+
+        BoxLayout:
+			size_hint_x: 0.155
+			size_hint_y: 0.05
+			pos_hint:{"center_x": 0.5,"center_y": 0.05}
+			orientation: "horizontal"
+            spacing: 0.02 * self.width
+
+            Button: #Clear
+                background_normal: ''
+                background_down: ''
+                background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+                on_press:
+                    root.clear()
+                Label: 
+                    id: game_menu_button
+                    font_size: 0.45 * self.parent.height
+                    font_name: 'NunitoSans'
+                    text: 'Clear'
+                    x: self.parent.x
+                    y: self.parent.y
+                    size: self.parent.width, self.parent.height
+
+            Button: #KeyButton
+                background_normal: ''
+                background_down: ''
+                background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+                on_release:
+                    root.manager.transition.direction = 'left'
+                    root.manager.current = 'game'
+                Label: 
+                    id: label_key_button
+                    font_size: 0.45 * self.parent.height
+                    font_name: 'NunitoSans'
+                    text: 'Back'
+                    x: self.parent.x
+                    y: self.parent.y
+                    size: self.parent.width, self.parent.height
+
+            Button: #back to menu
+                background_normal: ''
+                background_down: ''
+                background_color: (0.75, 0.75, 0.75, 1) if self.state=='normal' else (0.203125, 0.59375, 0.855469, 1)
+                on_press:
+                    root.manager.transition.direction = 'up'
+                    root.manager.current = 'menu'
+                    # new root.stop_tutorial()
+                Label:
+                    id: game_menu_button
+                    font_size: 0.45 * self.parent.height
+                    font_name: 'NunitoSans'
+                    text: 'Menu'
+                    x: self.parent.x
+                    y: self.parent.y
+                    size: self.parent.width, self.parent.height

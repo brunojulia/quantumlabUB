@@ -1,7 +1,5 @@
-import time #revisar
 import numpy as np
-
-from QKD_functions import * 
+from QKD_functions import *
 
 from kivy.config import Config
 Config.set('input', 'mouse', 'mouse,multitouch_on_demand')
@@ -11,12 +9,12 @@ from kivy.clock import Clock
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
-from kivy.uix.label import Label #revisar
 from kivy.animation import Animation
 from kivy.vector import Vector
 from kivy.uix.screenmanager import ScreenManager, Screen
 
-from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty, BooleanProperty, StringProperty, Property
+
+from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty, BooleanProperty
 
 class Round_Button(Button):
 
@@ -36,14 +34,13 @@ class Switch_Button(Button):
         
 
 class Photon(Widget):
-
+    
     velocity_x = NumericProperty(0)
     velocity_y = NumericProperty(0)
     velocity = ReferenceListProperty(velocity_x, velocity_y)
 
     def move(self):
         self.pos = Vector(*self.velocity) + self.pos
-
 
 class Slit(Widget):
 
@@ -80,18 +77,19 @@ class Slit(Widget):
                 return 1
             case 45:
                 return 2
+            
 
 class MenuScreen(Screen):
     pass
 
-# TO BE DONE (maybe)
+
 class SettingsScreen(Screen):
         
     def catalan(self):
         self.manager.get_screen('menu').label_play_button.text = 'Jugar'
         self.manager.get_screen('menu').label_settings_button.text = 'Ajustaments'
-        self.label_settings.text = 'Ajustaments'
-        self.settings_menu_button.text = 'Menú'
+        self.manager.get_screen('settings').label_settings.text = 'Ajustaments'
+        self.manager.get_screen('settings').settings_menu_button.text = 'Menú'
         self.manager.get_screen('game').label_source.text = 'Font'
         self.manager.get_screen('game').label_expert_mode.text = 'Mode Expert'
         self.manager.get_screen('game').label_eavesdropping.text = 'Espionatge'
@@ -111,8 +109,8 @@ class SettingsScreen(Screen):
     def spanish(self):
         self.manager.get_screen('menu').label_play_button.text = 'Jugar'
         self.manager.get_screen('menu').label_settings_button.text = 'Ajustes'
-        self.label_settings.text = 'Ajustes'
-        self.settings_menu_button.text = 'Menú'
+        self.manager.get_screen('settings').label_settings.text = 'Ajustes'
+        self.manager.get_screen('settings').settings_menu_button.text = 'Menú'
         self.manager.get_screen('game').label_source.text = 'Fuente'
         self.manager.get_screen('game').label_expert_mode.text = 'Modo Experto'
         self.manager.get_screen('game').label_eavesdropping.text = 'Espionaje'
@@ -132,8 +130,8 @@ class SettingsScreen(Screen):
     def english(self):
         self.manager.get_screen('menu').label_play_button.text = 'Play'
         self.manager.get_screen('menu').label_settings_button.text = 'Settings'
-        self.label_settings.text = 'Settings'
-        self.settings_menu_button.text = 'Menu'
+        self.manager.get_screen('settings').label_settings.text = 'Settings'
+        self.manager.get_screen('settings').settings_menu_button.text = 'Menu'
         self.manager.get_screen('game').label_source.text = 'Source'
         self.manager.get_screen('game').label_expert_mode.text = 'Expert Mode'
         self.manager.get_screen('game').label_eavesdropping.text = 'Eavesdropping'
@@ -252,6 +250,8 @@ class E91Simulation(Screen):
 
     S = NumericProperty(0.0)
 
+    slider_emission_value = NumericProperty(1)
+
 
     def source_animation(self, widget):
         # original size_hint_x = 0.04
@@ -273,15 +273,6 @@ class E91Simulation(Screen):
         anim += Animation(size_hint_x=0.045, size_hint_y=0.035, duration=0.4)
         anim.repeat = True
         anim.start(widget)
-
-    ''' TBD later or never
-    def cursor_animation(self, widget):
-        # original cursor_size: 0.025*game_layout.height, 0.025*game_layout.height
-        if 0.023 * self.height < widget.cursor_width < 0.03 * self.height:
-            widget.cursor_size = 0.021 * self.height, 0.021 * self.height 
-        elif 0.019 * self.height < widget.cursor_width < 0.022 * self.height:
-            widget.cursor_size = 0.025 * self.height, 0.025 * self.height
-    '''
 
     def slider_animation(self, widget):
         # original size_hint = 0.1, 0.04
@@ -312,6 +303,7 @@ class E91Simulation(Screen):
         self.switch_eve_left.active = False
         self.switch_eve_right.active = False
         self.switch_expert_mode.active = False
+
         Animation.stop_all(self.source)
         Animation.stop_all(self.alice_filter)
         Animation.stop_all(self.bob_filter)
@@ -320,30 +312,62 @@ class E91Simulation(Screen):
         Animation.stop_all(self.switch_eve_right)
         Animation.stop_all(self.slider)
         Animation.stop_all(self.switch_expert_mode)
-        self.tut_press_source.opacity = 0
-        self.tut_emmited.opacity = 0
-        self.tut_alice_button.opacity = 0
-        self.tut_bob_button.opacity = 0
-        self.tut_alice_bit.opacity = 0
-        self.tut_bob_bit.opacity = 0
-        self.tut_eve.opacity = 0
-        self.tut_eve_left.opacity = 0
-        self.tut_eve_right.opacity = 0
-        self.tut_slider.opacity = 0
-        self.tut_eve_expert.opacity = 0
+
+        self.manager.get_screen('game').tut_press_source.opacity = 0
+        self.manager.get_screen('game').tut_emmited.opacity = 0
+        self.manager.get_screen('game').tut_alice_button.opacity = 0
+        self.manager.get_screen('game').tut_bob_button.opacity = 0
+        self.manager.get_screen('game').tut_alice_bit.opacity = 0
+        self.manager.get_screen('game').tut_bob_bit.opacity = 0
+        self.manager.get_screen('game').tut_eve.opacity = 0
+        self.manager.get_screen('game').tut_eve_left.opacity = 0
+        self.manager.get_screen('game').tut_eve_right.opacity = 0
+        self.manager.get_screen('game').tut_slider.opacity = 0
+        self.manager.get_screen('game').tut_eve_expert.opacity = 0
+
+        self.counts_a1b1 = np.zeros((2,2))
+        self.counts_a1b3 = np.zeros((2,2))
+        self.counts_a3b1 = np.zeros((2,2))
+        self.counts_a3b3 = np.zeros((2,2))
+        self.prob_a1b1 = np.zeros((2,2))
+        self.prob_a1b3 = np.zeros((2,2))
+        self.prob_a3b1 = np.zeros((2,2))
+        self.prob_a3b3 = np.zeros((2,2))
+        self.E_a1b1 = 0.0
+        self.E_a1b3 = 0.0
+        self.E_a3b1 = 0.0
+        self.E_a3b3 = 0.0
+        self.S = 0.0
+
+    def clear(self):
+        self.counts_a1b1 = np.zeros((2,2))
+        self.counts_a1b3 = np.zeros((2,2))
+        self.counts_a3b1 = np.zeros((2,2))
+        self.counts_a3b3 = np.zeros((2,2))
+        self.prob_a1b1 = np.zeros((2,2))
+        self.prob_a1b3 = np.zeros((2,2))
+        self.prob_a3b1 = np.zeros((2,2))
+        self.prob_a3b3 = np.zeros((2,2))
+        self.E_a1b1 = 0.0
+        self.E_a1b3 = 0.0
+        self.E_a3b1 = 0.0
+        self.E_a3b3 = 0.0
+        self.S = 0.0
 
 
     def emission(self):
+
+        self.slider_emission_value = self.slider.value
 
         velocity_x = (self.center_x - self.alice_filter.center_x)/60
         velocity_y = 0.5 * self.photon_alice_1.height
 
         for i in range(10):
             
-            self.photons_alice[i].center_x = self.center_x + self.photon_alice_1.width * i
+            self.photons_alice[i].center_x = self.center_x + 1.1 * self.photon_alice_1.width * i
             self.photons_alice[i].center_y = self.center_y + np.random.randint(low=-0.25*self.source.height, high=0.25*self.source.height)
 
-            self.photons_bob[i].center_x = self.center_x - self.photon_alice_1.width * i
+            self.photons_bob[i].center_x = self.center_x - 1.1 * self.photon_alice_1.width * i
             #self.photons_bob[i].center_y = self.center_y + np.random.randint(low=-0.25*self.source.height, high=0.25*self.source.height)
             self.photons_bob[i].center_y = self.photons_alice[i].center_y
 
@@ -355,7 +379,7 @@ class E91Simulation(Screen):
         basis_e_a = self.eve_left_slit.angle_to_basis()
         basis_e_b = self.eve_right_slit.angle_to_basis()
 
-        for _ in range(0, self.slider.value):
+        for _ in range(0, self.slider_emission_value):
 
             if self.switch_eve.active == False:
                 self.a_bit_old, self.b_bit_old = measure_polarization(basis_a, basis_b)
@@ -391,16 +415,17 @@ class E91Simulation(Screen):
         OFFSET = 0.05 * self.alice_filter.width
 
         for i in range(10):
-
-            if self.slider.value >= 100 * i + 1 and self.photons_alice[i].x < self.center_x:
+            
+            if self.slider_emission_value >= 100 * i + 1 and self.photons_alice[i].x < self.center_x:
                 self.photons_alice[i].opacity = 1
             else:
                 self.photons_alice[i].opacity = 0
 
-            if self.slider.value >= 100 * i + 1 and self.photons_bob[i].x > self.center_x:
+            if self.slider_emission_value >= 100 * i + 1 and self.photons_bob[i].x > self.center_x:
                 self.photons_bob[i].opacity = 1
             else:
                 self.photons_bob[i].opacity = 0
+            
 
             self.photons_alice[i].move()
             self.photons_bob[i].move()
@@ -429,6 +454,321 @@ class E91Simulation(Screen):
                 self.b_bit = self.b_bit_old
 
 
+class QKeyScreen(Screen):
+
+    def __init__(self, **kwargs):
+        super(QKeyScreen, self).__init__(**kwargs)
+        Clock.schedule_interval(self.update, 1.0 / 60.0)
+
+    source = ObjectProperty(None)
+
+    photon_alice = ObjectProperty(None)
+    photon_bob   = ObjectProperty(None)
+
+    alice_filter = ObjectProperty(None)
+    bob_filter   = ObjectProperty(None)
+
+    alice_slit = ObjectProperty(None)
+    bob_slit   = ObjectProperty(None)
+
+    a_bit_old   = NumericProperty(0)
+    b_bit_old   = NumericProperty(0)
+    a_basis_old = NumericProperty(0)
+    b_basis_old = NumericProperty(0)
+    
+    a_bit   = NumericProperty(0)
+    b_bit   = NumericProperty(0)
+    a_basis = NumericProperty(0)
+    b_basis = NumericProperty(0)
+
+    alice_basis_1 = ObjectProperty(None)
+    alice_basis_2 = ObjectProperty(None)
+    alice_basis_3 = ObjectProperty(None)
+    alice_basis_4 = ObjectProperty(None)
+    alice_basis_5 = ObjectProperty(None)
+    alice_basis_6 = ObjectProperty(None)
+    alice_basis_7 = ObjectProperty(None)
+    alice_basis_8 = ObjectProperty(None)
+    alice_basis_9 = ObjectProperty(None)
+    alice_basis_10 = ObjectProperty(None)
+
+    alice_bases = ReferenceListProperty(
+        alice_basis_1,
+        alice_basis_2, 
+        alice_basis_3,
+        alice_basis_4,
+        alice_basis_5,
+        alice_basis_6,
+        alice_basis_7, 
+        alice_basis_8, 
+        alice_basis_9, 
+        alice_basis_10 )
+    
+    bob_basis_1 = ObjectProperty(None)
+    bob_basis_2 = ObjectProperty(None)
+    bob_basis_3 = ObjectProperty(None)
+    bob_basis_4 = ObjectProperty(None)
+    bob_basis_5 = ObjectProperty(None)
+    bob_basis_6 = ObjectProperty(None)
+    bob_basis_7 = ObjectProperty(None)
+    bob_basis_8 = ObjectProperty(None)
+    bob_basis_9 = ObjectProperty(None)
+    bob_basis_10 = ObjectProperty(None)
+
+    bob_bases = ReferenceListProperty(
+        bob_basis_1,
+        bob_basis_2, 
+        bob_basis_3,
+        bob_basis_4,
+        bob_basis_5,
+        bob_basis_6,
+        bob_basis_7, 
+        bob_basis_8, 
+        bob_basis_9, 
+        bob_basis_10 )
+    
+    alice_bit_1 = ObjectProperty(None)
+    alice_bit_2 = ObjectProperty(None)
+    alice_bit_3 = ObjectProperty(None)
+    alice_bit_4 = ObjectProperty(None)
+    alice_bit_5 = ObjectProperty(None)
+    alice_bit_6 = ObjectProperty(None)
+    alice_bit_7 = ObjectProperty(None)
+    alice_bit_8 = ObjectProperty(None)
+    alice_bit_9 = ObjectProperty(None)
+    alice_bit_10 = ObjectProperty(None)
+
+    alice_bits = ReferenceListProperty(
+        alice_bit_1,
+        alice_bit_2, 
+        alice_bit_3,
+        alice_bit_4,
+        alice_bit_5,
+        alice_bit_6,
+        alice_bit_7, 
+        alice_bit_8, 
+        alice_bit_9, 
+        alice_bit_10 )
+    
+    bob_bit_1 = ObjectProperty(None)
+    bob_bit_2 = ObjectProperty(None)
+    bob_bit_3 = ObjectProperty(None)
+    bob_bit_4 = ObjectProperty(None)
+    bob_bit_5 = ObjectProperty(None)
+    bob_bit_6 = ObjectProperty(None)
+    bob_bit_7 = ObjectProperty(None)
+    bob_bit_8 = ObjectProperty(None)
+    bob_bit_9 = ObjectProperty(None)
+    bob_bit_10 = ObjectProperty(None)
+
+    bob_bits = ReferenceListProperty(
+        bob_bit_1,
+        bob_bit_2, 
+        bob_bit_3,
+        bob_bit_4,
+        bob_bit_5,
+        bob_bit_6,
+        bob_bit_7, 
+        bob_bit_8, 
+        bob_bit_9, 
+        bob_bit_10 )
+    
+    key_bit_1 = ObjectProperty(None)
+    key_bit_2 = ObjectProperty(None)
+    key_bit_3 = ObjectProperty(None)
+    key_bit_4 = ObjectProperty(None)
+    key_bit_5 = ObjectProperty(None)
+    key_bit_6 = ObjectProperty(None)
+    key_bit_7 = ObjectProperty(None)
+    key_bit_8 = ObjectProperty(None)
+    key_bit_9 = ObjectProperty(None)
+    key_bit_10 = ObjectProperty(None)
+
+    key_bits = ReferenceListProperty(
+        key_bit_1,
+        key_bit_2, 
+        key_bit_3,
+        key_bit_4,
+        key_bit_5,
+        key_bit_6,
+        key_bit_7, 
+        key_bit_8, 
+        key_bit_9, 
+        key_bit_10 )
+
+
+    def clear(self):
+
+        self.key_counter = 0
+
+        for i in range(0,10):
+            self.alice_bases[i].opacity = 0
+            self.bob_bases[i].opacity = 0
+            self.alice_bits[i].opacity = 0
+            self.bob_bits[i].opacity = 0
+            self.key_bits[i].opacity = 0
+            self.alice_bits[i].color = (0, 0, 0, 1)
+            self.bob_bits[i].color = (0, 0, 0, 1)
+            self.key_bits[i].color = (0, 0, 0, 1)
+
+            #Clock.cancel()
+        
+
+    key_counter = 0
+
+    def update_table_col(self, i: int, a_basis, b_basis, a_bit_old, b_bit_old):
+        self.alice_bases[i].source = self.basis_to_image_black(a_basis)
+        self.bob_bases[i].source = self.basis_to_image_black(b_basis)
+        self.alice_bits[i].text = str(a_bit_old)
+        self.bob_bits[i].text = str(b_bit_old)
+        self.alice_bases[i].opacity = 1
+        self.bob_bases[i].opacity = 1
+        self.alice_bits[i].opacity = 1
+        self.bob_bits[i].opacity = 1
+
+        if (a_basis == b_basis):
+            self.alice_bases[i].source = self.basis_to_image_blue(a_basis)
+            self.bob_bases[i].source = self.basis_to_image_blue(b_basis)
+            self.alice_bits[i].color = (0.203125, 0.59375, 0.855469, 1)
+            self.bob_bits[i].color = (0.203125, 0.59375, 0.855469, 1)
+
+            if (self.key_counter < 10):
+
+                self.key_bits[self.key_counter].text = str(a_bit_old)
+                self.key_bits[self.key_counter].opacity = 1
+                self.key_bits[self.key_counter].color = (0.203125, 0.59375, 0.855469, 1)
+
+
+                if (self.key_counter == 9):
+                    for i in range(0,10):
+                        self.key_bits[i].color = (160/255, 32/255, 240/255, 1)
+
+                self.key_counter += 1 
+
+
+    def basis_to_angle(self, basis):
+
+        match basis: 
+            case -1:
+                return -22.5
+            case 0:
+                return 0
+            case 1:
+                return 22.5
+            case 2:
+                return 45
+            
+    def basis_to_image_black(self, basis):
+
+        match basis: 
+            case -1:
+                return "Filters/filter_black_minus_225.png"
+            case 0:
+                return "Filters/filter_black_0.png"
+            case 1:
+                return "Filters/filter_black_225.png"
+            case 2:
+                return "Filters/filter_black_45.png"
+            
+    def basis_to_image_blue(self, basis):
+
+        match basis: 
+            case 0:
+                return "Filters/filter_blue_0.png"
+            case 1:
+                return "Filters/filter_blue_225.png"
+            
+    steps = 35
+
+    def emission(self, i: int):  
+
+        OFFSET = 0.05 * self.alice_filter.width
+        
+        velocity_x = (self.center_x - self.alice_filter.center_x + OFFSET)/self.steps
+        velocity_y = 0.5 * self.photon_alice.height
+            
+        self.photon_alice.center_x = self.source.center_x
+        self.photon_alice.center_y = self.source.center_y # + np.random.randint(low=-0.2*self.source.height, high=0.2*self.source.height)
+
+        self.photon_bob.center_x = self.source.center_x
+        self.photon_bob.center_y = self.photon_alice.center_y
+
+        self.photon_alice.velocity = Vector(-velocity_x, velocity_y)
+        self.photon_bob.velocity   = Vector(velocity_x, velocity_y)
+
+        self.a_basis, self.b_basis, self.a_bit_old, self.b_bit_old = random_measure_polarization()
+
+        self.alice_slit.angle = self.basis_to_angle(self.a_basis)
+        self.bob_slit.angle = self.basis_to_angle(self.b_basis)
+
+        Clock.schedule_once(lambda dt: self.update_table_col(i, self.a_basis, self.b_basis, self.a_bit_old, self.b_bit_old), self.steps/60)
+
+
+    def able_source(self):
+        self.source.disabled = False
+
+    def sequence_emission(self):
+
+        for i in range(0,10):
+            self.alice_bases[i].opacity = 0
+            self.bob_bases[i].opacity = 0
+            self.alice_bits[i].opacity = 0
+            self.bob_bits[i].opacity = 0
+            self.alice_bits[i].color = (0, 0, 0, 1)
+            self.bob_bits[i].color = (0, 0, 0, 1)
+            self.key_bits[i].color = (0, 0, 0, 1)
+
+        if (self.key_counter > 9):
+            self.key_counter = 0
+            for i in range(0,10):
+                self.key_bits[i].opacity = 0
+                self.bob_bases[i].opacity = 0
+                self.alice_bits[i].opacity = 0
+                self.bob_bits[i].opacity = 0
+
+
+        delay = self.steps/60 + 0.1
+
+        self.source.disabled = True
+        self.emission(0)
+        Clock.schedule_once(lambda dt: self.emission(1), 1 * delay)
+        Clock.schedule_once(lambda dt: self.emission(2), 2 * delay)
+        Clock.schedule_once(lambda dt: self.emission(3), 3 * delay)
+        Clock.schedule_once(lambda dt: self.emission(4), 4 * delay)
+        Clock.schedule_once(lambda dt: self.emission(5), 5 * delay)
+        Clock.schedule_once(lambda dt: self.emission(6), 6 * delay)
+        Clock.schedule_once(lambda dt: self.emission(7), 7 * delay)
+        Clock.schedule_once(lambda dt: self.emission(8), 8 * delay)
+        Clock.schedule_once(lambda dt: self.emission(9), 9 * delay)
+        Clock.schedule_once(lambda dt: self.able_source(), 10 * delay + 0.25)
+        #for i in range(1,10):
+        #    Clock.schedule_once(lambda dt: self.emission(i), i * 1.2)
+
+
+
+
+    def update(self, dt):
+
+        OFFSET = 0.05 * self.alice_filter.width
+
+        self.photon_alice.move()
+        self.photon_bob.move()
+
+        # For each frame, vertical velocity is inverted 
+        if self.photon_alice.velocity_x != 0:
+            self.photon_alice.velocity_y *= -1
+            self.photon_bob.velocity_y *= -1
+
+        if self.photon_alice.x < self.alice_filter.center_x - OFFSET:
+            self.photon_alice.center = self.source.center
+            self.photon_bob.center = self.source.center
+            self.photon_alice.velocity = Vector(0, 0)
+            self.photon_bob.velocity = Vector(0, 0)
+            self.a_bit = self.a_bit_old
+            self.b_bit = self.b_bit_old
+
+
+
 class Ekert91App(App): 
     
     def build(self):
@@ -436,12 +776,13 @@ class Ekert91App(App):
         sm.add_widget(MenuScreen(name='menu'))
         sm.add_widget(SettingsScreen(name='settings'))
         sm.add_widget(E91Simulation(name='game'))
+        sm.add_widget(QKeyScreen(name='key'))
 
         return sm
 
 if __name__=='__main__':
 
     Window.maximize()
-    #Window.fullscreen = 'auto'  
+    #Window.fullscreen = 'auto'
 
-    Ekert91App().run() 
+    Ekert91App().run()
