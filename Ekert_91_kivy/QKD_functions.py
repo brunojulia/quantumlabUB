@@ -27,8 +27,8 @@ dico = {
     (PI_4_BASIS, PI_8_BASIS): [PROB_EQUAL, PROB_DIFFERENT]
 }
 
-def measure_polarization(basis_a, basis_b):
 
+def measure_polarization(basis_a, basis_b):
     alice_bit = np.random.choice([0, 1], p=[0.5, 0.5])
     
     if basis_a == basis_b:
@@ -40,8 +40,8 @@ def measure_polarization(basis_a, basis_b):
 
     return int(alice_bit), int(bob_bit)
 
-def measure_polarization_eavesdropping(basis_a, basis_b, basis_e_a, basis_e_b):
 
+def measure_polarization_eavesdropping(basis_a, basis_b, basis_e_a, basis_e_b):
     eve_alice_bit = np.random.choice([0, 1], p=[0.5, 0.5])
     
     if basis_e_a == basis_e_b:
@@ -67,8 +67,8 @@ def measure_polarization_eavesdropping(basis_a, basis_b, basis_e_a, basis_e_b):
 
     return int(alice_bit), int(bob_bit), int(eve_alice_bit), int(eve_bob_bit)
 
-def measure_polarization_eavesdropping_left(basis_a, basis_b, basis_e_a):
 
+def measure_polarization_eavesdropping_left(basis_a, basis_b, basis_e_a):
     eve_alice_bit = np.random.choice([0, 1], p=[0.5, 0.5])
 
     if basis_e_a == basis_a:
@@ -87,8 +87,8 @@ def measure_polarization_eavesdropping_left(basis_a, basis_b, basis_e_a):
 
     return int(alice_bit), int(bob_bit), int(eve_alice_bit)
 
-def measure_polarization_eavesdropping_right(basis_a, basis_b, basis_e_b):
 
+def measure_polarization_eavesdropping_right(basis_a, basis_b, basis_e_b):
     eve_bob_bit = np.random.choice([0, 1], p=[0.5, 0.5])
     
     if basis_a == basis_e_b:
@@ -107,12 +107,11 @@ def measure_polarization_eavesdropping_right(basis_a, basis_b, basis_e_b):
 
     return int(alice_bit), int(bob_bit), int(eve_bob_bit)
 
+
 def random_measure_polarization():
-
     # Alice's and Bob's random bases
-    alice_basis = np.random.choice([ZERO_BASIS, PI_8_BASIS,PI_4_BASIS])
-    bob_basis   = np.random.choice([MINUS_PI_8_BASIS, ZERO_BASIS, PI_8_BASIS])
-
+    alice_basis = np.random.choice([ZERO_BASIS, PI_8_BASIS, PI_4_BASIS])
+    bob_basis = np.random.choice([MINUS_PI_8_BASIS, ZERO_BASIS, PI_8_BASIS])
     alice_bit, bob_bit = measure_polarization(alice_basis, bob_basis)
 
     return int(alice_basis), int(bob_basis), alice_bit, bob_bit
