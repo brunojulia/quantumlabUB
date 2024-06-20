@@ -218,6 +218,10 @@ class E91Simulation(Screen):
     switch_expert_mode = ObjectProperty(None)
 
     slider = ObjectProperty(None)
+    slider_emission_value = NumericProperty(1)
+
+    tutorial_active = BooleanProperty(False)
+    tutorial_step = NumericProperty(1)
 
     # Counters
     counts_a1b1 = np.zeros((2, 2))
@@ -237,9 +241,7 @@ class E91Simulation(Screen):
     E_a3b1 = NumericProperty(0.0)
     E_a3b3 = NumericProperty(0.0)
 
-    S = NumericProperty(0.0)
-
-    slider_emission_value = NumericProperty(1)
+    S = NumericProperty(0.0)    
 
     def source_animation(self, widget):
         # original size_hint_x = 0.04
@@ -275,14 +277,88 @@ class E91Simulation(Screen):
     def stop_animation(widget):
         Animation.stop_all(widget)
 
-    # tbd
-    '''
+    def stop_all_animations(self):
+        Animation.stop_all(self.source)
+        Animation.stop_all(self.alice_filter)
+        Animation.stop_all(self.bob_filter)
+        Animation.stop_all(self.switch_eve)
+        Animation.stop_all(self.switch_eve_left)
+        Animation.stop_all(self.switch_eve_right)
+        Animation.stop_all(self.slider)
+        Animation.stop_all(self.switch_expert_mode)
+
+    def hide_tutorial_messages(self):
+        self.manager.get_screen('game').tut_press_source.opacity = 0
+        self.manager.get_screen('game').tut_emitted.opacity = 0
+        self.manager.get_screen('game').tut_alice_button.opacity = 0
+        self.manager.get_screen('game').tut_bob_button.opacity = 0
+        self.manager.get_screen('game').tut_alice_bit.opacity = 0
+        self.manager.get_screen('game').tut_bob_bit.opacity = 0
+        self.manager.get_screen('game').tut_eve.opacity = 0
+        self.manager.get_screen('game').tut_eve_left.opacity = 0
+        self.manager.get_screen('game').tut_eve_right.opacity = 0
+        self.manager.get_screen('game').tut_slider.opacity = 0
+        self.manager.get_screen('game').tut_eve_expert.opacity = 0
+
     def tutorial(self):
-        next_step = True
-        while next_step:
-            self.source_animation(self.source)
-            self.tut_press_source.opacity = 1
-    '''
+        self.stop_all_animations()
+        self.hide_tutorial_messages()
+        match self.tutorial_step:
+            case 1:
+                self.source_animation(self.source)
+                self.manager.get_screen('game').tut_press_source.opacity = 1
+            case 2:
+                self.filter_animation(self.alice_filter)
+                self.manager.get_screen('game').tut_emitted.opacity = 1
+                self.manager.get_screen('game').tut_alice_button.opacity = 1
+            case 3:
+                self.filter_animation(self.bob_filter)
+                self.manager.get_screen('game').tut_bob_button.opacity = 1
+            case 4:
+                self.switch_animation(self.switch_eve)
+                self.manager.get_screen('game').tut_alice_bit.opacity = 1
+                self.manager.get_screen('game').tut_bob_bit.opacity = 1
+                self.manager.get_screen('game').tut_eve.opacity = 1
+            case 5:
+                self.switch_animation(self.switch_eve_left)
+                self.switch_eve.active = True
+                self.manager.get_screen('game').tut_eve_left.opacity = 1
+            case 6:
+                self.switch_animation(self.switch_eve_right)
+                self.switch_eve.active = True
+                self.manager.get_screen('game').tut_eve_right.opacity = 1
+            case 7:
+                self.slider_animation(self.slider)
+                self.manager.get_screen('game').tut_slider.opacity = 1
+            case 8:
+                self.switch_animation(self.switch_expert_mode)
+                self.manager.get_screen('game').tut_eve_expert.opacity = 1
+            case 9:
+                self.stop_all_animations()
+            case 10:
+                self.stop_all_animations()
+            case 11:
+                self.stop_all_animations()
+            case 12:
+                self.stop_all_animations()
+            case 13:
+                self.stop_all_animations()
+            case 14:
+                self.stop_all_animations()
+
+    def next_step_tutorial(self):
+        if self.tutorial_step == 14:
+            self.tutorial_step = 14
+        else:
+            self.tutorial_step += 1
+        self.tutorial()
+
+    def previous_step_tutorial(self):
+        if self.tutorial_step == 1:
+            self.tutorial_step = 1
+        else:
+            self.tutorial_step -= 1
+        self.tutorial()
     
     def stop_tutorial(self):
         self.slider.value = 1
@@ -408,7 +484,7 @@ class E91Simulation(Screen):
         self.S = round(self.E_a1b1 + self.E_a1b3 - self.E_a3b1 + self.E_a3b3, 4)
 
     def update(self, dt):
-        offset = 0.05 * self.alice_filter.width
+        offset = 0.0075 * self.width
 
         for i in range(10):
             
@@ -447,30 +523,6 @@ class E91Simulation(Screen):
                 self.photons_bob[i].velocity = Vector(0, 0)
                 self.a_bit = self.a_bit_old
                 self.b_bit = self.b_bit_old
-
-
-def basis_to_angle(basis):
-    match basis:
-        case -1:
-            return -22.5
-        case 0:
-            return 0
-        case 1:
-            return 22.5
-        case 2:
-            return 45
-
-
-def basis_to_image_black(basis):
-    match basis:
-        case -1:
-            return "Filters/filter_black_minus_225.png"
-        case 0:
-            return "Filters/filter_black_0.png"
-        case 1:
-            return "Filters/filter_black_225.png"
-        case 2:
-            return "Filters/filter_black_45.png"
 
 
 class QKeyScreen(Screen):
@@ -614,6 +666,38 @@ class QKeyScreen(Screen):
         key_bit_9, 
         key_bit_10)
 
+    @staticmethod
+    def basis_to_angle(basis):
+        match basis:
+            case -1:
+                return -22.5
+            case 0:
+                return 0
+            case 1:
+                return 22.5
+            case 2:
+                return 45
+
+    @staticmethod
+    def basis_to_image_black(basis):
+        match basis:
+            case -1:
+                return "Filters/filter_black_minus_225.png"
+            case 0:
+                return "Filters/filter_black_0.png"
+            case 1:
+                return "Filters/filter_black_225.png"
+            case 2:
+                return "Filters/filter_black_45.png"
+
+    @staticmethod
+    def basis_to_image_blue(basis):
+        match basis:
+            case 0:
+                return "Filters/filter_blue_0.png"
+            case 1:
+                return "Filters/filter_blue_225.png"
+
     def clear(self):
         self.key_counter = 0
 
@@ -630,8 +714,8 @@ class QKeyScreen(Screen):
     key_counter = 0
 
     def update_table_col(self, i: int, a_basis, b_basis, a_bit_old, b_bit_old):
-        self.alice_bases[i].source = basis_to_image_black(a_basis)
-        self.bob_bases[i].source = basis_to_image_black(b_basis)
+        self.alice_bases[i].source = self.basis_to_image_black(a_basis)
+        self.bob_bases[i].source = self.basis_to_image_black(b_basis)
         self.alice_bits[i].text = str(a_bit_old)
         self.bob_bits[i].text = str(b_bit_old)
         self.alice_bases[i].opacity = 1
@@ -657,18 +741,10 @@ class QKeyScreen(Screen):
 
                 self.key_counter += 1
 
-    @staticmethod
-    def basis_to_image_blue(basis):
-        match basis: 
-            case 0:
-                return "Filters/filter_blue_0.png"
-            case 1:
-                return "Filters/filter_blue_225.png"
-            
     steps = 35
 
     def emission(self, i: int):
-        offset = 0.05 * self.alice_filter.width
+        offset = 0.0075 * self.width
         
         velocity_x = (self.center_x - self.alice_filter.center_x + offset)/self.steps
         velocity_y = 0.5 * self.photon_alice.height
@@ -684,8 +760,8 @@ class QKeyScreen(Screen):
 
         self.a_basis, self.b_basis, self.a_bit_old, self.b_bit_old = random_measure_polarization()
 
-        self.alice_slit.angle = basis_to_angle(self.a_basis)
-        self.bob_slit.angle = basis_to_angle(self.b_basis)
+        self.alice_slit.angle = self.basis_to_angle(self.a_basis)
+        self.bob_slit.angle = self.basis_to_angle(self.b_basis)
 
         Clock.schedule_once(lambda dt: self.update_table_col(
             i, self.a_basis, self.b_basis, self.a_bit_old, self.b_bit_old), self.steps/60)
@@ -729,7 +805,7 @@ class QKeyScreen(Screen):
         #    Clock.schedule_once(lambda dt: self.emission(i), i * 1.2)
 
     def update(self, dt):
-        offset = 0.05 * self.alice_filter.width
+        offset = 0.0075 * self.width
 
         self.photon_alice.move()
         self.photon_bob.move()
