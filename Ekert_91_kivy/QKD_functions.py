@@ -109,7 +109,7 @@ def measure_polarization_eavesdropping_right(basis_a, basis_b, basis_e_b):
 
 
 def random_measure_polarization():
-    # Alice's and Bob's random base
+    # Alice's and Bob's random bases
     alice_basis = np.random.choice([ZERO_BASIS, PI_8_BASIS, PI_4_BASIS])
     bob_basis = np.random.choice([MINUS_PI_8_BASIS, ZERO_BASIS, PI_8_BASIS])
     alice_bit, bob_bit = measure_polarization(alice_basis, bob_basis)
