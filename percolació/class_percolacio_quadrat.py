@@ -151,4 +151,4 @@ class ClassPercolacioQuadrat:
         else:
             perc_n = -1
 
-        return perc_n
+        return perc_n 
