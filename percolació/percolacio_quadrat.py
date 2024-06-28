@@ -324,23 +324,50 @@ def g1():
 
 #Gràfica de la fracció de vèrtexs connectats en funció de la probabilitat de percolació pel cas site percolation
 def g2():
-    probabilities = np.arange(0.1, 1.0, 0.1)
-    num_trials = 100  # Número de matrices a generar para cada probabilidad
+    probabilities = np.arange(0., 1.0, 0.1)
+    num_trials = 10 # Número de matrices a generar para cada probabilidad
     avg_fracs = []  # Almacenar el promedio de las fracciones de vértices conectados
 
     for p in probabilities:
         frac_sum = 0
         for _ in range(num_trials):
             matrix = matriu_quadrat(50, p)
-            frac_sum += biggest_cluster_frac(matrix)  #fracció de cluster més gran ESTO ESTÁ MAL, DEBERÍA SER LA FRACCIÓN DE CLUSTERS CONECTADOS INDEPENDIENTEMENTE DE SU TAMAÑO
+            #aquí está el error, no debo considerar la fracción del cls
+            frac_sum += fraccio_ver_con(matrix)  #fracció de cluster més gran ESTO ESTÁ MAL, DEBERÍA SER LA FRACCIÓN DE CLUSTERS CONECTADOS INDEPENDIENTEMENTE DE SU TAMAÑO
         avg_frac = frac_sum / num_trials  #mitjana de cluster de mida més gran per matriu de mida n i p
         avg_fracs.append(avg_frac)
 
     #Graficar els resultats
     plt.plot(probabilities, avg_fracs)
     plt.xlabel('p')
-    plt.ylabel('Fracció del cluster més gran')
-    plt.title('Fracció del cluster més gran en funció de p')
+    plt.ylabel('Fracció clusters connectats')
+    plt.title('Fracció del cluster connectats en funció de p')
+    plt.grid(True)
+    plt.show()
+
+
+def phase_transition():
+    #del vídeo esto sería site vacancy probability
+    prob_x = np.arange(0.1,1.0,0.02)
+    #del vídeo esto sería percolation probability
+    perc_prob_y = []
+    max = 51
+    #voy a probar con max puntos por probabilidad. aux es donde se guardara la info para calcular la mitjana
+    for p in prob_x:
+        aux = 0
+        for i in range(1,max):
+            matrix = matriu_quadrat(100,p)
+            if percola(matrix,[]) != -1:
+                aux += 1
+        perc_prob_y.append(aux/(max - 1))
+
+
+    #ara gràfiquem els resultats
+    plt.plot(prob_x, perc_prob_y)
+    plt.scatter(prob_x, perc_prob_y, color='blue', s = 10,  label='Data Points')
+    plt.xlabel('site vacancy probability p')
+    plt.ylabel('percolation probability')
+    plt.title('Percolation threshold')
     plt.grid(True)
     plt.show()
 
@@ -415,15 +442,16 @@ def histograma(n,iteracions):
                                 # CÓDIGO PRINCIPAL:
 
 #condicions incials
-n = 151
+n = 100
 p = 0.7
-iteracions = 5 * 10 ** 4
+iteracions = 5 * 10 ** 2
 
 # (1): Gràfica del punt crític de percolació en funció de les dimensions de la matriu quadrada pel cas site percolation
 #g1()
 
 # (2): Gràfica de la fracció de vèrtexs connectats en funció de la probabilitat de percolació
 #g2()
+phase_transition()
 
 # (3): mapa que mostra la distribució aleatòria de generació de números dins de la matrius (per diferents mides i p's)
 #al simular diferents mides i p's no s'ha observat cap patró en cap cas. Per tant, les distribucions aleatòries
@@ -436,7 +464,7 @@ iteracions = 5 * 10 ** 4
 
 
 # (6) Histograma
-histograma(n,iteracions)
+#histograma(n,iteracions)
 
 #calcul punt crític
 x = vector_pc(iteracions,n)
@@ -483,6 +511,5 @@ print(fraccio_ver_con(matriu))
 print(biggest_cluster_frac(matriu))
 print('fracció del cluster que ha percolat')
 print(fracc_cluster_per(matriu))
-
 
 
