@@ -9,11 +9,11 @@ The code has been developed in Python 3.11.9 using Kivy 2.3.0.
 
   conda config --env --add channels conda-forge
   
-  conda create --name kivy-env kivy==2.3.0
+  conda create --name kivy-env kivy
   
   conda activate kivy-env
   
-  conda install numpy==1.26
+  conda install numpy
 
 3) Run main.py
 
