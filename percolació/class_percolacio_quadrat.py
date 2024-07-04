@@ -151,4 +151,17 @@ class ClassPercolacioQuadrat:
         else:
             perc_n = -1
 
-        return perc_n 
+        return perc_n
+
+###########################################################################################################################
+
+    #IN: Índex d'un cluster
+    #OUT: Mida del cluster
+    def mida_cluster(self,cluster_index):
+        mida = 0
+        for i in range(self.n):
+            for j in range(self.n):
+                if self.matriu[i,j] == cluster_index:
+                    mida += 1
+        return mida
+
