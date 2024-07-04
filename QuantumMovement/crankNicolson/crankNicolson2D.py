@@ -23,6 +23,12 @@ https://numpy.org/doc/stable/user/c-info.python-as-glue.html
 Fortran to Python: https://numpy.org/doc/stable/f2py/
 """
 
+"""# TODO
+# General charged particle hamiltonian
+# Also add spin to this, for example one color spin up other color spin down
+
+"""
+
 # IMPORTS
 import types
 import numpy as np
@@ -33,6 +39,7 @@ import random
 from scipy.linalg import solve_banded#, solveh_banded
 from scipy.fft import dstn
 from scipy.fft import idstn
+from scipy.special import eval_hermite
 
 
 
@@ -67,6 +74,15 @@ M = 1
 
 # ELECTRÓ: Si fem servir unitats estàndard:
 #  - distancia (Å),   temps (fs),    energia (eV)
+#
+# També podem fer servir, si les coneixem, unitats atòmics (a.u.)
+#    hbar = 1, me = 1, e = 1, 4π€0 = 1
+#
+#    1 d'energia   :   1 Hartree   ( Eh = 27.211 eV    )
+#    1 de distància:   1 radi bohr (      0.5292 Å     )
+#    1 de temps    :               (      0.0241888 fs )
+#
+#
 
 
 
@@ -74,7 +90,7 @@ M = 1
 
 # It's hard to test when is a method better than another
 # Sometimes abs2 is faster: Mod[:,:] = abs2(psi)
-# Sometimes, when changing psi before, or with very big matrices, abs2Matrix is faster (jit functions have overhead).
+# Sometimes, when changing psi before, or with very big matrices, abs2Matrix is faster (jit functions have overhead?).
 @numba.vectorize([numba.float64(numba.complex128), numba.float32(numba.complex64)])
 def abs2(x):
     return x.real**2 + x.imag**2
@@ -407,7 +423,7 @@ def applyOperator2DOp(X, Y, psi, result, operator, doConjugate = False):
     if len(operator) != psi.ndim+1: raise ValueError("Operator doesn't match dimensions of matrix")
     if not doConjugate:
         for i in range(1, len(psi)-1):
-            for j in range(1, len(psi[0]-1)):
+            for j in range(1, len(psi[0])-1):
                 result[i,j] = operator[0,0]*psi[i,j] + operator[1,0] * psi[i-1,j] + operator[1,1] * psi[i+1,j] + \
                                                         operator[2,0] * psi[i,j-1] + operator[2,1] * psi[i,j+1]
         result[0, :] = psi[0, :]*operator[0,0]
@@ -416,7 +432,7 @@ def applyOperator2DOp(X, Y, psi, result, operator, doConjugate = False):
         result[:, len(psi[0])-1] = psi[:, len(psi[0])-1] * operator[0,0]
     else:
         for i in range(1, len(psi)-1):
-            for j in range(1, len(psi[0]-1)):
+            for j in range(1, len(psi[0])-1):
                 result[i,j] = operator[0,0]*psi[i,j] + operator[1,0] * psi[i-1,j] + operator[1,1] * psi[i+1,j] + \
                                                         operator[2,0] * psi[i,j-1] + operator[2,1] * psi[i,j+1]
                 result[i,j] = result[i,j] * np.conj(psi[i,j])
@@ -470,7 +486,7 @@ def applyOperator2DFuncNoJit(X, Y, psi, result, operator, t=0., extra_param=np.a
     if len(X) != len(psi) or len(Y) != len(psi[0]): raise ValueError("X and Y coordinates don't match shape of Psi")
     dx = (X[-1] - X[0]) / (len(psi) - 1)
     dy = (Y[-1] - Y[0]) / (len(psi[0]) - 1)
-    op = np.array([[1., 0.], [0., 0.], [0., 0.]])
+    op = np.array([[1., 0.], [0., 0.], [0., 0.]], dtype=np.complex128)
     operator(op, (X[0], Y[0]), (dx, dy), t, extra_param=extra_param, onlyUpdate=False)
     if not doConjugate:
         for i in range(1, len(psi) - 1):
@@ -907,6 +923,26 @@ def crankNicolson2DSchrodingerStepImaginary(X, Y, t, dt, potential, psi, psiTemp
 
 
 @jit(nopython=True)
+def eulerSchrodingerStep(X, Y, t, dt, potential, psi, psiTemp, extra_param=np.array([])):
+    """ Solves System:  i h_red d/dt psi = [-h_red^2 /2 (d^2/dx^2 + d^2/dy^2)  + V ] psi
+    Step 0: Psi(t)  ->   Step 1: psiTemp = Psi(t+dt/2) ->  Step 2: psi = Psi(t+dt)"""
+    """ Same as VaryingPotential but Potential is taken only at t, as it's assumed constnat. Actually
+        to be used for imaginary time displacements, to find eigenstates. dt is imaginary component (real)"""
+    global hred, M
+    invdx2 = 1/( (X[-1] - X[0]) / (len(X) - 1) )**2
+    invdy2 = 1/( (Y[-1] - Y[0]) / (len(Y) - 1) )**2
+    for i in range(1, len(psi) - 1):
+        for j in range(1, len(psi[0]) - 1):
+            psi[i,j] += -dt * 1j/hred * ( -hred**2 / (2*M) * (
+                    (psi[i+1,j]-2*psi[i,j]+psi[i-1,j])*invdx2 +
+                    (psi[i,j+1]-2*psi[i,j]+psi[i,j-1])*invdy2)+
+                    potential(X[i],Y[j],t, extra_param=extra_param)*psi[i,j])
+    """psi[:,0] = 0.
+    psi[:,-1]= 0.
+    psi[0,:] = 0.
+    psi[-1,:]= 0."""
+
+@jit(nopython=True)
 def crankNicolson2DSchrodingerStepFastest(X, Y, t, dt, potential, psi, psiTemp, psiMod, extra_param=np.array([])):
     """ Solves System:  i h_red d/dt psi = [-h_red^2 /2 (d^2/dx^2 + d^2/dy^2)  + V ] psi
     Step 0: Psi(t)  ->   Step 1: psiTemp = Psi(t+dt/2) ->  Step 2: psi = Psi(t+dt)"""
@@ -1110,7 +1146,7 @@ def potential0(x, y, t=0., extra_param=np.array([])):
 
 
 def func1(x, y, t=0., extra_param=np.array([])):
-    return 1.
+    return 1#1/2. + np.sign(x) + np.sign(y)
 
 @jit
 def potentialBarrier(x, y, t, extra_param):
@@ -1197,7 +1233,7 @@ def gaussian00(x,y,t=0., extra_param=np.array([])):
 
 def gaussianPacket(x, x0, sigma, p0, extra_param=np.array([])):
     global hred
-    return 1./(2*np.pi*sigma**2)**(0.25) * np.exp(-1./4. * ((x-x0)/sigma)**2) * np.exp(1j/hred * p0*(x))#-x0/2)) ??? Apunts mec quantica
+    return 1./(2*np.pi*sigma**2)**(0.25) * np.exp(-1./4. * ((x-x0)/sigma)**2) * np.exp(1j/hred * p0*(x))#-x0/2)) # Apunts mec quantica
 
 
 # GENERATOR FOR GAUSSIAN INITIAL STATES
@@ -1217,16 +1253,17 @@ def inicial2D(x, y, t=0., extra_param=np.array([])):
     return inicial(x, p_0)*inicial(y, 0.5*p_0)
 
 
-def eigenvectorsHarmonic1D(x, x0, n, k):
+def eigenvectorsHarmonic1D(x, n, k):
     #not normalized
     x = x * np.sqrt(np.sqrt(M*k)/hred)
-    return np.power(M*k, 1/8.)/np.sqrt(2**n * np.math.factorial(n) * np.sqrt(hred*np.pi)) * np.exp(-(x-x0)**2/2.)*\
-           np.polynomial.hermite.hermval(x, [0]*(n-1) + [1])
+    return np.power(M*k, 1/8.)/np.sqrt(2**n * np.math.factorial(n) * np.sqrt(hred*np.pi)) * np.exp(-(x)**2/2.)*\
+           eval_hermite(n, x * np.sqrt(np.sqrt(M*k)/hred))
+           #np.polynomial.hermite.hermval(x, [0]*(n-1) + [1])
 
 # GENERATOR FOR HARMONIC OSCILLATOR EIGENVECTORS
 def eigenvectorHarmonic2DGenerator(x0, nx, y0, ny, k):
     def result(x, y, t=0., extra_param=np.array([])):
-        return eigenvectorsHarmonic1D(x, x0, nx, k)*eigenvectorsHarmonic1D(y, y0, ny, k)
+        return eigenvectorsHarmonic1D(x-x0, nx, k)*eigenvectorsHarmonic1D(y-y0, ny, k)
     return result
 
 
@@ -1346,7 +1383,7 @@ class QuantumSystem2D:
         if self.step == 'eigen':
             crankNicolson2DSchrodingerStepClosedBoxEigen(self.X, self.Y, self.t, dt, self.potential,
                                                          self.psi, self.psiEigen, self.psiMod, extra_param=self.extra_param)
-        if self.step == 'exact':
+        elif self.step == 'exact':
             crankNicolson2DSchrodingerStepExact(self.X, self.Y, self.t, dt, self.potential,
                                                 self.psi, self.psiCopy, self.psiMod, extra_param=self.extra_param)
         else:
@@ -1363,10 +1400,11 @@ class QuantumSystem2D:
         """Potential will be taken as constant. Useful for imaginary time displacements, approximate eigenstates. NEGATIVE!"""
         crankNicolson2DSchrodingerStepImaginary(self.X, self.Y, self.t, dt, self.potential,
                                                 self.psi, self.psiCopy, extra_param=self.extra_param)
-
+        #eulerSchrodingerStep(self.X, self.Y, self.t, 1j*dt, self.potential, self.psi, self.psiCopy, extra_param=self.extra_param) # euler doesn't work
         # To avoid crashing in obtaining very very low values or very very high values
         # we normalize here
-        self.psi[:,:] = self.psi[:,:]/np.sqrt(self.norm())
+        self.renorm()
+        #self.psi[:,:] = self.psi[:,:]/np.sqrt(self.norm())
 
     def momentumSpace(self):
         fourierTransform2D(self.X, self.Y, self.psi, self.psiMom)
@@ -1416,21 +1454,31 @@ class QuantumSystem2D:
         ####return np.trapz(np.trapz(self.psiMod))*self.dx*self.dy
         #return simpson_complex_list2D(self.dx, self.dy, self.psiMod)
 
-    def approximateEigenstate(self, maxiter = 100, callback=None, tol = 1e-4, resetInit=True):
+    def totalEnergy(self):
+        return self.kineticEnergy() + self.potentialEnergy()
+
+    def approximateEigenstate(self, maxiter = 100, callback=None, tol = 1e-4, resetInit=True, initState=None):
         """
         Iterates some time until, approximately, the newest lowest energy eigenstate remains
         Returns true if it was found u
         """
+        """
+        WE CAN CHANGE IT! WE DON'T NEED OT USE CRANK NICOLSON. MAYBE EULER METHOD FASTER AND CN NOT NECESSARY
+        Actually... Euler doesn't work
+        """
         #print(len(self.eigenstates))
-
-        if resetInit: self.setState(func1)
+        if resetInit:
+            if initState is not None:
+                self.setState(initState)
+            else:
+                self.setState(func1)    # PROBLEM WITH THIS. SYMMETRIC INITIAL STATE. HARD TO FIND ANTISYMMETRIC STATES
 
         for it in range(maxiter):
             for E, eigenstate in self.eigenstates:
                 self.substractComponent(eigenstate)
             for __ in range(10):
                 self.evolveImagStep(-2**(-6))
-            self.renorm()
+            #self.renorm() # redundant, we put renormalization in evolveImagStep
 
             isEigen, E = self.isEigenstate(tol=tol)
             if isEigen:
@@ -1737,6 +1785,7 @@ def crankNicolson2DHalfStepSchrodinger(X, Y, t, dt, potential, operator, psi, ps
 def aharonovBohmOperator(op, x, y, dx, dy, t=0, extra_param=np.array([1,1,1,1,0.2]), dir=-1, onlyUpdate=True):
     # -i/h [H-V] = -ih/2m [∂^2_x + ∂^2_y + i alpha / r^2 * (-y∂x + x∂y) - a^2/4r^2]
     alpha = extra_param[4]
+    x = x-1
     #if onlyUpdate: return # The operator changes at every point
     invR2 = 1/(x*x+y*y+1e-10)
 

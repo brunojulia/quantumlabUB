@@ -1,7 +1,15 @@
+# ! ! !TO DO
+# Fix sacle and cutoff to work with new implementation of changing between mod2/phase/real/imag representation
+# Ek: Vermell, V: Blau,  E: Lila
 import matplotlib
 from matplotlib import animation
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as peffects
+from matplotlib.colors import LinearSegmentedColormap
+#basic_cols=['#75b765', '#101010', '#ffd700']
+basic_cols=['#00ffff', '#101010', '#ff0000']
+div_cmap=LinearSegmentedColormap.from_list('bl_div_cmap', basic_cols)
+
 if (__name__ == "crankNicolson.animate"):
     import crankNicolson.crankNicolson2D as mathPhysics
     from kivy.garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg, NavigationToolbar2Kivy
@@ -75,6 +83,57 @@ import time
 
 # fig.canvas.mpl_disconnect(fig.canvas.manager.key_press_handler_id)
 
+def cleanFigClose(fig):
+    """
+    Close figure trying to avoid memory leaks!!!
+    :param fig: figure to be closed cleanly
+    """
+    try: fig.canvas.canvas.clear()  # this is for the kivy widget. Makes no sense otherwise
+    except: pass
+    fig.clf()
+    plt.close(fig)
+
+#from colorsys import hls_to_rgb
+from matplotlib.colors import hsv_to_rgb
+def Complex2HSV(z, rmin=None, rmax=None, hue_start=90):
+    """
+    https://stackoverflow.com/a/36082859
+    """
+    # get amplidude of z and limit to [rmin, rmax]
+    amp = np.abs(z)
+    #amp = mathPhysics.abs2(z)
+    if rmin != None: amp = np.where(amp < rmin, rmin, amp)
+    if rmax != None: amp = np.where(amp > rmax, rmax, amp)
+    ph = np.angle(z, deg=True) + hue_start
+    # HSV are values in range [0,1]
+    h = (ph % 360) / 360
+    s = 0.85 * np.ones_like(h)
+    v = amp/np.max(amp)#(amp -rmin) / (rmax - rmin)
+    return hsv_to_rgb(np.dstack((h,s,v)))
+
+# We transpose!!! Because we take [i,j] -> i corresponds to x, j to y
+# Whereas in matrix representation (imshow), i would be row (y) and j column (x)
+def plotComplexData(arr, type='mod2'):
+    if type=='phase':
+        return Complex2HSV(arr.T)
+    elif type=='real':
+        return arr.real.T
+    elif type=='imag':
+        return arr.imag.T
+    return mathPhysics.abs2(arr).T
+
+def plotComplex(arr, ax, type, range):
+    if type=='phase':
+        return ax.imshow(plotComplexData(arr, type), origin='lower', extent=range, aspect='equal', interpolation='none')
+    elif type=='mod2':
+        return ax.imshow(plotComplexData(arr, type), origin='lower', extent=range, aspect='equal',
+                         cmap="viridis", interpolation='none')
+    else:
+        maxV = np.max(plotComplexData(arr, type))
+        minV = np.min(plotComplexData(arr, type))
+        sym = max(maxV, abs(minV))
+        return ax.imshow(plotComplexData(arr, type), origin='lower', extent=range, aspect='equal',
+                     cmap=div_cmap, interpolation='none', vmin=-sym,vmax=sym)
 
 optimizeGraphics = True
 
@@ -82,12 +141,13 @@ class QuantumAnimation:  # inches
     def __init__(self, QSystem, width=6.4, height=4.8,
                  dtSim=0.01, dtAnim=0.05, duration=None, realTime=True,
                  showEnergy=False, forceEnergy=False, showNorm=False, forceNorm=False, showMomentum=False, showPotential=False, varyingPotential=False,
+                 psiRepresentation="mod2", momRepresentation="mod2",
                  potentialCutoff=None, psiCutoff=None, scalePsi=False, scaleMom=False, zoomMom=1., scalePot=True,
                  extraCommands=[], extraUpdates=None, extraUpdatesStart=False, extraUpdatesUpdate=False, isKivy=False, stepsPerFrame=0,
                  debugTime=False, callbackProgress=False, isFocusable=True,
                  drawClassical=False, drawClassicalTrace=False, drawExpected=False, drawExpectedTrace=False,
                  unit_dist='Å', unit_time='fs', unit_energy='eV', unit_mom=r'$\frac{1}{2}\hbar Å^{-1}$',
-                 toolbar=False, customPlot=None, customPlotUpdate=False, customPlotFull=False):
+                 toolbar=False, customPlot=None, customPlotUpdate=False, customPlotFull=False,):
         """
         Declaration of a Quantum Animation
         :param QSystem: Quantum System. The physics happen here, see crankNikolson2D QuantumSystem class.
@@ -144,6 +204,9 @@ class QuantumAnimation:  # inches
         self.showPotential = showPotential
         self.varyingPotential = varyingPotential
         self.potentialCutoff = potentialCutoff
+
+        self.psiRepresentation = psiRepresentation
+        self.momRepresentation = momRepresentation
         self.psiCutoff = psiCutoff
         self.scalePsi = scalePsi
         self.scaleMom = scaleMom
@@ -247,7 +310,7 @@ class QuantumAnimation:  # inches
 
     def reset_plot(self, width=None, height=None,
                    showEnergy=None, forceEnergy=None, showNorm=None, forceNorm=None, showMomentum=None, showPotential=None,
-                   scalePsi=None, scaleMom=None, zoomMom=None, scalePot=None,
+                   scalePsi=None, scaleMom=None, zoomMom=None, scalePot=None, psiRepresentation=None, momRepresentation=None,
                    drawClassical=None, drawClassicalTrace=None, drawExpected=None, drawExpectedTrace=None,
                    forceRecreate = False, customPlot = None):
 
@@ -260,9 +323,11 @@ class QuantumAnimation:  # inches
         if showNorm != None: self.showNorm = showNorm; recreate = True
         if forceNorm != None: self.forceNorm = forceNorm
         if showMomentum != None: self.showMomentum = showMomentum; recreate = True
-        if showPotential != None: self.showPotential = showPotential;
+        if showPotential != None: self.showPotential = showPotential; recreate = True
         if scalePsi != None: self.scalePsi = scalePsi
         if scaleMom != None: self.scaleMom = scaleMom
+        if psiRepresentation != None: self.psiRepresentation = psiRepresentation; recreate = True
+        if momRepresentation != None: self.momRepresentation = momRepresentation; recreate = True
         if zoomMom != None: self.zoomMom = zoomMom
         if scalePot != None: self.scalePot = scalePot
         if drawClassical != None: self.drawClassical = drawClassical
@@ -288,6 +353,9 @@ class QuantumAnimation:  # inches
             if cplot:
                 if extraSubplots == 1:
                     self.axCustom = self.fig.add_subplot(3,3,6) if not self.customPlotFull else self.fig.add_subplot(1,3,3)
+                elif extraSubplots == 2 and self.showMomentum:
+                    self.axCustom = self.fig.add_subplot(3, 3, 3)
+                    cplot = 0
                 else: self.axCustom = self.fig.add_subplot(4, 3, 3)
             else:
                 self.axCustom = None
@@ -309,16 +377,17 @@ class QuantumAnimation:  # inches
                 self.axMomentum = None
 
             # First drawing
-            self.QSystem.modSquared()
+            ###self.QSystem.modSquared()  ### Not generic
             title = "Espai de posicions"
             if self.scalePsi: title += " (color reescalat)"
             self.axPsi.set_title(title)
             self.axPsi.set_xlabel("x ({})".format(self.unit_dist))
             self.axPsi.set_ylabel("y ({})".format(self.unit_dist))
-            self.datPsi = self.axPsi.imshow(self.QSystem.psiMod.T, origin='lower',
+            self.datPsi = plotComplex(self.QSystem.psi,self.axPsi,self.psiRepresentation,(self.QSystem.x0, self.QSystem.xf, self.QSystem.y0, self.QSystem.yf))
+            """self.axPsi.imshow(self.QSystem.psiMod.T, origin='lower',
                                             extent=(self.QSystem.x0, self.QSystem.xf, self.QSystem.y0, self.QSystem.yf),
                                             aspect='equal', cmap="viridis",
-                                            interpolation='none')  # , animated=True) # Doesn't do anything for imshow?
+                                            interpolation='none')  # , animated=True) # Doesn't do anything for imshow?"""
             if self.showPotential:
                 mathPhysics.set2DMatrix(self.QSystem.X, self.QSystem.Y,
                                         self.QSystem.potential, self.potentialMat,
@@ -329,7 +398,7 @@ class QuantumAnimation:  # inches
                                                 interpolation='none')  # , animated=True)
                 # self.fig.colorbar(datPot, ax=ax1, label="Potencial: Força constant cap a baix")
 
-            if cplot:
+            if self.customPlot is not None:
                 self.datCustom = {}
                 # First plot
                 self.customPlot[0](self.axCustom, self.datCustom, self.QSystem, self.units)
@@ -352,10 +421,10 @@ class QuantumAnimation:  # inches
                 self.axEnergy.set_ylim(minValE-visibilityDelta, maxValE+visibilityDelta)
                 self.axEnergy.set_ylabel("({})".format(self.unit_energy))
                 if not self.showNorm: self.axEnergy.set_xlabel("t ({})".format(self.unit_time))
-                self.lineK, = self.axEnergy.plot(self.TList, self.KList,
+                self.lineK, = self.axEnergy.plot(self.TList, self.KList, 'red',
                                                  label="K")  # , animated=True)  #Doesn't seem to speed up anything. Just complicates things
-                self.lineV, = self.axEnergy.plot(self.TList, self.VList, label="V")  # , animated=True)
-                self.lineE, = self.axEnergy.plot(self.TList, self.EList, 'grey', label="E")  # , animated=True)
+                self.lineV, = self.axEnergy.plot(self.TList, self.VList, 'blue', label="V")  # , animated=True)
+                self.lineE, = self.axEnergy.plot(self.TList, self.EList, 'purple', label="E")  # , animated=True)   #Colors before were gray here and nothing for others
                 self.axEnergy.grid()
                 self.axEnergy.legend()
 
@@ -532,12 +601,15 @@ class QuantumAnimation:  # inches
             if self.debugTime: print("Time step (x{:d}):  {:12.8f}".format(max(1, int(self.dtAnim / self.dtSim)) if self.stepsPerFrame == 0 else self.stepsPerFrame
                                                                                       , time.time() - t0), " (s)", end=' <> ')
 
-        self.QSystem.modSquared()
+        #self.QSystem.modSquared()
         if self.psiCutoff != None:
             self.QSystem.psiMod[self.QSystem.psiMod < self.psiCutoff] = None
-        if self.scalePsi: self.datPsi.set_clim(vmax=np.max(self.QSystem.psiMod.T), vmin=0.)
+        # this is not optimal. It would be nice to have a numpy function that finds minimum and maximum on same loop # https://stackoverflow.com/questions/12200580/numpy-function-for-simultaneous-max-and-min
+        if self.scalePsi and self.psiRepresentation!='phase': self.rescalePsi()#self.datPsi.set_clim(vmax=np.max(self.datPsi.get_array()),
+                                                              #                     vmin=0. if self.psiRepresentation == 'mod2' else np.min(self.datPsi.get_array()))
+                                                                                        #self.QSystem.psiMod.T
 
-        self.datPsi.set_data(self.QSystem.psiMod.T)
+        self.datPsi.set_data(plotComplexData(self.QSystem.psi,self.psiRepresentation))#self.QSystem.psiMod.T)
         changes.append(self.datPsi)
 
         if self.showPotential:
@@ -582,7 +654,7 @@ class QuantumAnimation:  # inches
         if self.customPlot is not None:
             self.redraw = self.customPlot[1](self.axCustom, self.datCustom, self.QSystem, self.units)
             for dat in self.datCustom.values():
-                changes.append(dat)
+                if issubclass(type(dat), matplotlib.artist.Artist): changes.append(dat)
 
         self.TList.append(self.QSystem.t)
         if self.showEnergy or self.forceEnergy:   #Always store it?
@@ -704,52 +776,53 @@ class QuantumAnimation:  # inches
     def updatePotentialDraw(self, *args):
         # Updates potential but other stuff too. For example for visualizing changes in parameters
         #t0 = time.time()
-        self.updating = True
-        mathPhysics.set2DMatrix(self.QSystem.X, self.QSystem.Y,
-                                self.QSystem.potential, self.potentialMat,
-                                t=self.QSystem.t, extra_param=self.QSystem.extra_param)
-        if self.potentialCutoff != None:
-            self.potentialMat[self.potentialMat < self.potentialCutoff] = None
-        # if onlyDraw: self.datMom.set_clim(vmax=np.max(self.QSystem.psiMod.T), vmin=0.)  # Being general we are slower!
-        if self.scalePot: self.datPot.set_clim(vmax=np.max(self.potentialMat), vmin=np.min(self.potentialMat))  # CAN BE OPTIMIZED
-        self.datPot.set_data(self.potentialMat.T)
+        if self.showPotential:
+            self.updating = True
+            mathPhysics.set2DMatrix(self.QSystem.X, self.QSystem.Y,
+                                    self.QSystem.potential, self.potentialMat,
+                                    t=self.QSystem.t, extra_param=self.QSystem.extra_param)
+            if self.potentialCutoff != None:
+                self.potentialMat[self.potentialMat < self.potentialCutoff] = None
+            # if onlyDraw: self.datMom.set_clim(vmax=np.max(self.QSystem.psiMod.T), vmin=0.)  # Being general we are slower!
+            if self.scalePot: self.datPot.set_clim(vmax=np.max(self.potentialMat), vmin=np.min(self.potentialMat))  # CAN BE OPTIMIZED
+            self.datPot.set_data(self.potentialMat.T)
 
-        self.fig.draw_artist(self.datPsi)
-        self.fig.draw_artist(self.datPot)
+            self.fig.draw_artist(self.datPsi)
+            self.fig.draw_artist(self.datPot)
 
-        artists = set()  # Using a set makes sure we don't repeat draw stuff
-        for patch in self.axPsi.patches:
-            #self.fig.draw_artist(patch)
-            artists.add(patch)
-        for line in self.axPsi.lines:
-            #self.fig.draw_artist(line)
-            artists.add(line)
-        for coll in self.axPsi.collections:
-            #self.fig.draw_artist(coll)
-            artists.add(coll)
+            artists = set()  # Using a set makes sure we don't repeat draw stuff
+            for patch in self.axPsi.patches:
+                #self.fig.draw_artist(patch)
+                artists.add(patch)
+            for line in self.axPsi.lines:
+                #self.fig.draw_artist(line)
+                artists.add(line)
+            for coll in self.axPsi.collections:
+                #self.fig.draw_artist(coll)
+                artists.add(coll)
 
-        if self.extraUpdatesUpdate and self.extraUpdates is not None:
-            for action in self.extraUpdates:
-                updated = action(instance=self)
-                # except: updated = action()
-                if updated != None:
-                    if type(updated) is tuple:
-                        for el in updated:
-                            artists.add(el)
-                    else:
-                        artists.add(updated)
-        if self.customPlotUpdate and self.customPlot is not None:
-            self.customPlot[1](self.axCustom, self.datCustom, self.QSystem, self.units)
-            for dat in self.datCustom.values():
-                artists.add(dat)
+            if self.extraUpdatesUpdate and self.extraUpdates is not None:
+                for action in self.extraUpdates:
+                    updated = action(instance=self)
+                    # except: updated = action()
+                    if updated != None:
+                        if type(updated) is tuple:
+                            for el in updated:
+                                artists.add(el)
+                        else:
+                            artists.add(updated)
+            if self.customPlotUpdate and self.customPlot is not None:
+                self.customPlot[1](self.axCustom, self.datCustom, self.QSystem, self.units)
+                for dat in self.datCustom.values():
+                    if issubclass(type(dat), matplotlib.artist.Artist): artists.add(dat)
 
-        for art in artists:
-            self.fig.draw_artist(art)
+            for art in artists:
+                self.fig.draw_artist(art)
 
 
-        self.fig.canvas.drawOptimized()
-        #print("Took {:12.8f} s, in FPS: {:12.8f}".format(time.time()-t0, 1./(time.time()-t0)))
-        self.updating = False
+            self.fig.canvas.drawOptimized()
+            #print("Took {:12.8f} s, in FPS: {:12.8f}".format(time.time()-t0, 1./(time.time()-t0)))
+            self.updating = False
 
     def resetSystem(self, QSystem):
         self.QSystem = QSystem
@@ -758,9 +831,16 @@ class QuantumAnimation:  # inches
         self.reset_plot(forceRecreate=True)
 
     def rescalePsi(self):
-        self.datPsi.set_clim(vmax=np.max(self.datPsi.get_array()), vmin=0.)
+        vmax = np.max(self.datPsi.get_array())
+        if self.psiRepresentation == 'mod2':
+            self.datPsi.set_clim(vmax=np.max(vmax), vmin=0.)
+        else:
+            vmin = np.min(self.datPsi.get_array())
+            maxVal = max(vmax, abs(vmin))
+            self.datPsi.set_clim(vmax=maxVal, vmin=-maxVal)
 
     def saveAnimation(self, outputName, type="gif"):
+        #https://stackoverflow.com/questions/19646520/memory-usage-for-matplotlib-animation
         # Depends on current directory
         from pathlib import Path
         #cwd = Path.cwd()   # Depends on how main.py is run. If run from terminal
