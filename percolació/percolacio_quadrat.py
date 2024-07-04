@@ -513,3 +513,4 @@ print('fracció del cluster que ha percolat')
 print(fracc_cluster_per(matriu))
 
 
+
