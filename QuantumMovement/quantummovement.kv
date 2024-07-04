@@ -16,6 +16,21 @@
 #        Ellipse:
 #            pos: self.pos
 #            size: self.size
+<LightButton>:
+    canvas.before:
+        Color:
+            rgba: 240/255,240/255,240/255,255/255
+        Rectangle:
+            pos: self.pos
+            size: self.size
+<LightButtonImage>:
+    Image:
+        fit_mode: "scale-down"
+        source: self.parent.image_src
+        center_x: self.parent.center_x
+        center_y: self.parent.center_y
+        width: self.parent.width*self.parent.size_hint_image
+        #allow_stretch: True
 
 <PlayButton>:
     size_hint_min_y: dp(40)
@@ -120,9 +135,6 @@
     title: ""
     auto_dismiss: True
     size_hint:  0.5, 0.5
-    BoxLayout:
-        id: plot
-        padding:20
 
 <SavedStatesPopup>:
     auto_dismiss: True
@@ -140,9 +152,11 @@
                 id: stateName
                 multiline: False
                 text: "nouEstat"
+                on_text_validate:
             StateExpression:
                 id: stateCreator
                 holder: root
+                varDict: root.window.variablesDict
             Button:
                 size_hint_x: 0.15
                 text: "Crea\nEstat"
@@ -196,6 +210,7 @@
                     attribute: "maxiter"
                     condition: "positive"
             Button:
+                id: eigenButton
                 size_hint_x: 0.6
                 text: "Busca següent\nEigenstat"
                 on_release:
@@ -560,14 +575,26 @@
                 active: root.window.animation.showNorm
                 on_active: root.window.animation.reset_plot(showNorm=self.active)
 
-        Button:
-            id: eigen
-            text: "Eigenstates"
-            on_release:
-                root.window.stopPlaying()
-                Factory.SavedEigenstatesPopup(root.window).open()
-                #root.QSystem.approximateEigenstate()
-                #root.animation.manualUpdate(onlyDraw=True)
+        GridLayout:
+            cols: 3
+            Button:
+                id: eigen
+                text: "Eigenstates"
+                on_release:
+                    root.window.stopPlaying()
+                    Factory.SavedEigenstatesPopup(root.window).open()
+                    #root.QSystem.approximateEigenstate()
+                    #root.animation.manualUpdate(onlyDraw=True)
+            ToggleButton:
+                text: "Rescala psi\ncada pas"
+                state: 'down' if root.window.animation.scalePsi else 'normal'
+                on_press:
+                    root.window.animation.reset_plot(scalePsi=not root.window.animation.scalePsi, forceRecreate=True)
+            ToggleButton:
+                text: "Rescala moment\ncada pas"
+                state: 'down' if root.window.animation.scaleMom else 'normal'
+                on_press:
+                    root.window.animation.reset_plot(scaleMom = not root.window.animation.scaleMom, forceRecreate=True)
 
 
 <WindowManager>:
