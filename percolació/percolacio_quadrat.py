@@ -3,6 +3,7 @@ import numpy as np
 import random
 from collections import deque
 from scipy import stats
+from fractal_prueba import SierpinskiCarpetWidget
 import math as math
 
 
@@ -226,6 +227,20 @@ def vector_pc(iteracions,n):
             x[i] = p
     return x
 
+
+
+def vector_pc_fractal(iteracions,n):
+    x = np.zeros(iteracions)
+    for i in range(iteracions):
+        p = 0
+        frac = SierpinskiCarpetWidget()
+        matriu = frac.matrix
+        while percola(matriu,[]) == -1:
+            matriu = frac.matrix
+            p += 0.01
+            x[i] = p
+    return x
+
 ############################################################################################################################
 ############################################################################################################################
 
@@ -437,6 +452,37 @@ def histograma(n,iteracions):
     plt.show()
 
 ############################################################################################################################
+#Gràfica fracció cluster més gran vs probabilitat
+
+def big_prob():
+    probabilities = np.arange(0.0, 1.01, 0.01)
+    eix_y = []
+    colors = []
+
+    for p in probabilities:
+        sum_frac = 0
+        matrix = matriu_quadrat(50, p)
+        frac = biggest_cluster_frac(matrix)
+        sum_frac += frac
+
+        #si percola el punt és blau, si no percola vermell
+        if percola(matrix,[]) != -1:
+            colors.append('red')
+        else:
+            colors.append('blue')
+
+        eix_y.append(sum_frac)
+
+    # Graficar los resultados con puntos rojos o azules según percolación
+    plt.scatter(probabilities, eix_y, c=colors, marker='o', s=5)
+    plt.xlabel('p')
+    plt.ylabel('Fracción del cluster más grande')
+    plt.title('Fracción del cluster más grande y percolación en función de p')
+    #plt.legend(['percola'],['no percola'])
+    plt.grid(True)
+    plt.show()
+
+############################################################################################################################
 ############################################################################################################################
 
                                 # CÓDIGO PRINCIPAL:
@@ -444,14 +490,15 @@ def histograma(n,iteracions):
 #condicions incials
 n = 100
 p = 0.7
-iteracions = 5 * 10 ** 2
+iteracions = 5 * 10 ** 1
 
 # (1): Gràfica del punt crític de percolació en funció de les dimensions de la matriu quadrada pel cas site percolation
 #g1()
 
 # (2): Gràfica de la fracció de vèrtexs connectats en funció de la probabilitat de percolació
 #g2()
-phase_transition()
+#phase_transition()
+big_prob()
 
 # (3): mapa que mostra la distribució aleatòria de generació de números dins de la matrius (per diferents mides i p's)
 #al simular diferents mides i p's no s'ha observat cap patró en cap cas. Per tant, les distribucions aleatòries
@@ -466,8 +513,8 @@ phase_transition()
 # (6) Histograma
 #histograma(n,iteracions)
 
-#calcul punt crític
-x = vector_pc(iteracions,n)
+#calcul punt crític amb incertesa
+x = vector_pc_fractal(iteracions,n)
 mean = mean_value(x)
 inc = incertesa(iteracions,x)
 print('p_c = ', mean, ' +- ', inc)
