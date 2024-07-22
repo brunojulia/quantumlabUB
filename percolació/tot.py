@@ -14,9 +14,11 @@ from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
 from kivy.uix.slider import Slider
+from kivy.lang import Builder
 import matplotlib.pyplot as plt
 import numpy as np
 from class_percolacio_quadrat import ClassPercolacioQuadrat
+
 
 
 ##########################################################################################################################
@@ -29,6 +31,14 @@ from class_percolacio_quadrat import ClassPercolacioQuadrat
 class ClusterApp(App):
     # classe constructora on tenim els links a les diferents pantalles de l'aplicació
     def build(self):
+
+        # per generar el .kv
+        Builder.load_file('cluster.kv')
+        #per tenir sempre la pantalla completa i que no es generir errors de reescalat
+        Window.fullscreen = True
+        Window.size = Window.system_size
+        Window.borderless = True
+
         self.screen_manager = ScreenManager()
 
         # Menú principal
@@ -52,15 +62,29 @@ class ClusterApp(App):
         #controlar canvi de pantalla
         self.screen_manager.bind(current=self.canvi_pantalla)
 
-        #self.pantalla_tutorial.reset()
+        #fem resize de la pantalla per no perdre les proporcions
+        #Window.bind(on_resize=self.ajustar_proporcions)
+
 
         return self.screen_manager
 
 ##########################################################################################################################
 
+
+    #UNUSED
+    def ajustar_proporcions(self, *args):
+        if self.screen_manager:
+            for widget in self.screen_manager.children:
+                widget.size = (self.screen_manager.width, self.screen_manager.height)
+                widget.pos = (0,0)
+
+
+
     #construim la pantalla del joc amb ClusterWidget (classe que en permet
     #controlar les interaccions amb les cel·les del quadrat) i els controls (botons)
     def build_game_screen(self):
+
+
         main_layout = BoxLayout(orientation='horizontal')
 
 
@@ -89,8 +113,8 @@ class ClusterApp(App):
         controls_right.add_widget(back_to_menu_button)
         controls_right.add_widget(self.timer_label)
         controls_right.add_widget(self.punt_label)
-        controls_right.add_widget(generate_button)
         controls_right.add_widget(check_button)
+        controls_right.add_widget(generate_button)
         main_layout.add_widget(controls_right)
 
         #per saber si és la primera vegada que accedim al joc, d'aquesta manera
@@ -106,7 +130,7 @@ class ClusterApp(App):
 
     def generate_clusters(self, instance=None):
         try:
-            n = 10
+            n = 13
             p = 0.5
             self.simulation = ClassPercolacioQuadrat(n, p)
             self.cluster_widget.simulation = self.simulation
@@ -209,6 +233,7 @@ class ClusterApp(App):
 
         #tornem al joc -> posar els punts a 0 i el rellotge a 60
         elif current_screen == 'joc':
+            self.generate_clusters()
             self.time_left = 60
             self.timer_label.text = f'Temps restant: {self.time_left} s'
             self.cluster_widget.reset_punts()
@@ -258,7 +283,7 @@ class PantallaTutorial(BoxLayout):
         main_layout = BoxLayout(orientation='horizontal')
 
         #configuració de la part dreta (gràfic)
-        left_layout = BoxLayout(orientation='vertical')
+        left_layout = BoxLayout(orientation='vertical', size_hint=(0.7,1))
 
         self.cluster_widget = TutoWidget()
         left_layout.add_widget(Label(text=''))  #potser eliminar
@@ -267,7 +292,7 @@ class PantallaTutorial(BoxLayout):
         #afegim la configuració de l'esquerra al main layout
         main_layout.add_widget(left_layout)
 
-        right_layout = BoxLayout(orientation='vertical')
+        right_layout = BoxLayout(orientation='vertical',size_hint=(1,1))
 
         self.image = Image()
         right_layout.add_widget(self.image)
@@ -676,7 +701,7 @@ class ClusterWidget(Widget):
 ##########################################################################################################################
 
 
-    #Actu1a en conseqüència que es fa clic en un botó de la quadrícula.
+    #Actua en conseqüència que es fa clic en un botó de la quadrícula.
     #És a dir, comprova si la cel·la està ocupada i en cas de no estar-ho
     #l'afegeix i restem 3 punts si no és la 1a vegada. Altrament no fa res.
     def boto_clicat(self, instance):
@@ -695,6 +720,8 @@ class ClusterWidget(Widget):
 
 if __name__ == '__main__':
     ClusterApp().run()
+
+
 
 
 
