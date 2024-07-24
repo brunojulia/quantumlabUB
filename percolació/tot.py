@@ -25,6 +25,7 @@ from class_percolacio_quadrat import ClassPercolacioQuadrat
 ##########################################################################################################################
 
 
+
 #És la classe principal de l'aplicació i hereda de App (classe base per a totes les aplicacions
 #en Kivy). Aquesta classe s'encarrega de configurar i gestionar les diferents pantalles de l'aplicació
 #i de manejar la lògica principal del joc.
@@ -33,11 +34,11 @@ class ClusterApp(App):
     def build(self):
 
         # per generar el .kv
-        Builder.load_file('cluster.kv')
+        #Builder.load_file('cluster.kv')
         #per tenir sempre la pantalla completa i que no es generir errors de reescalat
         Window.fullscreen = True
-        Window.size = Window.system_size
-        Window.borderless = True
+        Window.size = (1920,1080)
+        Window.borderless = False
 
         self.screen_manager = ScreenManager()
 
@@ -48,13 +49,14 @@ class ClusterApp(App):
         self.screen_manager.add_widget(pantalla_menu)
 
         #Joc
+        self.joc = ClusterWidget()
         pantalla_joc = Screen(name='joc')
-        pantalla_joc.add_widget(self.build_game_screen())
+        pantalla_joc.add_widget(self.joc)
         self.screen_manager.add_widget(pantalla_joc)
+
 
         #Tutorial
         self.pantalla_tutorial = PantallaTutorial()
-        #self.pantalla_tutorial.reset()
         pantalla_tutorial = Screen(name='tutorial')
         pantalla_tutorial.add_widget(self.pantalla_tutorial)
         self.screen_manager.add_widget(pantalla_tutorial)
@@ -68,184 +70,36 @@ class ClusterApp(App):
 
         return self.screen_manager
 
-##########################################################################################################################
 
 
-    #UNUSED
-    def ajustar_proporcions(self, *args):
-        if self.screen_manager:
-            for widget in self.screen_manager.children:
-                widget.size = (self.screen_manager.width, self.screen_manager.height)
-                widget.pos = (0,0)
+    # Aquesta funció serveix per controlar el temps i els punts quan es realitza un canvi de pantalla
+    # quan es passa del joc al menú principal el que fem és atura el rellotge. Passava que de vegades el rellotge
+    # seguia actiu tot i estar al menú i de sobte apareixia un missatge de temps acabat. No tenia sentit
+    # quan es passa del menú principal al joc el temps es reinicia a 60 i els punts a 0.
+    def canvi_pantalla(self, *args):
+        # primer de tot ens ubiquem
+        current_screen = self.screen_manager
 
-
-
-    #construim la pantalla del joc amb ClusterWidget (classe que en permet
-    #controlar les interaccions amb les cel·les del quadrat) i els controls (botons)
-    def build_game_screen(self):
-
-
-        main_layout = BoxLayout(orientation='horizontal')
-
-
-        #part esquerra de la pantalla: és on situarem la matriu
-        #actuen segons la classe ClusterWidget()
-        left_layout = BoxLayout(orientation='vertical')
-        self.cluster_widget = ClusterWidget()
-        left_layout.add_widget(self.cluster_widget)
-        main_layout.add_widget(left_layout)
-
-        #els controls aniran a la parte de la dreta
-        controls_right = BoxLayout(size_hint_x=None, width='200dp', orientation='vertical')
-        generate_button = Button(text='Generate', size_hint=(1, 0.4))
-        check_button = Button(text='Check Percolation', size_hint=(1, 0.4))
-        self.timer_label = Label(text='Temps restant: 60 s', size_hint_y=None, height='50dp')
-        self.punt_label = Label(text='Punts: 0', size_hint_y=None, height='50dp')
-        generate_button.bind(on_press=self.generate_clusters)
-        check_button.bind(on_press=self.check_percolation)
-
-        #posem el botó de tornar al menú principal a la part superior dreta per evitar
-        #que es clicqui sense volver mentres es juga.
-        back_to_menu_button = Button(text='Tornar al menú', size_hint=(1, 0.1))
-        back_to_menu_button.bind(on_press=self.tornar_menu)
-
-        #de dalt a baix per ordre d'aparició
-        controls_right.add_widget(back_to_menu_button)
-        controls_right.add_widget(self.timer_label)
-        controls_right.add_widget(self.punt_label)
-        controls_right.add_widget(check_button)
-        controls_right.add_widget(generate_button)
-        main_layout.add_widget(controls_right)
-
-        #per saber si és la primera vegada que accedim al joc, d'aquesta manera
-        #es crida a generate cluster sense haver de tocar el botó generate
-        #fent això també evitem que l'aplicació peti quan li donem a check percolation
-        #i no hi ha cap cluster generat (ara sempre tindrem un cluster en acció).
-        self.first_time_joc = True
-
-        return main_layout
-
-##########################################################################################################################
-
-
-    def generate_clusters(self, instance=None):
-        try:
-            n = 13
-            p = 0.5
-            self.simulation = ClassPercolacioQuadrat(n, p)
-            self.cluster_widget.simulation = self.simulation
-            self.cluster_widget.percolated_cluster = None
-            self.cluster_widget.update_canvas()
-            self.cluster_widget.afegir_botons(n)
-            self.cluster_widget.restar_punts(3)
-            if not hasattr(self, 'time_left'):
-                self.start_timer()
-        except ValueError:
-            print("Entrada invàlida")
-
-
-##########################################################################################################################
-
-    #funció enllaçada al botó check percolation. Serveix per veure si el sistema
-    #ha percolat o no i actuar en conseqüència
-    def check_percolation(self, instance):
-        if self.simulation:
-            perc_n = self.simulation.percola()
-
-            if perc_n != -1:
-                message = 'Ha percolat :)'
-                self.cluster_widget.afegir_punts(100)  # sumem 100 per sistema percolat
-                self.cluster_widget.sumar_temps(3)  # sumem 5 segons per sistema percolat
-                # calculem la mida del cluster i sumem punts en base al ratio
-                mida_cluster = self.simulation.mida_cluster(perc_n)
-                ratio = mida_cluster / (self.simulation.n ** 2)  # de moment el denominador val 100 pq n = 10 però podria canviar
-                self.cluster_widget.afegir_punts(int(50 * ratio))  # sumar els punts en base al ratio
-                # Actualitzem el canvas per pintar de blanc el clsuter percolat
-                self.cluster_widget.percolated_cluster = perc_n
-                self.cluster_widget.update_canvas()
-                # Mostrem el missatge per pantalla
-                popup = Popup(title='Percolació', content=Label(text=message), size_hint=(None, None), size=(400, 200))
-                popup.open()
-                popup.bind(on_dismiss=lambda *args: self.generate_clusters(instance))
-
-            else:
-                message = 'No ha percolat :('
-                self.cluster_widget.restar_punts(5)
-                self.cluster_widget.restar_temps(5)
-                popup = Popup(title='Percolació', content=Label(text=message), size_hint=(None, None), size=(400, 200))
-                popup.open()
-                popup.bind(on_dismiss=lambda *args: self.generate_clusters(instance))
-
-        else:
-            popup = Popup(title='Error', content=Label(text='Has de generar una matriu abans!'), size_hint=(None, None),
-                          size=(400, 200))
-            popup.open()
-
-##########################################################################################################################
-
-    #botó per tornar al menú principal
-    def tornar_menu(self, instance):
-        self.screen_manager.current = 'menu'
-
-
-##########################################################################################################################
-
-    #funció per iniciar el joc a 60 segons
-    def start_timer(self):
-        self.time_left = 60
-        Clock.schedule_interval(self.update_timer, 1)
-
-
-    #funció per fer que el temps passi. Es van restant segons del comptador fins
-    #arribar a zero. És quan s'acaba el joc
-    def update_timer(self, dt):
-        self.time_left -= 1
-        self.timer_label.text = f'Temps restant: {self.time_left} s'
-        if self.time_left <= 0:
-            self.end_game()
-
-##########################################################################################################################
-
-
-    #funció per quan s'acabi el temps. Mostrar missatge game over juntament
-    #amb els punts obtinguts
-    def end_game(self):
-        popup = Popup(title='Game Over', content=Label(text='Temps esgotat!'), size_hint=(None, None), size=(400, 200))
-        popup.open()
-        self.screen_manager.current = 'menu'
-        self.cluster_widget.reset_punts()
-        self.cluster_widget.reset_scenario()
-        Clock.unschedule(self.update_timer)
-
-
-    #Aquesta funció serveix per controlar el temps i els punts quan es realitza un canvi de pantalla
-    #quan es passa del joc al menú principal el que fem és atura el rellotge. Passava que de vegades el rellotge
-    #seguia actiu tot i estar al menú i de sobte apareixia un missatge de temps acabat. No tenia sentit
-    #quan es passa del menú principal al joc el temps es reinicia a 60 i els punts a 0.
-    def canvi_pantalla(self,*args):
-        #primer de tot ens ubiquem
-        current_screen = self.screen_manager.current
-
-        #estem al menú -> parem el temps
+        # estem al menú -> parem el temps
         if current_screen == 'menu':
-            #parem el temps
-            Clock.unschedule(self.update_timer)
+            # parem el temps
+            Clock.unschedule(ClusterWidget.update_timer)
 
-        #tornem al joc -> posar els punts a 0 i el rellotge a 60
+        # tornem al joc -> posar els punts a 0 i el rellotge a 60
         elif current_screen == 'joc':
-            self.generate_clusters()
-            self.time_left = 60
-            self.timer_label.text = f'Temps restant: {self.time_left} s'
-            self.cluster_widget.reset_punts()
-            self.punt_label.text = 'Punts: 0'
-            self.start_timer()
+            ClusterWidget.generate_clusters(current_screen)
+            ClusterWidget.time_left = 60
+            ClusterWidget.timer_label.text = f'Temps restant: {ClusterWidget.time_left} s'
+            ClusterWidget.cluster_widget.reset_punts()
+            ClusterWidget.punt_label.text = 'Punts: 0'
+            ClusterWidget.start_timer(current_screen)
 
-            if self.first_time_joc:
-                Clock.schedule_once(lambda dt: self.generate_clusters(), 0.1)
-                self.first_time_joc = False
+            if ClusterWidget.first_time_joc:
+                Clock.schedule_once(lambda dt: ClusterWidget.generate_clusters(current_screen), 0.1)
+                ClusterWidget.first_time_joc = False
 
 
-        #si anem al tutorial volem que el gràfic no tingui punts a l'inici
+        # si anem al tutorial volem que el gràfic no tingui punts a l'inici
         elif current_screen == 'tutorial':
             TutoWidget().simulation = None
             TutoWidget().percolated_cluster = None
@@ -549,10 +403,10 @@ class TutoWidget(Widget):
 class MenuPrincipal(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.orientation = 'vertical'
-        self.add_widget(Label(text='Menú Principal'))
-        self.add_widget(Button(text='Jugar', on_press=self.iniciar_joc))
-        self.add_widget(Button(text='Tutorial', on_press=self.iniciar_tutorial))
+        #self.orientation = 'vertical'
+        #self.add_widget(Label(text='Menú Principal'))
+        #self.add_widget(Button(text='Jugar', on_press=self.iniciar_joc))
+        #self.add_widget(Button(text='Tutorial', on_press=self.iniciar_tutorial))
 
 
 ##########################################################################################################################
@@ -574,7 +428,7 @@ class MenuPrincipal(BoxLayout):
 ##########################################################################################################################
 ##########################################################################################################################
 
-
+#aquesta seria la pantalla del joc
 #EXPLICACIÓ ClusterWidget: és un Widget de Kivy que representa visualment la quadrícula
 #on succeix la simulació de percolació
 class ClusterWidget(Widget):
@@ -589,13 +443,147 @@ class ClusterWidget(Widget):
         self.punts = 0
         self.cel_actives = 0
         self.orientation = 'vertical'
-        #self.n_input = TextInput(text='10', multiline=False)
-        #self.p_input = TextInput(text='0.5', multiline=False)
-
-
-
 
 ##########################################################################################################################
+
+    # construim la pantalla del joc amb ClusterWidget (classe que en permet
+    # controlar les interaccions amb les cel·les del quadrat) i els controls (botons)
+    def build_game_screen(self):
+
+        # Builder.load_file('cluster.kv')
+
+        main_layout = BoxLayout(orientation='horizontal')
+
+        # part esquerra de la pantalla: és on situarem la matriu
+        # actuen segons la classe ClusterWidget()
+        left_layout = BoxLayout(orientation='vertical')
+        self.cluster_widget = ClusterWidget()
+        left_layout.add_widget(self.cluster_widget)
+        main_layout.add_widget(left_layout)
+
+        # els controls aniran a la parte de la dreta
+        controls_right = BoxLayout(size_hint_x=None, width='200dp', orientation='vertical')
+        generate_button = Button(text='Generate')
+        check_button = Button(text='Check Percolation')
+        self.timer_label = Label(text='Temps restant: 60 s')
+        self.punt_label = Label(text='Punts: 0')
+        generate_button.bind(on_press=self.generate_clusters)
+        check_button.bind(on_press=self.check_percolation)
+
+        # posem el botó de tornar al menú principal a la part superior dreta per evitar
+        # que es clicqui sense volver mentres es juga.
+        back_to_menu_button = Button(text='Tornar al menú')
+        back_to_menu_button.bind(on_press=self.tornar_menu)
+
+        # de dalt a baix per ordre d'aparició
+        controls_right.add_widget(back_to_menu_button)
+        controls_right.add_widget(self.timer_label)
+        controls_right.add_widget(self.punt_label)
+        controls_right.add_widget(check_button)
+        controls_right.add_widget(generate_button)
+        main_layout.add_widget(controls_right)
+
+        # per saber si és la primera vegada que accedim al joc, d'aquesta manera
+        # es crida a generate cluster sense haver de tocar el botó generate
+        # fent això també evitem que l'aplicació peti quan li donem a check percolation
+        # i no hi ha cap cluster generat (ara sempre tindrem un cluster en acció).
+        self.first_time_joc = True
+
+        return main_layout
+
+##########################################################################################################################
+
+    def generate_clusters(self, instance=None):
+        try:
+            n = 13
+            p = 0.5
+            self.simulation = ClassPercolacioQuadrat(n, p)
+            self.cluster_widget.simulation = self.simulation
+            self.cluster_widget.percolated_cluster = None
+            self.cluster_widget.update_canvas()
+            self.cluster_widget.afegir_botons(n)
+            self.cluster_widget.restar_punts(3)
+            if not hasattr(self, 'time_left'):
+                self.start_timer()
+        except ValueError:
+            print("Entrada invàlida")
+
+##########################################################################################################################
+
+    # funció enllaçada al botó check percolation. Serveix per veure si el sistema
+    # ha percolat o no i actuar en conseqüència
+    def check_percolation(self, instance):
+        if self.simulation:
+            perc_n = self.simulation.percola()
+
+            if perc_n != -1:
+                message = 'Ha percolat :)'
+                self.cluster_widget.afegir_punts(100)  # sumem 100 per sistema percolat
+                self.cluster_widget.sumar_temps(3)  # sumem 5 segons per sistema percolat
+                # calculem la mida del cluster i sumem punts en base al ratio
+                mida_cluster = self.simulation.mida_cluster(perc_n)
+                ratio = mida_cluster / (
+                            self.simulation.n ** 2)  # de moment el denominador val 100 pq n = 10 però podria canviar
+                self.cluster_widget.afegir_punts(int(50 * ratio))  # sumar els punts en base al ratio
+                # Actualitzem el canvas per pintar de blanc el clsuter percolat
+                self.cluster_widget.percolated_cluster = perc_n
+                self.cluster_widget.update_canvas()
+                # Mostrem el missatge per pantalla
+                popup = Popup(title='Percolació', content=Label(text=message), size_hint=(None, None),
+                              size=(400, 200))
+                popup.open()
+                popup.bind(on_dismiss=lambda *args: self.generate_clusters(instance))
+
+            else:
+                message = 'No ha percolat :('
+                self.cluster_widget.restar_punts(5)
+                self.cluster_widget.restar_temps(5)
+                popup = Popup(title='Percolació', content=Label(text=message), size_hint=(None, None),
+                              size=(400, 200))
+                popup.open()
+                popup.bind(on_dismiss=lambda *args: self.generate_clusters(instance))
+
+        else:
+            popup = Popup(title='Error', content=Label(text='Has de generar una matriu abans!'),
+                          size_hint=(None, None),
+                          size=(400, 200))
+            popup.open()
+
+##########################################################################################################################
+
+    # botó per tornar al menú principal
+    def tornar_menu(self, instance):
+        self.screen_manager.current = 'menu'
+
+##########################################################################################################################
+
+    # funció per iniciar el joc a 60 segons
+    def start_timer(self):
+        self.time_left = 60
+        Clock.schedule_interval(self.update_timer, 1)
+
+    # funció per fer que el temps passi. Es van restant segons del comptador fins
+    # arribar a zero. És quan s'acaba el joc
+    def update_timer(self, dt):
+        self.time_left -= 1
+        self.timer_label.text = f'Temps restant: {self.time_left} s'
+        if self.time_left <= 0:
+            self.end_game()
+
+##########################################################################################################################
+
+    # funció per quan s'acabi el temps. Mostrar missatge game over juntament
+    # amb els punts obtinguts
+    def end_game(self):
+        popup = Popup(title='Game Over', content=Label(text='Temps esgotat!'), size_hint=(None, None),
+                      size=(400, 200))
+        popup.open()
+        self.screen_manager.current = 'menu'
+        self.cluster_widget.reset_punts()
+        self.cluster_widget.reset_scenario()
+        Clock.unschedule(self.update_timer)
+
+
 
 
     #La seva funció és dibuixar la quadrícula i els cluster segons els estats
@@ -716,7 +704,7 @@ class ClusterWidget(Widget):
 
 ##########################################################################################################################
 ##########################################################################################################################
-
+#Builder.load_file('cluster.kv')
 
 if __name__ == '__main__':
     ClusterApp().run()
