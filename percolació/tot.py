@@ -35,7 +35,7 @@ class ClusterApp(App):
         # per generar el .kv
         #Builder.load_file('cluster.kv')
         #per tenir sempre la pantalla completa i que no es generir errors de reescalat
-        Window.fullscreen = True
+        Window.fullscreen = False
         Window.size = (1920,1080)
         Window.borderless = False
 
@@ -252,11 +252,19 @@ class ClusterApp(App):
 class PantallaTutorial(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        top_layout = BoxLayout(size_hint_y=None, height='50dp', orientation='horizontal', padding=[10, 10, 10, 0])
-        top_layout.add_widget(Widget())
-        boto_menu = Button(text='Tornar', size_hint=(None, None), size=(150, 50))
-        boto_menu.bind(on_press=self.tornar_menu)
-        top_layout.add_widget(boto_menu)
+
+        #missatges tutorial
+        self.step = 0
+
+        #fons de pantalla
+        self.background = Image(source='fons_menu.png', allow_stretch=False, keep_ratio=True)
+        self.add_widget(self.background)
+
+        self.top_layout = BoxLayout(size_hint_y=None, height='50dp', orientation='horizontal', padding=[10, 10, 30, 390])
+        self.top_layout.add_widget(Widget())
+        self.boto_menu = Button(text='Tornar', size_hint=(None, None), size=(150, 100), background_normal='boto3.png',halign='center', valign='middle', font_name='atari', font_size='20sp')
+        self.boto_menu.bind(on_press=self.tornar_menu)
+        self.top_layout.add_widget(self.boto_menu)
 
         self.orientation = 'vertical'
         #per guardar els valors x y que es van afegint a la gràfica
@@ -270,50 +278,47 @@ class PantallaTutorial(BoxLayout):
 
         #el main layout serà horitzontal i el dividirem en dos
         #a la dreta tindrem la gràfica i a l'esquerran la representació visual de la matriu
-        main_layout = BoxLayout(orientation='horizontal')
+        self.main_layout = BoxLayout(orientation='horizontal')
 
-        #configuració de la part dreta (gràfic)
-        left_layout = BoxLayout(orientation='vertical', size_hint=(0.7,1))
-
-        self.cluster_widget = TutoWidget()
-        left_layout.add_widget(Label(text=''))  #potser eliminar
-        left_layout.add_widget(self.cluster_widget)
+        #configuració de la part esquerra (clusters)
+        self.left_layout = BoxLayout(orientation='vertical', size_hint=(1, 1))
+        self.cluster_widget = TutoWidget(size_hint=(1, 1), height=800)
+        self.left_layout.add_widget(self.cluster_widget)
 
         #afegim la configuració de l'esquerra al main layout
-        main_layout.add_widget(left_layout)
+        self.main_layout.add_widget(self.left_layout)
 
-        right_layout = BoxLayout(orientation='vertical',size_hint=(1,1))
+        self.right_layout = BoxLayout(orientation='vertical',size_hint=(1,1),padding=[0, -550, 0, 0])
+        self.image = Image(size_hint=(1, 1))
+        self.right_layout.add_widget(self.image)
 
-        self.image = Image()
-        right_layout.add_widget(self.image)
-
-        main_layout.add_widget(right_layout)
+        self.main_layout.add_widget(self.right_layout)
 
         #afegim el main layout a la part superior del layout principal
-        self.add_widget(top_layout)
-        self.add_widget(main_layout)
+        self.add_widget(self.top_layout)
+        self.add_widget(self.main_layout)
 
         #layout pels controls
         #sintaxi padding: [padding_left, padding_top, padding_right, padding_bottom]
-        controls_layout = BoxLayout(size_hint_y=None, height='100dp', orientation='horizontal', padding=[10, 10, 10, 50])
+        self.controls_layout = BoxLayout(size_hint_y=None, height='100dp', orientation='horizontal', padding=[10, 10, 10, 50])
         self.n_input = 100
         self.p_input = Slider(min=0, max=1, value=0.3, step=0.01, size_hint=(0.6, 1))
         #cada vegada que s'interactui amb l'slider es cirarà aquesta funció per actualitzar el valor numèric que es mostra
         self.p_input.bind(value=self.on_slider_value_change)
         #mostrem el valor de la probabilirar al layout dels controls
         self.prob_label = Label(text=f'Probabilitat: {self.p_input.value:.2f}', size_hint=(0.2, 1))
-        controls_layout.add_widget(self.prob_label)
+        self.controls_layout.add_widget(self.prob_label)
         #generate_button = Button(text='Generate', size_hint=(0.2, 1))
         #generate_button.bind(on_press=self.generate_clusters)
-        phase_transition_button = Button(text='Afegir punt', size_hint=(0.2, 1))
-        phase_transition_button.bind(on_press=self.phase_transition)
+        self.phase_transition_button = Button(text='Afegir punt', size_hint=(None, None), background_normal = 'boto.png',size=(300,140),halign='center', valign='middle', font_name='atari', font_size='30sp')
+        self.phase_transition_button.bind(on_press=self.phase_transition)
 
         #controls_layout.add_widget(Label(text='Probability:', size_hint=(0.2, 1)))
-        controls_layout.add_widget(self.p_input)
+        self.controls_layout.add_widget(self.p_input)
         #controls_layout.add_widget(generate_button)
-        controls_layout.add_widget(phase_transition_button)
+        self.controls_layout.add_widget(self.phase_transition_button)
 
-        self.add_widget(controls_layout)
+        self.add_widget(self.controls_layout)
 
         #generem el primer punt (d'aquesta manera ens estalviem que la part de l'esquerra sigui blanca)
         self.p_input.value = 0.3
@@ -323,10 +328,119 @@ class PantallaTutorial(BoxLayout):
         #així s'actualitza la matriu dels clusters a mesure que ens anem movent per la barra de probabilitats
         self.p_input.bind(on_touch_up=self.update_clusters_on_slider_move)
 
+        self.show_step()
+
+    #per tenir més control sobre l'estètica de cada missatge en el tutorial
+    def show_message(self,message,callback=None,font_name='atari',font_size='20sp'):
+
+        self.clear_widgets()
+        message_label = Label(text=message, size_hint=(1, 0.8), font_name=font_name, font_size=font_size,halign='center', valign='middle')
+        self.add_widget(message_label)
+
+
+    def show_step(self):
+        callback=None
+        if self.step == 0:
+            self.show_message('Què és la percolació?', self.next_step, font_name='atari',font_size='80sp')
+
+            #botó
+            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            next_button.bind(on_press=lambda x: (self.next_step()))
+            self.add_widget(next_button)
+
+        elif self.step == 1:
+            self.show_message('Imagina que vols anar del punt 1 al punt 2. \n Doncs ja tens el camí en blanc!',self.next_step,font_name='atari',font_size='50sp')
+            image=Image(source='cami.png',size_hint=(1,0.2))
+            self.add_widget(image)
+
+            #botó
+            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            next_button.bind(on_press=lambda x: (self.next_step()))
+            self.add_widget(next_button)
+
+        elif self.step == 2:
+            self.show_message('Ara imagina un escenari més complicat', self.next_step,font_name='atari',font_size='80sp')
+
+            #botó
+            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            next_button.bind(on_press=lambda x: (self.next_step()))
+            self.add_widget(next_button)
+
+        elif self.step == 3:
+            self.show_message('Què és aquesta graella amb números?', self.next_step,font_name='atari',font_size='80sp')
+            image = Image(source='quadrat.png', height=600)
+            self.add_widget(image)
+
+            #botó
+            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            next_button.bind(on_press=lambda x: (self.next_step()))
+            self.add_widget(next_button)
+
+        elif self.step == 4:
+            self.show_message('Tria un número: [PONER 0.8 I 0.3]', self.next_step,font_name='atari',font_size='30sp')
+
+            #botó
+            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            next_button.bind(on_press=lambda x: (self.next_step()))
+            self.add_widget(next_button)
+
+        elif self.step == 5:
+            self.show_message('Les graelles amb un número igual o superior a [NÚMERO] formaran un camí', self.next_step,font_name='atari',font_size='30sp')
+
+            #botó
+            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            next_button.bind(on_press=lambda x: (self.next_step()))
+            self.add_widget(next_button)
+
+        elif self.step == 6:
+            self.show_message('Però hi ha un valor a partir del qual començarem a tenir camins!', self.next_step,font_name='atari',font_size='30sp')
+
+            #botó
+            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            next_button.bind(on_press=lambda x: (self.next_step()))
+            self.add_widget(next_button)
+
+        elif self.step == 7:
+            self.show_message("Sabries dir quin és aquest valor?", self.end_tutorial, font_name='atari', font_size='30sp')
+
+            #botó
+            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            next_button.bind(on_press=lambda x: (self.end_tutorial()))
+            self.add_widget(next_button)
+
+
+    def display_message(self, message, callback=None):
+        self.clear_widgets()
+        message_label = Label(text=message, size_hint=(1, 0.8))
+        self.add_widget(message_label)
+        next_button = Button(text='Next', size_hint=(1, 0.2))
+        next_button.bind(on_press=lambda x: (callback() if callback else self.next_step()))
+        self.add_widget(next_button)
+
+    #avancem en el tutorial
+    def next_step(self, instance=None):
+        self.step += 1
+        self.show_step()
+
+    #per finalitzar el tutorial i poder jugar amb els clusters
+    def end_tutorial(self):
+        self.step = 0
+        self.clear_widgets()
+        self.add_widget(self.background)
+        self.add_widget(self.top_layout)
+        self.add_widget(self.main_layout)
+        self.add_widget(self.controls_layout)
+
+        #restaurem la gràfica i els controls
+        self.generate_clusters(None)
+        self.image.source = 'phase_transition.png'
+        self.image.reload()
+
 
     def reset(self):
         self.x_values = [0.3]
         self.y_values = [0]
+        self.step = 0
         self.percolated_states = []
         self.p_input.value = 0.3
         self.simulation = ClassPercolacioQuadrat(100, 0.3)
@@ -463,7 +577,6 @@ class TutoWidget(Widget):
         super().__init__(**kwargs)
         self.simulation = simulation
         self.percolated_cluster = None
-
         self.bind(size=self.update_canvas, pos=self.update_canvas)
 
 
@@ -710,6 +823,8 @@ class ClusterWidget(Widget):
 
 if __name__ == '__main__':
     ClusterApp().run()
+
+
 
 
 
