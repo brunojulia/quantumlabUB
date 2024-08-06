@@ -1,0 +1,45 @@
+<MenuPrincipal>:
+    FloatLayout:
+        Image:
+            source: 'fons_menu.png'
+            allow_stretch: True
+            keep_ratio: False
+            size_hint: (1, 1)
+            pos_hint: {'x': 0, 'y': 0}
+
+        Label:
+            text: 'PERCOLATION'
+            color: 1, 1, 1, 1
+            font_size: '150sp'
+            halign: 'center'
+            size_hint: None, None
+            size: self.texture_size
+            pos_hint: {'center_x': 0.5, 'top': 0.9}
+            font_name: 'atari.ttf'
+            height: '60dp'
+            width: '300dp'
+
+        Button:
+            text: '1 PLAYER'
+            on_press: app.root.current = 'joc'
+            font_size: '50sp'
+            size_hint: None, None
+            size: (200, 60)
+            pos_hint: {'center_x': 0.5, 'center_y': 0.6}
+            background_color: 0, 0, 0, 0
+            background_normal: ''
+            font_name: 'atari.ttf'
+            color: 1, 1, 1, 1
+
+        Button:
+            text: 'TUTORIAL'
+            on_press: app.root.current = 'tutorial'
+            font_size: '50sp'
+            size_hint: None, None
+            size: (200, 60)
+            pos_hint: {'center_x': 0.5, 'center_y': 0.4}
+            background_color: 0, 0, 0, 0
+            background_normal: ''
+            font_name: 'atari.ttf'
+            color: 1, 1, 1, 1
+
