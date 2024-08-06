@@ -559,15 +559,6 @@ class Fletxes(BoxLayout):
 
         Window.bind(on_key_down=self.on_key_down)
 
-        classic = Button(text='Clàssic')
-        quantic = Button(text='Quàntic')
-        mode = BoxLayout(orientation='horizontal', size_hint_y=0.1)
-        mode.add_widget(classic)
-        mode.add_widget(quantic)
-        self.add_widget(mode)
-        
-        self.add_widget(Label(text='', size_hint_y=0.05))
-
         esquerra = Button(text='<-')
         esquerra.bind(on_press=self.tauler.on_esquerra)
         dreta = Button(text='->')
