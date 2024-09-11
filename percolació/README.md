@@ -1,9 +1,13 @@
-**Estudi de la percolació en un fractal de Sierpiński.**
+**Estudi de la site percolation**
 
-L'objectiu d'aquestes pràctiques és determinar la dependència del punt crític de percolació
-p_c amb el nombre d'iteracions n d'un fractal de Sierpiński.
+L'objectiu d'aquestes pràctiques és estudiar la percolació en un sistema quadrat i en una fractal Sierpiński carpet.
 
-Per tal d'assolir l'objectiu es començarà determinant p_c per a geometries més sencilles (com per exemple un quadrat).
-Poc a poc s'aniran triant geometries més complexes fins arribar als fractals.
-Cal destacar que aquest projecte es centrarà en la percolació d'enllaç (és a dir els vèrtexs d'un graf).
+Pel primer cas s'ha elaborat un mini joc i un tutorial on s'expliquen els fonaments d'aquest fenòmen. A més a més,
+es permet a l'usuari interactuar amb una matriu i dibuixar el seu diagrama de canvi de fase.
+Pel fractal, s'ha elaborat un algoritme recursiu per generar-lo i comprovar el seu punt crític en funció
+de la probabilat de generació d'un vèrtex actiu.
+
+El projecte està basat exclusivament en la site percolation.
+
+Gràcies per llegir :)
 
