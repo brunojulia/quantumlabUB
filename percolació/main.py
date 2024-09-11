@@ -1,6 +1,8 @@
+
 import random
 import kivy
 from kivy.app import App
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -10,6 +12,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.graphics import Rectangle, Color
 from kivy.uix.popup import Popup
 from kivy.uix.image import Image
+from kivy.core.image import Image as CoreImage
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 from kivy.core.window import Window
@@ -35,7 +38,7 @@ class ClusterApp(App):
         # per generar el .kv
         #Builder.load_file('cluster.kv')
         #per tenir sempre la pantalla completa i que no es generir errors de reescalat
-        Window.fullscreen = False
+        Window.fullscreen = True
         Window.size = (1920,1080)
         Window.borderless = False
 
@@ -86,7 +89,7 @@ class ClusterApp(App):
         main_layout.add_widget(left_layout)
 
         #els controls aniran a la parte de la dreta
-        controls_right = BoxLayout(size_hint_x=None, width='837dp', orientation='vertical')
+        controls_right = BoxLayout(size_hint_x=None, width='600dp', orientation='vertical')
         generate_button = Button(text='Generate', size_hint=(1, 0.1), font_name='atari',font_size='40sp',background_normal='boto2.png',padding=[0, 0, 0, 70],color=(0, 0, 0, 1))
         check_button = Button(text='Check Percolation', size_hint=(1, 0.15), font_name='atari',font_size='40sp',background_normal='boto.png',padding=[0, 0, 0, 130],color=(0, 0, 0, 1))
         self.timer_label = Label(text='Temps restant: 60 s', size_hint_y=None, height='50dp', font_name='atari',font_size='40sp')
@@ -278,20 +281,20 @@ class PantallaTutorial(BoxLayout):
 
         #el main layout serà horitzontal i el dividirem en dos
         #a la dreta tindrem la gràfica i a l'esquerran la representació visual de la matriu
-        self.main_layout = BoxLayout(orientation='horizontal')
+        self.main_layout = BoxLayout(orientation='horizontal',size_hint=(1,1))
 
         #configuració de la part esquerra (clusters)
-        self.left_layout = BoxLayout(orientation='vertical', size_hint=(1, 1))
-        self.cluster_widget = TutoWidget(size_hint=(1, 1), height=800)
+        self.left_layout = FloatLayout(size_hint=(0.6, 1))
+        self.cluster_widget = TutoWidget(size_hint=(None,None),size=(Window.width * 0.6, 600))
         self.left_layout.add_widget(self.cluster_widget)
-
         #afegim la configuració de l'esquerra al main layout
         self.main_layout.add_widget(self.left_layout)
 
-        self.right_layout = BoxLayout(orientation='vertical',size_hint=(1,1),padding=[0, -550, 0, 0])
-        self.image = Image(size_hint=(1, 1))
+        #Configuració part dreta (gràfic)
+        self.right_layout = FloatLayout(size_hint=(0.4, 1))
+        self.image = Image(size_hint=(None, None), size=(Window.width * 0.4, 600), allow_stretch=True, keep_ratio=True)
+        self.image.pos_hint = {'center_x': 0.3, 'top': 1.7} #centrem a la part dreta
         self.right_layout.add_widget(self.image)
-
         self.main_layout.add_widget(self.right_layout)
 
         #afegim el main layout a la part superior del layout principal
@@ -349,8 +352,8 @@ class PantallaTutorial(BoxLayout):
             self.add_widget(next_button)
 
         elif self.step == 1:
-            self.show_message('Imagina que vols anar del punt 1 al punt 2. \n Doncs ja tens el camí en blanc!',self.next_step,font_name='atari',font_size='50sp')
-            image=Image(source='cami.png',size_hint=(1,0.2))
+            self.show_message('Imagina que el riu vol anar de dalt a baix. \n Veiem que això ja és possible!',self.next_step,font_name='atari',font_size='50sp')
+            image = Image(source='rio.png', pos_hint={'right': 1})
             self.add_widget(image)
 
             #botó
@@ -597,9 +600,9 @@ class TutoWidget(Widget):
                 vertex_actius = self.simulation.busca_clusters()
                 matriu_pintada = self.simulation.pintar_clusters(vertex_actius)
                 n = len(matriu_pintada)
-                cell_size = min(self.width/n, self.height/n)
-                x_offset = (self.width - n*cell_size)/2
-                y_offset = (self.height - n*cell_size)/2
+                cell_size = min(self.width/n, self.height/n)*1.4
+                x_offset = (self.width - n*cell_size)/2 - 100 #per centrar en x
+                y_offset = (self.height - n*cell_size)/2 + 285 #aquest +285 és per centrar la matriu amb el gràfic
 
                 # Obtener todos los clusters presentes en la matriz pintada, excluyendo el primer valor (0)
                 #comencem obtenint tots els clusters presents a la matriu pintada i trèiem fora el
@@ -641,7 +644,7 @@ class TutoWidget(Widget):
                             #Obtenim el color del cluster o negre si no en té cap assignat (vèrtex inactiu)
                             color = cluster_colors.get(index_cluster, (0, 0, 0))
                         Color(*color)
-                        Rectangle(pos=(x_offset + j * cell_size, Window.height/2.5 + i*cell_size), size=(cell_size, cell_size))
+                        Rectangle(pos=(x_offset + j * cell_size, y_offset + i * cell_size), size=(cell_size, cell_size))
 
 
 ##########################################################################################################################
@@ -692,10 +695,18 @@ class ClusterWidget(Widget):
         self.punts = 0
         self.cel_actives = 0
         self.orientation = 'vertical'
-        #self.n_input = TextInput(text='10', multiline=False)
-        #self.p_input = TextInput(text='0.5', multiline=False)
 
+        #carreguem la imatge d'aigua pels vèrtexs actius
+        img = CoreImage('agua.png')
+        self.water_texture = img.texture
 
+        #carreguem la imatge de terra pels vèrtexs inactius
+        img2 = CoreImage('tierra2.png')
+        self.land_texture = img2.texture
+
+        #pedra als costats per donar a entendre que la percolació va de dalt a abaix
+        img3 = CoreImage('stone.png')
+        self.stone_texture = img3.texture
 
 
 ##########################################################################################################################
@@ -714,14 +725,27 @@ class ClusterWidget(Widget):
                 x_offset = (self.width - n*cell_size)/2
                 y_offset = (self.height - n*cell_size)/2
 
+                # Dibuixar la imatge de pedra a la part esquerra i dreta
+                if self.stone_texture:
+                    # Imatge de pedra a l'esquerra
+                    Rectangle(pos=(x_offset - cell_size, y_offset),
+                              size=(cell_size, self.height),texture=self.stone_texture)
+                    # Imatge de pedra a la dreta
+                    Rectangle(pos=(x_offset + n * cell_size, y_offset),
+                              size=(cell_size, self.height),texture=self.stone_texture)
+
+
                 for i in range(n):
                     for j in range(n):
                         if self.percolated_cluster is not None and matriu_pintada[i, j] == self.percolated_cluster:
                             color = (0.5, random.uniform(0, 1), random.uniform(0, 1))
+                            Rectangle(pos=(x_offset + j * cell_size, y_offset + self.height - (i + 1) * cell_size),
+                                      size=(cell_size, cell_size), texture = None)
+
                         else:
-                            color = (0, 0, 0) if matriu_pintada[i, j] == 0 else (1, 1, 1)
-                        Color(*color)
-                        Rectangle(pos=(x_offset + j*cell_size, y_offset + self.height - (i + 1)*cell_size), size=(cell_size, cell_size))
+                            texture = self.land_texture if matriu_pintada[i,j] == 0 else self.water_texture
+                            Rectangle(pos=(x_offset + j * cell_size, y_offset + self.height - (i + 1) * cell_size),
+                                      size=(cell_size, cell_size), texture=texture)
 
 
 ##########################################################################################################################
@@ -823,6 +847,7 @@ class ClusterWidget(Widget):
 
 if __name__ == '__main__':
     ClusterApp().run()
+
 
 
 
