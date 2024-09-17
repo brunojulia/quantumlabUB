@@ -93,7 +93,7 @@ class ClusterApp(App):
         controls_right = BoxLayout(size_hint_x=None, width='600dp', orientation='vertical')
         generate_button = Button(text='Generate', size_hint=(1, 0.1), font_name='atari',font_size='40sp',background_normal='boto2.png',padding=[0, 0, 0, 70],color=(0, 0, 0, 1))
         check_button = Button(text='Check Percolation', size_hint=(1, 0.15), font_name='atari',font_size='40sp',background_normal='boto.png',padding=[0, 0, 0, 130],color=(0, 0, 0, 1))
-        self.timer_label = Label(text='Temps restant: 60 s', size_hint_y=None, height='50dp', font_name='atari',font_size='40sp')
+        self.timer_label = Label(text='Temps restant: 120s', size_hint_y=None, height='50dp', font_name='atari',font_size='40sp')
         self.punt_label = Label(text='Punts: 0', size_hint_y=None, height='50dp', font_name='atari',font_size='40sp')
         generate_button.bind(on_press=self.generate_clusters)
         check_button.bind(on_press=self.check_percolation)
@@ -140,7 +140,7 @@ class ClusterApp(App):
                     self.start_timer()
 
             #mitjà (només disminueix p, però n es queda igual)
-            elif self.cluster_widget.punts >= 500 and self.cluster_widget.punts < 2000:
+            elif self.cluster_widget.punts >= 500 and self.cluster_widget.punts < 1500:
                 n = 13
                 p = 0.35
                 self.simulation = ClassPercolacioQuadrat(n, p)
@@ -153,7 +153,7 @@ class ClusterApp(App):
                     self.start_timer()
 
             #augmentem n però p es manté
-            elif  self.cluster_widget.punts >= 2000 and self.cluster_widget.punts < 3000:
+            elif  self.cluster_widget.punts >= 1500 and self.cluster_widget.punts < 2000:
 
                 n = 20
                 p = 0.35
@@ -169,7 +169,7 @@ class ClusterApp(App):
             #nivel més complicat, aquí és on entra en joc la geometria fractal.
             #per l'estructura del fractal tindren una n = 3**iteracions, on iteracions = 3
             #si les iteracions són més grans el programa anirà molt lent i por arribar a petar.
-            elif self.cluster_widget.punts >= 3000:
+            elif self.cluster_widget.punts >= 2000:
 
                 sierpinski_fractal = SierpinskiCarpetWidget()
                 self.simulation = ClassPercolacioQuadrat(sierpinski_fractal.n, sierpinski_fractal.p)
@@ -261,9 +261,9 @@ class ClusterApp(App):
 
 ##########################################################################################################################
 
-    #funció per iniciar el joc a 60 segons
+    #funció per iniciar el joc a 120 segons
     def start_timer(self):
-        self.time_left = 60
+        self.time_left = 120
         Clock.schedule_interval(self.update_timer, 1)
 
 
@@ -308,10 +308,10 @@ class ClusterApp(App):
             #parem el temps
             Clock.unschedule(self.update_timer)
 
-        #tornem al joc -> posar els punts a 0 i el rellotge a 60
+        #tornem al joc -> posar els punts a 0 i el rellotge a 120
         elif current_screen == 'joc':
             self.generate_clusters()
-            self.time_left = 60
+            self.time_left = 120
             self.timer_label.text = f'Temps restant: {self.time_left} s'
             self.cluster_widget.reset_punts()
             self.punt_label.text = 'Punts: 0'
