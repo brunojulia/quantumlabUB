@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from class_percolacio_quadrat import ClassPercolacioQuadrat
+from sierpinski_carpet import SierpinskiCarpetWidget
 
 
 
@@ -92,7 +93,7 @@ class ClusterApp(App):
         controls_right = BoxLayout(size_hint_x=None, width='600dp', orientation='vertical')
         generate_button = Button(text='Generate', size_hint=(1, 0.1), font_name='atari',font_size='40sp',background_normal='boto2.png',padding=[0, 0, 0, 70],color=(0, 0, 0, 1))
         check_button = Button(text='Check Percolation', size_hint=(1, 0.15), font_name='atari',font_size='40sp',background_normal='boto.png',padding=[0, 0, 0, 130],color=(0, 0, 0, 1))
-        self.timer_label = Label(text='Temps restant: 60 s', size_hint_y=None, height='50dp', font_name='atari',font_size='40sp')
+        self.timer_label = Label(text='Temps restant: 120s', size_hint_y=None, height='50dp', font_name='atari',font_size='40sp')
         self.punt_label = Label(text='Punts: 0', size_hint_y=None, height='50dp', font_name='atari',font_size='40sp')
         generate_button.bind(on_press=self.generate_clusters)
         check_button.bind(on_press=self.check_percolation)
@@ -123,16 +124,67 @@ class ClusterApp(App):
 
     def generate_clusters(self, instance=None):
         try:
-            n = 13
-            p = 0.5
-            self.simulation = ClassPercolacioQuadrat(n, p)
-            self.cluster_widget.simulation = self.simulation
-            self.cluster_widget.percolated_cluster = None
-            self.cluster_widget.update_canvas()
-            self.cluster_widget.afegir_botons(n)
-            self.cluster_widget.restar_punts(3)
-            if not hasattr(self, 'time_left'):
-                self.start_timer()
+            #diferent rangs de dificultat
+
+            #fàcil
+            if self.cluster_widget.punts < 500:
+                n = 13
+                p = 0.5
+                self.simulation = ClassPercolacioQuadrat(n, p)
+                self.cluster_widget.simulation = self.simulation
+                self.cluster_widget.percolated_cluster = None
+                self.cluster_widget.update_canvas()
+                self.cluster_widget.afegir_botons(n)
+
+                if not hasattr(self, 'time_left'):
+                    self.start_timer()
+
+            #mitjà (només disminueix p, però n es queda igual)
+            elif self.cluster_widget.punts >= 500 and self.cluster_widget.punts < 1500:
+                n = 13
+                p = 0.35
+                self.simulation = ClassPercolacioQuadrat(n, p)
+                self.cluster_widget.simulation = self.simulation
+                self.cluster_widget.percolated_cluster = None
+                self.cluster_widget.update_canvas()
+                self.cluster_widget.afegir_botons(n)
+
+                if not hasattr(self, 'time_left'):
+                    self.start_timer()
+
+            #augmentem n però p es manté
+            elif  self.cluster_widget.punts >= 1500 and self.cluster_widget.punts < 2000:
+
+                n = 20
+                p = 0.35
+                self.simulation = ClassPercolacioQuadrat(n, p)
+                self.cluster_widget.simulation = self.simulation
+                self.cluster_widget.percolated_cluster = None
+                self.cluster_widget.update_canvas()
+                self.cluster_widget.afegir_botons(n)
+
+                if not hasattr(self, 'time_left'):
+                    self.start_timer()
+
+            #nivel més complicat, aquí és on entra en joc la geometria fractal.
+            #per l'estructura del fractal tindren una n = 3**iteracions, on iteracions = 3
+            #si les iteracions són més grans el programa anirà molt lent i por arribar a petar.
+            elif self.cluster_widget.punts >= 2000:
+
+                sierpinski_fractal = SierpinskiCarpetWidget()
+                self.simulation = ClassPercolacioQuadrat(sierpinski_fractal.n, sierpinski_fractal.p)
+                self.simulation.matriu = sierpinski_fractal.matrix
+
+                #actualitzem el widget del joc amb la simulació fractal
+                self.cluster_widget.simulation = self.simulation
+                self.cluster_widget.percolated_cluster = None
+                self.cluster_widget.update_canvas()
+                self.cluster_widget.afegir_botons(self.simulation.n)
+
+                if not hasattr(self, 'time_left'):
+                    self.start_timer()
+
+
         except ValueError:
             print("Entrada invàlida")
 
@@ -189,14 +241,8 @@ class ClusterApp(App):
 
                 #popup = Popup(title='Percolació', content=Label(text=message), size_hint=(None, None), size=(400, 200))
                 popup = Popup(
-                    title='No ha percolat :(',
-                    title_font='atari',
-                    content=layout,
-                    size_hint=(None,None),
-                    size=(500,300),
-                    background='black.png',
-                    separator_color=[0,0,0,0]
-                )
+                    title='No ha percolat :(', title_font='atari', content=layout, size_hint=(None,None),
+                    size=(500,300), background='black.png', separator_color=[0,0,0,0])
                 popup.open()
                 popup.bind(on_dismiss=lambda *args: self.generate_clusters(instance))
 
@@ -215,9 +261,9 @@ class ClusterApp(App):
 
 ##########################################################################################################################
 
-    #funció per iniciar el joc a 60 segons
+    #funció per iniciar el joc a 120 segons
     def start_timer(self):
-        self.time_left = 60
+        self.time_left = 120
         Clock.schedule_interval(self.update_timer, 1)
 
 
@@ -242,16 +288,8 @@ class ClusterApp(App):
         message_label = Label(text=message, font_name='atari', font_size='50sp', color=(1, 1, 1, 1), halign='center', valign='middle')
         layout.add_widget(message_label)
 
-        # popup = Popup(title='Percolació', content=Label(text=message), size_hint=(None, None), size=(400, 200))
-        popup = Popup(
-            title='',
-            title_font='atari',
-            content=layout,
-            size_hint=(None, None),
-            size=(600, 400),
-            background='black.png',
-            separator_color=[0, 0, 0, 0]
-        )
+        popup = Popup(title='', title_font='atari', content=layout, size_hint=(None, None),
+                      size=(600, 400), background='black.png', separator_color=[0, 0, 0, 0])
         popup.bind(on_touch_down=lambda instance, touch: self.canvi_pantalla('joc'))
         popup.open()
         Clock.unschedule(self.update_timer)
@@ -270,10 +308,10 @@ class ClusterApp(App):
             #parem el temps
             Clock.unschedule(self.update_timer)
 
-        #tornem al joc -> posar els punts a 0 i el rellotge a 60
+        #tornem al joc -> posar els punts a 0 i el rellotge a 120
         elif current_screen == 'joc':
             self.generate_clusters()
-            self.time_left = 60
+            self.time_left = 120
             self.timer_label.text = f'Temps restant: {self.time_left} s'
             self.cluster_widget.reset_punts()
             self.punt_label.text = 'Punts: 0'
@@ -393,38 +431,47 @@ class PantallaTutorial(BoxLayout):
         callback=None
 
         if self.step == 0:
-            self.show_message('Què és la percolació?', self.next_step, font_name='atari',font_size='80sp')
+            self.show_message('Què és la percolació?', self.next_step, font_name='atari', font_size='80sp')
+            bottom_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.1))
+            spacer = Widget(size_hint=(0.9, 1))
 
-            #botó
-            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
-            next_button.bind(on_press=lambda x: (self.next_step()))
-            self.add_widget(next_button)
+            next_button = Button(text='Next', size_hint=(0.13, 1), background_normal='boto3.png', font_name='atari', font_size='30sp')
+            next_button.bind(on_press=lambda x: self.next_step())
+
+            bottom_layout.add_widget(spacer)
+            bottom_layout.add_widget(next_button)
+
+            self.add_widget(bottom_layout)
 
         elif self.step == 1:
 
             main_layout = BoxLayout(orientation='horizontal', size_hint=(1, 1))
 
             #layout de l'esquerra. Es divideix en dues parts: la superior (pel text) i la inferior (pel botó de next)
-            left_layout = BoxLayout(orientation='vertical', size_hint=(0.4, 1))
+            right_layout = BoxLayout(orientation='vertical', size_hint=(0.4, 1))
 
             #layout esquerre superior (text)
-            top_left_layout = BoxLayout(size_hint=(1,1))
+            top_right_layout = BoxLayout(size_hint=(1,1))
             text_label = Label(text='Imagina que el riu vol anar de dalt a baix. \nVeiem que això ja és possible!', font_name='atari', font_size='40sp',halign='center', valign='middle')
-            top_left_layout.add_widget(text_label)
+            top_right_layout.add_widget(text_label)
 
             #layout esquerre inferior (botó next)
-            bottom_left_layout = BoxLayout(size_hint=(0.2, 0.29))
-            next_button = Button(text='Next', size_hint=(0.5, 0.5), background_normal='boto3.png', font_name='atari', font_size='30sp')
+            bottom_right_layout = BoxLayout(size_hint=(1, 0.29))
+            #Widget buit per moure el botó a la dreta
+            spacer = Widget(size_hint=(0.5, 1))
+            next_button = Button(text='Next', size_hint=(0.15, 0.5), background_normal='boto3.png', font_name='atari', font_size='30sp')
             next_button.bind(on_press=lambda x: (self.next_step()))
-            bottom_left_layout.add_widget(next_button)
 
-            left_layout.add_widget(top_left_layout)
-            left_layout.add_widget(bottom_left_layout)
+            bottom_right_layout.add_widget(spacer)
+            bottom_right_layout.add_widget(next_button)
+
+            right_layout.add_widget(top_right_layout)
+            right_layout.add_widget(bottom_right_layout)
 
             #layout dret per a la imatge del riu
-            right_layout = BoxLayout(size_hint=(0.35, 1))
+            left_layout = BoxLayout(size_hint=(0.35, 1))
             image = Image(source='rio.png', size_hint=(1, 1), allow_stretch=True, keep_ratio=False)
-            right_layout.add_widget(image)
+            left_layout.add_widget(image)
 
             main_layout.add_widget(left_layout)
             main_layout.add_widget(right_layout)
@@ -432,80 +479,126 @@ class PantallaTutorial(BoxLayout):
             self.add_widget(main_layout)
 
         elif self.step == 2:
-            self.show_message('Ara imagina un escenari més complicat', self.next_step,font_name='atari',font_size='80sp')
 
-            #botó
-            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            # Mostrar el mensaje
+            self.show_message('Ara imagina un escenari més complicat', self.next_step, font_name='atari', font_size='80sp')
+
+            # Crear un layout horizontal para el botón y el espacio vacío
+            layout = BoxLayout(orientation='horizontal')
+
+            # Agregar un widget vacío (spacer) para empujar el botón hacia la derecha
+            spacer = Widget(size_hint=(0.7, 0.5))
+
+            # Botón de Next
+            next_button = Button(text='Next', size_hint=(0.1, 0.2), background_normal='boto3.png', font_name='atari', font_size='30sp')
             next_button.bind(on_press=lambda x: (self.next_step()))
-            self.add_widget(next_button)
+
+            # Añadir el spacer y luego el botón al layout
+            layout.add_widget(spacer)
+            layout.add_widget(next_button)
+
+            # Añadir el layout al widget principal
+            self.add_widget(layout)
 
         elif self.step == 3:
             main_layout = BoxLayout(orientation='horizontal', size_hint=(1, 1))
 
-            # Layout de la izquierda, dividido en dos partes: superior (texto) e inferior (botón)
-            left_layout = BoxLayout(orientation='vertical', size_hint=(0.4, 1))
+            right_layout = BoxLayout(orientation='vertical', size_hint=(0.4, 1))
 
-            # Layout izquierdo superior (texto)
-            top_left_layout = BoxLayout(size_hint=(1, 1))
-            text_label = Label(text='Què és aquesta graella amb números?',
-                               font_name='atari', font_size='45sp', halign='center', valign='middle', size_hint=(1, 1))
-            text_label.bind(size=text_label.setter('text_size'))
-            top_left_layout.add_widget(text_label)
+            top_right_layout = BoxLayout(size_hint=(1, 1))
+            text_label = Label(text='Què és aquesta graella amb números?',font_name='atari', font_size='45sp', halign='center', valign='middle', size_hint=(1, 1))
+            top_right_layout.add_widget(text_label)
 
-            # Layout izquierdo inferior (botón)
-            bottom_left_layout = BoxLayout(size_hint=(0.2, 0.29))
-            next_button = Button(text='Next', size_hint=(0.5, 0.5), background_normal='boto3.png', font_name='atari', font_size='30sp')
+            bottom_right_layout = BoxLayout(size_hint=(1, 0.29))
+            spacer = Widget(size_hint=(0.5, 1))
+
+            next_button = Button(text='Next', size_hint=(0.16, 0.5), background_normal='boto3.png', font_name='atari',
+                                 font_size='30sp')
             next_button.bind(on_press=lambda x: self.next_step())
-            bottom_left_layout.add_widget(next_button)
 
-            left_layout.add_widget(top_left_layout)
-            left_layout.add_widget(bottom_left_layout)
+            bottom_right_layout.add_widget(spacer)
+            bottom_right_layout.add_widget(next_button)
 
-            # Layout derecho para la imagen
-            right_layout = BoxLayout(size_hint=(0.4, 1))
+            right_layout.add_widget(top_right_layout)
+            right_layout.add_widget(bottom_right_layout)
+
+            left_layout = BoxLayout(size_hint=(0.4, 1))
             image = Image(source='quadrat.png', size_hint=(1, 1), allow_stretch=True, keep_ratio=True)
-            right_layout.add_widget(image)
+            left_layout.add_widget(image)
 
             main_layout.add_widget(left_layout)
             main_layout.add_widget(right_layout)
 
-            # Añadir el layout principal a la pantalla
             self.add_widget(main_layout)
-
-
 
         elif self.step == 4:
             #layout principal
             main_layout = BoxLayout(orientation='horizontal', size_hint=(1, 1))
 
             # layput de l'esquerre
-            left_layout = BoxLayout(orientation='vertical', size_hint=(0.5, 1))
+            right_layout = BoxLayout(orientation='vertical', size_hint=(0.5, 1))
 
             #text
-            top_left_layout = BoxLayout(size_hint=(1, 0.6))
+            top_right_layout = BoxLayout(size_hint=(1, 0.6))
             message_label = Label(text='Tria un número', font_name='atari', font_size='80sp', halign='center', valign='middle', size_hint=(1, 1))
-            top_left_layout.add_widget(message_label)
+            top_right_layout.add_widget(message_label)
 
             #layout pels botons (part interactiva del tutorial)
-            bottom_left_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.4))
+            bottom_right_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.4))
 
             #botó de 0.8
             button_08 = Button(text='0.8', size_hint=(0.2, 0.9), font_size='70sp', background_normal='boto.png', font_name='atari',padding=[0, 20])
             button_08.bind(on_press=lambda x: self.change_step(5))
-            bottom_left_layout.add_widget(button_08)
+            bottom_right_layout.add_widget(button_08)
 
             #botó de 0.3
             button_03 = Button(text='0.3', size_hint=(0.2, 1), font_size='70sp', background_normal='boto3.png', font_name='atari')
-            button_03.bind(on_press=lambda x: self.change_step(6)) #anem al 6è pas
-            bottom_left_layout.add_widget(button_03)
+            button_03.bind(on_press=lambda x: self.change_step(8)) #anem al 6è pas
+            bottom_right_layout.add_widget(button_03)
 
-            left_layout.add_widget(top_left_layout)
-            left_layout.add_widget(bottom_left_layout)
+            right_layout.add_widget(top_right_layout)
+            right_layout.add_widget(bottom_right_layout)
 
             #layout de la dreta per a la imatge
-            right_layout = BoxLayout(size_hint=(0.5, 1))
+            left_layout = BoxLayout(size_hint=(0.5, 1))
             image = Image(source='quadrat.png', size_hint=(1, 1), allow_stretch=True, keep_ratio=True)
-            right_layout.add_widget(image)
+            left_layout.add_widget(image)
+
+            main_layout.add_widget(left_layout)
+            main_layout.add_widget(right_layout)
+            self.add_widget(main_layout)
+
+            #espai inferior
+            spacer = Widget(size_hint=(1, 0.6))
+            right_layout.add_widget(spacer)
+
+        elif self.step == 5:
+
+            main_layout = BoxLayout(orientation='horizontal', size_hint=(1, 1))
+
+            right_layout = BoxLayout(orientation='vertical', size_hint=(0.5, 1), padding=[20, 0, 0, 0])
+
+            text_layout = BoxLayout(size_hint=(1, 0.8))
+            message_label = Label(text='Les graelles amb un número igual o \ninferior a 0.8 tindran aigua\n i per tant el riu podrà \nfluir de dalt a baix', font_name='atari', font_size='50sp', halign='center', valign='middle', size_hint=(1, 1))
+            message_label.bind(size=message_label.setter('text_size'))
+            text_layout.add_widget(message_label)
+
+            bottom_right_layout = BoxLayout(size_hint=(1, 0.1))
+
+            spacer = Widget(size_hint=(0.7, 1))
+
+            next_button = Button(text='Next', size_hint=(0.3, 1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            next_button.bind(on_press=lambda x: self.next_step())
+
+            bottom_right_layout.add_widget(spacer)
+            bottom_right_layout.add_widget(next_button)
+
+            right_layout.add_widget(text_layout)
+            right_layout.add_widget(bottom_right_layout)
+
+            left_layout = BoxLayout(size_hint=(0.5, 1))
+            image = Image(source='08.png', size_hint=(1, 1), allow_stretch=True, keep_ratio=True)
+            left_layout.add_widget(image)
 
             main_layout.add_widget(left_layout)
             main_layout.add_widget(right_layout)
@@ -513,27 +606,63 @@ class PantallaTutorial(BoxLayout):
             self.add_widget(main_layout)
 
 
-            #espai inferior
-            spacer = Widget(size_hint=(1, 0.6))
-            left_layout.add_widget(spacer)
+        #per la probabilitat 0.3. Mateixa estructura que 0.8 però amb lleugeres variacions
+        elif self.step == 8:
 
+            main_layout = BoxLayout(orientation='horizontal', size_hint=(1, 1))
+            right_layout = BoxLayout(orientation='vertical', size_hint=(0.5, 1), padding=[20, 0, 0, 0])
+            text_layout = BoxLayout(size_hint=(1, 0.8))
+            message_label = Label(text='Les graelles amb un número igual o \ninferior a 0.3 tindran aigua.\n \n Veiem que hi ha poca aigua \n i per tant el riu no podrà fluir \nde dalt a baix',
+                font_name='atari', font_size='50sp', halign='center', valign='middle', size_hint=(1, 1))
+            message_label.bind(size=message_label.setter('text_size'))
+            text_layout.add_widget(message_label)
+
+            bottom_right_layout = BoxLayout(size_hint=(1, 0.1))
+
+            spacer = Widget(size_hint=(0.7, 1))
+
+            next_button = Button(text='Next', size_hint=(0.3, 1), background_normal='boto3.png', font_name='atari',font_size='30sp')
+            next_button.bind(on_press=lambda x: self.change_step(6))  #Volvemos a la normalidad
+
+            bottom_right_layout.add_widget(spacer)
+            bottom_right_layout.add_widget(next_button)
+
+            right_layout.add_widget(text_layout)
+            right_layout.add_widget(bottom_right_layout)
+
+            left_layout = BoxLayout(size_hint=(0.5, 1))
+            image = Image(source='03.png', size_hint=(1, 1), allow_stretch=True, keep_ratio=True)
+            left_layout.add_widget(image)
+
+            main_layout.add_widget(left_layout)
+            main_layout.add_widget(right_layout)
+
+            self.add_widget(main_layout)
 
         elif self.step == 6:
-            self.show_message('Però hi ha un valor a partir del qual el riu sempre fluirà de dalt a baix!', self.next_step,font_name='atari',font_size='30sp')
+            self.show_message('Però hi ha un valor a partir del qual \nel riu sempre fluirà de dalt a baix!', self.next_step, font_name='atari', font_size='50sp')
+            bottom_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.1))
+            spacer = Widget(size_hint=(0.9, 1))
 
-            #botó
-            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
-            next_button.bind(on_press=lambda x: (self.next_step()))
-            self.add_widget(next_button)
+            next_button = Button(text='Next', size_hint=(0.15, 1), background_normal='boto3.png', font_name='atari', font_size='30sp')
+            next_button.bind(on_press=lambda x: self.next_step())
+
+            bottom_layout.add_widget(spacer)
+            bottom_layout.add_widget(next_button)
+
+            self.add_widget(bottom_layout)
 
         elif self.step == 7:
-            self.show_message("Sabries dir quin és aquest valor?", self.end_tutorial, font_name='atari', font_size='30sp')
+            self.show_message("Sabries dir quin és aquest valor?", self.end_tutorial, font_name='atari', font_size='50sp')
+            bottom_layout = BoxLayout(orientation='horizontal', size_hint=(1, 0.1))
+            spacer = Widget(size_hint=(0.9, 1))
+            next_button = Button(text='Next', size_hint=(0.15, 1), background_normal='boto3.png', font_name='atari', font_size='30sp')
+            next_button.bind(on_press=lambda x: self.end_tutorial())
 
-            #botó
-            next_button = Button(text='Next', size_hint=(0.1, 0.1), background_normal='boto3.png', font_name='atari',font_size='30sp')
-            next_button.bind(on_press=lambda x: (self.end_tutorial()))
-            self.add_widget(next_button)
+            bottom_layout.add_widget(spacer)
+            bottom_layout.add_widget(next_button)
 
+            self.add_widget(bottom_layout)
 
     def display_message(self, message, callback=None):
         self.clear_widgets()
@@ -594,6 +723,7 @@ class PantallaTutorial(BoxLayout):
 
     def tornar_menu(self, instance):
         self.reset()
+        self.step = 0
         App.get_running_app().root.current = 'menu'
 
 
@@ -974,10 +1104,6 @@ class ClusterWidget(Widget):
 
 if __name__ == '__main__':
     ClusterApp().run()
-
-
-
-
 
 
 

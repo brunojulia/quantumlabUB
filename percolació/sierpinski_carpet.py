@@ -10,7 +10,7 @@ from class_percolacio_quadrat import ClassPercolacioQuadrat
 class SierpinskiCarpetWidget(Widget):
     def __init__(self, **kwargs):
         super(SierpinskiCarpetWidget, self).__init__(**kwargs)
-        self.iteracions  # Nivell de recursió del fractal
+        self.iteracions = 2  # Nivell de recursió del fractal
         self.n = 3 ** self.iteracions  # mida d'un costat de la matriu. La matriu tindrà en total nxn cel·les
         self.p = 0.5  # probabilitat
         # inicialitzem una matriu buida de mida nxn amb 0's
