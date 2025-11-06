@@ -14,6 +14,7 @@ class ClassPercolacioQuadrat:
         self.matriu = self.matriu_quadrat(n,p)
         self.visitat = np.full((n,n),False,dtype=bool)
         self.cluster = []
+        self.values = []
 
 ##########################################################################################################################
 
@@ -29,6 +30,23 @@ class ClassPercolacioQuadrat:
                 if q < p:
                     matriu[i,j] = 1
         return matriu
+
+
+    def matriu_factal(self,iteracions,p):
+
+        n = 3**iteracions
+
+        for i in range(n):
+            for j in range(n):
+                if self.matriu[i,j] == 1:
+                    q = random.random()
+                    if q < p:
+                        self.matriu[i,j] = 1
+                    else:
+                        self.matriu[i,j] = 0
+        return self
+
+
 
 ###########################################################################################################################
 
@@ -164,4 +182,72 @@ class ClassPercolacioQuadrat:
                 if self.matriu[i,j] == cluster_index:
                     mida += 1
         return mida
+
+###########################################################################################################################
+
+    def biggest_cluster_frac(self):
+
+        ver_total = len(self.matriu) * len(self.matriu[0])
+        clusters = self.busca_clusters()
+        max_cluster_size = 0
+
+        for cluster in clusters:
+            cluster_size = len(cluster)
+            # actualitzem la mida del cluster més gran fins el moment
+            if cluster_size > max_cluster_size:
+                max_cluster_size = cluster_size
+
+        return max_cluster_size/ver_total
+
+    ###########################################################################################################################
+                                                        #ESTADÍSTICA
+
+    # IN: 1) Vector values
+    # OUT: Mitjana de values (sumar els seus elements i dividr-los per la mida de values
+    @staticmethod
+    def mean_value(values):
+        suma = sum(values)
+        return suma / len(values)
+
+
+    # IN: 1) Vector de valors. 2) n, Número d'iteracions
+    # OUT: Incertesa de la mesura
+    @staticmethod
+    def incertesa(values):
+        desv_est = ClassPercolacioQuadrat.standard_dev(values)
+        return desv_est/np.sqrt(len(values))
+
+
+    #IN: 1) Vector de valors. 2) n, Número d'iteracions
+    #OUT: Desviació estàndard
+    @staticmethod
+    def standard_dev(values):
+        suma = 0
+        mean = ClassPercolacioQuadrat.mean_value(values)
+        for i in range(len(values)):
+            suma += (values[i] - mean)**2
+        return np.sqrt(suma/(len(values)-1))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

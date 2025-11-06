@@ -122,8 +122,8 @@ def tridiag(a, b, c, d):
     """
     n = len(a)
 
-    cp = np.zeros(n, dtype = np.complex)
-    dp = np.zeros(n, dtype = np.complex)
+    cp = np.zeros(n, dtype = np.complex128)
+    dp = np.zeros(n, dtype = np.complex128)
     cp[0] = c[0]/b[0]
     dp[0] = d[0]/b[0]
 
@@ -132,7 +132,7 @@ def tridiag(a, b, c, d):
         cp[i] = c[i]/m
         dp[i] = (d[i] - a[i]*dp[i-1])/m
 
-    x = np.zeros(n, dtype = np.complex)
+    x = np.zeros(n, dtype = np.complex128)
     x[n-1] = dp[n-1]
 
     for j in range(1,n):
@@ -175,7 +175,7 @@ def crank_nicolson1D(x, psi0, V, t0 = 0, tmax = 5, dt = 0.01):
 
     #Number of steps
     iterations = int((tmax-t0)/dt)
-    psit = np.zeros([iterations, len(x)], dtype = np.complex)
+    psit = np.zeros([iterations, len(x)], dtype = np.complex128)
     times = []
     dx = x[1]-x[0]
 
