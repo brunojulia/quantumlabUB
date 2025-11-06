@@ -51,7 +51,7 @@ def compute_bx(row, psi, r):
     Returns the vector bx, dimension Nx (independent terms when solving rows)
     """
 
-    bx = np.zeros(Nx, dtype = np.complex)
+    bx = np.zeros(Nx, dtype = np.complex128)
     if row != 0:
         bx += r*psi[row-1,:]
 
@@ -67,7 +67,7 @@ def compute_by(col, psip, r):
     Return the vector by, dimension Ny (independent terms when solving columns)
     """
 
-    by = np.zeros(Ny, dtype = np.complex)
+    by = np.zeros(Ny, dtype = np.complex128)
     if col != 0:
         by += r*(psip[:,col-1])
     if col != Nx-1:
@@ -83,8 +83,8 @@ def tridiag(a, b, c, d):
     """
     n = len(a)
 
-    cp = np.zeros(n, dtype = np.complex)
-    dp = np.zeros(n, dtype = np.complex)
+    cp = np.zeros(n, dtype = np.complex128)
+    dp = np.zeros(n, dtype = np.complex128)
     cp[0] = c[0]/b[0]
     dp[0] = d[0]/b[0]
 
@@ -93,7 +93,7 @@ def tridiag(a, b, c, d):
         cp[i] = c[i]/m
         dp[i] = (d[i] - a[i]*dp[i-1])/m
 
-    x = np.zeros(n, dtype = np.complex)
+    x = np.zeros(n, dtype = np.complex128)
     x[n-1] = dp[n-1]
 
     for j in range(1,n):
@@ -102,7 +102,6 @@ def tridiag(a, b, c, d):
 
     return x
 
-@jit
 def crank_nicolson2D(x, y, psi0, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
     """
     Runs the Crank-Nicolson method in an infinie well defined by x.
@@ -141,7 +140,7 @@ def crank_nicolson2D(x, y, psi0, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
     Nx = x.shape[1]
     Ny = x.shape[0]
 
-    psit = np.zeros([iterations, Ny, Nx], dtype = np.complex)
+    psit = np.zeros([iterations, Ny, Nx], dtype = np.complex128)
     times = []
     dx = y[1]-y[0]
 
@@ -157,7 +156,7 @@ def crank_nicolson2D(x, y, psi0, t0 = 0, tmax = 5, dt = 0.01, hbar = 1, m = 1):
         #Saves the wave function
         psit[it] = psi
 
-        psip = np.zeros(psi.shape, dtype = np.complex)
+        psip = np.zeros(psi.shape, dtype = np.complex128)
         #rows
         for j in range(Ny):
             bx = compute_bx(j, psi, r)

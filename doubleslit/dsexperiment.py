@@ -29,8 +29,8 @@ class DSexperiment(object):
 
         #psi0
         self.times = [0]
-        self.psit = [np.zeros(self.x.shape, dtype = np.complex)]
-        self.Pt = [np.zeros(self.x.shape, dtype = np.float)]
+        self.psit = [np.zeros(self.x.shape, dtype = np.complex128)]
+        self.Pt = [np.zeros(self.x.shape, dtype = np.float64)]
 
         #V
         self.Vo = Vo
